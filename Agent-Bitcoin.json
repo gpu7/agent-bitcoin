@@ -1,0 +1,455 @@
+{
+  "name": "Agent-Bitcoin",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are Agent A.\n\nSTRICT RULES:\n- If you decide to send sats to Agent B, your ENTIRE response must be ONLY valid JSON in this exact format — NO other text before, after, or around it:\n  {\"pay\": true, \"amount\": integer in sats, \"reason\": \"short explanation\"}\n- Amount must be a positive integer between 1 and 1000000.\n- Do NOT explain, do NOT add commentary, do NOT say \"sure\" or \"here's the JSON\" — ONLY the JSON object.\n\n- If you do NOT decide to pay, respond normally in plain text — no JSON.\n\nCurrent conversation context: [the chat history will be here]"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -1696,
+        176
+      ],
+      "id": "f3e65cf3-7030-4480-8677-1b0a20813d95",
+      "name": "Agent-A"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        432,
+        192
+      ],
+      "id": "a909c399-85b4-4f0b-9712-386110f28f39",
+      "name": "Agent-B"
+    },
+    {
+      "parameters": {
+        "model": "grok-4-1-fast-reasoning",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
+      "typeVersion": 1,
+      "position": [
+        -1616,
+        400
+      ],
+      "id": "9841451b-55bf-4c94-b482-99d2af75cc38",
+      "name": "xAI Grok Chat Model",
+      "credentials": {
+        "xAiApi": {
+          "id": "3HBDXcWByyGrllgu",
+          "name": "xAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -1920,
+        176
+      ],
+      "id": "5c80b2e4-9f34-4374-a32a-f13ff8a7936e",
+      "name": "Chat Message",
+      "webhookId": "3216c534-ce15-4db2-bc2c-a12a72670928"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "=\"Payment of {{ $json.amount }} sats sent successfully!\"",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "9696d489-6c42-4d3d-9a77-7995fc2ffcd7",
+      "name": "Payment Succeeded"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9fd8e132-cef0-4f12-8e36-0a6771b91489",
+              "leftValue": "={{ $json.success === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -16,
+        96
+      ],
+      "id": "0fc85997-2a66-4ab9-9afd-7e69ad156f34",
+      "name": "Payment Succeeded?"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "=\"Payment failed: {{ $json.error || 'Unknown error' }}\"\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        192
+      ],
+      "id": "e35dafcc-38c1-4812-8017-7f71ea0ee5fd",
+      "name": "Payment Failed"
+    },
+    {
+      "parameters": {
+        "model": "grok-4-1-fast-reasoning",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
+      "typeVersion": 1,
+      "position": [
+        512,
+        416
+      ],
+      "id": "5a7a1469-59d9-4830-b985-46f4b0d2138e",
+      "name": "xAI Grok Chat Model1",
+      "credentials": {
+        "xAiApi": {
+          "id": "3HBDXcWByyGrllgu",
+          "name": "xAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ada74e1a-5c3f-494d-9271-2220b1c12b77",
+              "name": "payment_request",
+              "value": "=payment_request = {{ $json.payment_request }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -464,
+        96
+      ],
+      "id": "2e479ae9-1371-4e8b-b953-e75dd57f0f56",
+      "name": "Extract Payment Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { exec } = require('child_process');\n\nconst paymentRequest = items[0].json.payment_request;\n\nconst cmd = `docker exec lnd-agent-a lncli --network=regtest payinvoice \"${paymentRequest}\" --force`;\n\nreturn new Promise((resolve) => {\n  exec(cmd, (err, stdout, stderr) => {\n    if (err) {\n      resolve([{ json: { error: err.message, stderr } }]);\n    } else if (stderr) {\n      resolve([{ json: { error: stderr } }]);\n    } else {\n      resolve([{ json: { stdout, success: stdout.includes('SUCCEEDED') || stdout.includes('Payment successful') } }]);\n    }\n  });\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        96
+      ],
+      "id": "69016380-693b-4777-a019-0f5dfb87ad06",
+      "name": "Pay from Agent-A"
+    },
+    {
+      "parameters": {
+        "jsCode": "const lastMessage = items[0].json.messages?.slice(-1)[0]?.content || items[0].json.output || '';\n\ntry {\n  const parsed = JSON.parse(lastMessage);\n  if (parsed.pay === true && Number.isInteger(parsed.amount) && parsed.amount > 0) {\n    return [{ json: { pay: true, amount: parsed.amount, reason: parsed.reason || 'No reason given' } }];\n  }\n} catch (e) {}\n\n// Not a payment decision → pass through original\nreturn [{ json: { pay: false, message: lastMessage } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1344,
+        176
+      ],
+      "id": "7530a6d7-7ad2-4311-a070-d94709cd5615",
+      "name": "Parse Grok Payment Decision"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ab1c9e84-a7e5-4d7c-aec7-b592485536bb",
+              "leftValue": "={{ $json.pay }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -912,
+        176
+      ],
+      "id": "8cc7c79c-8168-4890-bb1c-5975ad057edd",
+      "name": "Payment Decision?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { exec } = require('child_process');\n\n// Input from previous node (after If True)\nconst amount = items[0].json.amount;\nconst reason = items[0].json.reason || 'Payment from Agent A via Grok';\n\n// Escape quotes in reason to avoid shell injection\nconst escapedReason = reason.replace(/\"/g, '\\\\\"');\n\nconst cmd = `docker exec lnd-agent-b lncli --network=regtest addinvoice --amt ${amount} --memo \"${escapedReason}\"`;\n\nreturn new Promise((resolve) => {\n  exec(cmd, (err, stdout, stderr) => {\n    if (err) {\n      console.error('Exec error:', err);\n      resolve([{ json: { error: err.message, stderr } }]);\n    } else if (stderr && !stderr.includes('success')) {\n      console.error('stderr:', stderr);\n      resolve([{ json: { error: stderr } }]);\n    } else {\n      try {\n        const output = JSON.parse(stdout);\n        if (output.payment_request) {\n          resolve([{ json: { payment_request: output.payment_request } }]);\n        } else {\n          resolve([{ json: { error: 'No payment_request in output', stdout } }]);\n        }\n      } catch (parseErr) {\n        resolve([{ json: { error: parseErr.message, stdout } }]);\n      }\n    }\n  });\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -688,
+        96
+      ],
+      "id": "9504ae13-2156-40b5-8fba-ebda9a9a8873",
+      "name": "Create Invoice Agent-B"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6ce9f601-8d87-4f9d-9cd1-173ed142b4b4",
+              "name": "pay",
+              "value": "true",
+              "type": "string"
+            },
+            {
+              "id": "f469c0e1-ebee-4352-af15-0231ad623f60",
+              "name": "amount",
+              "value": "500",
+              "type": "string"
+            },
+            {
+              "id": "3ab3de79-b4f7-4a34-8dee-80ca0af5cbfb",
+              "name": "reason",
+              "value": "Test payment from n8n workflow",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1136,
+        176
+      ],
+      "id": "7cd7af31-1821-408b-90d3-0ccc62483b2f",
+      "name": "Test Payment Input"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Agent-A": {
+      "main": [
+        [
+          {
+            "node": "Parse Grok Payment Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "xAI Grok Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent-A",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Message": {
+      "main": [
+        [
+          {
+            "node": "Agent-A",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment Succeeded?": {
+      "main": [
+        [
+          {
+            "node": "Payment Succeeded",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Payment Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment Succeeded": {
+      "main": [
+        [
+          {
+            "node": "Agent-B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment Failed": {
+      "main": [
+        [
+          {
+            "node": "Agent-B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "xAI Grok Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent-B",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Payment Request": {
+      "main": [
+        [
+          {
+            "node": "Pay from Agent-A",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pay from Agent-A": {
+      "main": [
+        [
+          {
+            "node": "Payment Succeeded?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Grok Payment Decision": {
+      "main": [
+        [
+          {
+            "node": "Test Payment Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment Decision?": {
+      "main": [
+        [
+          {
+            "node": "Create Invoice Agent-B",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agent-B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Invoice Agent-B": {
+      "main": [
+        [
+          {
+            "node": "Extract Payment Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Payment Input": {
+      "main": [
+        [
+          {
+            "node": "Payment Decision?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "7b5a62c2-4d9c-4ae5-b880-a85cde617d2d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a30a7835f19071b76f7ad86fe85c7147dda5f1c65af3f785e868d889b2aa9bec"
+  },
+  "id": "rkJbYF6CodpQL3wR",
+  "tags": []
+}
