@@ -3,15 +3,16 @@
   "nodes": [
     {
       "parameters": {
+        "promptType": "define",
         "options": {
-          "systemMessage": "You are Agent A.\n\nSTRICT RULES:\n- If you decide to send sats to Agent B, your ENTIRE response must be ONLY valid JSON in this exact format — NO other text before, after, or around it:\n  {\"pay\": true, \"amount\": integer in sats, \"reason\": \"short explanation\"}\n- Amount must be a positive integer between 1 and 1000000.\n- Do NOT explain, do NOT add commentary, do NOT say \"sure\" or \"here's the JSON\" — ONLY the JSON object.\n\n- If you do NOT decide to pay, respond normally in plain text — no JSON.\n\nCurrent conversation context: [the chat history will be here]"
+          "systemMessage": "YYou are Agent A.\n\nSTRICT RULES:\n- If you decide to send sats to Agent B, your ENTIRE response must be ONLY valid JSON in this exact format — NO other text:\n  {\"pay\": true, \"amount\": integer in sats, \"reason\": \"short explanation\"}\n- Amount must be a positive integer between 1 and 1000000.\n- Do NOT explain, do NOT add commentary — ONLY the JSON object.\n\n- If you do NOT decide to pay, respond normally in plain text — no JSON.\n\nDecide whether to pay Agent B based on the following context: [add any dynamic context here if needed]"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
         -1872,
-        176
+        168
       ],
       "id": "ad8460bc-ac9e-4286-94ed-55b6d05545c8",
       "name": "Agent-A"
@@ -23,7 +24,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        496,
+        272,
         192
       ],
       "id": "32996741-eec2-4d92-a144-4a417b510acc",
@@ -37,8 +38,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -1808,
-        400
+        -1800,
+        392
       ],
       "id": "2c762b86-0c23-4fbd-af65-7949058009a1",
       "name": "xAI Grok Chat Model",
@@ -58,7 +59,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        272,
+        48,
         0
       ],
       "id": "fe2a1cbd-06d7-494a-a99a-2ab12fe70ced",
@@ -92,7 +93,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        48,
+        -176,
         96
       ],
       "id": "250b4ef0-251d-4af1-8124-56eda8d1d051",
@@ -107,7 +108,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        272,
+        48,
         192
       ],
       "id": "3ec6fb7d-6438-4e2d-9045-54caa9ee7316",
@@ -121,7 +122,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        576,
+        344,
         416
       ],
       "id": "5cddfe3b-f6b6-4464-8234-cfef12a345f5",
@@ -150,7 +151,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -400,
+        -624,
         96
       ],
       "id": "951d1913-d720-4662-ba23-d0558f1745c9",
@@ -164,7 +165,7 @@
       "typeVersion": 2,
       "position": [
         -1520,
-        176
+        168
       ],
       "id": "aada2f30-129e-40af-ad7e-e211b986c172",
       "name": "Parse Grok Payment Decision"
@@ -197,46 +198,11 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -848,
-        176
+        -1072,
+        168
       ],
       "id": "4a8dd1b7-9c7f-4d86-a01e-d913751a667c",
       "name": "Payment Decision?"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "6ce9f601-8d87-4f9d-9cd1-173ed142b4b4",
-              "name": "pay",
-              "value": "true",
-              "type": "string"
-            },
-            {
-              "id": "f469c0e1-ebee-4352-af15-0231ad623f60",
-              "name": "amount",
-              "value": "100",
-              "type": "string"
-            },
-            {
-              "id": "3ab3de79-b4f7-4a34-8dee-80ca0af5cbfb",
-              "name": "reason",
-              "value": "Test payment from n8n workflow",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -1296,
-        176
-      ],
-      "id": "546b97bb-2e7b-46ac-8a09-0a0c7de106bd",
-      "name": "Test Payment Input"
     },
     {
       "parameters": {
@@ -255,7 +221,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -624,
+        -848,
         96
       ],
       "id": "4ac0cd18-729f-4502-9abc-3ea86061f967",
@@ -286,7 +252,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -176,
+        -400,
         96
       ],
       "id": "ff80843e-a030-4b37-aa18-8eca000fda76",
@@ -309,8 +275,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1072,
-        176
+        -1296,
+        168
       ],
       "id": "d28996a0-e51b-4f83-b467-ee850ca49ce4",
       "name": "Temp Set node"
@@ -321,7 +287,7 @@
       "typeVersion": 1,
       "position": [
         -2096,
-        176
+        168
       ],
       "id": "4d602c69-9b87-4414-97d5-1d35402d8c4a",
       "name": "Manual Trigger"
@@ -417,7 +383,7 @@
       "main": [
         [
           {
-            "node": "Test Payment Input",
+            "node": "Temp Set node",
             "type": "main",
             "index": 0
           }
@@ -436,17 +402,6 @@
         [
           {
             "node": "Agent-B",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Test Payment Input": {
-      "main": [
-        [
-          {
-            "node": "Temp Set node",
             "type": "main",
             "index": 0
           }
@@ -504,7 +459,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "8a96bd1f-a334-4a84-9bfd-80bd0b475f7f",
+  "versionId": "257708cf-994b-4cc9-a2be-740cd54347cb",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
