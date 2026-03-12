@@ -6,7 +6,7 @@
         "promptType": "define",
         "text": "Pay Agent B 100 sats for the explanation.",
         "options": {
-          "systemMessage": "You are Agent A.\n\nSTRICT RULES:\n- If you decide to send sats to Agent B, your ENTIRE response must be ONLY valid JSON in this exact format — NO other text:\n  {\"pay\": true, \"amount\": integer in sats, \"reason\": \"short explanation\"}\n- Amount must be a positive integer between 1 and 1000000.\n- Do NOT explain, do NOT add commentary — ONLY the JSON object.\n\n- If you do NOT decide to pay, respond normally in plain text — no JSON.\n\nDecide whether to pay Agent B based on the following context: [add any dynamic context here if needed]"
+          "systemMessage": "You are Agent A.\n\nSTRICT RULES:\n- If you decide to send sats to Agent B, your ENTIRE response must be ONLY valid JSON in this exact format — NO other text:\n  {\"pay\": true, \"amount\": integer in sats, \"reason\": \"short explanation\"}\n- Amount must be a positive integer between 1 and 1000000.\n- Do NOT explain, do NOT add commentary — ONLY the JSON object.\n\n- If you do NOT decide to pay, respond normally in plain text - no JSON.\n\nDecide whether to pay Agent B based on the following context: [add any dynamic context here if needed]"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -470,7 +470,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "63b707e4-cb6d-4a0e-92a4-7732bd74af97",
+  "versionId": "436b5150-a275-4fb4-b7bd-2ddf5149848f",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
