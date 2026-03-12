@@ -4,8 +4,9 @@
     {
       "parameters": {
         "promptType": "define",
+        "text": "Pay Agent B 100 sats for the explanation.",
         "options": {
-          "systemMessage": "YYou are Agent A.\n\nSTRICT RULES:\n- If you decide to send sats to Agent B, your ENTIRE response must be ONLY valid JSON in this exact format — NO other text:\n  {\"pay\": true, \"amount\": integer in sats, \"reason\": \"short explanation\"}\n- Amount must be a positive integer between 1 and 1000000.\n- Do NOT explain, do NOT add commentary — ONLY the JSON object.\n\n- If you do NOT decide to pay, respond normally in plain text — no JSON.\n\nDecide whether to pay Agent B based on the following context: [add any dynamic context here if needed]"
+          "systemMessage": "You are Agent A.\n\nSTRICT RULES:\n- If you decide to send sats to Agent B, your ENTIRE response must be ONLY valid JSON in this exact format — NO other text:\n  {\"pay\": true, \"amount\": integer in sats, \"reason\": \"short explanation\"}\n- Amount must be a positive integer between 1 and 1000000.\n- Do NOT explain, do NOT add commentary — ONLY the JSON object.\n\n- If you do NOT decide to pay, respond normally in plain text — no JSON.\n\nDecide whether to pay Agent B based on the following context: [add any dynamic context here if needed]"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -19,6 +20,8 @@
     },
     {
       "parameters": {
+        "promptType": "define",
+        "text": "You are Agent B. You just received a payment or message from Agent A. Respond politely and gratefully, e.g., \"Thanks for the payment!\" or comment on the reason if provided.",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -101,8 +104,16 @@
     },
     {
       "parameters": {
-        "mode": "raw",
-        "jsonOutput": "=\"Payment failed: {{ $json.error || 'Unknown error' }}\"\n\n",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4d7915e0-1134-40b7-b827-91157cf542a7",
+              "name": "message",
+              "value": "=Payment failed: {{ $json.error \n\n $json.message \n\n 'Unknown error from Pay node' }}",
+              "type": "string"
+            }
+          ]
+        },
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -459,7 +470,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "257708cf-994b-4cc9-a2be-740cd54347cb",
+  "versionId": "63b707e4-cb6d-4a0e-92a4-7732bd74af97",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
