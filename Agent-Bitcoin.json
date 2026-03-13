@@ -4,7 +4,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "Pay Agent B 100 sats for the explanation.",
+        "text": "Pay Agent B 100 sats right now as a thank you for the explanation. Use amount 100 and reason \"Test successful payment flow\".",
         "options": {
           "systemMessage": "You are Agent A.\n\nSTRICT RULES:\n- If you decide to send sats to Agent B, your ENTIRE response must be ONLY valid JSON in this exact format — NO other text:\n  {\"pay\": true, \"amount\": integer in sats, \"reason\": \"short explanation\"}\n- Amount must be a positive integer between 1 and 1000000.\n- Do NOT explain, do NOT add commentary — ONLY the JSON object.\n\n- If you do NOT decide to pay, respond normally in plain text - no JSON.\n\nDecide whether to pay Agent B based on the following context: [add any dynamic context here if needed]"
         }
@@ -13,7 +13,7 @@
       "typeVersion": 3.1,
       "position": [
         -1872,
-        168
+        176
       ],
       "id": "ad8460bc-ac9e-4286-94ed-55b6d05545c8",
       "name": "Agent-A"
@@ -218,22 +218,12 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://172.18.0.4:10009/v1/invoices",
+        "url": "http://172.18.0.4:8080/v1/invoices",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "Accept",
-              "value": "application/json"
-            }
-          ]
-        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"memo\": \"{{ $json.reason || 'Payment from Agent A via Grok' }}\",\n  \"value\": \"{{ $json.amount }}\"\n}",
         "options": {
           "allowUnauthorizedCerts": true,
           "timeout": 60000
@@ -259,22 +249,12 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://172.18.0.3:10009/v1/payments",
+        "url": "http://127.0.0.1:18080/v1/payments",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "Accept",
-              "value": "application/json"
-            }
-          ]
-        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"payment_request\": \"{{ $json.payment_request }}\",\n  \"timeout_seconds\": 60,\n  \"fee_limit_sat\": 100\n}",
         "options": {
           "allowUnauthorizedCerts": true,
           "timeout": 60000
@@ -464,7 +444,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "f89b191c-1fc9-435b-994f-18bf8538fb5c",
+  "versionId": "61b596a7-f63e-49f3-b400-32b80d462d91",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
