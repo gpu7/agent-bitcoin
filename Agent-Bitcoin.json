@@ -27,7 +27,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        272,
+        48,
         192
       ],
       "id": "32996741-eec2-4d92-a144-4a417b510acc",
@@ -62,7 +62,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        48,
+        -176,
         0
       ],
       "id": "fe2a1cbd-06d7-494a-a99a-2ab12fe70ced",
@@ -96,7 +96,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -176,
+        -400,
         96
       ],
       "id": "250b4ef0-251d-4af1-8124-56eda8d1d051",
@@ -119,7 +119,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        48,
+        -176,
         192
       ],
       "id": "3ec6fb7d-6438-4e2d-9045-54caa9ee7316",
@@ -133,7 +133,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        344,
+        120,
         416
       ],
       "id": "5cddfe3b-f6b6-4464-8234-cfef12a345f5",
@@ -162,7 +162,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -624,
+        -848,
         96
       ],
       "id": "951d1913-d720-4662-ba23-d0558f1745c9",
@@ -209,7 +209,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1072,
+        -1296,
         168
       ],
       "id": "4a8dd1b7-9c7f-4d86-a01e-d913751a667c",
@@ -218,21 +218,31 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://host.docker.internal:18081/v1/invoices",
+        "url": "http://172.18.0.4:10009/v1/invoices",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"memo\": \"{{ $json.reason || 'Payment from Agent A via Grok' }}\",\n  \"value\": \"{{ $json.amount }}\"\n}",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
         "options": {
           "allowUnauthorizedCerts": true,
-          "timeout": 30000
+          "timeout": 60000
         }
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -848,
+        -1072,
         96
       ],
       "id": "4ac0cd18-729f-4502-9abc-3ea86061f967",
@@ -249,21 +259,31 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://host.docker.internal:18080/v1/payments",
+        "url": "http://172.18.0.3:10009/v1/payments",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"payment_request\": \"{{ $json.payment_request }}\",\n  \"timeout_seconds\": 60,\n  \"fee_limit_sat\": 100\n}",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
         "options": {
           "allowUnauthorizedCerts": true,
-          "timeout": 30000
+          "timeout": 60000
         }
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -400,
+        -624,
         96
       ],
       "id": "ff80843e-a030-4b37-aa18-8eca000fda76",
@@ -276,21 +296,6 @@
         }
       },
       "onError": "continueRegularOutput"
-    },
-    {
-      "parameters": {
-        "mode": "raw",
-        "jsonOutput": "{\n  \"pay\": true,\n  \"amount\": 100,\n  \"reason\": \"Test from n8n\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -1296,
-        168
-      ],
-      "id": "d28996a0-e51b-4f83-b467-ee850ca49ce4",
-      "name": "Temp Set node"
     },
     {
       "parameters": {},
@@ -394,7 +399,7 @@
       "main": [
         [
           {
-            "node": "Temp Set node",
+            "node": "Payment Decision?",
             "type": "main",
             "index": 0
           }
@@ -441,17 +446,6 @@
         ]
       ]
     },
-    "Temp Set node": {
-      "main": [
-        [
-          {
-            "node": "Payment Decision?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Manual Trigger": {
       "main": [
         [
@@ -470,7 +464,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "436b5150-a275-4fb4-b7bd-2ddf5149848f",
+  "versionId": "f89b191c-1fc9-435b-994f-18bf8538fb5c",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
