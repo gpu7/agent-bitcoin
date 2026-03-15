@@ -218,14 +218,21 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://172.18.0.4:8080/v1/invoices",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "url": "http://172.18.0.4:8080/v1/invoices",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Grpc-Metadata-macaroon",
+              "value": "0201036c6e6402f801030a10b566f0a7ee91cef23b06e733119aa77d1201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e6572617465120472656164000006205759f8c3d2a746255cd4818e26465ac9be2dd572449e097f52e6d408842a08c4"
+            }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={\n  \"memo\": \"{{ $json.reason || 'Payment from Agent A via Grok' }}\",\n  \"value\": \"{{ $json.amount }}\"\n}",
         "options": {
-          "allowUnauthorizedCerts": true,
+          "allowUnauthorizedCerts": false,
           "timeout": 60000
         }
       },
@@ -238,25 +245,26 @@
       "id": "4ac0cd18-729f-4502-9abc-3ea86061f967",
       "name": "Create Invoice Agent-B",
       "retryOnFail": true,
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "9MbGuPlTZZQETdKK",
-          "name": "Header Auth account 2"
-        }
-      },
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://172.18.0.3:8080/v1/payments",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "url": "http://172.18.0.3:8080/v1/payments",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Grpc-Metadata-macaroon",
+              "value": "0201036c6e6402f801030a10d1be22b81445f55a46ea55b22c1f00581201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e657261746512047265616400000620cb7588f90307867c7834db0e77364e5584c942729f51ed1b89b4e9d5cb85f004"
+            }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={\n  \"payment_request\": \"{{ $json.payment_request }}\",\n  \"timeout_seconds\": 60,\n  \"fee_limit_sat\": 100\n}",
         "options": {
-          "allowUnauthorizedCerts": true,
+          "allowUnauthorizedCerts": false,
           "timeout": 60000
         }
       },
@@ -269,12 +277,6 @@
       "id": "ff80843e-a030-4b37-aa18-8eca000fda76",
       "name": "Pay Invoice Agent-A",
       "retryOnFail": true,
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "FqEvvCSMbPl1oFYx",
-          "name": "Header Auth account"
-        }
-      },
       "onError": "continueRegularOutput"
     },
     {
@@ -444,7 +446,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "3aa1f63c-2632-4f83-8421-434c913e71c7",
+  "versionId": "cf824389-64aa-41b7-9310-6d091bd6cc57",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
