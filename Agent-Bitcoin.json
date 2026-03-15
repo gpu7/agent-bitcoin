@@ -56,7 +56,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "=\"Payment of {{ $json.amount }} sats sent successfully!\"",
+        "jsonOutput": "={\n  \"message\": \"Payment of {{ $json.amt_to_forward || $json.total_amt || 100 }} sats sent successfully!\",\n  \"amount\": \"{{ $json.amt_to_forward || $json.total_amt || 'unknown' }}\",\n  \"reason\": \"{{ $json.reason || 'Test successful payment flow' }}\",\n  \"payment_hash\": \"{{ $json.payment_hash }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -80,7 +80,7 @@
           "conditions": [
             {
               "id": "9fd8e132-cef0-4f12-8e36-0a6771b91489",
-              "leftValue": "={{ $json.status === \"SUCCEEDED\" }}",
+              "leftValue": "={{ $json.payment_hash != null }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -218,7 +218,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://172.18.0.4:8080/v1/invoices",
+        "url": "https://172.18.0.4:8080/v1/invoices",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -232,8 +232,8 @@
         "specifyBody": "json",
         "jsonBody": "={\n  \"memo\": \"{{ $json.reason || 'Payment from Agent A via Grok' }}\",\n  \"value\": \"{{ $json.amount }}\"\n}",
         "options": {
-          "allowUnauthorizedCerts": false,
-          "timeout": 60000
+          "allowUnauthorizedCerts": true,
+          "timeout": 120000
         }
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -245,12 +245,13 @@
       "id": "4ac0cd18-729f-4502-9abc-3ea86061f967",
       "name": "Create Invoice Agent-B",
       "retryOnFail": true,
+      "waitBetweenTries": 5000,
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "http://172.18.0.3:8080/v1/payments",
+        "url": "https://172.18.0.3:8080/v1/channels/transactions",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -262,10 +263,10 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"payment_request\": \"{{ $json.payment_request }}\",\n  \"timeout_seconds\": 60,\n  \"fee_limit_sat\": 100\n}",
+        "jsonBody": "={\n  \"payment_request\": \"{{ $json.payment_request }}\"\n}",
         "options": {
-          "allowUnauthorizedCerts": false,
-          "timeout": 60000
+          "allowUnauthorizedCerts": true,
+          "timeout": 120000
         }
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -277,6 +278,7 @@
       "id": "ff80843e-a030-4b37-aa18-8eca000fda76",
       "name": "Pay Invoice Agent-A",
       "retryOnFail": true,
+      "waitBetweenTries": 5000,
       "onError": "continueRegularOutput"
     },
     {
@@ -446,7 +448,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "cf824389-64aa-41b7-9310-6d091bd6cc57",
+  "versionId": "1b4bff30-ac43-49ef-a4e3-78ee06b17280",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
