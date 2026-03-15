@@ -291,6 +291,30 @@
       ],
       "id": "4d602c69-9b87-4414-97d5-1d35402d8c4a",
       "name": "Manual Trigger"
+    },
+    {
+      "parameters": {
+        "fromEmail": "richardcaseyhpc@protonmail.com",
+        "toEmail": "richardcaseyhpc@protonmail.com",
+        "subject": "Agent Bitcoin Payment Report - {{ $now.format('YYYY-MM-DD HH:mm:ss') }}",
+        "html": "=Date: {{ $now.format('YYYY-MM-DD') }}\nTime: {{ $now.format('HH:mm:ss') }}\n\nTransaction amount: {{ $json.amount || $json.total_amt || $json.amt_to_forward || 'unknown' }} sats\nTransaction fee: {{ ($json.total_fees_msat || 0) / 1000 || 0 }} sats\n\nStatus: {{ $json.message.includes('success') ? 'Success' : 'Failed' }}\n\nPayment Hash: {{ $json.payment_hash || 'N/A' }}\nReason: {{ $json.reason || 'No reason provided' }}\n\nFull details (for debugging):\n{{ JSON.stringify($json, null, 2) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        400,
+        192
+      ],
+      "id": "03920788-d415-4cc6-9c5d-cc21ec350880",
+      "name": "Send an Email",
+      "webhookId": "8046c746-8f9f-4a48-b844-a4f79bc97f0c",
+      "credentials": {
+        "smtp": {
+          "id": "7GfJA3ESH7d5Ud2P",
+          "name": "Proton Bridge SMTP"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -440,6 +464,17 @@
           }
         ]
       ]
+    },
+    "Agent-B": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -448,7 +483,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "1b4bff30-ac43-49ef-a4e3-78ee06b17280",
+  "versionId": "2c7294f7-4b8e-40e6-9f67-e0855cc85b5b",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
