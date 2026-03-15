@@ -41,8 +41,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -1800,
-        392
+        -1808,
+        400
       ],
       "id": "2c762b86-0c23-4fbd-af65-7949058009a1",
       "name": "xAI Grok Chat Model",
@@ -133,7 +133,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        120,
+        128,
         416
       ],
       "id": "5cddfe3b-f6b6-4464-8234-cfef12a345f5",
@@ -176,7 +176,7 @@
       "typeVersion": 2,
       "position": [
         -1520,
-        168
+        176
       ],
       "id": "aada2f30-129e-40af-ad7e-e211b986c172",
       "name": "Parse Grok Payment Decision"
@@ -210,7 +210,7 @@
       "typeVersion": 2.3,
       "position": [
         -1296,
-        168
+        176
       ],
       "id": "4a8dd1b7-9c7f-4d86-a01e-d913751a667c",
       "name": "Payment Decision?"
@@ -218,7 +218,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://172.18.0.4:8080/v1/invoices",
+        "url": "https://172.18.0.4:8080/v1/invoices",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
@@ -249,7 +249,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://127.0.0.1:18080/v1/payments",
+        "url": "https://172.18.0.3:8080/v1/payments",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
@@ -283,7 +283,7 @@
       "typeVersion": 1,
       "position": [
         -2096,
-        168
+        176
       ],
       "id": "4d602c69-9b87-4414-97d5-1d35402d8c4a",
       "name": "Manual Trigger"
@@ -444,7 +444,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "61b596a7-f63e-49f3-b400-32b80d462d91",
+  "versionId": "3aa1f63c-2632-4f83-8421-434c913e71c7",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
