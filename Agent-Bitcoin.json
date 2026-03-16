@@ -13,7 +13,7 @@
       "typeVersion": 3.1,
       "position": [
         -1872,
-        176
+        120
       ],
       "id": "ad8460bc-ac9e-4286-94ed-55b6d05545c8",
       "name": "Agent-A"
@@ -27,8 +27,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        48,
-        192
+        496,
+        120
       ],
       "id": "32996741-eec2-4d92-a144-4a417b510acc",
       "name": "Agent-B"
@@ -41,8 +41,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -1808,
-        400
+        -1800,
+        344
       ],
       "id": "2c762b86-0c23-4fbd-af65-7949058009a1",
       "name": "xAI Grok Chat Model",
@@ -63,7 +63,7 @@
       "typeVersion": 3.4,
       "position": [
         -176,
-        0
+        -48
       ],
       "id": "fe2a1cbd-06d7-494a-a99a-2ab12fe70ced",
       "name": "Payment Succeeded"
@@ -97,7 +97,7 @@
       "typeVersion": 2.3,
       "position": [
         -400,
-        96
+        48
       ],
       "id": "250b4ef0-251d-4af1-8124-56eda8d1d051",
       "name": "Payment Succeeded?"
@@ -120,7 +120,7 @@
       "typeVersion": 3.4,
       "position": [
         -176,
-        192
+        144
       ],
       "id": "3ec6fb7d-6438-4e2d-9045-54caa9ee7316",
       "name": "Payment Failed"
@@ -133,8 +133,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        128,
-        416
+        568,
+        344
       ],
       "id": "5cddfe3b-f6b6-4464-8234-cfef12a345f5",
       "name": "xAI Grok Chat Model1",
@@ -163,7 +163,7 @@
       "typeVersion": 3.4,
       "position": [
         -848,
-        96
+        48
       ],
       "id": "951d1913-d720-4662-ba23-d0558f1745c9",
       "name": "Extract Payment Request"
@@ -176,7 +176,7 @@
       "typeVersion": 2,
       "position": [
         -1520,
-        176
+        120
       ],
       "id": "aada2f30-129e-40af-ad7e-e211b986c172",
       "name": "Parse Grok Payment Decision"
@@ -210,7 +210,7 @@
       "typeVersion": 2.3,
       "position": [
         -1296,
-        176
+        120
       ],
       "id": "4a8dd1b7-9c7f-4d86-a01e-d913751a667c",
       "name": "Payment Decision?"
@@ -240,7 +240,7 @@
       "typeVersion": 4.4,
       "position": [
         -1072,
-        96
+        48
       ],
       "id": "4ac0cd18-729f-4502-9abc-3ea86061f967",
       "name": "Create Invoice Agent-B",
@@ -273,7 +273,7 @@
       "typeVersion": 4.4,
       "position": [
         -624,
-        96
+        48
       ],
       "id": "ff80843e-a030-4b37-aa18-8eca000fda76",
       "name": "Pay Invoice Agent-A",
@@ -287,7 +287,7 @@
       "typeVersion": 1,
       "position": [
         -2096,
-        176
+        120
       ],
       "id": "4d602c69-9b87-4414-97d5-1d35402d8c4a",
       "name": "Manual Trigger"
@@ -296,18 +296,18 @@
       "parameters": {
         "fromEmail": "richardcaseyhpc@protonmail.com",
         "toEmail": "richardcaseyhpc@protonmail.com",
-        "subject": "Agent Bitcoin Payment Report - {{ $now.format('YYYY-MM-DD HH:mm:ss') }}",
-        "html": "=Date: {{ $now.format('YYYY-MM-DD') }}\nTime: {{ $now.format('HH:mm:ss') }}\n\nTransaction amount: {{ $json.amount || $json.total_amt || $json.amt_to_forward || 'unknown' }} sats\nTransaction fee: {{ ($json.total_fees_msat || 0) / 1000 || 0 }} sats\n\nStatus: {{ $json.message.includes('success') ? 'Success' : 'Failed' }}\n\nPayment Hash: {{ $json.payment_hash || 'N/A' }}\nReason: {{ $json.reason || 'No reason provided' }}\n\nFull details (for debugging):\n{{ JSON.stringify($json, null, 2) }}",
+        "subject": "=Agent Bitcoin Payment Report - {{ $now.format('YYYY-MM-DD HH:mm:ss') }}",
+        "html": "=Date: {{ $now.format('YYYY-MM-DD') }}\nTime: {{ $now.format('HH:mm:ss') }}\n\nTransaction amount: {{ $json.total_amt || $json.amt_to_forward || $json.amount || 'unknown' }} sats\nTransaction fee: {{ ($json.total_fees_msat || 0) / 1000 || 0 }} sats\n\nStatus: {{ $json.message && $json.message.toLowerCase().includes('success') ? 'Success' : 'Failed or processed' }}\n\nPayment Hash: {{ $json.payment_hash || 'N/A' }}\nReason: {{ $json.reason || 'No reason provided' }}\n\nAgent-B Response:\n{{ $json.output || 'No response from Agent-B' }}\n\nFull raw data (debug):\n{{ JSON.stringify($json, null, 2) }}",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        400,
-        192
+        272,
+        48
       ],
       "id": "03920788-d415-4cc6-9c5d-cc21ec350880",
-      "name": "Send an Email",
+      "name": "Send Email Report",
       "webhookId": "8046c746-8f9f-4a48-b844-a4f79bc97f0c",
       "credentials": {
         "smtp": {
@@ -315,6 +315,23 @@
           "name": "Proton Bridge SMTP"
         }
       }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": true
+        }
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        48,
+        48
+      ],
+      "id": "d07e4bf5-57eb-4d86-af1e-55f99f7fa7eb",
+      "name": "Merge"
     }
   ],
   "pinData": {},
@@ -363,7 +380,7 @@
       "main": [
         [
           {
-            "node": "Agent-B",
+            "node": "Merge",
             "type": "main",
             "index": 0
           }
@@ -374,9 +391,9 @@
       "main": [
         [
           {
-            "node": "Agent-B",
+            "node": "Merge",
             "type": "main",
-            "index": 0
+            "index": 1
           }
         ]
       ]
@@ -467,9 +484,25 @@
     },
     "Agent-B": {
       "main": [
+        []
+      ]
+    },
+    "Send Email Report": {
+      "main": [
         [
           {
-            "node": "Send an Email",
+            "node": "Agent-B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Send Email Report",
             "type": "main",
             "index": 0
           }
@@ -483,7 +516,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "2c7294f7-4b8e-40e6-9f67-e0855cc85b5b",
+  "versionId": "5639616e-9b0d-4e7e-8323-71f2bd19a77b",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
