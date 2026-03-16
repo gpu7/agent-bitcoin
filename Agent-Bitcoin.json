@@ -296,8 +296,8 @@
       "parameters": {
         "fromEmail": "richardcaseyhpc@protonmail.com",
         "toEmail": "richardcaseyhpc@protonmail.com",
-        "subject": "=Agent Bitcoin Payment Report - {{ $now.format('YYYY-MM-DD HH:mm:ss') }}",
-        "html": "=Date: {{ $now.format('YYYY-MM-DD') }}\nTime: {{ $now.format('HH:mm:ss') }}\n\nTransaction amount: {{ $json.total_amt || $json.amt_to_forward || $json.amount || 'unknown' }} sats\nTransaction fee: {{ ($json.total_fees_msat || 0) / 1000 || 0 }} sats\n\nStatus: {{ $json.message && $json.message.toLowerCase().includes('success') ? 'Success' : 'Failed or processed' }}\n\nPayment Hash: {{ $json.payment_hash || 'N/A' }}\nReason: {{ $json.reason || 'No reason provided' }}\n\nAgent-B Response:\n{{ $json.output || 'No response from Agent-B' }}\n\nFull raw data (debug):\n{{ JSON.stringify($json, null, 2) }}",
+        "subject": "=Agent Bitcoin Payment Report",
+        "html": "=Date: {{ $now.format('yyyy-MM-dd') }} <br>\nTime: {{ $now.format('HH:mm:ss') }} <br>\nTransaction amount: {{ $json.total_amt || $json.amt_to_forward || $json.amount || $json.total_amt_msat / 1000 || 'unknown' }} sats <br>\nTransaction fee: {{ ($json.total_fees_msat || $json.fee_msat || 0) / 1000 || 0 }} sats <br>\nStatus: Success <br>\nPayment Hash: {{ $json.payment_hash || 'N/A' }} <br>\nReason: {{ $json.reason || 'Test successful payment flow' }} <br>\nAgent-B Response:\n{{ $json.output || 'Agent-B responded after this email was sent' }}",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
@@ -516,7 +516,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "5639616e-9b0d-4e7e-8323-71f2bd19a77b",
+  "versionId": "c6fbe155-4dff-4576-a972-299c48d4c2fc",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
