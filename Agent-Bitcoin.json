@@ -297,7 +297,7 @@
         "fromEmail": "richardcaseyhpc@protonmail.com",
         "toEmail": "richardcaseyhpc@protonmail.com",
         "subject": "Agent Bitcoin Payment Report",
-        "html": "=Date: {{ $now.format('yyyy-MM-dd') }} <br>\nTime: {{ $now.format('HH:mm:ss') }} <br>\nTransaction amount: {{ $json.total_amt || $json.amt_to_forward || $json.amount || $json.total_amt_msat / 1000 || 'unknown' }} sats <br>\nTransaction fee: {{ ($json.total_fees_msat || $json.fee_msat || 0) / 1000 || 0 }} sats <br>\nStatus: Success <br>\nPayment Hash: {{ $json.payment_hash || 'N/A' }} <br>\nReason: {{ $json.reason || 'Test successful payment flow' }} <br>\nAgent-B Response:\n{{ $json.output || 'Agent-B responded after this email was sent' }}",
+        "html": "=<p><strong>Lightning Payment Report</strong></p>\n<p><strong>Date:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n<p><strong>Time:</strong> {{ $now.format('HH:mm:ss') }}</p>\n<p><strong>From:</strong> Agent A</p>\n<p><strong>To:</strong> Agent B</p>\n<p><strong>Transaction amount:</strong> {{ $json.amount || $json.total_amt || $json.amt_to_forward || 100 }} sats</p>\n<p><strong>Transaction fee:</strong> {{ $json.fee || (($json.total_fees_msat || 0) / 1000) || 0 }} sats</p>\n<p><strong>Status:</strong> ✅ Success</p>\n<p><strong>Payment Hash:</strong> {{ $json.payment_hash || 'N/A' }}</p>\n<p><strong>Reason:</strong> {{ $json.reason || 'Test successful payment flow' }}</p>\n<p><strong>Agent-B Response:</strong><br>{{ $json.output || 'Agent-B responded after this email was sent' }}</p>",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
@@ -542,7 +542,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "46972388-48b2-4a8d-99a6-38d95a5592e0",
+  "versionId": "e1b48295-1535-401b-9b99-cff8adcb0b4b",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
