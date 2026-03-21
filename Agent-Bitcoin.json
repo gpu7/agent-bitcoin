@@ -12,10 +12,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -1872,
-        128
+        -2640,
+        1584
       ],
-      "id": "ad8460bc-ac9e-4286-94ed-55b6d05545c8",
+      "id": "c3a32844-5845-43eb-98df-75352deeabab",
       "name": "Agent-A"
     },
     {
@@ -27,10 +27,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        704,
-        128
+        -64,
+        1584
       ],
-      "id": "32996741-eec2-4d92-a144-4a417b510acc",
+      "id": "e05d6c48-64cd-4e88-acc9-750b3980f32c",
       "name": "Agent-B"
     },
     {
@@ -41,10 +41,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -1808,
-        352
+        -2576,
+        1808
       ],
-      "id": "2c762b86-0c23-4fbd-af65-7949058009a1",
+      "id": "f3400257-2904-4120-a46e-0beacbbcfb60",
       "name": "xAI Grok Chat Model",
       "credentials": {
         "xAiApi": {
@@ -62,10 +62,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -176,
-        -48
+        -944,
+        1408
       ],
-      "id": "fe2a1cbd-06d7-494a-a99a-2ab12fe70ced",
+      "id": "e227a3d4-d50b-4270-bc8b-a3d8c2b649aa",
       "name": "Payment Succeeded"
     },
     {
@@ -96,10 +96,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -400,
-        48
+        -1168,
+        1504
       ],
-      "id": "250b4ef0-251d-4af1-8124-56eda8d1d051",
+      "id": "69f033a6-aaa8-46da-afb8-c3a97e22e40a",
       "name": "Payment Succeeded?"
     },
     {
@@ -119,10 +119,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -176,
-        144
+        -944,
+        1600
       ],
-      "id": "3ec6fb7d-6438-4e2d-9045-54caa9ee7316",
+      "id": "60021921-da66-49df-b5b7-537bc5ed4d07",
       "name": "Payment Failed"
     },
     {
@@ -133,10 +133,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        784,
-        352
+        16,
+        1808
       ],
-      "id": "5cddfe3b-f6b6-4464-8234-cfef12a345f5",
+      "id": "803c51b7-34e5-48b6-8ac7-80ecd12289ba",
       "name": "xAI Grok Chat Model1",
       "credentials": {
         "xAiApi": {
@@ -162,10 +162,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -848,
-        48
+        -1616,
+        1504
       ],
-      "id": "951d1913-d720-4662-ba23-d0558f1745c9",
+      "id": "80676efb-cfd7-47c3-bb39-711d67468092",
       "name": "Extract Payment Request"
     },
     {
@@ -175,10 +175,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1520,
-        128
+        -2288,
+        1584
       ],
-      "id": "aada2f30-129e-40af-ad7e-e211b986c172",
+      "id": "5ca755e2-31f0-4498-bd37-0bc6da182774",
       "name": "Parse Grok Payment Decision"
     },
     {
@@ -209,10 +209,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1296,
-        128
+        -2064,
+        1584
       ],
-      "id": "4a8dd1b7-9c7f-4d86-a01e-d913751a667c",
+      "id": "68431907-addd-4b06-b60d-ee8617c47182",
       "name": "Payment Decision?"
     },
     {
@@ -224,7 +224,7 @@
           "parameters": [
             {
               "name": "Grpc-Metadata-macaroon",
-              "value": "0201036c6e6402f801030a10b566f0a7ee91cef23b06e733119aa77d1201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e6572617465120472656164000006205759f8c3d2a746255cd4818e26465ac9be2dd572449e097f52e6d408842a08c4"
+              "value": "0201036c6e6402f801030a106418d2b55553fea5a508bd847ffbd3121201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e657261746512047265616400000620a74ba77108b77a116beff3f7474572e24dbe12b00d0bfb25d797a446b82b8a33"
             }
           ]
         },
@@ -239,10 +239,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -1072,
-        48
+        -1840,
+        1504
       ],
-      "id": "4ac0cd18-729f-4502-9abc-3ea86061f967",
+      "id": "66ce4cf1-b685-4e47-8f89-8bdc0c41ad38",
       "name": "Create Invoice Agent-B",
       "retryOnFail": true,
       "waitBetweenTries": 5000,
@@ -272,10 +272,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -624,
-        48
+        -1392,
+        1504
       ],
-      "id": "ff80843e-a030-4b37-aa18-8eca000fda76",
+      "id": "5ed7da3a-5c72-418d-b92d-e8ba1ba1df26",
       "name": "Pay Invoice Agent-A",
       "retryOnFail": true,
       "waitBetweenTries": 5000,
@@ -286,10 +286,10 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -2096,
-        128
+        -2864,
+        1584
       ],
-      "id": "4d602c69-9b87-4414-97d5-1d35402d8c4a",
+      "id": "cbf9c8a6-2bd3-415e-9ade-4910f5241e23",
       "name": "Manual Trigger"
     },
     {
@@ -303,10 +303,10 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        480,
-        48
+        -288,
+        1504
       ],
-      "id": "03920788-d415-4cc6-9c5d-cc21ec350880",
+      "id": "239ff666-0f14-44e4-84fd-021b13028459",
       "name": "Send Email Report",
       "webhookId": "8046c746-8f9f-4a48-b844-a4f79bc97f0c",
       "credentials": {
@@ -327,10 +327,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        48,
-        48
+        -720,
+        1504
       ],
-      "id": "d07e4bf5-57eb-4d86-af1e-55f99f7fa7eb",
+      "id": "b10ca32a-a8e3-4a66-82f6-82c80935133a",
       "name": "Merge"
     },
     {
@@ -342,10 +342,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        256,
-        48
+        -512,
+        1504
       ],
-      "id": "a5a75c2c-464f-4027-89c6-6c44b2fd2942",
+      "id": "5de92844-3f47-4d53-aaf9-3079baf51b04",
       "name": "Extract Payment Data"
     }
   ],
@@ -497,11 +497,6 @@
         ]
       ]
     },
-    "Agent-B": {
-      "main": [
-        []
-      ]
-    },
     "Send Email Report": {
       "main": [
         [
@@ -542,7 +537,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "e1b48295-1535-401b-9b99-cff8adcb0b4b",
+  "versionId": "8a6b97e4-7242-4f70-9b30-fb85f07491d4",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
