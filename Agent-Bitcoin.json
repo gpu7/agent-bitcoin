@@ -13,7 +13,7 @@
       "typeVersion": 3.1,
       "position": [
         -2640,
-        1584
+        1576
       ],
       "id": "c3a32844-5845-43eb-98df-75352deeabab",
       "name": "Agent-A"
@@ -27,8 +27,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -64,
-        1584
+        -48,
+        1576
       ],
       "id": "e05d6c48-64cd-4e88-acc9-750b3980f32c",
       "name": "Agent-B"
@@ -41,8 +41,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -2576,
-        1808
+        -2568,
+        1800
       ],
       "id": "f3400257-2904-4120-a46e-0beacbbcfb60",
       "name": "xAI Grok Chat Model",
@@ -133,8 +133,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        16,
-        1808
+        24,
+        1800
       ],
       "id": "803c51b7-34e5-48b6-8ac7-80ecd12289ba",
       "name": "xAI Grok Chat Model1",
@@ -176,7 +176,7 @@
       "typeVersion": 2,
       "position": [
         -2288,
-        1584
+        1576
       ],
       "id": "5ca755e2-31f0-4498-bd37-0bc6da182774",
       "name": "Parse Grok Payment Decision"
@@ -210,7 +210,7 @@
       "typeVersion": 2.3,
       "position": [
         -2064,
-        1584
+        1576
       ],
       "id": "68431907-addd-4b06-b60d-ee8617c47182",
       "name": "Payment Decision?"
@@ -287,7 +287,7 @@
       "typeVersion": 1,
       "position": [
         -2864,
-        1584
+        1576
       ],
       "id": "cbf9c8a6-2bd3-415e-9ade-4910f5241e23",
       "name": "Manual Trigger"
@@ -303,7 +303,7 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        -288,
+        -272,
         1504
       ],
       "id": "239ff666-0f14-44e4-84fd-021b13028459",
@@ -342,7 +342,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -512,
+        -496,
         1504
       ],
       "id": "5de92844-3f47-4d53-aaf9-3079baf51b04",
@@ -537,7 +537,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "f24df200-bb3f-4195-bd32-7b45dd3a9457",
+  "versionId": "0d40ecb9-f0e7-463e-b503-5ded031596ff",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
