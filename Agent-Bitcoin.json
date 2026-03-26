@@ -302,7 +302,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"amount\": \"{{ $json.payment_route.total_amt || $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}\",\n  \"fee\": \"{{ Math.floor(($json.payment_route.total_fees_msat || 0) / 1000) || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'Test successful payment flow' }}\"\n}",
+        "jsonOutput": "={\n  \"amount\": \"{{ $json.payment_route?.total_amt || $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}\",\n  \"fee\": \"{{ Math.floor( ($json.payment_route?.total_fees_msat || 0) / 1000 ) || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'Test successful payment flow' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -762,7 +762,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "3f38029f-1e73-4ae9-abe6-276380bb89c9",
+  "versionId": "9a50acce-8881-485b-8306-e03a679c2b06",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
