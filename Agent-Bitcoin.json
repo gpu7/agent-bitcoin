@@ -56,7 +56,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"message\": \"Payment of {{ $json.payment_route.total_amt || 0 }} sats sent successfully!\",\n  \"amount\": \"{{ $json.payment_route.total_amt || 0 }}\",\n  \"reason\": \"{{ $json.reason || 'Test successful payment flow' }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\"\n}",
+        "jsonOutput": "={\n  \"message\": \"Payment of {{ $node['Capture Payment Amount'].json.payment_amount_sats || 0 }} sats sent successfully!\",\n  \"amount\": \"{{ $node['Capture Payment Amount'].json.payment_amount_sats || 0 }}\",\n  \"reason\": \"{{ $json.reason || 'Test successful payment flow' }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -184,13 +184,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://172.17.0.5:8080/v1/invoices",
+        "url": "http://agent-b-lnd:8080/v1/invoices",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Grpc-Metadata-macaroon",
-              "value": "0201036c6e6402f801030a1044fe33718f221fb479096baaeb4b8eee1201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e657261746512047265616400000620b66eaa747c814c5d14a61deeb31b3385c86cc3b9a948219be4d52b1b5d68fc63"
+              "value": "0201036c6e6402f801030a10c0eaeb5391f3a5e839b492fd0c9838ad1201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e6572617465120472656164000006207d4c281171fe99d3f55b074a856a58f6afc7017360da87293724987b760af537"
             }
           ]
         },
@@ -217,13 +217,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://172.17.0.4:8080/v1/channels/transactions",
+        "url": "http://agent-a-lnd:8080/v1/channels/transactions",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Grpc-Metadata-macaroon",
-              "value": "0201036c6e6402f801030a10061d40d53d743972c80a49638b0722781201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e6572617465120472656164000006208578e9ebb182d0a67c76fd40f8b65b65840a3e483240ace143a9b39b4c55f0cf"
+              "value": "0201036c6e6402f801030a100185e630dda1bcced39075f8cc57a8551201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e657261746512047265616400000620121b973872a81b59e82309ee7ba581f64fbe9bba4baaf6f24fe0833ba30b15c5"
             }
           ]
         },
@@ -302,7 +302,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"amount\": \"{{ $json.amt_to_forward_msat / 1000 || $json.total_amt_msat / 1000 || 100 }}\",\n  \"fee\": \"{{ ($json.total_fees_msat || $json.fee_msat || 0) / 1000 || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'Test successful payment flow' }}\"\n}",
+        "jsonOutput": "={\n  \"amount\": \"{{ $json.payment_route.total_amt || 0 }}\",\n  \"fee\": \"{{ Math.floor(($json.payment_route.total_fees_msat || 0) / 1000) }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'Test successful payment flow' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -332,19 +332,19 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://172.17.0.5:8080/v1/transactions",
+        "url": "http://agent-b-lnd:8080/v1/transactions",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Grpc-Metadata-macaroon",
-              "value": "0201036c6e6402f801030a1044fe33718f221fb479096baaeb4b8eee1201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e657261746512047265616400000620b66eaa747c814c5d14a61deeb31b3385c86cc3b9a948219be4d52b1b5d68fc63"
+              "value": "0201036c6e6402f801030a10c0eaeb5391f3a5e839b492fd0c9838ad1201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e6572617465120472656164000006207d4c281171fe99d3f55b074a856a58f6afc7017360da87293724987b760af537"
             }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"addr\": \"{{ $json.sweep_address }}\",\n  \"amt\": \"{{ Math.max(0, ($json.payment_route.hops[0].amt_to_forward || 0) - 10) }}\",\n  \"sat_per_byte\": 1\n}",
+        "jsonBody": "={\n  \"addr\": \"{{ $json.sweep_address }}\",\n  \"amt\": \"{{ Math.max(0, ($node['Capture Payment Amount'].json.payment_amount_sats || 0) - 10) }}\",\n  \"sat_per_byte\": 1\n}",
         "options": {
           "allowUnauthorizedCerts": true,
           "timeout": 120000
@@ -361,20 +361,16 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://172.17.0.5:8080/v1/newaddress",
+        "url": "http://agent-b-lnd:8080/v1/newaddress?type=P2WKH",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Grpc-Metadata-macaroon",
-              "value": "0201036c6e6402f801030a1044fe33718f221fb479096baaeb4b8eee1201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e657261746512047265616400000620b66eaa747c814c5d14a61deeb31b3385c86cc3b9a948219be4d52b1b5d68fc63"
+              "value": "0201036c6e6402f801030a10c0eaeb5391f3a5e839b492fd0c9838ad1201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e6572617465120472656164000006207d4c281171fe99d3f55b074a856a58f6afc7017360da87293724987b760af537"
             }
           ]
         },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "{\n  \"type\": \"P2WKH\"\n}",
         "options": {
           "allowUnauthorizedCerts": true,
           "timeout": 120000
@@ -395,13 +391,13 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict",
+            "typeValidation": "loose",
             "version": 3
           },
           "conditions": [
             {
               "id": "c3845312-aa60-495b-a975-073c60c8156d",
-              "leftValue": "={{ $json.payment_route.hops[0].amt_to_forward || 0 }}",
+              "leftValue": "={{ $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}",
               "rightValue": 100,
               "operator": {
                 "type": "number",
@@ -411,6 +407,7 @@
           ],
           "combinator": "and"
         },
+        "looseTypeValidation": true,
         "options": {}
       },
       "type": "n8n-nodes-base.if",
@@ -433,53 +430,6 @@
       "id": "7456d217-5d3c-46cc-8a67-6879730125f5",
       "name": "LND Updates Balance",
       "webhookId": "c131e727-7626-4fee-b085-b224fbdd72c8"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "7f002e8e-a941-44db-bbb5-aac36dea9214",
-              "name": "=debug_amt_to_forward",
-              "value": "={{ $node[\"Pay Invoice Agent-A\"].json.amt_to_forward || 0 }}",
-              "type": "string"
-            },
-            {
-              "id": "372d0a0f-da54-4dc7-908e-7ed63083d467",
-              "name": "=debug_amt_to_forward",
-              "value": "={{ $node[\"Pay Invoice Agent-A\"].json.amt_to_forward || 0 }}",
-              "type": "string"
-            },
-            {
-              "id": "97acf356-6d1f-4342-8417-ba92ee0cff7e",
-              "name": "=debug_amt_to_forward_msat",
-              "value": "={{ $node[\"Pay Invoice Agent-A\"].json.amt_to_forward_msat || 0 }}",
-              "type": "string"
-            },
-            {
-              "id": "7dae833b-945d-417e-abb8-20112818ae97",
-              "name": "=debug_all_keys",
-              "value": "={{ Object.keys($node[\"Pay Invoice Agent-A\"].json) }}",
-              "type": "string"
-            },
-            {
-              "id": "19f2dd37-3580-44f1-900a-8a214fc25ab7",
-              "name": "=debug_full_json",
-              "value": "={{ $node[\"Pay Invoice Agent-A\"].json }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -1168,
-        1552
-      ],
-      "id": "d689904d-efc9-4ded-8f87-5acd8e65f8c3",
-      "name": "Debug Pay Output"
     },
     {
       "parameters": {
@@ -509,11 +459,46 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -944,
+        -1168,
         1552
       ],
       "id": "69f033a6-aaa8-46da-afb8-c3a97e22e40a",
       "name": "Did Payment Succeed?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "93b441a9-b033-4b00-a63d-cfd576d46f1d",
+              "name": "payment_amount_sats",
+              "value": "={{ $json.amt_to_forward || $json.payment_route.total_amt || $json.payment_route.hops[0].amt_to_forward || 0 }}",
+              "type": "string"
+            },
+            {
+              "id": "b02c12d1-5cd9-46b3-bccb-d5fec3bc255f",
+              "name": "payment_amount_msat",
+              "value": "={{ $json.amt_to_forward_msat || $json.payment_route.total_amt_msat || $json.payment_route.hops[0].amt_to_forward_msat || 0 }}",
+              "type": "string"
+            },
+            {
+              "id": "72984801-16b9-4535-be2f-3bf2539de742",
+              "name": "payment_hash",
+              "value": "={{ $json.payment_hash || 'N/A' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -944,
+        1488
+      ],
+      "id": "cbba0a59-70bc-4f38-9138-8af503b6109d",
+      "name": "Capture Payment Amount"
     }
   ],
   "pinData": {},
@@ -628,7 +613,7 @@
       "main": [
         [
           {
-            "node": "Debug Pay Output",
+            "node": "Did Payment Succeed?",
             "type": "main",
             "index": 0
           }
@@ -741,22 +726,11 @@
         ]
       ]
     },
-    "Debug Pay Output": {
-      "main": [
-        [
-          {
-            "node": "Did Payment Succeed?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Did Payment Succeed?": {
       "main": [
         [
           {
-            "node": "Payment Succeeded",
+            "node": "Capture Payment Amount",
             "type": "main",
             "index": 0
           }
@@ -764,6 +738,17 @@
         [
           {
             "node": "Payment Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Capture Payment Amount": {
+      "main": [
+        [
+          {
+            "node": "Payment Succeeded",
             "type": "main",
             "index": 0
           }
@@ -777,7 +762,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "4f08c9b3-9f91-4528-bd54-989e97c8ea6f",
+  "versionId": "16474147-4774-4e08-a660-e2f4b09b82a1",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
