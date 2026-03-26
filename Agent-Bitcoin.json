@@ -27,7 +27,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        1296,
+        1504,
         1696
       ],
       "id": "e05d6c48-64cd-4e88-acc9-750b3980f32c",
@@ -99,7 +99,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        1376,
+        1584,
         1920
       ],
       "id": "803c51b7-34e5-48b6-8ac7-80ecd12289ba",
@@ -263,13 +263,13 @@
         "fromEmail": "richardcaseyhpc@protonmail.com",
         "toEmail": "richardcaseyhpc@protonmail.com",
         "subject": "Agent Bitcoin Payment Report",
-        "html": "=<p><strong>Lightning Payment Report</strong></p>\n<p><strong>Date:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n<p><strong>Time:</strong> {{ $now.format('HH:mm:ss') }}</p>\n<p><strong>From:</strong> Agent A</p>\n<p><strong>To:</strong> Agent B</p>\n<p><strong>Transaction amount:</strong> {{ $json.amount || $node[\"Extract Payment Data\"].json.amount || $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }} sats</p>\n<p><strong>Transaction fee:</strong> {{ $json.fee || $node[\"Extract Payment Data\"].json.fee || 0 }} sats</p>\n<p><strong>Status:</strong> ✅ Success</p>\n<p><strong>Payment Hash:</strong> {{ $json.payment_hash || 'N/A' }}</p>\n<p><strong>Reason:</strong> {{ $json.reason || 'Test successful payment flow' }}</p>\n<p><strong>Agent-B Response:</strong><br>{{ $json.output || 'Agent-B responded after this email was sent' }}</p>",
+        "html": "=<p><strong>Lightning Payment Report</strong></p>\n<p><strong>Date:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n<p><strong>Time:</strong> {{ $now.format('HH:mm:ss') }}</p>\n<p><strong>From:</strong> Agent A</p>\n<p><strong>To:</strong> Agent B</p>\n<hr>\n<p><strong>Lightning Payment:</strong> {{ $node[\"Gather Balances\"].json.payment_amount }} sats</p>\n<p><strong>Payment Fee:</strong> {{ $node[\"Gather Balances\"].json.payment_fee }} sats</p>\n<p><strong>Payment Hash:</strong> {{ $node[\"Gather Balances\"].json.payment_hash }}</p>\n<p><strong>Reason:</strong> {{ $node[\"Gather Balances\"].json.reason }}</p>\n<hr>\n<p><strong>Agent B Lightning Balance (after payment):</strong> {{ $node[\"Gather Balances\"].json.agent_b_lightning_total }} sats</p>\n<p><strong>Agent B On-chain Confirmed Balance:</strong> {{ $node[\"Gather Balances\"].json.agent_b_onchain_confirmed }}</p>\n<p><strong>Channel Capacity:</strong> {{ $node[\"Gather Balances\"].json.channel_capacity }} sats</p>\n<p><strong>Sweep Triggered:</strong> {{ $node[\"Gather Balances\"].json.sweep_happened }}</p>\n<p><strong>Status:</strong> ✅ Success</p>",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        1072,
+        1280,
         1552
       ],
       "id": "239ff666-0f14-44e4-84fd-021b13028459",
@@ -344,7 +344,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"addr\": \"{{ $json.sweep_address }}\",\n  \"sat_per_vbyte\": 2,\n  \"amount\": \"{{ Math.max(5000, ($node[\"Capture Payment Amount\"].json.payment_amount_sats || 0) - 1000) }}\"\n}",
+        "jsonBody": "={\n  \"addr\": \"{{ $json.sweep_address }}\",\n  \"sat_per_vbyte\": 2,\n  \"amount\": \"{{ Math.max(10000, Math.floor(($node[\"Capture Payment Amount\"].json.payment_amount_sats || 0) * 0.6)) }}\"\n}",
         "options": {
           "allowUnauthorizedCerts": true,
           "timeout": 120000
@@ -398,7 +398,7 @@
             {
               "id": "c3845312-aa60-495b-a975-073c60c8156d",
               "leftValue": "={{ $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}",
-              "rightValue": 10000,
+              "rightValue": 30000,
               "operator": {
                 "type": "number",
                 "operation": "gt"
@@ -499,6 +499,21 @@
       ],
       "id": "cbba0a59-70bc-4f38-9138-8af503b6109d",
       "name": "Capture Payment Amount"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"payment_amount\": \"{{ $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}\",\n  \"payment_fee\": \"{{ $node[\"Extract Payment Data\"].json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'Test successful payment flow' }}\",\n  \n  \"agent_b_lightning_total\": \"{{ $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}\",\n  \"agent_b_onchain_confirmed\": \"Check manually via lncli for now\",\n  \"channel_capacity\": \"5000000\",\n  \"channel_local_balance\": \"See listchannels for latest\",\n  \"sweep_happened\": \"{{ $node[\"Should Sweep?\"].json.outputIndex === 0 ? 'Yes' : 'No' }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1056,
+        1552
+      ],
+      "id": "df4bcb60-e75d-467e-945b-07e6b926c173",
+      "name": "Gather Balances"
     }
   ],
   "pinData": {},
@@ -657,7 +672,7 @@
       "main": [
         [
           {
-            "node": "Send Email Report",
+            "node": "Gather Balances",
             "type": "main",
             "index": 0
           }
@@ -754,6 +769,17 @@
           }
         ]
       ]
+    },
+    "Gather Balances": {
+      "main": [
+        [
+          {
+            "node": "Send Email Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -762,7 +788,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "1a7d6e28-15de-4111-811c-8268ffb41e75",
+  "versionId": "ac52a807-42d0-41dc-a2e7-9a9aad89b920",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
