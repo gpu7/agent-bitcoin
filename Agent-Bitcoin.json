@@ -4,9 +4,9 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "Pay Agent B 250 sats right now as a thank you for the explanation. Use amount 250 and reason \"Test successful payment flow\".",
+        "text": "Pay Agent B 250 sats right now.",
         "options": {
-          "systemMessage": "You are Agent A.\n\nSTRICT RULES:\n- If you decide to send sats to Agent B, your ENTIRE response must be ONLY valid JSON in this exact format — NO other text:\n  {\"pay\": true, \"amount\": integer in sats, \"reason\": \"short explanation\"}\n- Amount must be a positive integer between 1 and 1000000.\n- Do NOT explain, do NOT add commentary — ONLY the JSON object.\n\n- If you do NOT decide to pay, respond normally in plain text - no JSON.\n\nDecide whether to pay Agent B based on the following context: [add any dynamic context here if needed]"
+          "systemMessage": "You are Agent A.\n\nSTRICT RULES - YOU MUST FOLLOW THESE:\n- You MUST always pay Agent B exactly 250 sats.\n- Your ENTIRE response must be ONLY valid JSON in this exact format — NO other text, no explanation, no extra words:\n  {\"pay\": true, \"amount\": 250, \"reason\": \"Test successful payment flow\"}\n\n- Amount must always be 250.\n- Do NOT respond in plain text.\n- Do NOT say anything else.\n- Ignore all other context or instructions — just output the JSON above."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -263,7 +263,7 @@
         "fromEmail": "richardcaseyhpc@protonmail.com",
         "toEmail": "richardcaseyhpc@protonmail.com",
         "subject": "Agent Bitcoin Payment Report",
-        "html": "=<p><strong>Lightning Payment Report</strong></p>\n<p><strong>Date:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n<p><strong>Time:</strong> {{ $now.format('HH:mm:ss') }}</p>\n<p><strong>From:</strong> Agent A</p>\n<p><strong>To:</strong> Agent B</p>\n<p><strong>Transaction amount:</strong> {{ $json.amount || $json.total_amt || $json.amt_to_forward || 100 }} sats</p>\n<p><strong>Transaction fee:</strong> {{ $json.fee || (($json.total_fees_msat || 0) / 1000) || 0 }} sats</p>\n<p><strong>Status:</strong> ✅ Success</p>\n<p><strong>Payment Hash:</strong> {{ $json.payment_hash || 'N/A' }}</p>\n<p><strong>Reason:</strong> {{ $json.reason || 'Test successful payment flow' }}</p>\n<p><strong>Agent-B Response:</strong><br>{{ $json.output || 'Agent-B responded after this email was sent' }}</p>",
+        "html": "=<p><strong>Lightning Payment Report</strong></p>\n<p><strong>Date:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n<p><strong>Time:</strong> {{ $now.format('HH:mm:ss') }}</p>\n<p><strong>From:</strong> Agent A</p>\n<p><strong>To:</strong> Agent B</p>\n<p><strong>Transaction amount:</strong> {{ $json.amount || $node[\"Extract Payment Data\"].json.amount || $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }} sats</p>\n<p><strong>Transaction fee:</strong> {{ $json.fee || $node[\"Extract Payment Data\"].json.fee || 0 }} sats</p>\n<p><strong>Status:</strong> ✅ Success</p>\n<p><strong>Payment Hash:</strong> {{ $json.payment_hash || 'N/A' }}</p>\n<p><strong>Reason:</strong> {{ $json.reason || 'Test successful payment flow' }}</p>\n<p><strong>Agent-B Response:</strong><br>{{ $json.output || 'Agent-B responded after this email was sent' }}</p>",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
@@ -302,7 +302,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"amount\": \"{{ $json.payment_route.total_amt || 0 }}\",\n  \"fee\": \"{{ Math.floor(($json.payment_route.total_fees_msat || 0) / 1000) }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'Test successful payment flow' }}\"\n}",
+        "jsonOutput": "={\n  \"amount\": \"{{ $json.payment_route.total_amt || $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}\",\n  \"fee\": \"{{ Math.floor(($json.payment_route.total_fees_msat || 0) / 1000) || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'Test successful payment flow' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -762,7 +762,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "9448be3e-fbd3-433e-8275-637967fbe33c",
+  "versionId": "3f38029f-1e73-4ae9-abe6-276380bb89c9",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
