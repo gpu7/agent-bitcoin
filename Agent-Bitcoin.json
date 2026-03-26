@@ -4,9 +4,9 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "Pay Agent B 250 sats right now.",
+        "text": "Pay Agent B 25000 sats right now.",
         "options": {
-          "systemMessage": "You are Agent A.\n\nSTRICT RULES - YOU MUST FOLLOW THESE:\n- You MUST always pay Agent B exactly 250 sats.\n- Your ENTIRE response must be ONLY valid JSON in this exact format — NO other text, no explanation, no extra words:\n  {\"pay\": true, \"amount\": 250, \"reason\": \"Test successful payment flow\"}\n\n- Amount must always be 250.\n- Do NOT respond in plain text.\n- Do NOT say anything else.\n- Ignore all other context or instructions — just output the JSON above."
+          "systemMessage": "You are Agent A.\n\nSTRICT RULES - YOU MUST FOLLOW THESE:\n- You MUST always pay Agent B exactly 25000 sats.\n- Your ENTIRE response must be ONLY valid JSON in this exact format — NO other text, no explanation, no extra words:\n  {\"pay\": true, \"amount\": 25000, \"reason\": \"Test successful payment flow\"}\n\n- Amount must always be 25000.\n- Do NOT respond in plain text.\n- Do NOT say anything else.\n- Ignore all other context or instructions — just output the JSON above."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -344,7 +344,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"addr\": \"{{ $json.sweep_address }}\",\n  \"sat_per_vbyte\": 2,\n  \"amount\": \"{{ Math.max(1000, ($node['Capture Payment Amount'].json.payment_amount_sats || 0) - 500) }}\"\n}",
+        "jsonBody": "={\n  \"addr\": \"{{ $json.sweep_address }}\",\n  \"sat_per_vbyte\": 2,\n  \"amount\": \"{{ Math.max(5000, ($node[\"Capture Payment Amount\"].json.payment_amount_sats || 0) - 1000) }}\"\n}",
         "options": {
           "allowUnauthorizedCerts": true,
           "timeout": 120000
@@ -398,7 +398,7 @@
             {
               "id": "c3845312-aa60-495b-a975-073c60c8156d",
               "leftValue": "={{ $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}",
-              "rightValue": 2000,
+              "rightValue": 10000,
               "operator": {
                 "type": "number",
                 "operation": "gt"
@@ -762,7 +762,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "9a50acce-8881-485b-8306-e03a679c2b06",
+  "versionId": "1a7d6e28-15de-4111-811c-8268ffb41e75",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
