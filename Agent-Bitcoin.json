@@ -27,7 +27,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        1920,
+        2128,
         1696
       ],
       "id": "e05d6c48-64cd-4e88-acc9-750b3980f32c",
@@ -99,7 +99,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        2000,
+        2208,
         1920
       ],
       "id": "803c51b7-34e5-48b6-8ac7-80ecd12289ba",
@@ -263,13 +263,13 @@
         "fromEmail": "richardcaseyhpc@protonmail.com",
         "toEmail": "richardcaseyhpc@protonmail.com",
         "subject": "Agent Bitcoin Payment Report",
-        "html": "=<p><strong>Lightning Payment Report</strong></p>\n<p><strong>Date:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n<p><strong>Time:</strong> {{ $now.format('HH:mm:ss') }}</p>\n<p><strong>From:</strong> Agent A</p>\n<p><strong>To:</strong> Agent B</p>\n<hr>\n<p><strong>Lightning Payment:</strong> {{ $node[\"Gather Balances\"].json.payment_amount }} sats</p>\n<p><strong>Payment Fee:</strong> {{ $node[\"Gather Balances\"].json.payment_fee }} sats</p>\n<p><strong>Payment Hash:</strong> {{ $node[\"Gather Balances\"].json.payment_hash }}</p>\n<p><strong>Reason:</strong> {{ $node[\"Gather Balances\"].json.reason }}</p>\n<hr>\n<p><strong>Agent B Lightning Balance (after payment):</strong> {{ $node[\"Gather Balances\"].json.agent_b_lightning_total }} sats</p>\n<p><strong>Agent B On-chain Confirmed Balance:</strong> {{ $node[\"Gather Balances\"].json.agent_b_onchain_confirmed }}</p>\n<p><strong>Channel Capacity:</strong> {{ $node[\"Gather Balances\"].json.channel_capacity }} sats</p>\n<p><strong>Sweep Triggered:</strong> {{ $node[\"Gather Balances\"].json.sweep_happened }}</p>\n<p><strong>Status:</strong> ✅ Success</p>",
+        "html": "=<p><strong>Lightning Payment Report</strong></p>\n<p><strong>Date:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n<p><strong>Time:</strong> {{ $now.format('HH:mm:ss') }}</p>\n<p><strong>From:</strong> Agent A</p>\n<p><strong>To:</strong> Agent B</p>\n<hr>\n<p><strong>Lightning Payment:</strong> {{ $node[\"Gather Balances\"].json.payment_amount }} sats</p>\n<p><strong>Payment Fee:</strong> {{ $node[\"Gather Balances\"].json.payment_fee }} sats</p>\n<p><strong>Payment Hash:</strong> {{ $node[\"Gather Balances\"].json.payment_hash }}</p>\n<p><strong>Reason:</strong> {{ $node[\"Gather Balances\"].json.reason }}</p>\n<hr>\n<p><strong>Agent B Lightning Total Balance:</strong> {{ $node[\"Gather Balances\"].json.agent_b_lightning_total }} sats</p>\n<p><strong>Agent B On-chain Confirmed:</strong> {{ $node[\"Gather Balances\"].json.agent_b_onchain_confirmed }} sats</p>\n<p><strong>Agent B On-chain Unconfirmed:</strong> {{ $node[\"Gather Balances\"].json.agent_b_onchain_unconfirmed }} sats</p>\n<p><strong>Channel Capacity:</strong> {{ $node[\"Gather Balances\"].json.channel_capacity }} sats</p>\n<p><strong>Channel Local Balance (Agent B):</strong> {{ $node[\"Gather Balances\"].json.channel_local_balance }} sats</p>\n<p><strong>Channel Remote Balance (Agent A):</strong> {{ $node[\"Gather Balances\"].json.channel_remote_balance }} sats</p>\n<p><strong>Sweep Triggered:</strong> {{ $node[\"Gather Balances\"].json.sweep_triggered }}</p>\n<p><strong>Status:</strong> ✅ Success</p>",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        1696,
+        1904,
         1552
       ],
       "id": "239ff666-0f14-44e4-84fd-021b13028459",
@@ -509,7 +509,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1472,
+        1680,
         1552
       ],
       "id": "df4bcb60-e75d-467e-945b-07e6b926c173",
@@ -517,7 +517,7 @@
     },
     {
       "parameters": {
-        "url": "https://agent-b-lnd:8080/v1/balance",
+        "url": "https://agent-b-lnd:8080/v1/balance/channels",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -561,11 +561,37 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1264,
+        1472,
         1552
       ],
       "id": "d9d0dfdf-40fc-468f-a933-070f549d4faa",
       "name": "Get Channel Info Agent-B"
+    },
+    {
+      "parameters": {
+        "url": "https://agent-b-lnd:8080/v1/balance/blockchain",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Grpc-Metadata-macaroon",
+              "value": "0201036c6e6402f801030a10c0eaeb5391f3a5e839b492fd0c9838ad1201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e6572617465120472656164000006207d4c281171fe99d3f55b074a856a58f6afc7017360da87293724987b760af537"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "timeout": 120000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1264,
+        1552
+      ],
+      "id": "81b61076-9aeb-4800-9258-591b69cb68ce",
+      "name": "Get Bitcoin Balance Agent-B"
     }
   ],
   "pinData": {},
@@ -837,7 +863,7 @@
       "main": [
         [
           {
-            "node": "Get Channel Info Agent-B",
+            "node": "Get Bitcoin Balance Agent-B",
             "type": "main",
             "index": 0
           }
@@ -854,6 +880,17 @@
           }
         ]
       ]
+    },
+    "Get Bitcoin Balance Agent-B": {
+      "main": [
+        [
+          {
+            "node": "Get Channel Info Agent-B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -862,7 +899,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "1daedcaa-847f-4e8c-89df-d399a8a77b39",
+  "versionId": "5f0f9678-6e3f-422d-b56a-731df663e29c",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
