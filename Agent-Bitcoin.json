@@ -27,7 +27,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        1504,
+        1920,
         1696
       ],
       "id": "e05d6c48-64cd-4e88-acc9-750b3980f32c",
@@ -99,7 +99,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        1584,
+        2000,
         1920
       ],
       "id": "803c51b7-34e5-48b6-8ac7-80ecd12289ba",
@@ -269,7 +269,7 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        1280,
+        1696,
         1552
       ],
       "id": "239ff666-0f14-44e4-84fd-021b13028459",
@@ -503,17 +503,69 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"payment_amount\": \"{{ $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}\",\n  \"payment_fee\": \"{{ $node[\"Extract Payment Data\"].json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'Test successful payment flow' }}\",\n  \n  \"agent_b_lightning_total\": \"{{ $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}\",\n  \"agent_b_onchain_confirmed\": \"Check manually via lncli for now\",\n  \"channel_capacity\": \"5000000\",\n  \"channel_local_balance\": \"See listchannels for latest\",\n  \"sweep_happened\": \"{{ $node[\"Should Sweep?\"].json.outputIndex === 0 ? 'Yes' : 'No' }}\"\n}",
+        "jsonOutput": "={\n  \"payment_amount\": \"{{ $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}\",\n  \"payment_fee\": \"{{ $node[\"Extract Payment Data\"].json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'Test successful payment flow' }}\",\n  \n  \"agent_b_lightning_total\": \"{{ $node[\"Get Lightning Balance Agent-B\"].json.total_balance || 0 }}\",\n  \"agent_b_onchain_confirmed\": \"{{ $node[\"Get Lightning Balance Agent-B\"].json.confirmed_balance || 0 }}\",\n  \"channel_capacity\": \"{{ $node[\"Get Channel Info Agent-B\"].json.channels[0].capacity || 5000000 }}\",\n  \"channel_local_balance\": \"{{ $node[\"Get Channel Info Agent-B\"].json.channels[0].local_balance || 0 }}\",\n  \"channel_remote_balance\": \"{{ $node[\"Get Channel Info Agent-B\"].json.channels[0].remote_balance || 0 }}\",\n  \"sweep_triggered\": \"{{ $node[\"Should Sweep?\"].json.outputIndex === 0 ? 'Yes' : 'No' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1056,
+        1472,
         1552
       ],
       "id": "df4bcb60-e75d-467e-945b-07e6b926c173",
       "name": "Gather Balances"
+    },
+    {
+      "parameters": {
+        "url": "https://agent-b-lnd:8080/v1/balance",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Grpc-Metadata-macaroon",
+              "value": "0201036c6e6402f801030a10c0eaeb5391f3a5e839b492fd0c9838ad1201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e6572617465120472656164000006207d4c281171fe99d3f55b074a856a58f6afc7017360da87293724987b760af537"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "timeout": 120000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1056,
+        1552
+      ],
+      "id": "ca7ddce2-e61b-4dab-9b5d-1226171928e0",
+      "name": "Get Lightning Balance Agent-B"
+    },
+    {
+      "parameters": {
+        "url": "https://agent-b-lnd:8080/v1/channels",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Grpc-Metadata-macaroon",
+              "value": "0201036c6e6402f801030a10c0eaeb5391f3a5e839b492fd0c9838ad1201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e6572617465120472656164000006207d4c281171fe99d3f55b074a856a58f6afc7017360da87293724987b760af537"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "timeout": 120000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1264,
+        1552
+      ],
+      "id": "d9d0dfdf-40fc-468f-a933-070f549d4faa",
+      "name": "Get Channel Info Agent-B"
     }
   ],
   "pinData": {},
@@ -672,7 +724,7 @@
       "main": [
         [
           {
-            "node": "Gather Balances",
+            "node": "Get Lightning Balance Agent-B",
             "type": "main",
             "index": 0
           }
@@ -780,6 +832,28 @@
           }
         ]
       ]
+    },
+    "Get Lightning Balance Agent-B": {
+      "main": [
+        [
+          {
+            "node": "Get Channel Info Agent-B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Channel Info Agent-B": {
+      "main": [
+        [
+          {
+            "node": "Gather Balances",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -788,7 +862,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "ac52a807-42d0-41dc-a2e7-9a9aad89b920",
+  "versionId": "1daedcaa-847f-4e8c-89df-d399a8a77b39",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
