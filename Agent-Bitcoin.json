@@ -503,7 +503,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"payment_amount\": \"{{ $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}\",\n  \"payment_fee\": \"{{ $node[\"Extract Payment Data\"].json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || $node[\"Pay Invoice Agent-A\"].json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'Test successful payment flow' }}\",\n  \n  \"agent_b_lightning_total\": \"{{ $node[\"Get Lightning Balance Agent-B\"].json.total_balance || $node[\"Get Lightning Balance Agent-B\"].json.balance || 0 }}\",\n  \"agent_b_onchain_confirmed\": \"{{ $node[\"Get Bitcoin Balance Agent-B\"].json.confirmed_balance || 0 }}\",\n  \"agent_b_onchain_unconfirmed\": \"{{ $node[\"Get Bitcoin Balance Agent-B\"].json.unconfirmed_balance || 0 }}\",\n  \n  \"channel_capacity\": \"{{ $node[\"Get Channel Info Agent-B\"].json.channels[0]?.capacity || 5000000 }}\",\n  \"channel_local_balance\": \"{{ $node[\"Get Channel Info Agent-B\"].json.channels[0]?.local_balance || 0 }}\",\n  \"channel_remote_balance\": \"{{ $node[\"Get Channel Info Agent-B\"].json.channels[0]?.remote_balance || 0 }}\",\n  \n  \"sweep_triggered\": \"{{ $node[\"Should Sweep?\"].json.outputIndex === 0 ? 'Yes' : 'No' }}\"\n}",
+        "jsonOutput": "={\n  \"payment_amount\": \"{{ $node['Capture Payment Amount'].json.payment_amount_sats || 0 }}\",\n  \"payment_fee\": \"{{ $node['Extract Payment Data'].json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || $node['Pay Invoice Agent-A'].json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'Test successful payment flow' }}\",\n\n  \"agent_b_lightning_total\": \"{{ $node['Get Lightning Balance Agent-B'].json.local_balance?.sat || $node['Get Lightning Balance Agent-B'].json.balance || 0 }}\",\n  \"agent_b_onchain_confirmed\": \"{{ $node['Get Bitcoin Balance Agent-B'].json.confirmed_balance || 0 }}\",\n  \"agent_b_onchain_unconfirmed\": \"{{ $node['Get Bitcoin Balance Agent-B'].json.unconfirmed_balance || 0 }}\",\n\n  \"channel_capacity\": \"{{ $node['Get Channel Info Agent-B'].json.channels[0]?.capacity || 5000000 }}\",\n  \"channel_local_balance\": \"{{ $node['Get Channel Info Agent-B'].json.channels[0]?.local_balance || 0 }}\",\n  \"channel_remote_balance\": \"{{ $node['Get Channel Info Agent-B'].json.channels[0]?.remote_balance || 0 }}\",\n\n  \"sweep_triggered\": \"{{ $node['Should Sweep?'].isExecuted ? ($node['Should Sweep?'].json.outputIndex === 0 ? 'Yes' : 'No') : 'No (blocked by reserve guardrail)' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -976,7 +976,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "f26c5f9d-f93a-4a54-9060-cc6f83e13224",
+  "versionId": "87659228-c1f3-4980-a8a0-41746d45ac09",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
