@@ -12,10 +12,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -2640,
-        1632
+        4192,
+        3424
       ],
-      "id": "c3a32844-5845-43eb-98df-75352deeabab",
+      "id": "1876f288-aa79-4013-bde3-b73fc3a89f04",
       "name": "Agent-A"
     },
     {
@@ -27,10 +27,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        2128,
-        1696
+        9248,
+        3488
       ],
-      "id": "e05d6c48-64cd-4e88-acc9-750b3980f32c",
+      "id": "fbc3b483-d423-425a-870c-4dac5fed5de3",
       "name": "Agent-B"
     },
     {
@@ -41,10 +41,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -2576,
-        1856
+        4272,
+        3648
       ],
-      "id": "f3400257-2904-4120-a46e-0beacbbcfb60",
+      "id": "86d8ba94-731b-4c57-8252-1590399b26db",
       "name": "xAI Grok Chat Model",
       "credentials": {
         "xAiApi": {
@@ -62,10 +62,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -720,
-        1488
+        6112,
+        3248
       ],
-      "id": "e227a3d4-d50b-4270-bc8b-a3d8c2b649aa",
+      "id": "f7a9fdb6-af54-48df-a560-f3068e4efd93",
       "name": "Payment Succeeded"
     },
     {
@@ -85,10 +85,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        400,
-        1696
+        7680,
+        3584
       ],
-      "id": "60021921-da66-49df-b5b7-537bc5ed4d07",
+      "id": "b18cc3a5-b00f-414a-ae59-dc2ebbb383a4",
       "name": "Payment Failed"
     },
     {
@@ -99,10 +99,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        2208,
-        1920
+        9328,
+        3712
       ],
-      "id": "803c51b7-34e5-48b6-8ac7-80ecd12289ba",
+      "id": "f0d4ab77-c302-46fa-8d6c-0c7972c52a2d",
       "name": "xAI Grok Chat Model1",
       "credentials": {
         "xAiApi": {
@@ -128,10 +128,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1616,
-        1552
+        5216,
+        3344
       ],
-      "id": "80676efb-cfd7-47c3-bb39-711d67468092",
+      "id": "11507b3e-cbc7-4ea0-83c0-5915dc17058b",
       "name": "Extract Payment Request"
     },
     {
@@ -141,10 +141,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2288,
-        1632
+        4544,
+        3424
       ],
-      "id": "5ca755e2-31f0-4498-bd37-0bc6da182774",
+      "id": "5e7e2c00-77cf-4dcd-a7e5-9da3736fb1f8",
       "name": "Parse Grok Payment Decision"
     },
     {
@@ -175,10 +175,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -2064,
-        1632
+        4768,
+        3424
       ],
-      "id": "68431907-addd-4b06-b60d-ee8617c47182",
+      "id": "27326a7c-6f91-4838-af9d-cc2e46a8fad0",
       "name": "Payment Decision?"
     },
     {
@@ -205,10 +205,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -1840,
-        1552
+        4992,
+        3344
       ],
-      "id": "66ce4cf1-b685-4e47-8f89-8bdc0c41ad38",
+      "id": "f40cc66c-d871-4f1a-bde8-95c9b700f184",
       "name": "Create Invoice Agent-B",
       "retryOnFail": true,
       "waitBetweenTries": 5000,
@@ -238,10 +238,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -1392,
-        1552
+        5440,
+        3344
       ],
-      "id": "5ed7da3a-5c72-418d-b92d-e8ba1ba1df26",
+      "id": "d47f17c7-e690-4df5-aeb4-56c6526e6eb4",
       "name": "Pay Invoice Agent-A",
       "retryOnFail": true,
       "waitBetweenTries": 5000,
@@ -252,10 +252,10 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -2864,
-        1632
+        3968,
+        3424
       ],
-      "id": "cbf9c8a6-2bd3-415e-9ade-4910f5241e23",
+      "id": "746c1f66-2c3d-4c20-808c-c180fc81c73b",
       "name": "Manual Trigger"
     },
     {
@@ -263,16 +263,16 @@
         "fromEmail": "richardcaseyhpc@protonmail.com",
         "toEmail": "richardcaseyhpc@protonmail.com",
         "subject": "Agent Bitcoin Payment Report",
-        "html": "=<p><strong>Lightning Payment Report</strong></p>\n<p><strong>Date:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n<p><strong>Time:</strong> {{ $now.format('HH:mm:ss') }}</p>\n<p><strong>From:</strong> Agent A</p>\n<p><strong>To:</strong> Agent B</p>\n<hr>\n<p><strong>Lightning Payment:</strong> {{ $node[\"Gather Balances\"].json.payment_amount }} sats</p>\n<p><strong>Payment Fee:</strong> {{ $node[\"Gather Balances\"].json.payment_fee }} sats</p>\n<p><strong>Payment Hash:</strong> {{ $node[\"Gather Balances\"].json.payment_hash }}</p>\n<p><strong>Reason:</strong> {{ $node[\"Gather Balances\"].json.reason }}</p>\n<hr>\n<p><strong>Agent B Lightning Total Balance:</strong> {{ $node[\"Gather Balances\"].json.agent_b_lightning_total }} sats</p>\n<p><strong>Agent B Bitcoin Confirmed:</strong> {{ $node[\"Gather Balances\"].json.agent_b_onchain_confirmed }} sats</p>\n<p><strong>Agent B On-chain Unconfirmed:</strong> {{ $node[\"Gather Balances\"].json.agent_b_onchain_unconfirmed || 0 }} sats</p>\n<p><strong>Channel Capacity:</strong> {{ $node[\"Gather Balances\"].json.channel_capacity }} sats</p>\n<p><strong>Channel Local Balance (Agent B):</strong> {{ $node[\"Gather Balances\"].json.channel_local_balance }} sats</p>\n<p><strong>Channel Remote Balance (Agent A):</strong> {{ $node[\"Gather Balances\"].json.channel_remote_balance }} sats</p>\n<p><strong>Sweep Triggered:</strong> {{ $node[\"Gather Balances\"].json.sweep_triggered }}</p>\n<p><strong>Status:</strong> ✅ Success</p>",
+        "html": "=<p><strong>Lightning Payment Report</strong></p>\n<p><strong>Date:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n<p><strong>Time:</strong> {{ $now.format('HH:mm:ss') }}</p>\n<p><strong>From:</strong> Agent A</p>\n<p><strong>To:</strong> Agent B</p>\n<hr>\n<p><strong>Lightning Payment:</strong> {{ $node[\"Gather Balances\"].json.payment_amount }} sats</p>\n<p><strong>Payment Fee:</strong> {{ $node[\"Gather Balances\"].json.payment_fee }} sats</p>\n<p><strong>Payment Hash:</strong> {{ $node[\"Gather Balances\"].json.payment_hash }}</p>\n<p><strong>Reason:</strong> {{ $node[\"Gather Balances\"].json.reason }}</p>\n<hr>\n<p><strong>Agent B Lightning Total Balance:</strong> {{ $node[\"Gather Balances\"].json.agent_b_lightning_total }} sats</p>\n<p><strong>Agent B Bitcoin Confirmed:</strong> {{ $node[\"Gather Balances\"].json.agent_b_onchain_confirmed }} sats</p>\n<p><strong>Agent B Bitcoin Unconfirmed:</strong> {{ $node[\"Gather Balances\"].json.agent_b_onchain_unconfirmed || 0 }} sats</p>\n<p><strong>Channel Capacity:</strong> {{ $node[\"Gather Balances\"].json.channel_capacity }} sats</p>\n<p><strong>Channel Local Balance (Agent B):</strong> {{ $node[\"Gather Balances\"].json.channel_local_balance }} sats</p>\n<p><strong>Channel Remote Balance (Agent A):</strong> {{ $node[\"Gather Balances\"].json.channel_remote_balance }} sats</p>\n<p><strong>Sweep Triggered:</strong> {{ $node[\"Gather Balances\"].json.sweep_triggered }}</p>\n<p><strong>Status:</strong> ✅ Success</p>",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        1904,
-        1552
+        9024,
+        3328
       ],
-      "id": "239ff666-0f14-44e4-84fd-021b13028459",
+      "id": "c85f3845-2427-4de4-ae52-93c6f2de3b38",
       "name": "Send Email Report",
       "webhookId": "8046c746-8f9f-4a48-b844-a4f79bc97f0c",
       "credentials": {
@@ -293,10 +293,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        624,
-        1552
+        7904,
+        3328
       ],
-      "id": "b10ca32a-a8e3-4a66-82f6-82c80935133a",
+      "id": "76a3570b-77f3-4084-99c0-2e66677490d4",
       "name": "Merge"
     },
     {
@@ -308,10 +308,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        848,
-        1552
+        8128,
+        3328
       ],
-      "id": "5de92844-3f47-4d53-aaf9-3079baf51b04",
+      "id": "3d962678-43e9-4f9f-bfa6-1caa48a775ac",
       "name": "Extract Payment Data"
     },
     {
@@ -323,10 +323,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -48,
-        1408
+        7232,
+        3104
       ],
-      "id": "0c5bb716-083a-4fb9-98a0-8c5991f92f72",
+      "id": "98bd215d-4bfa-4324-897b-9e26d4404f08",
       "name": "Extract Sweep Address"
     },
     {
@@ -353,10 +353,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        176,
-        1408
+        7456,
+        3104
       ],
-      "id": "cb3e7426-8796-4fc1-8e78-63e6e741b556",
+      "id": "a10d8371-81be-474a-b4a8-d6499c7dde25",
       "name": "Sweep On-chain Agent-B"
     },
     {
@@ -379,10 +379,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -272,
-        1408
+        7008,
+        3104
       ],
-      "id": "065ce051-73d7-442a-bb60-03d8e0f550de",
+      "id": "b540fad6-250f-45ea-a8ac-70000dc6c057",
       "name": "Generate Sweep Address Agent-B"
     },
     {
@@ -413,10 +413,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -496,
-        1488
+        6784,
+        3184
       ],
-      "id": "491d9b5c-b679-4072-a385-9a9c8ea9b321",
+      "id": "889d662f-92da-429e-9f5f-2dbf07f1c91d",
       "name": "Should Sweep?"
     },
     {
@@ -424,10 +424,10 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        400,
-        1408
+        7680,
+        3104
       ],
-      "id": "7456d217-5d3c-46cc-8a67-6879730125f5",
+      "id": "48fad646-1caf-4bd9-bcac-b327702c6646",
       "name": "LND Updates Balance",
       "webhookId": "c131e727-7626-4fee-b085-b224fbdd72c8"
     },
@@ -459,10 +459,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1168,
-        1552
+        5664,
+        3344
       ],
-      "id": "69f033a6-aaa8-46da-afb8-c3a97e22e40a",
+      "id": "0ab6f061-d155-437a-8c6f-a2682b999a8e",
       "name": "Did Payment Succeed?"
     },
     {
@@ -494,10 +494,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -944,
-        1488
+        5888,
+        3248
       ],
-      "id": "cbba0a59-70bc-4f38-9138-8af503b6109d",
+      "id": "ee42a706-0c64-40d4-a48f-66984d9ffe30",
       "name": "Capture Payment Amount"
     },
     {
@@ -509,37 +509,11 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1680,
-        1552
+        8800,
+        3328
       ],
-      "id": "df4bcb60-e75d-467e-945b-07e6b926c173",
+      "id": "3a598dd1-3847-4883-b35b-08e7ba669734",
       "name": "Gather Balances"
-    },
-    {
-      "parameters": {
-        "url": "https://agent-b-lnd:8080/v1/balance/channels",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Grpc-Metadata-macaroon",
-              "value": "0201036c6e6402f801030a10c0eaeb5391f3a5e839b492fd0c9838ad1201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e6572617465120472656164000006207d4c281171fe99d3f55b074a856a58f6afc7017360da87293724987b760af537"
-            }
-          ]
-        },
-        "options": {
-          "allowUnauthorizedCerts": true,
-          "timeout": 120000
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        1056,
-        1552
-      ],
-      "id": "ca7ddce2-e61b-4dab-9b5d-1226171928e0",
-      "name": "Get Lightning Balance Agent-B"
     },
     {
       "parameters": {
@@ -561,10 +535,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1472,
-        1552
+        8576,
+        3328
       ],
-      "id": "d9d0dfdf-40fc-468f-a933-070f549d4faa",
+      "id": "6241956e-afa8-457b-acbe-b7ce957b43ac",
       "name": "Get Channel Info Agent-B"
     },
     {
@@ -587,11 +561,85 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1264,
-        1552
+        8352,
+        3328
       ],
-      "id": "81b61076-9aeb-4800-9258-591b69cb68ce",
+      "id": "c4e312d4-c8f7-4387-9e2e-69b93ede334e",
       "name": "Get Bitcoin Balance Agent-B"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ec9b863e-f163-4570-a712-9576a63a923e",
+              "leftValue": "={{ Number($node[\"Get Lightning Balance Agent-B\"].json.local_balance?.sat || $node[\"Get Lightning Balance Agent-B\"].json.balance || 0) }}",
+              "rightValue": 100000,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        6560,
+        3248
+      ],
+      "id": "3d67a2e7-a215-41da-8f30-18e8b1f49981",
+      "name": "Lightning Wallet Reserve Check - Agent B"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"pay\": false,\n  \"message\": \"Sweep blocked: Lightning wallet reserve minimum would be violated on Agent B.\",\n  \"reason\": \"Lightning wallet reserve protection guardrail activated on Agent B\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        7680,
+        3392
+      ],
+      "id": "e7191682-cd0e-4b7f-9331-4f104a0211b0",
+      "name": "Payment Blocked - Agent B Reserve"
+    },
+    {
+      "parameters": {
+        "url": "https://agent-b-lnd:8080/v1/balance/channels",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Grpc-Metadata-macaroon",
+              "value": "0201036c6e6402f801030a10c0eaeb5391f3a5e839b492fd0c9838ad1201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e6572617465120472656164000006207d4c281171fe99d3f55b074a856a58f6afc7017360da87293724987b760af537"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "timeout": 120000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        6336,
+        3248
+      ],
+      "id": "673e4e24-dd40-42cc-aa79-20e42fac78c5",
+      "name": "Get Lightning Balance Agent-B"
     }
   ],
   "pinData": {},
@@ -622,7 +670,7 @@
       "main": [
         [
           {
-            "node": "Should Sweep?",
+            "node": "Get Lightning Balance Agent-B",
             "type": "main",
             "index": 0
           }
@@ -750,7 +798,7 @@
       "main": [
         [
           {
-            "node": "Get Lightning Balance Agent-B",
+            "node": "Get Bitcoin Balance Agent-B",
             "type": "main",
             "index": 0
           }
@@ -859,17 +907,6 @@
         ]
       ]
     },
-    "Get Lightning Balance Agent-B": {
-      "main": [
-        [
-          {
-            "node": "Get Bitcoin Balance Agent-B",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Get Channel Info Agent-B": {
       "main": [
         [
@@ -891,6 +928,46 @@
           }
         ]
       ]
+    },
+    "Lightning Wallet Reserve Check - Agent B": {
+      "main": [
+        [
+          {
+            "node": "Should Sweep?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Payment Blocked - Agent B Reserve",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment Blocked - Agent B Reserve": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Lightning Balance Agent-B": {
+      "main": [
+        [
+          {
+            "node": "Lightning Wallet Reserve Check - Agent B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -899,7 +976,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "900efba1-c206-45f2-9953-67a69a18c914",
+  "versionId": "f26c5f9d-f93a-4a54-9060-cc6f83e13224",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
