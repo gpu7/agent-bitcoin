@@ -4,7 +4,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "Pay Agent B exactly 2000000 sats right now.",
+        "text": "Pay Agent B exactly 0 sats right now.",
         "options": {
           "systemMessage": "You are Agent A, a financial agent on regtest with strong guardrails.\n\nSTRICT RULES - YOU MUST FOLLOW THESE AT ALL TIMES:\n- If the user asks you to make a payment, you SHOULD pay unless a guardrail is violated.\n- When you decide to pay, your ENTIRE response must be ONLY valid JSON in this exact format — NO other text:\n  {\"pay\": true, \"amount\": integer in sats, \"reason\": \"short meaningful explanation\"}\n\n- Always provide a short, meaningful reason when paying.\n\n- If you cannot pay because of a guardrail, respond in plain text explaining why.\n\nYou currently have a channel to Agent B. Follow the user's request in the prompt."
         }
@@ -13,7 +13,7 @@
       "typeVersion": 3.1,
       "position": [
         4192,
-        3424
+        3520
       ],
       "id": "1876f288-aa79-4013-bde3-b73fc3a89f04",
       "name": "Agent-A"
@@ -21,14 +21,16 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "You are Agent B. You just received a payment or message from Agent A. Respond politely and gratefully, e.g., \"Thanks for the payment!\" or comment on the reason if provided.",
-        "options": {}
+        "text": "You just received a message or payment decision from Agent A.\n\nRespond based on what actually happened:\n- If a valid payment was received (amount > 0), thank Agent A and mention the amount and reason if available.\n- If the payment was rejected or invalid (amount ≤ 0 or pay: false), politely explain that the payment was not accepted and why.\n\nKeep your response natural, concise, and professional.",
+        "options": {
+          "systemMessage": "You are Agent B, a financial agent on regtest.\n\nYou just received a payment decision from Agent A.\n\nData received:\n- pay: {{ $json.pay }}\n- amount: {{ $json.amount }} sats\n- reason: {{ $json.reason }}\n- message: {{ $json.message }}\n\nRules:\n- If pay is true and amount > 0, respond politely and gratefully. Mention the amount and reason.\n- If pay is false or amount ≤ 0, respond honestly. Explain that the payment was rejected or invalid.\n- Be natural, concise, and professional."
+        }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        9872,
-        3488
+        9920,
+        3664
       ],
       "id": "fbc3b483-d423-425a-870c-4dac5fed5de3",
       "name": "Agent-B"
@@ -42,7 +44,7 @@
       "typeVersion": 1,
       "position": [
         4272,
-        3648
+        3744
       ],
       "id": "86d8ba94-731b-4c57-8252-1590399b26db",
       "name": "xAI Grok Chat Model",
@@ -62,7 +64,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        6736,
+        6784,
         3248
       ],
       "id": "f7a9fdb6-af54-48df-a560-f3068e4efd93",
@@ -85,7 +87,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        8304,
+        8352,
         3584
       ],
       "id": "b18cc3a5-b00f-414a-ae59-dc2ebbb383a4",
@@ -99,8 +101,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        9952,
-        3712
+        10000,
+        3888
       ],
       "id": "f0d4ab77-c302-46fa-8d6c-0c7972c52a2d",
       "name": "xAI Grok Chat Model1",
@@ -128,8 +130,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        5424,
-        3344
+        5440,
+        3440
       ],
       "id": "11507b3e-cbc7-4ea0-83c0-5915dc17058b",
       "name": "Extract Payment Request"
@@ -142,7 +144,7 @@
       "typeVersion": 2,
       "position": [
         4544,
-        3424
+        3520
       ],
       "id": "5e7e2c00-77cf-4dcd-a7e5-9da3736fb1f8",
       "name": "Parse Grok Payment Decision"
@@ -162,7 +164,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "{\n  \"memo\": \"Test hardcoded 2000000 sats\",\n  \"value\": 2000000\n}",
+        "jsonBody": "={{\n{\n\"memo\": \"$json.memo\", \n\"value\": $json.value\n}\n}}",
         "options": {
           "allowUnauthorizedCerts": true,
           "timeout": 120000
@@ -171,13 +173,14 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        5200,
-        3344
+        5216,
+        3440
       ],
       "id": "f40cc66c-d871-4f1a-bde8-95c9b700f184",
       "name": "Create Invoice Agent-B",
-      "retryOnFail": true,
+      "retryOnFail": false,
       "waitBetweenTries": 5000,
+      "alwaysOutputData": false,
       "onError": "continueRegularOutput"
     },
     {
@@ -204,7 +207,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        6064,
+        6112,
         3344
       ],
       "id": "d47f17c7-e690-4df5-aeb4-56c6526e6eb4",
@@ -219,7 +222,7 @@
       "typeVersion": 1,
       "position": [
         3968,
-        3424
+        3520
       ],
       "id": "746c1f66-2c3d-4c20-808c-c180fc81c73b",
       "name": "Manual Trigger"
@@ -235,8 +238,8 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        9648,
-        3328
+        9696,
+        3392
       ],
       "id": "c85f3845-2427-4de4-ae52-93c6f2de3b38",
       "name": "Send Email Report",
@@ -259,8 +262,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        8528,
-        3328
+        8576,
+        3392
       ],
       "id": "76a3570b-77f3-4084-99c0-2e66677490d4",
       "name": "Merge"
@@ -274,8 +277,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        8752,
-        3328
+        8800,
+        3392
       ],
       "id": "3d962678-43e9-4f9f-bfa6-1caa48a775ac",
       "name": "Extract Payment Data"
@@ -289,7 +292,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        7856,
+        7904,
         3104
       ],
       "id": "98bd215d-4bfa-4324-897b-9e26d4404f08",
@@ -319,7 +322,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        8080,
+        8128,
         3104
       ],
       "id": "a10d8371-81be-474a-b4a8-d6499c7dde25",
@@ -345,7 +348,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        7632,
+        7680,
         3104
       ],
       "id": "b540fad6-250f-45ea-a8ac-70000dc6c057",
@@ -379,7 +382,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        7408,
+        7456,
         3184
       ],
       "id": "889d662f-92da-429e-9f5f-2dbf07f1c91d",
@@ -390,7 +393,7 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        8304,
+        8352,
         3104
       ],
       "id": "48fad646-1caf-4bd9-bcac-b327702c6646",
@@ -425,7 +428,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        6288,
+        6336,
         3344
       ],
       "id": "0ab6f061-d155-437a-8c6f-a2682b999a8e",
@@ -460,7 +463,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        6512,
+        6560,
         3248
       ],
       "id": "ee42a706-0c64-40d4-a48f-66984d9ffe30",
@@ -475,8 +478,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        9424,
-        3328
+        9472,
+        3392
       ],
       "id": "3a598dd1-3847-4883-b35b-08e7ba669734",
       "name": "Gather Balances"
@@ -501,8 +504,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        9200,
-        3328
+        9248,
+        3392
       ],
       "id": "6241956e-afa8-457b-acbe-b7ce957b43ac",
       "name": "Get Channel Info Agent-B"
@@ -527,8 +530,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        8976,
-        3328
+        9024,
+        3392
       ],
       "id": "c4e312d4-c8f7-4387-9e2e-69b93ede334e",
       "name": "Get Bitcoin Balance Agent-B"
@@ -560,7 +563,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        7184,
+        7232,
         3248
       ],
       "id": "3d67a2e7-a215-41da-8f30-18e8b1f49981",
@@ -576,7 +579,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        8304,
+        8352,
         3392
       ],
       "id": "e7191682-cd0e-4b7f-9331-4f104a0211b0",
@@ -602,7 +605,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        6960,
+        7008,
         3248
       ],
       "id": "673e4e24-dd40-42cc-aa79-20e42fac78c5",
@@ -617,8 +620,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        5984,
-        3520
+        8352,
+        3776
       ],
       "id": "a16c53f4-5036-414a-80a8-a6c3b8834e79",
       "name": "Payment Rejected by Agent-B"
@@ -660,8 +663,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        5840,
-        3344
+        5888,
+        3440
       ],
       "id": "2d03cfb5-59c9-4561-a48e-445601cc67a9",
       "name": "Agent-B Payment Size Guardrail"
@@ -673,8 +676,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5632,
-        3344
+        5664,
+        3440
       ],
       "id": "1dc59647-fded-4a8a-9f2b-903ac977f389",
       "name": "Extract Payment Amount from Invoice"
@@ -708,7 +711,7 @@
       "typeVersion": 2.3,
       "position": [
         4768,
-        3424
+        3520
       ],
       "id": "27326a7c-6f91-4838-af9d-cc2e46a8fad0",
       "name": "Payment Decision"
@@ -716,17 +719,32 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "{\n  \"memo\": \"Test payment - hardcoded amount\",\n  \"value\": 2000000\n}",
+        "jsonOutput": "={\n  \"memo\": \"{{ $json.reason || 'Payment from Agent A' }}\",\n  \"value\": {{ Number($json.amount || 0) * 1000 }}\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        4960,
-        3328
+        4976,
+        3424
       ],
-      "id": "066ec299-1e0b-46f0-8b6d-98229339481f",
-      "name": "Force Invoice Amount"
+      "id": "0720b9bd-1200-4a2c-ad6f-104b107a3213",
+      "name": "Prepare Invoice Data"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"pay\": \"{{ $json.pay }}\",\n  \"amount\": \"{{ $json.amount }}\",\n  \"reason\": \"{{ $json.reason }}\",\n  \"message\": \"{{ $json.message || 'No additional message' }}\",\n  \"status\": \"{{ $json.pay === true && $json.amount > 0 ? 'success' : 'rejected' }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        6448,
+        3568
+      ],
+      "id": "651dabb4-882a-4feb-bd6f-82d0d8a8bad5",
+      "name": "Prepare Data for Agent-B"
     }
   ],
   "pinData": {},
@@ -1082,25 +1100,36 @@
       "main": [
         [
           {
-            "node": "Force Invoice Amount",
+            "node": "Prepare Invoice Data",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Agent-B",
+            "node": "Prepare Data for Agent-B",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Force Invoice Amount": {
+    "Prepare Invoice Data": {
       "main": [
         [
           {
             "node": "Create Invoice Agent-B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Data for Agent-B": {
+      "main": [
+        [
+          {
+            "node": "Agent-B",
             "type": "main",
             "index": 0
           }
@@ -1114,7 +1143,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "1ad8e143-bfaf-43b5-99a9-5c91018239d0",
+  "versionId": "c42931d2-c006-4b0c-bcc5-552b43f2f6e9",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
