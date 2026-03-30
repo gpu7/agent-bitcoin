@@ -4,7 +4,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "Pay Agent B exactly 0 sats right now.",
+        "text": "Pay Agent B exactly 105000000 sats right now.",
         "options": {
           "systemMessage": "You are Agent A, a financial agent on regtest with strong guardrails.\n\nSTRICT RULES - YOU MUST FOLLOW THESE AT ALL TIMES:\n- If the user asks you to make a payment, you SHOULD pay unless a guardrail is violated.\n- When you decide to pay, your ENTIRE response must be ONLY valid JSON in this exact format — NO other text:\n  {\"pay\": true, \"amount\": integer in sats, \"reason\": \"short meaningful explanation\"}\n\n- Always provide a short, meaningful reason when paying.\n\n- If you cannot pay because of a guardrail, respond in plain text explaining why.\n\nYou currently have a channel to Agent B. Follow the user's request in the prompt."
         }
@@ -13,7 +13,7 @@
       "typeVersion": 3.1,
       "position": [
         4192,
-        3520
+        3512
       ],
       "id": "1876f288-aa79-4013-bde3-b73fc3a89f04",
       "name": "Agent-A"
@@ -23,14 +23,14 @@
         "promptType": "define",
         "text": "You just received a message or payment decision from Agent A.\n\nRespond based on what actually happened:\n- If a valid payment was received (amount > 0), thank Agent A and mention the amount and reason if available.\n- If the payment was rejected or invalid (amount ≤ 0 or pay: false), politely explain that the payment was not accepted and why.\n\nKeep your response natural, concise, and professional.",
         "options": {
-          "systemMessage": "You are Agent B, a financial agent on regtest.\n\nYou just received a payment decision from Agent A.\n\nData received:\n- pay: {{ $json.pay }}\n- amount: {{ $json.amount }} sats\n- reason: {{ $json.reason }}\n- message: {{ $json.message }}\n\nRules:\n- If pay is true and amount > 0, respond politely and gratefully. Mention the amount and reason.\n- If pay is false or amount ≤ 0, respond honestly. Explain that the payment was rejected or invalid.\n- Be natural, concise, and professional."
+          "systemMessage": "You are Agent B, a financial agent on regtest.\n\nYou just received a payment decision from Agent A.\n\nData received:\n- pay: {{ $json.pay }}\n- amount: {{ $json.amount }} sats\n- reason: {{ $json.reason }}\n- message: {{ $json.message }}\n\nResponse rules:\n- If pay is true and amount > 0: Respond politely and gratefully. Mention the amount and reason.\n- If pay is false or amount ≤ 0: Respond honestly and clearly. Explain that the payment was rejected or invalid. Do not thank for the payment.\n- Keep responses natural, concise, and professional.\n\nExample for zero payment: \"Agent A, the payment of 0 sats was invalid. Payments must be greater than 0 sats.\""
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
         9920,
-        3664
+        3656
       ],
       "id": "fbc3b483-d423-425a-870c-4dac5fed5de3",
       "name": "Agent-B"
@@ -43,8 +43,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        4272,
-        3744
+        4264,
+        3736
       ],
       "id": "86d8ba94-731b-4c57-8252-1590399b26db",
       "name": "xAI Grok Chat Model",
@@ -65,7 +65,7 @@
       "typeVersion": 3.4,
       "position": [
         6784,
-        3248
+        3224
       ],
       "id": "f7a9fdb6-af54-48df-a560-f3068e4efd93",
       "name": "Payment Succeeded"
@@ -101,8 +101,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        10000,
-        3888
+        9992,
+        3880
       ],
       "id": "f0d4ab77-c302-46fa-8d6c-0c7972c52a2d",
       "name": "xAI Grok Chat Model1",
@@ -131,7 +131,7 @@
       "typeVersion": 3.4,
       "position": [
         5440,
-        3440
+        3416
       ],
       "id": "11507b3e-cbc7-4ea0-83c0-5915dc17058b",
       "name": "Extract Payment Request"
@@ -144,7 +144,7 @@
       "typeVersion": 2,
       "position": [
         4544,
-        3520
+        3512
       ],
       "id": "5e7e2c00-77cf-4dcd-a7e5-9da3736fb1f8",
       "name": "Parse Grok Payment Decision"
@@ -174,7 +174,7 @@
       "typeVersion": 4.4,
       "position": [
         5216,
-        3440
+        3416
       ],
       "id": "f40cc66c-d871-4f1a-bde8-95c9b700f184",
       "name": "Create Invoice Agent-B",
@@ -208,7 +208,7 @@
       "typeVersion": 4.4,
       "position": [
         6112,
-        3344
+        3320
       ],
       "id": "d47f17c7-e690-4df5-aeb4-56c6526e6eb4",
       "name": "Pay Invoice Agent-A",
@@ -222,7 +222,7 @@
       "typeVersion": 1,
       "position": [
         3968,
-        3520
+        3512
       ],
       "id": "746c1f66-2c3d-4c20-808c-c180fc81c73b",
       "name": "Manual Trigger"
@@ -383,7 +383,7 @@
       "typeVersion": 2.3,
       "position": [
         7456,
-        3184
+        3152
       ],
       "id": "889d662f-92da-429e-9f5f-2dbf07f1c91d",
       "name": "Should Sweep?"
@@ -429,7 +429,7 @@
       "typeVersion": 2.3,
       "position": [
         6336,
-        3344
+        3320
       ],
       "id": "0ab6f061-d155-437a-8c6f-a2682b999a8e",
       "name": "Did Payment Succeed?"
@@ -464,7 +464,7 @@
       "typeVersion": 3.4,
       "position": [
         6560,
-        3248
+        3224
       ],
       "id": "ee42a706-0c64-40d4-a48f-66984d9ffe30",
       "name": "Capture Payment Amount"
@@ -564,7 +564,7 @@
       "typeVersion": 2.3,
       "position": [
         7232,
-        3248
+        3224
       ],
       "id": "3d67a2e7-a215-41da-8f30-18e8b1f49981",
       "name": "Lightning Wallet Reserve Check - Agent B",
@@ -606,7 +606,7 @@
       "typeVersion": 4.4,
       "position": [
         7008,
-        3248
+        3224
       ],
       "id": "673e4e24-dd40-42cc-aa79-20e42fac78c5",
       "name": "Get Lightning Balance Agent-B"
@@ -664,7 +664,7 @@
       "typeVersion": 2.3,
       "position": [
         5888,
-        3440
+        3416
       ],
       "id": "2d03cfb5-59c9-4561-a48e-445601cc67a9",
       "name": "Agent-B Payment Size Guardrail"
@@ -677,7 +677,7 @@
       "typeVersion": 2,
       "position": [
         5664,
-        3440
+        3416
       ],
       "id": "1dc59647-fded-4a8a-9f2b-903ac977f389",
       "name": "Extract Payment Amount from Invoice"
@@ -711,7 +711,7 @@
       "typeVersion": 2.3,
       "position": [
         4768,
-        3520
+        3512
       ],
       "id": "27326a7c-6f91-4838-af9d-cc2e46a8fad0",
       "name": "Payment Decision"
@@ -725,8 +725,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        4976,
-        3424
+        4992,
+        3416
       ],
       "id": "0720b9bd-1200-4a2c-ad6f-104b107a3213",
       "name": "Prepare Invoice Data"
@@ -734,14 +734,14 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"pay\": \"{{ $json.pay }}\",\n  \"amount\": \"{{ $json.amount }}\",\n  \"reason\": \"{{ $json.reason }}\",\n  \"message\": \"{{ $json.message || 'No additional message' }}\",\n  \"status\": \"{{ $json.pay === true && $json.amount > 0 ? 'success' : 'rejected' }}\"\n}\n",
+        "jsonOutput": "={\n  \"pay\": \"{{ $json.pay }}\",\n  \"amount\": \"{{ Number($json.amount || 0) }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n  \"message\": \"{{ $json.message ? $json.message.replace(/\"/g, '\\\\\"') : 'No additional message' }}\",\n  \"status\": \"{{ $json.pay === true && Number($json.amount) > 0 ? 'success' : 'rejected' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        6448,
-        3568
+        9696,
+        3920
       ],
       "id": "651dabb4-882a-4feb-bd6f-82d0d8a8bad5",
       "name": "Prepare Data for Agent-B"
@@ -938,7 +938,7 @@
           {
             "node": "Merge",
             "type": "main",
-            "index": 0
+            "index": 1
           }
         ]
       ]
@@ -1040,7 +1040,7 @@
           {
             "node": "Merge",
             "type": "main",
-            "index": 0
+            "index": 1
           }
         ]
       ]
@@ -1143,7 +1143,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "c42931d2-c006-4b0c-bcc5-552b43f2f6e9",
+  "versionId": "fd082837-42fc-4f17-8eef-0828de9fc5b3",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
