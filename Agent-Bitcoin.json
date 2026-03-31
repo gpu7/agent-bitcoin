@@ -4,7 +4,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "Pay Agent B exactly 105000000 sats right now.",
+        "text": "Pay Agent B exactly 10000 sats right now.",
         "options": {
           "systemMessage": "You are Agent A, a financial agent on regtest with strong guardrails.\n\nSTRICT RULES - YOU MUST FOLLOW THESE AT ALL TIMES:\n- If the user asks you to make a payment, you SHOULD pay unless a guardrail is violated.\n- When you decide to pay, your ENTIRE response must be ONLY valid JSON in this exact format — NO other text:\n  {\"pay\": true, \"amount\": integer in sats, \"reason\": \"short meaningful explanation\"}\n\n- Always provide a short, meaningful reason when paying.\n\n- If you cannot pay because of a guardrail, respond in plain text explaining why.\n\nYou currently have a channel to Agent B. Follow the user's request in the prompt."
         }
@@ -13,7 +13,7 @@
       "typeVersion": 3.1,
       "position": [
         4192,
-        3512
+        3536
       ],
       "id": "1876f288-aa79-4013-bde3-b73fc3a89f04",
       "name": "Agent-A"
@@ -30,7 +30,7 @@
       "typeVersion": 3.1,
       "position": [
         9920,
-        3656
+        3488
       ],
       "id": "fbc3b483-d423-425a-870c-4dac5fed5de3",
       "name": "Agent-B"
@@ -44,7 +44,7 @@
       "typeVersion": 1,
       "position": [
         4264,
-        3736
+        3760
       ],
       "id": "86d8ba94-731b-4c57-8252-1590399b26db",
       "name": "xAI Grok Chat Model",
@@ -65,7 +65,7 @@
       "typeVersion": 3.4,
       "position": [
         6784,
-        3224
+        3248
       ],
       "id": "f7a9fdb6-af54-48df-a560-f3068e4efd93",
       "name": "Payment Succeeded"
@@ -102,7 +102,7 @@
       "typeVersion": 1,
       "position": [
         9992,
-        3880
+        3712
       ],
       "id": "f0d4ab77-c302-46fa-8d6c-0c7972c52a2d",
       "name": "xAI Grok Chat Model1",
@@ -131,7 +131,7 @@
       "typeVersion": 3.4,
       "position": [
         5440,
-        3416
+        3440
       ],
       "id": "11507b3e-cbc7-4ea0-83c0-5915dc17058b",
       "name": "Extract Payment Request"
@@ -144,7 +144,7 @@
       "typeVersion": 2,
       "position": [
         4544,
-        3512
+        3536
       ],
       "id": "5e7e2c00-77cf-4dcd-a7e5-9da3736fb1f8",
       "name": "Parse Grok Payment Decision"
@@ -164,7 +164,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{\n{\n\"memo\": \"$json.memo\", \n\"value\": $json.value\n}\n}}",
+        "jsonBody": "={\n  \"memo\": \"{{ $json.memo }}\",\n  \"value\": {{ $json.value }}\n}",
         "options": {
           "allowUnauthorizedCerts": true,
           "timeout": 120000
@@ -174,7 +174,7 @@
       "typeVersion": 4.4,
       "position": [
         5216,
-        3416
+        3440
       ],
       "id": "f40cc66c-d871-4f1a-bde8-95c9b700f184",
       "name": "Create Invoice Agent-B",
@@ -208,7 +208,7 @@
       "typeVersion": 4.4,
       "position": [
         6112,
-        3320
+        3344
       ],
       "id": "d47f17c7-e690-4df5-aeb4-56c6526e6eb4",
       "name": "Pay Invoice Agent-A",
@@ -222,7 +222,7 @@
       "typeVersion": 1,
       "position": [
         3968,
-        3512
+        3536
       ],
       "id": "746c1f66-2c3d-4c20-808c-c180fc81c73b",
       "name": "Manual Trigger"
@@ -239,7 +239,7 @@
       "typeVersion": 2.1,
       "position": [
         9696,
-        3392
+        3488
       ],
       "id": "c85f3845-2427-4de4-ae52-93c6f2de3b38",
       "name": "Send Email Report",
@@ -263,7 +263,7 @@
       "typeVersion": 3.2,
       "position": [
         8576,
-        3392
+        3488
       ],
       "id": "76a3570b-77f3-4084-99c0-2e66677490d4",
       "name": "Merge"
@@ -271,14 +271,14 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"amount\": \"{{ $json.payment_route?.total_amt || $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}\",\n  \"fee\": \"{{ Math.floor( ($json.payment_route?.total_fees_msat || 0) / 1000 ) || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'Test successful payment flow' }}\"\n}",
+        "jsonOutput": "={\n  \"amount\": \"{{ $json.payment_route?.total_amt || $node[\"Capture Payment Amount\"].json.payment_amount_sats || $json.amount || 0 }}\",\n  \"fee\": \"{{ Math.floor( ($json.payment_route?.total_fees_msat || 0) / 1000 ) || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
         8800,
-        3392
+        3488
       ],
       "id": "3d962678-43e9-4f9f-bfa6-1caa48a775ac",
       "name": "Extract Payment Data"
@@ -383,7 +383,7 @@
       "typeVersion": 2.3,
       "position": [
         7456,
-        3152
+        3176
       ],
       "id": "889d662f-92da-429e-9f5f-2dbf07f1c91d",
       "name": "Should Sweep?"
@@ -429,7 +429,7 @@
       "typeVersion": 2.3,
       "position": [
         6336,
-        3320
+        3344
       ],
       "id": "0ab6f061-d155-437a-8c6f-a2682b999a8e",
       "name": "Did Payment Succeed?"
@@ -464,7 +464,7 @@
       "typeVersion": 3.4,
       "position": [
         6560,
-        3224
+        3248
       ],
       "id": "ee42a706-0c64-40d4-a48f-66984d9ffe30",
       "name": "Capture Payment Amount"
@@ -479,7 +479,7 @@
       "typeVersion": 3.4,
       "position": [
         9472,
-        3392
+        3488
       ],
       "id": "3a598dd1-3847-4883-b35b-08e7ba669734",
       "name": "Gather Balances"
@@ -505,7 +505,7 @@
       "typeVersion": 4.4,
       "position": [
         9248,
-        3392
+        3488
       ],
       "id": "6241956e-afa8-457b-acbe-b7ce957b43ac",
       "name": "Get Channel Info Agent-B"
@@ -531,7 +531,7 @@
       "typeVersion": 4.4,
       "position": [
         9024,
-        3392
+        3488
       ],
       "id": "c4e312d4-c8f7-4387-9e2e-69b93ede334e",
       "name": "Get Bitcoin Balance Agent-B"
@@ -564,7 +564,7 @@
       "typeVersion": 2.3,
       "position": [
         7232,
-        3224
+        3248
       ],
       "id": "3d67a2e7-a215-41da-8f30-18e8b1f49981",
       "name": "Lightning Wallet Reserve Check - Agent B",
@@ -606,7 +606,7 @@
       "typeVersion": 4.4,
       "position": [
         7008,
-        3224
+        3248
       ],
       "id": "673e4e24-dd40-42cc-aa79-20e42fac78c5",
       "name": "Get Lightning Balance Agent-B"
@@ -664,7 +664,7 @@
       "typeVersion": 2.3,
       "position": [
         5888,
-        3416
+        3440
       ],
       "id": "2d03cfb5-59c9-4561-a48e-445601cc67a9",
       "name": "Agent-B Payment Size Guardrail"
@@ -677,7 +677,7 @@
       "typeVersion": 2,
       "position": [
         5664,
-        3416
+        3440
       ],
       "id": "1dc59647-fded-4a8a-9f2b-903ac977f389",
       "name": "Extract Payment Amount from Invoice"
@@ -711,7 +711,7 @@
       "typeVersion": 2.3,
       "position": [
         4768,
-        3512
+        3536
       ],
       "id": "27326a7c-6f91-4838-af9d-cc2e46a8fad0",
       "name": "Payment Decision"
@@ -719,17 +719,18 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"memo\": \"{{ $json.reason || 'Payment from Agent A' }}\",\n  \"value\": {{ Number($json.amount || 0) * 1000 }}\n}",
+        "jsonOutput": "={\n  \"memo\": \"{{ $json.reason || $json.memo || 'Payment from Agent A' }}\",\n  \"value\": {{ Math.floor( Number($json.amount || $json.value || 0) ) }}\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
         4992,
-        3416
+        3440
       ],
       "id": "0720b9bd-1200-4a2c-ad6f-104b107a3213",
-      "name": "Prepare Invoice Data"
+      "name": "Prepare Invoice Data",
+      "notes": "Apparently, Lightning Labs uses millisats when creating an invoice.  But we have to multiply by 100 to get correct amount. Something doesn't make sense here.  Need to investigate.\n\nLND’s REST API /v1/invoices is interpreting the value field as milli-satoshis (mSAT), not satoshis.\n\n"
     },
     {
       "parameters": {
@@ -740,8 +741,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        9696,
-        3920
+        8352,
+        3968
       ],
       "id": "651dabb4-882a-4feb-bd6f-82d0d8a8bad5",
       "name": "Prepare Data for Agent-B"
@@ -1129,9 +1130,9 @@
       "main": [
         [
           {
-            "node": "Agent-B",
+            "node": "Merge",
             "type": "main",
-            "index": 0
+            "index": 1
           }
         ]
       ]
@@ -1143,7 +1144,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "fd082837-42fc-4f17-8eef-0828de9fc5b3",
+  "versionId": "cedb6a03-61ff-4898-b234-f851e4fc778b",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
