@@ -12,10 +12,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        4192,
-        3536
+        -3488,
+        432
       ],
-      "id": "1876f288-aa79-4013-bde3-b73fc3a89f04",
+      "id": "734c5a45-e86f-4ae8-920b-82a9282cf6c9",
       "name": "Agent-A"
     },
     {
@@ -29,10 +29,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        9920,
-        3488
+        2240,
+        384
       ],
-      "id": "fbc3b483-d423-425a-870c-4dac5fed5de3",
+      "id": "e4cd716d-c244-4b8f-a07f-0e093a709516",
       "name": "Agent-B"
     },
     {
@@ -43,14 +43,14 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        4264,
-        3760
+        -3424,
+        656
       ],
-      "id": "86d8ba94-731b-4c57-8252-1590399b26db",
+      "id": "7598f97e-0abc-48cb-b6e8-2ca89420b1ae",
       "name": "xAI Grok Chat Model",
       "credentials": {
         "xAiApi": {
-          "id": "OQ9FsZO0YFsHdwAD",
+          "id": "PMdmcUf8yvkad866",
           "name": "xAi account"
         }
       }
@@ -64,10 +64,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        6784,
-        3248
+        -896,
+        144
       ],
-      "id": "f7a9fdb6-af54-48df-a560-f3068e4efd93",
+      "id": "a8764fc8-c33e-4354-8ee9-0581478a6b2d",
       "name": "Payment Succeeded"
     },
     {
@@ -87,10 +87,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        8352,
-        3584
+        672,
+        480
       ],
-      "id": "b18cc3a5-b00f-414a-ae59-dc2ebbb383a4",
+      "id": "a4d8e748-d6de-4566-bcbe-e84b79ab3004",
       "name": "Payment Failed"
     },
     {
@@ -101,14 +101,14 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        9992,
-        3712
+        2320,
+        608
       ],
-      "id": "f0d4ab77-c302-46fa-8d6c-0c7972c52a2d",
+      "id": "a47872ee-84a2-434d-843d-ea1e1b07be20",
       "name": "xAI Grok Chat Model1",
       "credentials": {
         "xAiApi": {
-          "id": "OQ9FsZO0YFsHdwAD",
+          "id": "PMdmcUf8yvkad866",
           "name": "xAi account"
         }
       }
@@ -130,10 +130,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        5440,
-        3440
+        -2240,
+        336
       ],
-      "id": "11507b3e-cbc7-4ea0-83c0-5915dc17058b",
+      "id": "9a19eb2f-de87-4c7b-90cd-4ed7e40517f3",
       "name": "Extract Payment Request"
     },
     {
@@ -143,10 +143,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4544,
-        3536
+        -3136,
+        432
       ],
-      "id": "5e7e2c00-77cf-4dcd-a7e5-9da3736fb1f8",
+      "id": "422b01e2-ce80-43f5-aeb5-668769180eb3",
       "name": "Parse Grok Payment Decision"
     },
     {
@@ -173,14 +173,15 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        5216,
-        3440
+        -2464,
+        608
       ],
-      "id": "f40cc66c-d871-4f1a-bde8-95c9b700f184",
+      "id": "1288c09b-6bba-466e-b948-06ff02d4cf57",
       "name": "Create Invoice Agent-B",
       "retryOnFail": false,
       "waitBetweenTries": 5000,
       "alwaysOutputData": false,
+      "disabled": true,
       "onError": "continueRegularOutput"
     },
     {
@@ -207,10 +208,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        6112,
-        3344
+        -1568,
+        240
       ],
-      "id": "d47f17c7-e690-4df5-aeb4-56c6526e6eb4",
+      "id": "daba8d4f-dcaa-4873-9948-aed758e25449",
       "name": "Pay Invoice Agent-A",
       "retryOnFail": true,
       "waitBetweenTries": 5000,
@@ -221,10 +222,10 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        3968,
-        3536
+        -3712,
+        432
       ],
-      "id": "746c1f66-2c3d-4c20-808c-c180fc81c73b",
+      "id": "5e29b287-512c-41d2-adb7-6f3fa5b6809c",
       "name": "Manual Trigger"
     },
     {
@@ -238,18 +239,12 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        9696,
-        3488
+        2016,
+        384
       ],
-      "id": "c85f3845-2427-4de4-ae52-93c6f2de3b38",
+      "id": "7a24b685-ba38-464d-a26e-d407e14a42e7",
       "name": "Send Email Report",
-      "webhookId": "8046c746-8f9f-4a48-b844-a4f79bc97f0c",
-      "credentials": {
-        "smtp": {
-          "id": "hKomORuKddQy3fng",
-          "name": "Proton Bridge SMTP"
-        }
-      }
+      "webhookId": "8046c746-8f9f-4a48-b844-a4f79bc97f0c"
     },
     {
       "parameters": {
@@ -262,10 +257,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        8576,
-        3488
+        896,
+        384
       ],
-      "id": "76a3570b-77f3-4084-99c0-2e66677490d4",
+      "id": "e827a150-e2e1-44b2-8cea-26ac8e50f65c",
       "name": "Merge"
     },
     {
@@ -277,10 +272,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        8800,
-        3488
+        1120,
+        384
       ],
-      "id": "3d962678-43e9-4f9f-bfa6-1caa48a775ac",
+      "id": "648619f7-e737-4bc5-8616-612cb6343007",
       "name": "Extract Payment Data"
     },
     {
@@ -292,10 +287,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        7904,
-        3104
+        224,
+        0
       ],
-      "id": "98bd215d-4bfa-4324-897b-9e26d4404f08",
+      "id": "75850b31-a7c6-4a2e-8ffd-34e1abb80cfe",
       "name": "Extract Sweep Address"
     },
     {
@@ -322,10 +317,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        8128,
-        3104
+        448,
+        0
       ],
-      "id": "a10d8371-81be-474a-b4a8-d6499c7dde25",
+      "id": "bd17dfa6-6732-4b64-96db-36f604b8a5df",
       "name": "Sweep On-chain Agent-B"
     },
     {
@@ -348,10 +343,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        7680,
-        3104
+        0,
+        0
       ],
-      "id": "b540fad6-250f-45ea-a8ac-70000dc6c057",
+      "id": "413a8fdd-73df-447c-aad9-9eac235a5b84",
       "name": "Generate Sweep Address Agent-B"
     },
     {
@@ -382,10 +377,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        7456,
-        3176
+        -224,
+        80
       ],
-      "id": "889d662f-92da-429e-9f5f-2dbf07f1c91d",
+      "id": "39a0bebc-c8a2-43ac-9dd7-bccd235c17fe",
       "name": "Should Sweep?"
     },
     {
@@ -393,10 +388,10 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        8352,
-        3104
+        672,
+        0
       ],
-      "id": "48fad646-1caf-4bd9-bcac-b327702c6646",
+      "id": "bf51f864-2506-4d9b-8044-7cf2505a40bf",
       "name": "LND Updates Balance",
       "webhookId": "c131e727-7626-4fee-b085-b224fbdd72c8"
     },
@@ -428,10 +423,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        6336,
-        3344
+        -1344,
+        240
       ],
-      "id": "0ab6f061-d155-437a-8c6f-a2682b999a8e",
+      "id": "40977027-098f-4cfe-a1eb-255485da6e4b",
       "name": "Did Payment Succeed?"
     },
     {
@@ -463,10 +458,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        6560,
-        3248
+        -1120,
+        144
       ],
-      "id": "ee42a706-0c64-40d4-a48f-66984d9ffe30",
+      "id": "4bd0156c-38d9-40b7-aef1-d6d621670ba0",
       "name": "Capture Payment Amount"
     },
     {
@@ -478,10 +473,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        9472,
-        3488
+        1792,
+        384
       ],
-      "id": "3a598dd1-3847-4883-b35b-08e7ba669734",
+      "id": "b55a07a3-6651-44b8-b1cf-5278d70d7d23",
       "name": "Gather Balances"
     },
     {
@@ -504,10 +499,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        9248,
-        3488
+        1568,
+        384
       ],
-      "id": "6241956e-afa8-457b-acbe-b7ce957b43ac",
+      "id": "8c001b31-bdaf-4238-b248-ad32d7e9c5ea",
       "name": "Get Channel Info Agent-B"
     },
     {
@@ -530,10 +525,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        9024,
-        3488
+        1344,
+        384
       ],
-      "id": "c4e312d4-c8f7-4387-9e2e-69b93ede334e",
+      "id": "0be4bd2a-dd93-427a-b2f9-4826420504e2",
       "name": "Get Bitcoin Balance Agent-B"
     },
     {
@@ -563,10 +558,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        7232,
-        3248
+        -448,
+        144
       ],
-      "id": "3d67a2e7-a215-41da-8f30-18e8b1f49981",
+      "id": "b7e65508-ff65-4879-a256-71e1b4bfedf6",
       "name": "Lightning Wallet Reserve Check - Agent B",
       "notes": "Ensure that Agent-B lightning wallet always has sufficient funds available to keep open the lightning channel.  Avoid an unexpected forced closure of the channel."
     },
@@ -579,10 +574,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        8352,
-        3392
+        672,
+        288
       ],
-      "id": "e7191682-cd0e-4b7f-9331-4f104a0211b0",
+      "id": "967ddce7-ea98-4b92-a81b-89adc324b011",
       "name": "Payment Blocked - Agent B Reserve"
     },
     {
@@ -605,10 +600,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        7008,
-        3248
+        -672,
+        144
       ],
-      "id": "673e4e24-dd40-42cc-aa79-20e42fac78c5",
+      "id": "a9c05ee3-9f0c-4e0b-85a9-f509f53c65ae",
       "name": "Get Lightning Balance Agent-B"
     },
     {
@@ -620,10 +615,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        8352,
-        3776
+        672,
+        672
       ],
-      "id": "a16c53f4-5036-414a-80a8-a6c3b8834e79",
+      "id": "af8d67fc-dcb1-40f3-8c96-147efeda51ee",
       "name": "Payment Rejected by Agent-B"
     },
     {
@@ -663,10 +658,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        5888,
-        3440
+        -1792,
+        336
       ],
-      "id": "2d03cfb5-59c9-4561-a48e-445601cc67a9",
+      "id": "3c5b58b3-ab67-4377-8a03-e622424032b9",
       "name": "Agent-B Payment Size Guardrail"
     },
     {
@@ -676,10 +671,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5664,
-        3440
+        -2016,
+        336
       ],
-      "id": "1dc59647-fded-4a8a-9f2b-903ac977f389",
+      "id": "7c48f1c0-d340-4377-ad6b-6aba7071856b",
       "name": "Extract Payment Amount from Invoice"
     },
     {
@@ -710,10 +705,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        4768,
-        3536
+        -2912,
+        432
       ],
-      "id": "27326a7c-6f91-4838-af9d-cc2e46a8fad0",
+      "id": "1cb52406-d0e2-4db6-bcbd-bebb65340d7a",
       "name": "Payment Decision"
     },
     {
@@ -725,10 +720,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        4992,
-        3440
+        -2688,
+        336
       ],
-      "id": "0720b9bd-1200-4a2c-ad6f-104b107a3213",
+      "id": "3a9761e1-3d48-42bc-b326-ecd9af2a984d",
       "name": "Prepare Invoice Data",
       "notes": "Apparently, Lightning Labs uses millisats when creating an invoice.  But we have to multiply by 100 to get correct amount. Something doesn't make sense here.  Need to investigate.\n\nLND’s REST API /v1/invoices is interpreting the value field as milli-satoshis (mSAT), not satoshis.\n\n"
     },
@@ -741,11 +736,24 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        8352,
-        3968
+        672,
+        864
       ],
-      "id": "651dabb4-882a-4feb-bd6f-82d0d8a8bad5",
+      "id": "8cdf7c9e-4b77-4c44-93c1-0aa2464cf674",
       "name": "Prepare Data for Agent-B"
+    },
+    {
+      "parameters": {
+        "command": "=docker exec -i agent-b-lnd lncli --network=regtest addinvoice --memo \"{{ $json.reason || $json.memo || 'Payment from Agent A' }}\" --amt {{ Math.floor(Number($json.amount || $json.value || 0)) }}"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -2480,
+        336
+      ],
+      "id": "fe39a908-cd5c-42af-9bd8-b167fe64b17a",
+      "name": "Create Invoice with lncli"
     }
   ],
   "pinData": {},
@@ -829,13 +837,7 @@
     },
     "Create Invoice Agent-B": {
       "main": [
-        [
-          {
-            "node": "Extract Payment Request",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Pay Invoice Agent-A": {
@@ -1119,7 +1121,7 @@
       "main": [
         [
           {
-            "node": "Create Invoice Agent-B",
+            "node": "Create Invoice with lncli",
             "type": "main",
             "index": 0
           }
@@ -1136,6 +1138,17 @@
           }
         ]
       ]
+    },
+    "Create Invoice with lncli": {
+      "main": [
+        [
+          {
+            "node": "Extract Payment Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -1144,11 +1157,10 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "cedb6a03-61ff-4898-b234-f851e4fc778b",
+  "versionId": "b7d58698-880c-4bfc-ad23-0ed08669b1f5",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "4b364e7e9d89e08199633b9e0275e078116da2a5b49e2f500e3d3809ea6e958d"
+    "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
   },
-  "id": "6lmHrqUjR2EMFYDQ",
+  "id": "cqJEV4aj09MLMJJb",
   "tags": []
 }
