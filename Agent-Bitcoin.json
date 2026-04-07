@@ -4,9 +4,9 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "Pay Agent B exactly 10000 sats right now.",
+        "text": "Pay Agent B exactly 1000 sats right now.",
         "options": {
-          "systemMessage": "You are Agent A, a financial agent on regtest with strong guardrails.\n\nSTRICT RULES - YOU MUST FOLLOW THESE AT ALL TIMES:\n- If the user asks you to make a payment, you SHOULD pay unless a guardrail is violated.\n- When you decide to pay, your ENTIRE response must be ONLY valid JSON in this exact format — NO other text:\n  {\"pay\": true, \"amount\": integer in sats, \"reason\": \"short meaningful explanation\"}\n\n- Always provide a short, meaningful reason when paying.\n\n- If you cannot pay because of a guardrail, respond in plain text explaining why.\n\nYou currently have a channel to Agent B. Follow the user's request in the prompt."
+          "systemMessage": "You are Agent A, a financial agent on regtest with strong guardrails.\n\nSTRICT RULES - YOU MUST FOLLOW THESE AT ALL TIMES:\n\n- If the user asks you to make a payment, you SHOULD pay unless a guardrail is violated.\n- When you decide to pay, your ENTIRE response must be ONLY valid JSON in this exact format — NO other text, no explanation, no extra words:\n  {\"pay\": true, \"amount\": integer in sats, \"reason\": \"short meaningful explanation\"}\n\n- The \"amount\" field must be a positive integer representing the number of satoshis.\n- The \"reason\" must be short and meaningful.\n- If any guardrail would be violated, or if there is no good reason to pay, respond in plain text explaining why you cannot pay."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -43,7 +43,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -3424,
+        -3416,
         656
       ],
       "id": "7598f97e-0abc-48cb-b6e8-2ca89420b1ae",
@@ -101,7 +101,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        2320,
+        2312,
         608
       ],
       "id": "a47872ee-84a2-434d-843d-ea1e1b07be20",
@@ -164,7 +164,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"memo\": \"{{ $json.memo }}\",\n  \"value\": {{ $json.value }}\n}",
+        "jsonBody": "={\n  \"memo\": \"{{ $json.memo }}\",\n  \"value\": \"{{ $json.value }}\"\n}",
         "options": {
           "allowUnauthorizedCerts": true,
           "timeout": 120000
@@ -174,14 +174,13 @@
       "typeVersion": 4.4,
       "position": [
         -2464,
-        608
+        336
       ],
       "id": "1288c09b-6bba-466e-b948-06ff02d4cf57",
       "name": "Create Invoice Agent-B",
       "retryOnFail": false,
       "waitBetweenTries": 5000,
       "alwaysOutputData": false,
-      "disabled": true,
       "onError": "continueRegularOutput"
     },
     {
@@ -378,7 +377,7 @@
       "typeVersion": 2.3,
       "position": [
         -224,
-        80
+        72
       ],
       "id": "39a0bebc-c8a2-43ac-9dd7-bccd235c17fe",
       "name": "Should Sweep?"
@@ -741,19 +740,6 @@
       ],
       "id": "8cdf7c9e-4b77-4c44-93c1-0aa2464cf674",
       "name": "Prepare Data for Agent-B"
-    },
-    {
-      "parameters": {
-        "command": "=docker exec -i agent-b-lnd lncli --network=regtest addinvoice --memo \"{{ $json.reason || $json.memo || 'Payment from Agent A' }}\" --amt {{ Math.floor(Number($json.amount || $json.value || 0)) }}"
-      },
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [
-        -2480,
-        336
-      ],
-      "id": "fe39a908-cd5c-42af-9bd8-b167fe64b17a",
-      "name": "Create Invoice with lncli"
     }
   ],
   "pinData": {},
@@ -837,7 +823,13 @@
     },
     "Create Invoice Agent-B": {
       "main": [
-        []
+        [
+          {
+            "node": "Extract Payment Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Pay Invoice Agent-A": {
@@ -1121,7 +1113,7 @@
       "main": [
         [
           {
-            "node": "Create Invoice with lncli",
+            "node": "Create Invoice Agent-B",
             "type": "main",
             "index": 0
           }
@@ -1138,17 +1130,6 @@
           }
         ]
       ]
-    },
-    "Create Invoice with lncli": {
-      "main": [
-        [
-          {
-            "node": "Extract Payment Request",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
     }
   },
   "active": false,
@@ -1157,7 +1138,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "b7d58698-880c-4bfc-ad23-0ed08669b1f5",
+  "versionId": "873c6bd9-d503-4c05-a0ec-d67d2b33cb0b",
   "meta": {
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
   },
