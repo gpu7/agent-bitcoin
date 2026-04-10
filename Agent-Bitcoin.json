@@ -4,7 +4,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "Pay Agent B exactly 1000 sats right now.",
+        "text": "Pay Agent B exactly 10000000 sats right now.",
         "options": {
           "systemMessage": "You are Agent A, a financial agent on regtest with strong guardrails.\n\nSTRICT RULES - YOU MUST FOLLOW THESE AT ALL TIMES:\n\n- If the user asks you to make a payment, you SHOULD pay unless a guardrail is violated.\n- When you decide to pay, your ENTIRE response must be ONLY valid JSON in this exact format — NO other text, no explanation, no extra words:\n  {\"pay\": true, \"amount\": integer in sats, \"reason\": \"short meaningful explanation\"}\n\n- The \"amount\" field must be a positive integer representing the number of satoshis.\n- The \"reason\" must be short and meaningful.\n- If any guardrail would be violated, or if there is no good reason to pay, respond in plain text explaining why you cannot pay."
         }
@@ -138,7 +138,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const lastMessage = items[0].json.messages?.slice(-1)[0]?.content || items[0].json.output || '';\n\ntry {\n  const parsed = JSON.parse(lastMessage);\n  if (parsed.pay === true && Number.isInteger(parsed.amount) && parsed.amount > 0) {\n    return [{ json: { pay: true, amount: parsed.amount, reason: parsed.reason || 'No reason given' } }];\n  }\n} catch (e) {}\n\n// Not a payment decision → pass through original\nreturn [{ json: { pay: false, message: lastMessage } }];"
+        "jsCode": "const lastMessage = items[0].json.messages?.slice(-1)[0]?.content \n                 || items[0].json.output \n                 || '';\n\ntry {\n  const parsed = JSON.parse(lastMessage);\n  if (parsed.pay === true && Number.isInteger(parsed.amount) && parsed.amount > 0) {\n    return [{ \n      json: { \n        pay: true, \n        amount: parsed.amount, \n        reason: parsed.reason || 'No reason given' \n      } \n    }];\n  }\n} catch (e) {}\n\n// Not a valid payment decision\nreturn [{ \n  json: { \n    pay: false, \n    message: lastMessage,\n    reason: \"Invalid or missing payment JSON from Agent A\" \n  } \n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -265,7 +265,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"amount\": \"{{ $json.payment_route?.total_amt || $node[\"Capture Payment Amount\"].json.payment_amount_sats || $json.amount || 0 }}\",\n  \"fee\": \"{{ Math.floor( ($json.payment_route?.total_fees_msat || 0) / 1000 ) || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\"\n}",
+        "jsonOutput": "={\n  \"payment_amount\": \"{{ $json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n  \"status\": \"{{ $json.pay === true ? 'success' : 'rejected' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -466,7 +466,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"payment_amount\": \"{{ $node['Capture Payment Amount'].json.payment_amount_sats || $json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $node['Extract Payment Data'].json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || $node['Pay Invoice Agent-A'].json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'Test successful payment flow' }}\",\n\n  \"status\": \"{{ $json.status || ($json.pay === false ? 'rejected' : 'success') }}\",\n  \"agent_b_message\": \"{{ $json.message || 'Payment completed successfully' }}\",\n\n  \"agent_b_lightning_total\": \"{{ $node['Get Lightning Balance Agent-B'].json.local_balance?.sat || $node['Get Lightning Balance Agent-B'].json.balance || 0 }}\",\n  \"agent_b_onchain_confirmed\": \"{{ $node['Get Bitcoin Balance Agent-B'].json.confirmed_balance || 0 }}\",\n  \"agent_b_onchain_unconfirmed\": \"{{ $node['Get Bitcoin Balance Agent-B'].json.unconfirmed_balance || 0 }}\",\n\n  \"channel_capacity\": \"{{ $node['Get Channel Info Agent-B'].json.channels[0]?.capacity || 5000000 }}\",\n  \"channel_local_balance\": \"{{ $node['Get Channel Info Agent-B'].json.channels[0]?.local_balance || 0 }}\",\n  \"channel_remote_balance\": \"{{ $node['Get Channel Info Agent-B'].json.channels[0]?.remote_balance || 0 }}\",\n\n  \"sweep_triggered\": \"{{ $node['Should Sweep?'].isExecuted ? ($node['Should Sweep?'].json.outputIndex === 0 ? 'Yes' : 'No') : 'No' }}\"\n}",
+        "jsonOutput": "={\n  \"payment_amount\": \"{{ $json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n\n  \"status\": \"{{ $json.pay === true ? 'success' : 'rejected' }}\",\n  \"agent_b_message\": \"{{ $json.message || ($json.pay === false ? 'Payment was rejected or blocked by guardrail' : 'Payment completed successfully') }}\",\n\n  \"agent_b_lightning_total\": \"{{ $node[\"Get Lightning Balance Agent-B\"]?.json?.local_balance?.sat || $node[\"Get Lightning Balance Agent-B\"]?.json?.balance || 0 }}\",\n  \"agent_b_onchain_confirmed\": \"{{ $node[\"Get Bitcoin Balance Agent-B\"]?.json?.confirmed_balance || 0 }}\",\n  \"agent_b_onchain_unconfirmed\": \"{{ $node[\"Get Bitcoin Balance Agent-B\"]?.json?.unconfirmed_balance || 0 }}\",\n\n  \"channel_capacity\": \"{{ $node[\"Get Channel Info Agent-B\"]?.json?.channels?.[0]?.capacity || 5000000 }}\",\n  \"channel_local_balance\": \"{{ $node[\"Get Channel Info Agent-B\"]?.json?.channels?.[0]?.local_balance || 0 }}\",\n  \"channel_remote_balance\": \"{{ $node[\"Get Channel Info Agent-B\"]?.json?.channels?.[0]?.remote_balance || 0 }}\",\n\n  \"sweep_triggered\": \"{{ $node[\"Should Sweep?\"]?.isExecuted ? ($node[\"Should Sweep?\"]?.json?.outputIndex === 0 ? 'Yes' : 'No') : 'No' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -713,7 +713,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"memo\": \"{{ $json.reason || $json.memo || 'Payment from Agent A' }}\",\n  \"value\": {{ Math.floor( Number($json.amount || $json.value || 0) ) }}\n}",
+        "jsonOutput": "={\n  \"memo\": \"{{ $json.reason  }}\",\n  \"value\": \"{{ $json.amount }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -1138,7 +1138,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "873c6bd9-d503-4c05-a0ec-d67d2b33cb0b",
+  "versionId": "39e4c855-b43d-44e6-a303-b1d7e80714ae",
   "meta": {
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
   },
