@@ -4,7 +4,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "Pay Agent B exactly 10000000 sats right now.",
+        "text": "Pay Agent B exactly 1000 sats right now.",
         "options": {
           "systemMessage": "You are Agent A, a financial agent on regtest with strong guardrails.\n\nSTRICT RULES - YOU MUST FOLLOW THESE AT ALL TIMES:\n\n- If the user asks you to make a payment, you SHOULD pay unless a guardrail is violated.\n- When you decide to pay, your ENTIRE response must be ONLY valid JSON in this exact format — NO other text, no explanation, no extra words:\n  {\"pay\": true, \"amount\": integer in sats, \"reason\": \"short meaningful explanation\"}\n\n- The \"amount\" field must be a positive integer representing the number of satoshis.\n- The \"reason\" must be short and meaningful.\n- If any guardrail would be violated, or if there is no good reason to pay, respond in plain text explaining why you cannot pay."
         }
@@ -43,7 +43,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -3416,
+        -3424,
         656
       ],
       "id": "7598f97e-0abc-48cb-b6e8-2ca89420b1ae",
@@ -87,8 +87,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        672,
-        480
+        304,
+        576
       ],
       "id": "a4d8e748-d6de-4566-bcbe-e84b79ab3004",
       "name": "Payment Failed"
@@ -101,7 +101,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        2312,
+        2320,
         608
       ],
       "id": "a47872ee-84a2-434d-843d-ea1e1b07be20",
@@ -243,7 +243,13 @@
       ],
       "id": "7a24b685-ba38-464d-a26e-d407e14a42e7",
       "name": "Send Email Report",
-      "webhookId": "8046c746-8f9f-4a48-b844-a4f79bc97f0c"
+      "webhookId": "8046c746-8f9f-4a48-b844-a4f79bc97f0c",
+      "credentials": {
+        "smtp": {
+          "id": "2Xj16dAfI4GGHH3p",
+          "name": "SMTP account"
+        }
+      }
     },
     {
       "parameters": {
@@ -349,40 +355,6 @@
       "name": "Generate Sweep Address Agent-B"
     },
     {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "c3845312-aa60-495b-a975-073c60c8156d",
-              "leftValue": "={{ $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}",
-              "rightValue": 30000,
-              "operator": {
-                "type": "number",
-                "operation": "gt"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "looseTypeValidation": true,
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -224,
-        72
-      ],
-      "id": "39a0bebc-c8a2-43ac-9dd7-bccd235c17fe",
-      "name": "Should Sweep?"
-    },
-    {
       "parameters": {},
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -393,40 +365,6 @@
       "id": "bf51f864-2506-4d9b-8044-7cf2505a40bf",
       "name": "LND Updates Balance",
       "webhookId": "c131e727-7626-4fee-b085-b224fbdd72c8"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "9fd8e132-cef0-4f12-8e36-0a6771b91489",
-              "leftValue": "={{ $json.payment_hash != null }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -1344,
-        240
-      ],
-      "id": "40977027-098f-4cfe-a1eb-255485da6e4b",
-      "name": "Did Payment Succeed?"
     },
     {
       "parameters": {
@@ -466,7 +404,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"payment_amount\": \"{{ $json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n\n  \"status\": \"{{ $json.pay === true ? 'success' : 'rejected' }}\",\n  \"agent_b_message\": \"{{ $json.message || ($json.pay === false ? 'Payment was rejected or blocked by guardrail' : 'Payment completed successfully') }}\",\n\n  \"agent_b_lightning_total\": \"{{ $node[\"Get Lightning Balance Agent-B\"]?.json?.local_balance?.sat || $node[\"Get Lightning Balance Agent-B\"]?.json?.balance || 0 }}\",\n  \"agent_b_onchain_confirmed\": \"{{ $node[\"Get Bitcoin Balance Agent-B\"]?.json?.confirmed_balance || 0 }}\",\n  \"agent_b_onchain_unconfirmed\": \"{{ $node[\"Get Bitcoin Balance Agent-B\"]?.json?.unconfirmed_balance || 0 }}\",\n\n  \"channel_capacity\": \"{{ $node[\"Get Channel Info Agent-B\"]?.json?.channels?.[0]?.capacity || 5000000 }}\",\n  \"channel_local_balance\": \"{{ $node[\"Get Channel Info Agent-B\"]?.json?.channels?.[0]?.local_balance || 0 }}\",\n  \"channel_remote_balance\": \"{{ $node[\"Get Channel Info Agent-B\"]?.json?.channels?.[0]?.remote_balance || 0 }}\",\n\n  \"sweep_triggered\": \"{{ $node[\"Should Sweep?\"]?.isExecuted ? ($node[\"Should Sweep?\"]?.json?.outputIndex === 0 ? 'Yes' : 'No') : 'No' }}\"\n}",
+        "jsonOutput": "={\n  \"payment_amount\": \"{{ $json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n\n  \"status\": \"{{ $json.pay === true ? 'success' : 'rejected' }}\",\n  \"agent_b_message\": \"{{ $json.message || ($json.pay === false ? 'Payment was rejected or blocked by guardrail' : 'Payment completed successfully') }}\",\n\n  \"agent_b_lightning_total\": \"{{ $json.local_balance?.sat || $json.balance || $node['Get Lightning Balance Agent-B']?.json?.local_balance?.sat || 0 }}\",\n  \"agent_b_onchain_confirmed\": \"{{ $node['Get Bitcoin Balance Agent-B']?.json?.confirmed_balance || 0 }}\",\n  \"agent_b_onchain_unconfirmed\": \"{{ $node['Get Bitcoin Balance Agent-B']?.json?.unconfirmed_balance || 0 }}\",\n\n  \"channel_capacity\": \"{{ $node['Get Channel Info Agent-B']?.json?.channels?.[0]?.capacity || 5000000 }}\",\n  \"channel_local_balance\": \"{{ $json.local_balance?.sat || $node['Get Channel Info Agent-B']?.json?.channels?.[0]?.local_balance || 0 }}\",\n  \"channel_remote_balance\": \"{{ $json.remote_balance?.sat || $node['Get Channel Info Agent-B']?.json?.channels?.[0]?.remote_balance || 0 }}\",\n\n  \"sweep_triggered\": \"{{ $node['Should Sweep']?.isExecuted ? ($node['Should Sweep']?.json?.outputIndex === 0 ? 'Yes' : 'No') : 'No' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -532,55 +470,6 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "ec9b863e-f163-4570-a712-9576a63a923e",
-              "leftValue": "={{ Number($node[\"Get Lightning Balance Agent-B\"].json.local_balance?.sat || $node[\"Get Lightning Balance Agent-B\"].json.balance || 0) }}",
-              "rightValue": 100000,
-              "operator": {
-                "type": "number",
-                "operation": "gt"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -448,
-        144
-      ],
-      "id": "b7e65508-ff65-4879-a256-71e1b4bfedf6",
-      "name": "Lightning Wallet Reserve Check - Agent B",
-      "notes": "Ensure that Agent-B lightning wallet always has sufficient funds available to keep open the lightning channel.  Avoid an unexpected forced closure of the channel."
-    },
-    {
-      "parameters": {
-        "mode": "raw",
-        "jsonOutput": "{\n  \"pay\": false,\n  \"message\": \"Sweep blocked: Lightning wallet reserve minimum would be violated on Agent B.\",\n  \"reason\": \"Lightning wallet reserve protection guardrail activated on Agent B\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        672,
-        288
-      ],
-      "id": "967ddce7-ea98-4b92-a81b-89adc324b011",
-      "name": "Payment Blocked - Agent B Reserve"
-    },
-    {
-      "parameters": {
         "url": "https://agent-b-lnd:8080/v1/balance/channels",
         "sendHeaders": true,
         "headerParameters": {
@@ -614,8 +503,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        672,
-        672
+        304,
+        768
       ],
       "id": "af8d67fc-dcb1-40f3-8c96-147efeda51ee",
       "name": "Payment Rejected by Agent-B"
@@ -665,7 +554,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const invoice = items[0].json.payment_request || \"\";\n\n// Better Lightning invoice amount parser\nlet amount = 0;\n\nconst match = invoice.match(/lnbcrt(\\d+)([munp]?)/i);\nif (match) {\n  let value = parseInt(match[1], 10);\n  const multiplier = (match[2] || '').toLowerCase();\n\n  switch (multiplier) {\n    case 'm': amount = value * 1000; break;        // milli\n    case 'u': amount = value; break;               // micro\n    case 'n': amount = Math.floor(value / 1000); break; // nano\n    case 'p': amount = Math.floor(value / 1000000); break; // pico\n    default:  amount = value;                      // assume sats\n  }\n}\n\nreturn [{\n  json: {\n    payment_request: invoice,\n    amount: amount,\n    original_amount: amount\n  }\n}];"
+        "jsCode": "const invoice = items[0].json.payment_request || \"\";\n\n// Improved Lightning invoice amount parser\nlet amount = 0;\n\nconst match = invoice.match(/lnbcrt(\\d+)([munp]?)/i);\n\nif (match) {\n  let value = parseInt(match[1], 10);\n  const multiplier = (match[2] || '').toLowerCase();\n\n  switch (multiplier) {\n    case 'm': \n      amount = value * 1000;        // milli = 1,000 sats per unit\n      break;\n    case 'u': \n      amount = value;               // micro = 1 sat per unit\n      break;\n    case 'n': \n      amount = value * 1000;        // nano: 10n = 10 * 1000 millisats? Wait — corrected:\n      // Actually for your invoices: 10n = 1 sat → so we treat 'n' as ×0.1 sat per unit? No.\n      // From real decoder: 10n = 1 sat → so multiplier for 'n' should be value * 0.1? Wait.\n\n      // Corrected based on your working decoder:\n      amount = value * 100;         // This makes 10n = 1,000 millisats = 1 sat\n      break;\n    case 'p': \n      amount = value / 1000;        // pico\n      break;\n    default:  \n      amount = value;               // assume sats if no multiplier\n  }\n}\n\nreturn [{\n  json: {\n    payment_request: invoice,\n    amount: Math.floor(amount),     // ensure integer\n    original_amount: amount\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -735,11 +624,128 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        672,
-        864
+        304,
+        976
       ],
       "id": "8cdf7c9e-4b77-4c44-93c1-0aa2464cf674",
       "name": "Prepare Data for Agent-B"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c3845312-aa60-495b-a975-073c60c8156d",
+              "leftValue": "={{ $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}",
+              "rightValue": 30000,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -224,
+        80
+      ],
+      "id": "39a0bebc-c8a2-43ac-9dd7-bccd235c17fe",
+      "name": "Should Sweep"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"pay\": false,\n  \"message\": \"Sweep blocked: Lightning wallet reserve minimum would be violated on Agent B.\",\n  \"reason\": \"Lightning wallet reserve protection guardrail activated on Agent B\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        304,
+        352
+      ],
+      "id": "967ddce7-ea98-4b92-a81b-89adc324b011",
+      "name": "Payment Blocked - Agent-B Reserve"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ec9b863e-f163-4570-a712-9576a63a923e",
+              "leftValue": "={{ Number($node[\"Get Lightning Balance Agent-B\"].json.local_balance?.sat || $node[\"Get Lightning Balance Agent-B\"].json.balance || 0) }}",
+              "rightValue": 100000,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -448,
+        144
+      ],
+      "id": "b7e65508-ff65-4879-a256-71e1b4bfedf6",
+      "name": "Lightning Wallet Reserve Check - Agent-B",
+      "notes": "Ensure that Agent-B lightning wallet always has sufficient funds available to keep open the lightning channel.  Avoid an unexpected forced closure of the channel."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9fd8e132-cef0-4f12-8e36-0a6771b91489",
+              "leftValue": "={{ $json.payment_hash != null }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1344,
+        240
+      ],
+      "id": "40977027-098f-4cfe-a1eb-255485da6e4b",
+      "name": "Did Payment Succeed"
     }
   ],
   "pinData": {},
@@ -836,7 +842,7 @@
       "main": [
         [
           {
-            "node": "Did Payment Succeed?",
+            "node": "Did Payment Succeed",
             "type": "main",
             "index": 0
           }
@@ -920,47 +926,11 @@
         ]
       ]
     },
-    "Should Sweep?": {
-      "main": [
-        [
-          {
-            "node": "Generate Sweep Address Agent-B",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
     "LND Updates Balance": {
       "main": [
         [
           {
             "node": "Merge",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Did Payment Succeed?": {
-      "main": [
-        [
-          {
-            "node": "Capture Payment Amount",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Payment Failed",
             "type": "main",
             "index": 0
           }
@@ -1011,40 +981,11 @@
         ]
       ]
     },
-    "Lightning Wallet Reserve Check - Agent B": {
-      "main": [
-        [
-          {
-            "node": "Should Sweep?",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Payment Blocked - Agent B Reserve",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Payment Blocked - Agent B Reserve": {
-      "main": [
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
     "Get Lightning Balance Agent-B": {
       "main": [
         [
           {
-            "node": "Lightning Wallet Reserve Check - Agent B",
+            "node": "Lightning Wallet Reserve Check - Agent-B",
             "type": "main",
             "index": 0
           }
@@ -1130,6 +1071,71 @@
           }
         ]
       ]
+    },
+    "Should Sweep": {
+      "main": [
+        [
+          {
+            "node": "Generate Sweep Address Agent-B",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment Blocked - Agent-B Reserve": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Lightning Wallet Reserve Check - Agent-B": {
+      "main": [
+        [
+          {
+            "node": "Should Sweep",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Payment Blocked - Agent-B Reserve",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Did Payment Succeed": {
+      "main": [
+        [
+          {
+            "node": "Capture Payment Amount",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Payment Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -1138,8 +1144,9 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "39e4c855-b43d-44e6-a303-b1d7e80714ae",
+  "versionId": "6e21c356-79c3-4e89-8abf-ad9ac289ac61",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
   },
   "id": "cqJEV4aj09MLMJJb",
