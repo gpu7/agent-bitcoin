@@ -164,7 +164,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"memo\": \"{{ $json.memo }}\",\n  \"value\": \"{{ $json.value }}\"\n}",
+        "jsonBody": "={\n  \"memo\": \"{{ $json.reason }}\",\n  \"value\": \"{{ $json.amount }}\"\n}",
         "options": {
           "allowUnauthorizedCerts": true,
           "timeout": 120000
@@ -404,7 +404,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"payment_amount\": \"{{ $json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n\n  \"status\": \"{{ $json.pay === true ? 'success' : 'rejected' }}\",\n  \"agent_b_message\": \"{{ $json.message || ($json.pay === false ? 'Payment was rejected or blocked by guardrail' : 'Payment completed successfully') }}\",\n\n  \"agent_b_lightning_total\": \"{{ $json.local_balance?.sat || $json.balance || $node['Get Lightning Balance Agent-B']?.json?.local_balance?.sat || 0 }}\",\n  \"agent_b_onchain_confirmed\": \"{{ $node['Get Bitcoin Balance Agent-B']?.json?.confirmed_balance || 0 }}\",\n  \"agent_b_onchain_unconfirmed\": \"{{ $node['Get Bitcoin Balance Agent-B']?.json?.unconfirmed_balance || 0 }}\",\n\n  \"channel_capacity\": \"{{ $node['Get Channel Info Agent-B']?.json?.channels?.[0]?.capacity || 5000000 }}\",\n  \"channel_local_balance\": \"{{ $json.local_balance?.sat || $node['Get Channel Info Agent-B']?.json?.channels?.[0]?.local_balance || 0 }}\",\n  \"channel_remote_balance\": \"{{ $json.remote_balance?.sat || $node['Get Channel Info Agent-B']?.json?.channels?.[0]?.remote_balance || 0 }}\",\n\n  \"sweep_triggered\": \"{{ $node['Should Sweep']?.isExecuted ? ($node['Should Sweep']?.json?.outputIndex === 0 ? 'Yes' : 'No') : 'No' }}\"\n}",
+        "jsonOutput": "={\n  \"payment_amount\": \"{{ $json.amount || $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}\",\n  \"payment_fee\": \"{{ $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n\n  \"status\": \"{{ $json.pay === true ? 'success' : 'rejected' }}\",\n  \"agent_b_message\": \"{{ $json.message || ($json.pay === false ? 'Payment was rejected or blocked by guardrail' : 'Payment completed successfully') }}\",\n\n  \"agent_b_lightning_total\": \"{{ $node[\"Get Lightning Balance Agent-B\"].json.local_balance?.sat || $node[\"Get Lightning Balance Agent-B\"].json.balance || 0 }}\",\n  \"agent_b_onchain_confirmed\": \"{{ $node[\"Get Bitcoin Balance Agent-B\"].json.confirmed_balance || 0 }}\",\n  \"agent_b_onchain_unconfirmed\": \"{{ $node[\"Get Bitcoin Balance Agent-B\"].json.unconfirmed_balance || 0 }}\",\n\n  \"channel_capacity\": \"{{ $node[\"Get Channel Info Agent-B\"].json.channels?.[0]?.capacity || 5000000 }}\",\n  \"channel_local_balance\": \"{{ $node[\"Get Channel Info Agent-B\"].json.channels?.[0]?.local_balance || 0 }}\",\n  \"channel_remote_balance\": \"{{ $node[\"Get Channel Info Agent-B\"].json.channels?.[0]?.remote_balance || 0 }}\",\n\n  \"sweep_triggered\": \"{{ $node[\"Should Sweep\"]?.isExecuted ? ($node[\"Should Sweep\"].json.outputIndex === 0 ? 'Yes' : 'No') : 'No' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -521,7 +521,7 @@
           "conditions": [
             {
               "id": "30615d86-4b9a-4369-a419-a29666a9fe19",
-              "leftValue": "={{ $node[\"Extract Payment Amount from Invoice\"].json.amount }}\n",
+              "leftValue": "={{ $node[\"Parse Grok Payment Decision\"].json.amount }}\n",
               "rightValue": 1000000,
               "operator": {
                 "type": "number",
@@ -530,7 +530,7 @@
             },
             {
               "id": "26e40178-8c35-4394-a8c9-cb3ad737d662",
-              "leftValue": "={{ $node[\"Extract Payment Amount from Invoice\"].json.amount }}",
+              "leftValue": "={{ $node[\"Parse Grok Payment Decision\"].json.amount }}",
               "rightValue": 1,
               "operator": {
                 "type": "number",
@@ -551,19 +551,6 @@
       ],
       "id": "3c5b58b3-ab67-4377-8a03-e622424032b9",
       "name": "Agent-B Payment Size Guardrail"
-    },
-    {
-      "parameters": {
-        "jsCode": "const invoice = items[0].json.payment_request || \"\";\n\n// Improved Lightning invoice amount parser\nlet amount = 0;\n\nconst match = invoice.match(/lnbcrt(\\d+)([munp]?)/i);\n\nif (match) {\n  let value = parseInt(match[1], 10);\n  const multiplier = (match[2] || '').toLowerCase();\n\n  switch (multiplier) {\n    case 'm': \n      amount = value * 1000;        // milli = 1,000 sats per unit\n      break;\n    case 'u': \n      amount = value;               // micro = 1 sat per unit\n      break;\n    case 'n': \n      amount = value * 1000;        // nano: 10n = 10 * 1000 millisats? Wait — corrected:\n      // Actually for your invoices: 10n = 1 sat → so we treat 'n' as ×0.1 sat per unit? No.\n      // From real decoder: 10n = 1 sat → so multiplier for 'n' should be value * 0.1? Wait.\n\n      // Corrected based on your working decoder:\n      amount = value * 100;         // This makes 10n = 1,000 millisats = 1 sat\n      break;\n    case 'p': \n      amount = value / 1000;        // pico\n      break;\n    default:  \n      amount = value;               // assume sats if no multiplier\n  }\n}\n\nreturn [{\n  json: {\n    payment_request: invoice,\n    amount: Math.floor(amount),     // ensure integer\n    original_amount: amount\n  }\n}];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -2016,
-        224
-      ],
-      "id": "7c48f1c0-d340-4377-ad6b-6aba7071856b",
-      "name": "Extract Payment Amount from Invoice"
     },
     {
       "parameters": {
@@ -598,22 +585,6 @@
       ],
       "id": "1cb52406-d0e2-4db6-bcbd-bebb65340d7a",
       "name": "Payment Decision"
-    },
-    {
-      "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={\n  \"memo\": \"{{ $json.reason  }}\",\n  \"value\": \"{{ $json.amount }}\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -2688,
-        224
-      ],
-      "id": "3a9761e1-3d48-42bc-b326-ecd9af2a984d",
-      "name": "Prepare Invoice Data",
-      "notes": "Apparently, Lightning Labs uses millisats when creating an invoice.  But we have to multiply by 100 to get correct amount. Something doesn't make sense here.  Need to investigate.\n\nLND’s REST API /v1/invoices is interpreting the value field as milli-satoshis (mSAT), not satoshis.\n\n"
     },
     {
       "parameters": {
@@ -809,7 +780,7 @@
       "main": [
         [
           {
-            "node": "Extract Payment Amount from Invoice",
+            "node": "Agent-B Payment Size Guardrail",
             "type": "main",
             "index": 0
           }
@@ -1021,22 +992,11 @@
         ]
       ]
     },
-    "Extract Payment Amount from Invoice": {
-      "main": [
-        [
-          {
-            "node": "Agent-B Payment Size Guardrail",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Payment Decision": {
       "main": [
         [
           {
-            "node": "Prepare Invoice Data",
+            "node": "Create Invoice Agent-B",
             "type": "main",
             "index": 0
           }
@@ -1044,17 +1004,6 @@
         [
           {
             "node": "Prepare Data for Agent-B",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Prepare Invoice Data": {
-      "main": [
-        [
-          {
-            "node": "Create Invoice Agent-B",
             "type": "main",
             "index": 0
           }
@@ -1144,7 +1093,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "df08fbc6-97e7-4ade-b098-322dca4c02d4",
+  "versionId": "ac82bb41-714a-47f7-9e74-e7e12f947de4",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
