@@ -115,29 +115,6 @@
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "ada74e1a-5c3f-494d-9271-2220b1c12b77",
-              "name": "payment_request",
-              "value": "={{ $json.payment_request }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -2240,
-        224
-      ],
-      "id": "9a19eb2f-de87-4c7b-90cd-4ed7e40517f3",
-      "name": "Extract Payment Request"
-    },
-    {
-      "parameters": {
         "jsCode": "const lastMessage = items[0].json.messages?.slice(-1)[0]?.content \n                 || items[0].json.output \n                 || '';\n\ntry {\n  const parsed = JSON.parse(lastMessage);\n  if (parsed.pay === true && Number.isInteger(parsed.amount) && parsed.amount > 0) {\n    return [{ \n      json: { \n        pay: true, \n        amount: parsed.amount, \n        reason: parsed.reason || 'No reason given' \n      } \n    }];\n  }\n} catch (e) {}\n\n// Not a valid payment decision\nreturn [{ \n  json: { \n    pay: false, \n    message: lastMessage,\n    reason: \"Invalid or missing payment JSON from Agent A\" \n  } \n}];"
       },
       "type": "n8n-nodes-base.code",
@@ -717,6 +694,21 @@
       ],
       "id": "967ddce7-ea98-4b92-a81b-89adc324b011",
       "name": "Payment Blocked Agent-B Reserve"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"payment_amount\": \"{{ $json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n  \"pay\": \"{{ $json.pay }}\",\n  \"status\": \"success\",\n  \"agent_b_message\": \"Payment completed successfully\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -16,
+        48
+      ],
+      "id": "8bfde6e7-502b-4c34-8f01-214938601e87",
+      "name": "Success Data Pass-Through"
     }
   ],
   "pinData": {},
@@ -776,17 +768,6 @@
         ]
       ]
     },
-    "Extract Payment Request": {
-      "main": [
-        [
-          {
-            "node": "Agent-B Payment Size Guardrail",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Parse Grok Payment Decision": {
       "main": [
         [
@@ -802,7 +783,7 @@
       "main": [
         [
           {
-            "node": "Extract Payment Request",
+            "node": "Agent-B Payment Size Guardrail",
             "type": "main",
             "index": 0
           }
@@ -1032,7 +1013,7 @@
         ],
         [
           {
-            "node": "Merge",
+            "node": "Success Data Pass-Through",
             "type": "main",
             "index": 0
           }
@@ -1085,6 +1066,17 @@
           }
         ]
       ]
+    },
+    "Success Data Pass-Through": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -1093,7 +1085,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "ac82bb41-714a-47f7-9e74-e7e12f947de4",
+  "versionId": "2727b3a2-ae03-465e-b505-eda697ccf96d",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
