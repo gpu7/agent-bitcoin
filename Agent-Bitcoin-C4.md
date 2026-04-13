@@ -7,18 +7,29 @@ graph TD;
     subgraph n8n["n8n Workflow"];
         AgentA["Agent-A (Grok Decision)"];
         Parse["Parse Grok Payment Decision"];
-        Prepare["Prepare Invoice Data"];
+        PaymentDecision["Payment Decision"];
+        PrepareInvoice["Prepare Invoice Data"];
         CreateInv["Create Invoice Agent-B"];
+        ExtractRequest["Extract Payment Request"];
+        ExtractAmount["Extract Payment Amount from Invoice"];
+        SizeGuardrail["Agent-B Payment Size Guardrail"];
         PayInv["Pay Invoice Agent-A"];
         DidSucceed["Did Payment Succeed?"];
         Capture["Capture Payment Amount"];
         PaymentSucc["Payment Succeeded"];
         
         GetBalB["Get Lightning Balance Agent-B"];
-        ReserveB["Lightning Wallet Reserve Check - Agent-B"];
+        ReserveCheckB["Lightning Wallet Reserve Check - Agent-B"];
         ShouldSweep["Should Sweep"];
+        
+        Merge["Merge"];
         Gather["Gather Balances"];
         Email["Send Email Report"];
+        
+        PaymentFailed["Payment Failed"];
+        BlockedReserve["Payment Blocked - Agent-B Reserve"];
+        RejectedByB["Payment Rejected by Agent-B"];
+        PrepareDataB["Prepare Data for Agent-B"];
     end;
 
     subgraph LND_B["Agent B LND"];
@@ -27,30 +38,43 @@ graph TD;
 
     User-->AgentA;
     AgentA-->Parse;
-    Parse-->|pay = true|Prepare;
-    Prepare-->CreateInv;
-    CreateInv-->PayInv;
+    Parse-->PaymentDecision;
+    PaymentDecision-->|pay = true|PrepareInvoice;
+    PrepareInvoice-->CreateInv;
+    CreateInv-->ExtractRequest;
+    ExtractRequest-->ExtractAmount;
+    ExtractAmount-->SizeGuardrail;
+    SizeGuardrail-->|Valid|PayInv;
+    SizeGuardrail-->|Invalid|RejectedByB;
     PayInv-->DidSucceed;
-
+    
     %% SUCCESS PATH
     DidSucceed-->|True|Capture;
     Capture-->PaymentSucc;
     PaymentSucc-->GetBalB;
-    GetBalB-->ReserveB;
-    ReserveB-->|True|ShouldSweep;
-    ShouldSweep-->|No Sweep|Gather;
-    ShouldSweep-->|Sweep Needed|Gather;
+    GetBalB-->ReserveCheckB;
+    ReserveCheckB-->|True|ShouldSweep;
+    ShouldSweep-->|No Sweep|Merge;
+    ShouldSweep-->|Sweep Needed|Merge;
 
-    %% REJECTION PATHS
-    ReserveB-->|False|Gather;
-    DidSucceed-->|False|Gather;
+    %% REJECTION / BLOCKED PATHS
+    ReserveCheckB-->|False|BlockedReserve;
+    DidSucceed-->|False|PaymentFailed;
+    PaymentFailed-->Merge;
+    BlockedReserve-->Merge;
+    RejectedByB-->Merge;
+    PrepareDataB-->Merge;
 
+    %% Final reporting
+    Merge-->Gather;
     Gather-->Email;
 
+    %% External calls
     CreateInv-.->LND;
     PayInv-.->LND;
 
-    classDef success fill:#d4edda,stroke:#28a745;
-    classDef reject fill:#f8d7da,stroke:#dc3545;
-    class PaymentSucc,Gather,Email success;
+    classDef success fill:#d4edda,stroke:#28a745,stroke-width:3px;
+    classDef reject fill:#f8d7da,stroke:#dc3545,stroke-width:3px;
+    class PaymentSucc,Merge,Gather,Email success;
+    class BlockedReserve,PaymentFailed,RejectedByB,PrepareDataB reject;
     ```
