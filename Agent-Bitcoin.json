@@ -248,7 +248,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"payment_amount\": \"{{ $json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n  \"status\": \"{{ $json.pay === true ? 'success' : 'rejected' }}\"\n}",
+        "jsonOutput": "={\n  \"payment_amount\": \"{{ $json.payment_amount || $json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $json.payment_fee || $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n  \"pay\": \"{{ $json.pay }}\",\n  \"status\": \"{{ $json.status || ($json.pay === true ? 'success' : 'rejected') }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -381,7 +381,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"payment_amount\": \"{{ $json.amount || $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}\",\n  \"payment_fee\": \"{{ $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n\n  \"status\": \"{{ $json.pay === true ? 'success' : 'rejected' }}\",\n  \"agent_b_message\": \"{{ $json.message || ($json.pay === false ? 'Payment was rejected or blocked by guardrail' : 'Payment completed successfully') }}\",\n\n  \"agent_b_lightning_total\": \"{{ $node[\"Get Lightning Balance Agent-B\"].json.local_balance?.sat || $node[\"Get Lightning Balance Agent-B\"].json.balance || 0 }}\",\n  \"agent_b_onchain_confirmed\": \"{{ $node[\"Get Bitcoin Balance Agent-B\"].json.confirmed_balance || 0 }}\",\n  \"agent_b_onchain_unconfirmed\": \"{{ $node[\"Get Bitcoin Balance Agent-B\"].json.unconfirmed_balance || 0 }}\",\n\n  \"channel_capacity\": \"{{ $node[\"Get Channel Info Agent-B\"].json.channels?.[0]?.capacity || 5000000 }}\",\n  \"channel_local_balance\": \"{{ $node[\"Get Channel Info Agent-B\"].json.channels?.[0]?.local_balance || 0 }}\",\n  \"channel_remote_balance\": \"{{ $node[\"Get Channel Info Agent-B\"].json.channels?.[0]?.remote_balance || 0 }}\",\n\n  \"sweep_triggered\": \"{{ $node[\"Should Sweep\"]?.isExecuted ? ($node[\"Should Sweep\"].json.outputIndex === 0 ? 'Yes' : 'No') : 'No' }}\"\n}",
+        "jsonOutput": "={\n  \"payment_amount\": \"{{ $json.payment_amount || $json.amount || $node[\"Extract Payment Data\"].json.payment_amount || $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}\",\n  \"payment_fee\": \"{{ $json.payment_fee || $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || $node[\"Extract Payment Data\"].json.reason || $node[\"Parse Grok Payment Decision\"].json.reason || 'No reason provided' }}\",\n\n  \"status\": \"{{ $json.status || $node[\"Extract Payment Data\"].json.status || ($json.pay === true ? 'success' : 'rejected') }}\",\n  \"agent_b_message\": \"{{ $json.agent_b_message || 'Payment completed successfully' }}\",\n\n  \"agent_b_lightning_total\": \"{{ $node[\"Get Lightning Balance Agent-B\"].json.local_balance?.sat || $node[\"Get Lightning Balance Agent-B\"].json.balance || 0 }}\",\n  \"agent_b_onchain_confirmed\": \"{{ $node[\"Get Bitcoin Balance Agent-B\"].json.confirmed_balance || 0 }}\",\n  \"agent_b_onchain_unconfirmed\": \"{{ $node[\"Get Bitcoin Balance Agent-B\"].json.unconfirmed_balance || 0 }}\",\n\n  \"channel_capacity\": \"{{ $node[\"Get Channel Info Agent-B\"].json.channels?.[0]?.capacity || 5000000 }}\",\n  \"channel_local_balance\": \"{{ $node[\"Get Channel Info Agent-B\"].json.channels?.[0]?.local_balance || 0 }}\",\n  \"channel_remote_balance\": \"{{ $node[\"Get Channel Info Agent-B\"].json.channels?.[0]?.remote_balance || 0 }}\",\n\n  \"sweep_triggered\": \"{{ $node[\"Should Sweep\"]?.isExecuted ? ($node[\"Should Sweep\"].json.outputIndex === 0 ? 'Yes' : 'No') : 'No' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -698,7 +698,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "{\n  \"payment_amount\": \"{{ $json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n  \"pay\": \"{{ $json.pay }}\",\n  \"status\": \"success\",\n  \"agent_b_message\": \"Payment completed successfully\"\n}\n",
+        "jsonOutput": "={\n  \"payment_amount\": \"{{ $json.amount || $node[\"Capture Payment Amount\"].json.payment_amount_sats || $node[\"Parse Grok Payment Decision\"].json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || $node[\"Parse Grok Payment Decision\"].json.reason || 'No reason provided' }}\",\n  \"pay\": \"{{ $json.pay || $node[\"Parse Grok Payment Decision\"].json.pay || false }}\",\n  \"status\": \"success\",\n  \"agent_b_message\": \"Payment completed successfully\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -1085,7 +1085,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "2727b3a2-ae03-465e-b505-eda697ccf96d",
+  "versionId": "19cee414-b209-4165-be11-3377a782b3c4",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
