@@ -6,6 +6,9 @@
 - [ABT-002: Zero Amount Payment Rejection](#abt-002-zero-amount-payment-rejection)
 - [ABT-003: Minimum Amount Payment (1 sat)](#abt-003-minimum-amount-payment-1-sat)
 - [ABT-004: Maximum Valid Amount (1,000,000 sats)](#abt-004-maximum-valid-amount-1000000-sats)
+- [ABT-005: Oversize Payment Rejection (> 1,000,000 sats)](#abt-005-oversize-payment-rejection--1000000-sats)
+- [ABT-006: Sweep Triggered](#abt-006-sweep-triggered)
+- [ABT-007: Lightning Wallet Reserve Violation](#abt-007-lightning-wallet-reserve-violation)
 
 ---
 
@@ -115,3 +118,88 @@ User requests the maximum valid payment (1,000,000 sats) → Agent A decides to 
    - Balances are updated appropriately (no unexpected rounding or scaling).
 
 ---
+
+## ABT-005: Oversize Payment Rejection (> 1,000,000 sats)
+
+**Description**  
+Tests that the workflow correctly rejects a payment request that exceeds the maximum allowed amount (1,000,000 sats) as defined by the payment size guardrail.
+
+**Test Objective**  
+User requests an oversize payment → Agent A or Agent-B guardrail rejects it → No payment is attempted → Email report shows clear rejection with appropriate reason.
+
+**Test Input (user prompt to Agent A)**  
+"Pay Agent B exactly 1000001 sats right now."
+
+**Expected Outcomes**
+- Agent A either refuses in plain text or outputs `{"pay": true, "amount": 1000001, ...}`.
+- Agent-B Payment Size Guardrail catches the violation (amount > 1,000,000 sats).
+- Workflow routes to rejection path (no invoice created, no payment sent).
+- Gather Balances shows `status: "rejected"`.
+- Email report shows **❌ Rejected** with a clear reason (e.g., "Payment amount exceeds maximum allowed limit of 1,000,000 sats").
+
+**How to Run**
+1. Trigger the workflow manually with the prompt "Pay Agent B exactly 1000001 sats right now."
+2. Verify the execution path goes through the size guardrail rejection branch.
+3. Confirm no Lightning payment occurred (balances unchanged).
+4. Check that the email report clearly indicates rejection and the correct reason.
+
+---
+
+## ABT-006: Sweep Triggered
+
+**Description**  
+Tests that the workflow correctly triggers an on-chain sweep when the payment amount (or accumulated balance) meets or exceeds the sweep threshold.
+
+**Test Objective**  
+User requests a large enough payment → Payment succeeds → Should Sweep evaluates to true → Funds are swept from Lightning to on-chain Bitcoin wallet → Email report reflects sweep triggered.
+
+**Test Input (user prompt to Agent A)**  
+"Pay Agent B exactly 50000000 sats right now." (or any amount large enough to trigger sweep based on your current threshold)
+
+**Expected Outcomes**
+- Agent A outputs valid JSON with a large `amount`.
+- Payment succeeds.
+- Lightning Wallet Reserve Check passes.
+- Should Sweep evaluates to true.
+- Sweep On-chain Agent-B executes successfully.
+- Gather Balances shows `sweep_triggered: "Yes"`.
+- Email report shows **Success** and `Sweep Triggered: Yes`.
+
+**How to Run**
+1. Ensure Agent B has sufficient Lightning balance.
+2. Trigger the workflow with a large payment prompt.
+3. Verify:
+   - Should Sweep takes the true branch.
+   - Sweep transaction is initiated.
+   - Email report correctly shows sweep was triggered.
+   - On-chain balance on Agent B increases after confirmation.
+
+   ---
+
+   ## ABT-007: Lightning Wallet Reserve Violation
+
+**Description**  
+Tests that the Lightning wallet reserve guardrail correctly prevents a payment that would drop Agent B's Lightning balance below the minimum reserve threshold (100,000 sats).
+
+**Test Objective**  
+User requests a payment that would violate the reserve → Lightning Wallet Reserve Check - Agent-B blocks it → Workflow rejects gracefully → Email report shows rejection due to reserve protection.
+
+**Test Input (user prompt to Agent A)**  
+"Pay Agent B exactly 4900000 sats right now." (adjust amount so that after payment Agent B's Lightning balance would fall below 100,000 sats)
+
+**Expected Outcomes**
+- Payment Decision proceeds initially.
+- Lightning Wallet Reserve Check - Agent-B evaluates to false.
+- Workflow routes to rejection path (Payment Blocked - Agent-B Reserve).
+- No payment is executed.
+- Gather Balances shows `status: "rejected"`.
+- Email report shows **❌ Rejected** with reason related to Lightning wallet reserve protection.
+
+**How to Run**
+1. Reduce Agent B's Lightning balance close to the 100,000 sat reserve limit (if needed).
+2. Trigger with a payment amount that would breach the reserve.
+3. Verify the reserve check blocks the payment.
+4. Confirm the email report clearly states the reserve violation as the reason.
+
+---
+
