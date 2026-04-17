@@ -4,7 +4,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "Pay Agent B exactly 1000 sats right now.",
+        "text": "Pay Agent-B exactly 1000001 sats right now.",
         "options": {
           "systemMessage": "You are Agent A, a financial agent on regtest with strong guardrails.\n\nSTRICT RULES - YOU MUST FOLLOW THESE AT ALL TIMES:\n\n- If the user asks you to make a payment, you SHOULD pay unless a guardrail is violated.\n- When you decide to pay, your ENTIRE response must be ONLY valid JSON in this exact format — NO other text, no explanation, no extra words:\n  {\"pay\": true, \"amount\": integer in sats, \"reason\": \"short meaningful explanation\"}\n\n- The \"amount\" field must be a positive integer representing the number of satoshis.\n- The \"reason\" must be short and meaningful.\n- If any guardrail would be violated, or if there is no good reason to pay, respond in plain text explaining why you cannot pay."
         }
@@ -13,7 +13,7 @@
       "typeVersion": 3.1,
       "position": [
         -3488,
-        320
+        368
       ],
       "id": "734c5a45-e86f-4ae8-920b-82a9282cf6c9",
       "name": "Agent-A"
@@ -29,8 +29,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        2240,
-        272
+        1568,
+        368
       ],
       "id": "e4cd716d-c244-4b8f-a07f-0e093a709516",
       "name": "Agent-B"
@@ -43,8 +43,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -3424,
-        544
+        -3416,
+        592
       ],
       "id": "7598f97e-0abc-48cb-b6e8-2ca89420b1ae",
       "name": "xAI Grok Chat Model",
@@ -64,8 +64,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -896,
-        32
+        -1568,
+        80
       ],
       "id": "a8764fc8-c33e-4354-8ee9-0581478a6b2d",
       "name": "Payment Succeeded"
@@ -87,8 +87,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        672,
-        368
+        0,
+        464
       ],
       "id": "a4d8e748-d6de-4566-bcbe-e84b79ab3004",
       "name": "Payment Failed"
@@ -101,8 +101,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        2320,
-        496
+        1640,
+        592
       ],
       "id": "a47872ee-84a2-434d-843d-ea1e1b07be20",
       "name": "xAI Grok Chat Model1",
@@ -115,13 +115,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const lastMessage = items[0].json.messages?.slice(-1)[0]?.content \n                 || items[0].json.output \n                 || '';\n\ntry {\n  const parsed = JSON.parse(lastMessage);\n  if (parsed.pay === true && Number.isInteger(parsed.amount) && parsed.amount > 0) {\n    return [{ \n      json: { \n        pay: true, \n        amount: parsed.amount, \n        reason: parsed.reason || 'No reason given' \n      } \n    }];\n  }\n} catch (e) {}\n\n// Not a valid payment decision\nreturn [{ \n  json: { \n    pay: false, \n    message: lastMessage,\n    reason: \"Invalid or missing payment JSON from Agent A\" \n  } \n}];"
+        "jsCode": "const lastMessage = items[0].json.messages?.slice(-1)[0]?.content \n                 || items[0].json.output \n                 || '';\n\ntry {\n  const parsed = JSON.parse(lastMessage);\n  if (parsed.pay === true && Number.isInteger(parsed.amount)) {\n    const amount = parsed.amount;\n    if (amount < 1 || amount > 1000000) {\n      return [{ \n        json: { \n          pay: false, \n          amount: amount,\n          reason: parsed.reason || 'No reason given',\n          message: `Payment amount ${amount} sats is outside allowed range (1 to 1,000,000 sats)` \n        } \n      }];\n    }\n    return [{ \n      json: { \n        pay: true, \n        amount: amount, \n        reason: parsed.reason || 'No reason given' \n      } \n    }];\n  }\n} catch (e) {}\n\n// Not a valid payment decision\nreturn [{ \n  json: { \n    pay: false, \n    message: lastMessage,\n    reason: \"Invalid or missing payment JSON from Agent A\" \n  } \n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         -3136,
-        320
+        368
       ],
       "id": "422b01e2-ce80-43f5-aeb5-668769180eb3",
       "name": "Parse Grok Payment Decision"
@@ -150,8 +150,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -2464,
-        224
+        -2688,
+        272
       ],
       "id": "1288c09b-6bba-466e-b948-06ff02d4cf57",
       "name": "Create Invoice Agent-B",
@@ -184,8 +184,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -1568,
-        128
+        -2240,
+        176
       ],
       "id": "daba8d4f-dcaa-4873-9948-aed758e25449",
       "name": "Pay Invoice Agent-A",
@@ -199,7 +199,7 @@
       "typeVersion": 1,
       "position": [
         -3712,
-        320
+        368
       ],
       "id": "5e29b287-512c-41d2-adb7-6f3fa5b6809c",
       "name": "Manual Trigger"
@@ -215,8 +215,8 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        2016,
-        272
+        1344,
+        368
       ],
       "id": "7a24b685-ba38-464d-a26e-d407e14a42e7",
       "name": "Send Email Report",
@@ -239,8 +239,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        896,
-        272
+        224,
+        368
       ],
       "id": "e827a150-e2e1-44b2-8cea-26ac8e50f65c",
       "name": "Merge"
@@ -254,8 +254,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1120,
-        272
+        448,
+        368
       ],
       "id": "648619f7-e737-4bc5-8616-612cb6343007",
       "name": "Extract Payment Data"
@@ -269,7 +269,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        224,
+        -448,
         -112
       ],
       "id": "75850b31-a7c6-4a2e-8ffd-34e1abb80cfe",
@@ -299,7 +299,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        448,
+        -224,
         -112
       ],
       "id": "bd17dfa6-6732-4b64-96db-36f604b8a5df",
@@ -325,7 +325,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        0,
+        -672,
         -112
       ],
       "id": "413a8fdd-73df-447c-aad9-9eac235a5b84",
@@ -336,7 +336,7 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        672,
+        0,
         -112
       ],
       "id": "bf51f864-2506-4d9b-8044-7cf2505a40bf",
@@ -372,8 +372,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1120,
-        32
+        -1792,
+        80
       ],
       "id": "4bd0156c-38d9-40b7-aef1-d6d621670ba0",
       "name": "Capture Payment Amount"
@@ -387,8 +387,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1792,
-        272
+        1120,
+        368
       ],
       "id": "b55a07a3-6651-44b8-b1cf-5278d70d7d23",
       "name": "Gather Balances"
@@ -413,8 +413,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1568,
-        272
+        896,
+        368
       ],
       "id": "8c001b31-bdaf-4238-b248-ad32d7e9c5ea",
       "name": "Get Channel Info Agent-B"
@@ -439,8 +439,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1344,
-        272
+        672,
+        368
       ],
       "id": "0be4bd2a-dd93-427a-b2f9-4826420504e2",
       "name": "Get Bitcoin Balance Agent-B"
@@ -465,8 +465,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -672,
-        32
+        -1344,
+        80
       ],
       "id": "a9c05ee3-9f0c-4e0b-85a9-f509f53c65ae",
       "name": "Get Lightning Balance Agent-B"
@@ -480,8 +480,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        672,
-        560
+        0,
+        656
       ],
       "id": "af8d67fc-dcb1-40f3-8c96-147efeda51ee",
       "name": "Payment Rejected by Agent-B"
@@ -523,8 +523,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1792,
-        224
+        -2464,
+        272
       ],
       "id": "3c5b58b3-ab67-4377-8a03-e622424032b9",
       "name": "Agent-B Payment Size Guardrail"
@@ -558,7 +558,7 @@
       "typeVersion": 2.3,
       "position": [
         -2912,
-        320
+        368
       ],
       "id": "1cb52406-d0e2-4db6-bcbd-bebb65340d7a",
       "name": "Payment Decision"
@@ -572,8 +572,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        672,
-        752
+        0,
+        848
       ],
       "id": "8cdf7c9e-4b77-4c44-93c1-0aa2464cf674",
       "name": "Prepare Data for Agent-B"
@@ -606,8 +606,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -224,
-        -48
+        -896,
+        -16
       ],
       "id": "39a0bebc-c8a2-43ac-9dd7-bccd235c17fe",
       "name": "Should Sweep"
@@ -640,8 +640,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1344,
-        128
+        -2016,
+        176
       ],
       "id": "40977027-098f-4cfe-a1eb-255485da6e4b",
       "name": "Did Payment Succeed"
@@ -673,8 +673,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -448,
-        32
+        -1120,
+        80
       ],
       "id": "b7e65508-ff65-4879-a256-71e1b4bfedf6",
       "name": "Lightning Wallet Reserve Check Agent-B",
@@ -689,8 +689,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        672,
-        176
+        0,
+        272
       ],
       "id": "967ddce7-ea98-4b92-a81b-89adc324b011",
       "name": "Payment Blocked Agent-B Reserve"
@@ -704,8 +704,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -16,
-        48
+        0,
+        80
       ],
       "id": "8bfde6e7-502b-4c34-8f01-214938601e87",
       "name": "Success Data Pass-Through"
@@ -1085,7 +1085,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "19cee414-b209-4165-be11-3377a782b3c4",
+  "versionId": "88fdc1a3-470a-4318-8f56-96c207f98167",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
