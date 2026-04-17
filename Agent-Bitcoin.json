@@ -21,9 +21,9 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "You just received a message or payment decision from Agent A.\n\nRespond based on what actually happened:\n- If a valid payment was received (amount > 0), thank Agent A and mention the amount and reason if available.\n- If the payment was rejected or invalid (amount ≤ 0 or pay: false), politely explain that the payment was not accepted and why.\n\nKeep your response natural, concise, and professional.",
+        "text": "=You just received a message or payment decision from Agent A.\n\nRespond based on what actually happened:\n- If a valid payment was received (amount > 0 and amount < 1000001), thank Agent A and mention the amount and reason if available.\n- If the payment was rejected or invalid (amount < 1 or amount > 1000001 or pay: false), politely explain that the payment was not accepted and why. Use the rejection_reason if it is provided.\n\nKeep your response natural, concise, and professional.",
         "options": {
-          "systemMessage": "You are Agent B, a financial agent on regtest.\n\nYou just received a payment decision from Agent A.\n\nData received:\n- pay: {{ $json.pay }}\n- amount: {{ $json.amount }} sats\n- reason: {{ $json.reason }}\n- message: {{ $json.message }}\n\nResponse rules:\n- If pay is true and amount > 0: Respond politely and gratefully. Mention the amount and reason.\n- If pay is false or amount ≤ 0: Respond honestly and clearly. Explain that the payment was rejected or invalid. Do not thank for the payment.\n- Keep responses natural, concise, and professional.\n\nExample for zero payment: \"Agent A, the payment of 0 sats was invalid. Payments must be greater than 0 sats.\""
+          "systemMessage": "=You are Agent B, a financial agent on regtest.\n\nYou just received a payment decision from Agent A.\n\nData received:\npay: {{ $json.pay }}\namount: {{ $json.amount }} sats\nreason: {{ $json.reason }}\nrejection_reason: {{ $json.rejection_reason }}\nmessage: {{ $json.message }}\n\nResponse rules:\nIf pay is true and amount > 0 and amount < 1000001: Respond politely and gratefully. Mention the amount and reason.\nIf pay is false or amount < 1 or amount > 1000000: Respond honestly and clearly. Use the rejection_reason if available to explain why the payment was rejected. Do not thank for the payment.\n\nKeep your responses natural, concise, and professional."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -43,7 +43,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -3416,
+        -3424,
         592
       ],
       "id": "7598f97e-0abc-48cb-b6e8-2ca89420b1ae",
@@ -101,7 +101,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        1640,
+        1648,
         592
       ],
       "id": "a47872ee-84a2-434d-843d-ea1e1b07be20",
@@ -565,21 +565,6 @@
     },
     {
       "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={\n  \"pay\": \"{{ $json.pay }}\",\n  \"amount\": \"{{ Number($json.amount || 0) }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n  \"message\": \"{{ $json.message ? $json.message.replace(/\"/g, '\\\\\"') : 'No additional message' }}\",\n  \"status\": \"{{ $json.pay === true && Number($json.amount) > 0 ? 'success' : 'rejected' }}\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        0,
-        848
-      ],
-      "id": "8cdf7c9e-4b77-4c44-93c1-0aa2464cf674",
-      "name": "Prepare Data for Agent-B"
-    },
-    {
-      "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
@@ -709,6 +694,21 @@
       ],
       "id": "8bfde6e7-502b-4c34-8f01-214938601e87",
       "name": "Success Data Pass-Through"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"pay\": \"{{ $json.pay }}\",\n  \"amount\": \"{{ Number($json.amount || 0) }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n  \"message\": \"{{ $json.message || '' }}\",\n  \"status\": \"{{ \n    $json.pay === true && \n    Number.isInteger(Number($json.amount)) && \n    Number($json.amount) >= 1 && \n    Number($json.amount) <= 1000000 \n      ? 'success' \n      : 'rejected' \n  }}\",\n  \"rejection_reason\": \"{{ \n    $json.pay !== true ? 'Agent A did not approve the payment' :\n    !Number.isInteger(Number($json.amount)) ? 'Amount is not a valid integer' :\n    Number($json.amount) < 1 ? 'Payment amount is too small (must be at least 1 sat)' :\n    Number($json.amount) > 1000000 ? 'Payment amount exceeds maximum limit (1,000,000 sats)' :\n    'Unknown rejection reason'\n  }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        848
+      ],
+      "id": "8cdf7c9e-4b77-4c44-93c1-0aa2464cf674",
+      "name": "Payment Rejected by Parse Grok Payment Decision"
     }
   ],
   "pinData": {},
@@ -984,20 +984,9 @@
         ],
         [
           {
-            "node": "Prepare Data for Agent-B",
+            "node": "Payment Rejected by Parse Grok Payment Decision",
             "type": "main",
             "index": 0
-          }
-        ]
-      ]
-    },
-    "Prepare Data for Agent-B": {
-      "main": [
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 1
           }
         ]
       ]
@@ -1077,6 +1066,17 @@
           }
         ]
       ]
+    },
+    "Payment Rejected by Parse Grok Payment Decision": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -1085,7 +1085,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "88fdc1a3-470a-4318-8f56-96c207f98167",
+  "versionId": "bac80fee-2e22-4246-837e-b29024fbb84d",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
