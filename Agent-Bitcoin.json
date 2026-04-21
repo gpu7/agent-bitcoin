@@ -12,7 +12,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -2848,
+        -2624,
         368
       ],
       "id": "734c5a45-e86f-4ae8-920b-82a9282cf6c9",
@@ -29,7 +29,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        2880,
+        3104,
         368
       ],
       "id": "e4cd716d-c244-4b8f-a07f-0e093a709516",
@@ -43,7 +43,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -2776,
+        -2552,
         592
       ],
       "id": "7598f97e-0abc-48cb-b6e8-2ca89420b1ae",
@@ -64,7 +64,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -256,
+        -32,
         80
       ],
       "id": "a8764fc8-c33e-4354-8ee9-0581478a6b2d",
@@ -87,7 +87,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1312,
+        1536,
         464
       ],
       "id": "a4d8e748-d6de-4566-bcbe-e84b79ab3004",
@@ -101,7 +101,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        2952,
+        3176,
         592
       ],
       "id": "a47872ee-84a2-434d-843d-ea1e1b07be20",
@@ -120,7 +120,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2496,
+        -2272,
         368
       ],
       "id": "422b01e2-ce80-43f5-aeb5-668769180eb3",
@@ -150,7 +150,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -1376,
+        -1152,
         272
       ],
       "id": "1288c09b-6bba-466e-b948-06ff02d4cf57",
@@ -184,7 +184,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -928,
+        -704,
         176
       ],
       "id": "daba8d4f-dcaa-4873-9948-aed758e25449",
@@ -215,7 +215,7 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        2656,
+        2880,
         368
       ],
       "id": "7a24b685-ba38-464d-a26e-d407e14a42e7",
@@ -239,7 +239,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        1536,
+        1760,
         368
       ],
       "id": "e827a150-e2e1-44b2-8cea-26ac8e50f65c",
@@ -254,7 +254,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1760,
+        1984,
         368
       ],
       "id": "648619f7-e737-4bc5-8616-612cb6343007",
@@ -269,7 +269,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        864,
+        1088,
         -112
       ],
       "id": "75850b31-a7c6-4a2e-8ffd-34e1abb80cfe",
@@ -299,7 +299,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1088,
+        1312,
         -112
       ],
       "id": "bd17dfa6-6732-4b64-96db-36f604b8a5df",
@@ -325,7 +325,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        640,
+        864,
         -112
       ],
       "id": "413a8fdd-73df-447c-aad9-9eac235a5b84",
@@ -336,7 +336,7 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        1312,
+        1536,
         -112
       ],
       "id": "bf51f864-2506-4d9b-8044-7cf2505a40bf",
@@ -372,7 +372,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -480,
+        -256,
         80
       ],
       "id": "4bd0156c-38d9-40b7-aef1-d6d621670ba0",
@@ -387,7 +387,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        2432,
+        2656,
         368
       ],
       "id": "b55a07a3-6651-44b8-b1cf-5278d70d7d23",
@@ -413,7 +413,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        2208,
+        2432,
         368
       ],
       "id": "8c001b31-bdaf-4238-b248-ad32d7e9c5ea",
@@ -439,7 +439,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1984,
+        2208,
         368
       ],
       "id": "0be4bd2a-dd93-427a-b2f9-4826420504e2",
@@ -465,7 +465,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -32,
+        192,
         80
       ],
       "id": "a9c05ee3-9f0c-4e0b-85a9-f509f53c65ae",
@@ -480,7 +480,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1312,
+        1536,
         656
       ],
       "id": "af8d67fc-dcb1-40f3-8c96-147efeda51ee",
@@ -523,7 +523,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1152,
+        -928,
         272
       ],
       "id": "3c5b58b3-ab67-4377-8a03-e622424032b9",
@@ -558,7 +558,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1600,
+        -1376,
         368
       ],
       "id": "1cb52406-d0e2-4db6-bcbd-bebb65340d7a",
@@ -592,7 +592,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        416,
+        640,
         -16
       ],
       "id": "39a0bebc-c8a2-43ac-9dd7-bccd235c17fe",
@@ -626,7 +626,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -704,
+        -480,
         176
       ],
       "id": "40977027-098f-4cfe-a1eb-255485da6e4b",
@@ -659,7 +659,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        192,
+        416,
         80
       ],
       "id": "b7e65508-ff65-4879-a256-71e1b4bfedf6",
@@ -675,7 +675,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1312,
+        1536,
         272
       ],
       "id": "967ddce7-ea98-4b92-a81b-89adc324b011",
@@ -690,7 +690,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1312,
+        1536,
         80
       ],
       "id": "8bfde6e7-502b-4c34-8f01-214938601e87",
@@ -705,7 +705,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1312,
+        1536,
         848
       ],
       "id": "8cdf7c9e-4b77-4c44-93c1-0aa2464cf674",
@@ -731,7 +731,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -2048,
+        -1824,
         368
       ],
       "id": "4a30e0f6-712b-42a3-a8c2-a147f1cf035e",
@@ -746,7 +746,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1824,
+        -1600,
         368
       ],
       "id": "f19ceff9-6bf9-41ab-b6e8-bdb4547d7902",
@@ -761,7 +761,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -2272,
+        -2048,
         368
       ],
       "id": "ffa51262-7509-4d99-bcca-82956836bdd5",
@@ -770,7 +770,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "{\n  \"name\": \"Current Lightning Balance\",\n  \"type\": \"n8n-nodes-base.set\",\n  \"typeVersion\": 3.4,\n  \"parameters\": {\n    \"mode\": \"raw\",\n    \"jsonOutput\": \"{\\n  \\\"agent_b_lightning_total\\\": \\\"{{ $json.total_balance || $json.balance || 0 }}\\\"\\n}\"\n  }\n}",
+        "jsonOutput": "={\n  \"name\": \"Current Lightning Balance\",\n  \"type\": \"n8n-nodes-base.set\",\n  \"typeVersion\": 3.4,\n  \"parameters\": {\n    \"mode\": \"raw\",\n    \"jsonOutput\": \"{\\n  \\\"agent_b_lightning_total\\\": \\\"{{ $json.total_balance || $json.balance || 0 }}\\\"\\n}\"\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -785,7 +785,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "{\n  \"name\": \"Current Bitcoin Balance\",\n  \"type\": \"n8n-nodes-base.set\",\n  \"typeVersion\": 3.4,\n  \"parameters\": {\n    \"mode\": \"raw\",\n    \"jsonOutput\": \"{\\n  \\\"agent_b_onchain_confirmed\\\": \\\"{{ $json.confirmed_balance || 0 }}\\\",\\n  \\\"agent_b_onchain_unconfirmed\\\": \\\"{{ $json.unconfirmed_balance || 0 }}\\\"\\n}\"\n  }\n}\n",
+        "jsonOutput": "={\n  \"name\": \"Current Bitcoin Balance\",\n  \"type\": \"n8n-nodes-base.set\",\n  \"typeVersion\": 3.4,\n  \"parameters\": {\n    \"mode\": \"raw\",\n    \"jsonOutput\": \"{\\n  \\\"agent_b_onchain_confirmed\\\": \\\"{{ $json.confirmed_balance || 0 }}\\\",\\n  \\\"agent_b_onchain_unconfirmed\\\": \\\"{{ $json.unconfirmed_balance || 0 }}\\\"\\n}\"\n  }\n}\n",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -800,7 +800,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "{\n  \"name\": \"Current Channel Info\",\n  \"type\": \"n8n-nodes-base.set\",\n  \"typeVersion\": 3.4,\n  \"parameters\": {\n    \"mode\": \"raw\",\n    \"jsonOutput\": \"{\\n  \\\"channel_capacity\\\": \\\"{{ $json.channels?.[0]?.capacity || 5000000 }}\\\",\\n  \\\"channel_local_balance\\\": \\\"{{ $json.channels?.[0]?.local_balance || 0 }}\\\",\\n  \\\"channel_remote_balance\\\": \\\"{{ $json.channels?.[0]?.remote_balance || 0 }}\\\"\\n}\"\n  }\n}\n",
+        "jsonOutput": "={\n  \"name\": \"Current Channel Info\",\n  \"type\": \"n8n-nodes-base.set\",\n  \"typeVersion\": 3.4,\n  \"parameters\": {\n    \"mode\": \"raw\",\n    \"jsonOutput\": \"{\\n  \\\"channel_capacity\\\": \\\"{{ $json.channels?.[0]?.capacity || 5000000 }}\\\",\\n  \\\"channel_local_balance\\\": \\\"{{ $json.channels?.[0]?.local_balance || 0 }}\\\",\\n  \\\"channel_remote_balance\\\": \\\"{{ $json.channels?.[0]?.remote_balance || 0 }}\\\"\\n}\"\n  }\n}\n",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -813,18 +813,7 @@
       "name": "Current Channel Info"
     },
     {
-      "parameters": {
-        "mode": "combine",
-        "combineBy": "combineByPosition",
-        "options": {
-          "clashHandling": {
-            "values": {
-              "resolveClash": "addSuffix"
-            }
-          },
-          "includeUnpaired": true
-        }
-      },
+      "parameters": {},
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
@@ -833,6 +822,21 @@
       ],
       "id": "1004b96c-9da6-4cb5-8aa5-5270ab0bbe66",
       "name": "Merge Current State"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"agent_b_lightning_total\": \"{{ $json.agent_b_lightning_total || $json[0]?.agent_b_lightning_total || $json[1]?.agent_b_lightning_total || $json[2]?.agent_b_lightning_total || 0 }}\",\n  \"agent_b_onchain_confirmed\": \"{{ $json.agent_b_onchain_confirmed || $json[0]?.agent_b_onchain_confirmed || $json[1]?.agent_b_onchain_confirmed || $json[2]?.agent_b_onchain_confirmed || 0 }}\",\n  \"agent_b_onchain_unconfirmed\": \"{{ $json.agent_b_onchain_unconfirmed || $json[0]?.agent_b_onchain_unconfirmed || $json[1]?.agent_b_onchain_unconfirmed || $json[2]?.agent_b_onchain_unconfirmed || 0 }}\",\n  \"channel_capacity\": \"{{ $json.channel_capacity || $json[0]?.channel_capacity || $json[1]?.channel_capacity || $json[2]?.channel_capacity || 5000000 }}\",\n  \"channel_local_balance\": \"{{ $json.channel_local_balance || $json[0]?.channel_local_balance || $json[1]?.channel_local_balance || $json[2]?.channel_local_balance || 0 }}\",\n  \"channel_remote_balance\": \"{{ $json.channel_remote_balance || $json[0]?.channel_remote_balance || $json[1]?.channel_remote_balance || $json[2]?.channel_remote_balance || 0 }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2848,
+        368
+      ],
+      "id": "33ac1531-49f7-497d-a780-dce5d60c878c",
+      "name": "Combine Current State"
     }
   ],
   "pinData": {},
@@ -1272,6 +1276,17 @@
       "main": [
         [
           {
+            "node": "Combine Current State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Current State": {
+      "main": [
+        [
+          {
             "node": "Agent-A",
             "type": "main",
             "index": 0
@@ -1286,7 +1301,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "99cb2361-9295-411c-98f5-087159885bc4",
+  "versionId": "8bb8888f-5dd6-4855-92e9-d5815b8359e5",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
