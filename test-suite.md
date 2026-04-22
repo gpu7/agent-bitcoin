@@ -154,7 +154,7 @@ Tests that the workflow correctly triggers an on-chain sweep when the payment am
 User requests a large enough payment → Payment succeeds → Should Sweep evaluates to true → Funds are swept from Lightning to on-chain Bitcoin wallet → Email report reflects sweep triggered.
 
 **Test Input (user prompt to Agent A)**  
-"Pay Agent B exactly 50000000 sats right now." (or any amount large enough to trigger sweep based on your current threshold)
+"Pay Agent B exactly 30001 sats right now." (or any amount large enough to trigger sweep based on your current threshold)
 
 **Expected Outcomes**
 - Agent A outputs valid JSON with a large `amount`.
