@@ -4,7 +4,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "Pay Agent-B exactly 5000 sats right now.",
+        "text": "Pay Agent-B exactly 30001 sats right now.",
         "options": {
           "systemMessage": "You are Agent A, a financial agent on regtest with strong guardrails.\n\nSTRICT RULES - YOU MUST FOLLOW THESE AT ALL TIMES:\n\n- If the user asks you to make a payment, you SHOULD pay unless a guardrail is violated.\n- When you decide to pay, your ENTIRE response must be ONLY valid JSON in this exact format — NO other text, no explanation, no extra words:\n  {\"pay\": true, \"amount\": integer in sats, \"reason\": \"short meaningful explanation\"}\n\n- The \"amount\" field must be a positive integer representing the number of satoshis.\n- The \"reason\" must be short and meaningful.\n- If any guardrail would be violated, or if there is no good reason to pay, respond in plain text explaining why you cannot pay."
         }
@@ -13,7 +13,7 @@
       "typeVersion": 3.1,
       "position": [
         -3040,
-        368
+        784
       ],
       "id": "734c5a45-e86f-4ae8-920b-82a9282cf6c9",
       "name": "Agent-A"
@@ -29,8 +29,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        2912,
-        368
+        2688,
+        784
       ],
       "id": "e4cd716d-c244-4b8f-a07f-0e093a709516",
       "name": "Agent-B"
@@ -44,7 +44,7 @@
       "typeVersion": 1,
       "position": [
         -2968,
-        592
+        1008
       ],
       "id": "7598f97e-0abc-48cb-b6e8-2ca89420b1ae",
       "name": "xAI Grok Chat Model",
@@ -64,8 +64,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -448,
-        80
+        -672,
+        304
       ],
       "id": "a8764fc8-c33e-4354-8ee9-0581478a6b2d",
       "name": "Payment Succeeded"
@@ -87,8 +87,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1120,
-        464
+        896,
+        688
       ],
       "id": "a4d8e748-d6de-4566-bcbe-e84b79ab3004",
       "name": "Payment Failed"
@@ -101,8 +101,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        2984,
-        592
+        2760,
+        1008
       ],
       "id": "a47872ee-84a2-434d-843d-ea1e1b07be20",
       "name": "xAI Grok Chat Model1",
@@ -115,16 +115,18 @@
     },
     {
       "parameters": {
-        "jsCode": "const lastMessage = items[0].json.messages?.slice(-1)[0]?.content \n                 || items[0].json.output \n                 || '';\n\ntry {\n  const parsed = JSON.parse(lastMessage);\n  \n  if (parsed.pay === true || parsed.pay === \"true\" || parsed.pay === 1) {\n    const amount = Number(parsed.amount);\n    \n    if (Number.isInteger(amount) && amount >= 1 && amount <= 1000000) {\n      return [{ \n        json: { \n          pay: true,                    // Force real boolean\n          amount: amount, \n          reason: parsed.reason || 'No reason given' \n        } \n      }];\n    } else {\n      return [{ \n        json: { \n          pay: false, \n          amount: amount,\n          reason: parsed.reason || 'No reason given',\n          message: `Payment amount ${amount} sats is outside allowed range (1 to 1,000,000 sats)` \n        } \n      }];\n    }\n  }\n} catch (e) {}\n\n// Not a valid payment decision\nreturn [{ \n  json: { \n    pay: false, \n    message: lastMessage,\n    reason: \"Invalid or missing payment JSON from Agent A\" \n  } \n}];"
+        "jsCode": "const lastMessage = items[0].json.messages?.slice(-1)[0]?.content \n                 || items[0].json.output \n                 || '';\n\nconst parsed = JSON.parse(lastMessage);\n\nif (parsed.pay === true || parsed.pay === \"true\" || parsed.pay === 1) {\n  const amount = Number(parsed.amount);\n  \n  if (Number.isInteger(amount) && amount >= 1 && amount <= 1000000) {\n    return [{ \n      json: { \n        pay: true,                    \n        amount: amount, \n        reason: parsed.reason || 'No reason given' \n      } \n    }];\n  } else {\n    return [{ \n      json: { \n        pay: false, \n        amount: amount,\n        reason: parsed.reason || 'No reason given',\n        message: `Payment amount ${amount} sats is outside allowed range (1 to 1,000,000 sats)` \n      } \n    }];\n  }\n}\n\n// Not a valid payment decision\nreturn [{ \n  json: { \n    pay: false, \n    message: lastMessage,\n    reason: \"Invalid or missing payment JSON from Agent A\" \n  } \n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2688,
-        368
+        -4160,
+        -112
       ],
       "id": "422b01e2-ce80-43f5-aeb5-668769180eb3",
-      "name": "Parse Grok Payment Decision"
+      "name": "Parse Grok Payment Decision",
+      "disabled": true,
+      "notes": "Check if Agent-A sent valid JSON code.\nChecks if Agent-A sent pay = true.\n\n"
     },
     {
       "parameters": {
@@ -150,8 +152,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -1568,
-        272
+        -1792,
+        496
       ],
       "id": "1288c09b-6bba-466e-b948-06ff02d4cf57",
       "name": "Create Invoice Agent-B",
@@ -184,14 +186,15 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -1120,
-        176
+        -1344,
+        400
       ],
       "id": "daba8d4f-dcaa-4873-9948-aed758e25449",
       "name": "Pay Invoice Agent-A",
       "retryOnFail": true,
       "waitBetweenTries": 5000,
-      "onError": "continueRegularOutput"
+      "onError": "continueRegularOutput",
+      "notes": "Send Lightning payment from Agent A to Agent B \n\n"
     },
     {
       "parameters": {},
@@ -199,7 +202,7 @@
       "typeVersion": 1,
       "position": [
         -4160,
-        368
+        784
       ],
       "id": "5e29b287-512c-41d2-adb7-6f3fa5b6809c",
       "name": "Manual Trigger"
@@ -215,8 +218,8 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        2688,
-        368
+        2464,
+        784
       ],
       "id": "7a24b685-ba38-464d-a26e-d407e14a42e7",
       "name": "Send Email Report",
@@ -239,8 +242,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        1344,
-        368
+        1120,
+        784
       ],
       "id": "e827a150-e2e1-44b2-8cea-26ac8e50f65c",
       "name": "Merge"
@@ -254,8 +257,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1568,
-        368
+        1344,
+        784
       ],
       "id": "648619f7-e737-4bc5-8616-612cb6343007",
       "name": "Extract Payment Data"
@@ -269,8 +272,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        672,
-        -112
+        448,
+        112
       ],
       "id": "75850b31-a7c6-4a2e-8ffd-34e1abb80cfe",
       "name": "Extract Sweep Address"
@@ -299,8 +302,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        896,
-        -112
+        672,
+        112
       ],
       "id": "bd17dfa6-6732-4b64-96db-36f604b8a5df",
       "name": "Sweep On-chain Agent-B"
@@ -325,8 +328,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        448,
-        -112
+        224,
+        112
       ],
       "id": "413a8fdd-73df-447c-aad9-9eac235a5b84",
       "name": "Generate Sweep Address Agent-B"
@@ -336,8 +339,8 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        1120,
-        -112
+        896,
+        112
       ],
       "id": "bf51f864-2506-4d9b-8044-7cf2505a40bf",
       "name": "LND Updates Balance",
@@ -372,8 +375,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -672,
-        80
+        -896,
+        304
       ],
       "id": "4bd0156c-38d9-40b7-aef1-d6d621670ba0",
       "name": "Capture Payment Amount"
@@ -398,8 +401,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -224,
-        80
+        -448,
+        304
       ],
       "id": "a9c05ee3-9f0c-4e0b-85a9-f509f53c65ae",
       "name": "Get Lightning Balance Agent-B"
@@ -413,8 +416,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1120,
-        656
+        896,
+        880
       ],
       "id": "af8d67fc-dcb1-40f3-8c96-147efeda51ee",
       "name": "Payment Rejected by Agent-B"
@@ -456,46 +459,12 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1344,
-        272
+        -1568,
+        496
       ],
       "id": "3c5b58b3-ab67-4377-8a03-e622424032b9",
-      "name": "Agent-B Payment Size Guardrail"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "ab1c9e84-a7e5-4d7c-aec7-b592485536bb",
-              "leftValue": "={{ $json.pay }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "looseTypeValidation": true,
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -1792,
-        368
-      ],
-      "id": "1cb52406-d0e2-4db6-bcbd-bebb65340d7a",
-      "name": "Payment Decision"
+      "name": "Agent-B Payment Size Guardrail",
+      "notes": "Check if: 0 < payment < 1000001"
     },
     {
       "parameters": {
@@ -525,8 +494,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        224,
-        -16
+        0,
+        208
       ],
       "id": "39a0bebc-c8a2-43ac-9dd7-bccd235c17fe",
       "name": "Should Sweep"
@@ -559,11 +528,12 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -896,
-        176
+        -1120,
+        400
       ],
       "id": "40977027-098f-4cfe-a1eb-255485da6e4b",
-      "name": "Did Payment Succeed"
+      "name": "Did Payment Succeed",
+      "notes": "Check whether Lightning payment was successful or not.\n\n"
     },
     {
       "parameters": {
@@ -592,8 +562,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        0,
-        80
+        -224,
+        304
       ],
       "id": "b7e65508-ff65-4879-a256-71e1b4bfedf6",
       "name": "Lightning Wallet Reserve Check Agent-B",
@@ -608,8 +578,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1120,
-        272
+        896,
+        496
       ],
       "id": "967ddce7-ea98-4b92-a81b-89adc324b011",
       "name": "Payment Blocked Agent-B Reserve"
@@ -623,26 +593,11 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1120,
-        80
+        896,
+        304
       ],
       "id": "8bfde6e7-502b-4c34-8f01-214938601e87",
       "name": "Success Data Pass-Through"
-    },
-    {
-      "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={\n  \"pay\": \"{{ $json.pay }}\",\n  \"amount\": \"{{ Number($json.amount || 0) }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n  \"message\": \"{{ $json.message || '' }}\",\n  \"status\": \"{{ \n    $json.pay === true && \n    Number.isInteger(Number($json.amount)) && \n    Number($json.amount) >= 1 && \n    Number($json.amount) <= 1000000 \n      ? 'success' \n      : 'rejected' \n  }}\",\n  \"rejection_reason\": \"{{ \n    $json.pay !== true ? 'Agent A did not approve the payment' :\n    !Number.isInteger(Number($json.amount)) ? 'Amount is not a valid integer' :\n    Number($json.amount) < 1 ? 'Payment amount is too small (must be at least 1 sat)' :\n    Number($json.amount) > 1000000 ? 'Payment amount exceeds maximum limit (1,000,000 sats)' :\n    'Unknown rejection reason'\n  }}\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        1120,
-        848
-      ],
-      "id": "8cdf7c9e-4b77-4c44-93c1-0aa2464cf674",
-      "name": "Payment Rejected by Parse Grok Payment Decision"
     },
     {
       "parameters": {
@@ -664,41 +619,11 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -2240,
-        368
+        -4160,
+        1680
       ],
       "id": "4a30e0f6-712b-42a3-a8c2-a147f1cf035e",
       "name": "Get Lightning Wallet Balance Agent-B"
-    },
-    {
-      "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={\n  \"pay\": \"{{ $node[\"Pass Pay and Amount\"].json.pay }}\",\n  \"amount\": \"{{ $node[\"Pass Pay and Amount\"].json.amount }}\",\n  \"reason\": \"{{ $node[\"Pass Pay and Amount\"].json.reason }}\",\n  \"agent_b_lightning_total\": \"{{ $json.balance || 0 }}\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -2016,
-        368
-      ],
-      "id": "f19ceff9-6bf9-41ab-b6e8-bdb4547d7902",
-      "name": "Merge Balance with Pay Data"
-    },
-    {
-      "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={\n  \"pay\": \"{{ $json.pay === true }}\",\n  \"amount\": \"{{ Number($json.amount || 0) }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -2464,
-        368
-      ],
-      "id": "ffa51262-7509-4d99-bcca-82956836bdd5",
-      "name": "Pass Pay and Amount"
     },
     {
       "parameters": {
@@ -710,7 +635,7 @@
       "typeVersion": 3.4,
       "position": [
         -3264,
-        368
+        784
       ],
       "id": "5b85288f-0370-4c4e-9ef1-ebbef9163b7a",
       "name": "Get Current State"
@@ -736,7 +661,7 @@
       "typeVersion": 4.4,
       "position": [
         -3936,
-        368
+        784
       ],
       "id": "31c929fa-b594-4bc7-bff3-4424edda1c29",
       "name": "Get Current Lightning Wallet Balance Agent-B"
@@ -762,7 +687,7 @@
       "typeVersion": 4.4,
       "position": [
         -3712,
-        368
+        784
       ],
       "id": "e9a089c3-9d0d-4e5d-8f8c-5997f2449687",
       "name": "Get Current Bitcoin Wallet Balance Agent-B"
@@ -787,8 +712,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1792,
-        368
+        1568,
+        784
       ],
       "id": "efa7b740-4866-4d89-9ffb-123fcb9175f0",
       "name": "Get Final Lightning Wallet Balance Agent-B"
@@ -813,8 +738,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        2016,
-        368
+        1792,
+        784
       ],
       "id": "0be4bd2a-dd93-427a-b2f9-4826420504e2",
       "name": "Get Final Bitcoin Wallet Balance Agent-B"
@@ -839,8 +764,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        2240,
-        368
+        2016,
+        784
       ],
       "id": "8c001b31-bdaf-4238-b248-ad32d7e9c5ea",
       "name": "Get Final Lightning Channel Info Agent-B"
@@ -866,7 +791,7 @@
       "typeVersion": 4.4,
       "position": [
         -3488,
-        368
+        784
       ],
       "id": "b62769f9-bfd6-461c-880e-5db71db454ec",
       "name": "Get Current Lightning Channel Info Agent-B"
@@ -880,11 +805,175 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        2464,
-        368
+        2240,
+        784
       ],
       "id": "b55a07a3-6651-44b8-b1cf-5278d70d7d23",
       "name": "Get Final State"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9a39ef20-6e66-4875-9d66-7dfe1933929f",
+              "leftValue": "={{ \n  ($json.messages?.[0]?.content || $json.output || \"\")\n    .trim()\n    .startsWith(\"{\") && \n  ($json.messages?.[0]?.content || $json.output || \"\")\n    .trim()\n    .endsWith(\"}\") \n}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2688,
+        784
+      ],
+      "id": "001db2fb-e052-4f8b-bba4-b7de65f346be",
+      "name": "Check JSON Format",
+      "notes": "Checks Agent-A output to ensure that it is valid JSON format."
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"pay\": false,\n  \"amount\": 0,\n  \"reason\": \"Invalid or missing payment JSON from Agent A\",\n  \"message\": \"{{ $json.messages?.[0]?.content || $json.output || 'No valid output from Agent A' }}\",\n  \"status\": \"rejected\",\n  \"rejection_reason\": \"Agent A did not return valid JSON\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        1456
+      ],
+      "id": "776573ad-ab95-42fd-8771-2a6098970a03",
+      "name": "Reject Invalid JSON"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "033f7e29-f7bf-4d0c-acdb-67d87d4bd081",
+              "leftValue": "={{ \n  $json.pay === true || \n  $json.pay === \"true\" || \n  $json.pay === 1 \n}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2464,
+        688
+      ],
+      "id": "602352e9-3cde-491e-954e-b19cf824a478",
+      "name": "Check Pay Decision"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"pay\": \"{{ $json.pay }}\",\n  \"amount\": \"{{ Number($json.amount || 0) }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n  \"message\": \"{{ $json.message || '' }}\",\n  \"status\": \"{{ \n    $json.pay === true && \n    Number.isInteger(Number($json.amount)) && \n    Number($json.amount) >= 1 && \n    Number($json.amount) <= 1000000 \n      ? 'success' \n      : 'rejected' \n  }}\",\n  \"rejection_reason\": \"{{ \n    $json.pay !== true ? 'Agent A did not approve the payment' :\n    !Number.isInteger(Number($json.amount)) ? 'Amount is not a valid integer' :\n    Number($json.amount) < 1 ? 'Payment amount is too small (must be at least 1 sat)' :\n    Number($json.amount) > 1000000 ? 'Payment amount exceeds maximum limit (1,000,000 sats)' :\n    'Unknown rejection reason'\n  }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        1264
+      ],
+      "id": "8cdf7c9e-4b77-4c44-93c1-0aa2464cf674",
+      "name": "Payment Rejected by Check Payment Decision"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e091b38f-584d-4e5e-a831-bd52db13b661",
+              "leftValue": "={{    Number($json.amount) >= 1 &&    Number($json.amount) <= 1000000  }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2240,
+        592
+      ],
+      "id": "7e120567-6486-4a9b-b6d0-33247f1abaf0",
+      "name": "Check Payment Amount"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"pay\": false,\n  \"amount\": \"{{ Number($json.amount || 0) }}\",\n  \"reason\": \"{{ $json.reason || 'No reason given' }}\",\n  \"message\": \"Payment amount {{ Number($json.amount || 0) }} sats is outside allowed range (1 to 1,000,000 sats)\",\n  \"status\": \"rejected\",\n  \"rejection_reason\": \"Amount is outside allowed range (1 to 1,000,000 sats)\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        1072
+      ],
+      "id": "fe0078ba-7c79-4f2f-849c-9718307b54ad",
+      "name": "Payment Rejected Bad Amount"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"pay\": true,\n  \"amount\": \"{{ Number($json.amount || 0) }}\",\n  \"reason\": \"{{ $json.reason || 'No reason given' }}\",\n  \"status\": \"success\",\n  \"message\": \"Payment accepted and will be processed\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2016,
+        496
+      ],
+      "id": "d748755f-8e1c-45c0-8e37-f0472d5daebc",
+      "name": "Payment Accepted"
     }
   ],
   "pinData": {},
@@ -893,7 +982,7 @@
       "main": [
         [
           {
-            "node": "Parse Grok Payment Decision",
+            "node": "Check JSON Format",
             "type": "main",
             "index": 0
           }
@@ -946,13 +1035,7 @@
     },
     "Parse Grok Payment Decision": {
       "main": [
-        [
-          {
-            "node": "Pass Pay and Amount",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Create Invoice Agent-B": {
@@ -1116,24 +1199,6 @@
         ]
       ]
     },
-    "Payment Decision": {
-      "main": [
-        [
-          {
-            "node": "Create Invoice Agent-B",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Payment Rejected by Parse Grok Payment Decision",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Should Sweep": {
       "main": [
         [
@@ -1210,48 +1275,9 @@
         ]
       ]
     },
-    "Payment Rejected by Parse Grok Payment Decision": {
-      "main": [
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
     "Get Lightning Wallet Balance Agent-B": {
       "main": [
-        [
-          {
-            "node": "Merge Balance with Pay Data",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge Balance with Pay Data": {
-      "main": [
-        [
-          {
-            "node": "Payment Decision",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Pass Pay and Amount": {
-      "main": [
-        [
-          {
-            "node": "Get Lightning Wallet Balance Agent-B",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Get Current State": {
@@ -1341,6 +1367,104 @@
           }
         ]
       ]
+    },
+    "Check JSON Format": {
+      "main": [
+        [
+          {
+            "node": "Check Pay Decision",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject Invalid JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject Invalid JSON": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Check Pay Decision": {
+      "main": [
+        [
+          {
+            "node": "Check Payment Amount",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Payment Rejected by Check Payment Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment Rejected by Check Payment Decision": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Check Payment Amount": {
+      "main": [
+        [
+          {
+            "node": "Payment Accepted",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Payment Rejected Bad Amount",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment Rejected Bad Amount": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Payment Accepted": {
+      "main": [
+        [
+          {
+            "node": "Create Invoice Agent-B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -1349,7 +1473,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "7c224972-6bc8-4e50-9ae3-43406dd15038",
+  "versionId": "ed8e4d9c-c7cd-476e-8fc9-766063f77559",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
