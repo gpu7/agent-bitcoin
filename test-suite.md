@@ -203,3 +203,135 @@ User requests a payment that would violate the reserve → Lightning Wallet Rese
 
 ---
 
+# ABT-008: Check JSON Format Validation
+
+## Description
+Tests that the Check JSON Format If node correctly identifies whether Agent-A’s output is valid JSON before passing it forward.
+
+## Test Objective
+- **Valid JSON** from Agent-A → proceeds down the success path.  
+- **Invalid JSON or plain text** from Agent-A → rejected and routed to Merge Input 2 with appropriate rejection message.
+
+## Test Input (user prompt to Agent A)
+
+### Test Case 8.1 (Valid JSON)
+```json
+"Pay Agent B exactly 5000 sats right now."
+```
+
+### Test Case 8.2 (Invalid JSON / Plain Text)
+```text
+"Pay Agent B 5000 sats right now as a thank you."
+```
+*(Force Agent-A to respond in plain English, not JSON)*
+
+## Expected Outcomes
+
+### Test Case 8.1 (Valid JSON)
+- Check JSON Format evaluates to **True**.  
+- Flow continues to **Check Pay Decision → Check Payment Amount → Payment Accepted**.  
+- Email report shows **Status: Success**.
+
+### Test Case 8.2 (Invalid JSON)
+- Check JSON Format evaluates to **False**.  
+- Flow goes to **Reject - Invalid JSON → Merge Input 2**.  
+- Email report shows **Status: Rejected** with rejection reason related to invalid JSON format.
+
+## How to Run
+1. Use the prompt for **Test Case 8.1** and run the workflow.  
+2. Use the plain-text prompt for **Test Case 8.2** and run the workflow.  
+
+**Verify:**
+- Check JSON Format node takes the correct branch.  
+- Email report reflects success or rejection appropriately.  
+- No errors related to JSON parsing downstream.
+
+---
+
+**Here is the corrected version with proper `##` headings:**
+
+---
+
+## ABT-008: Check JSON Format Validation
+
+**Description**  
+Tests that the `Check JSON Format` If node correctly identifies whether Agent-A’s output is valid JSON before passing it forward.
+
+**Test Objective**  
+Valid JSON from Agent-A → proceeds down the success path.  
+Invalid JSON or plain text from Agent-A → rejected and routed to Merge Input 2 with appropriate rejection message.
+
+**Test Input (user prompt to Agent A)**
+
+**Test Case 8.1 (Valid JSON):**  
+"Pay Agent B exactly 5000 sats right now."
+
+**Test Case 8.2 (Invalid JSON / Plain Text):**  
+"Pay Agent B 5000 sats right now as a thank you."  
+*(Force Agent-A to respond in plain English, not JSON)*
+
+**Expected Outcomes**
+
+**For Test Case 8.1 (Valid JSON):**  
+- `Check JSON Format` evaluates to **True**.  
+- Flow continues to `Check Pay Decision` → `Check Payment Amount` → `Payment Accepted`.  
+- Email report shows **Status: ✅ Success**.
+
+**For Test Case 8.2 (Invalid JSON):**  
+- `Check JSON Format` evaluates to **False**.  
+- Flow goes to `Reject - Invalid JSON` → Merge Input 2.  
+- Email report shows **Status: ❌ Rejected** with rejection reason related to invalid JSON format.
+
+**How to Run**  
+1. Use the prompt for Test Case 8.1 and run the workflow.  
+2. Use the plain-text prompt for Test Case 8.2 and run the workflow.  
+3. Verify:  
+   - `Check JSON Format` node takes the correct branch.  
+   - Email report reflects success or rejection appropriately.  
+   - No errors related to JSON parsing downstream.
+
+---
+
+## ABT-009: Check Pay Decision
+
+**Description**  
+Tests that the `Check Pay Decision` If node correctly evaluates whether Agent-A has decided to make a payment (`pay: true`) after valid JSON has been confirmed by the previous node.
+
+**Test Objective**  
+When Agent-A returns `pay: true` → proceed down the success path.  
+When Agent-A returns `pay: false`, missing `pay`, or invalid value → route to rejection path.
+
+**Test Input (user prompt to Agent A)**
+
+**Test Case 9.1 (Pay = True):**  
+"Pay Agent B exactly 5000 sats right now."
+
+**Test Case 9.2 (Pay = False):**  
+"Do not pay Agent B anything right now."
+
+**Test Case 9.3 (Missing / Invalid Pay):**  
+"I am thinking about whether to pay Agent B or not."  
+*(Force Agent-A to respond without a clear `pay` field)*
+
+**Expected Outcomes**
+
+**For Test Case 9.1 (Pay = True):**  
+- `Check Pay Decision` evaluates to **True**.  
+- Flow continues to `Check Payment Amount` → `Payment Accepted`.  
+- Email report shows **Status: ✅ Success**.
+
+**For Test Case 9.2 & 9.3 (Pay = False or Missing):**  
+- `Check Pay Decision` evaluates to **False**.  
+- Flow goes to `Payment Rejected` → Merge Input 2.  
+- Email report shows **Status: ❌ Rejected** with appropriate rejection message.
+
+**How to Run**  
+1. Use each of the three prompts above and run the workflow separately.  
+2. Verify:  
+   - `Check Pay Decision` node takes the correct branch (True or False).  
+   - No errors in downstream nodes.  
+   - Email report correctly reflects success or rejection.  
+   - Rejection reason is clearly shown when `pay` is false or missing.
+
+---
+
