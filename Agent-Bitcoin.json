@@ -814,7 +814,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"pay\": false,\n  \"amount\": \"{{ Number($json.amount || 0) }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n  \"message\": \"{{ \n    String($json.message || $json.raw_message || $json.output || '')\n      .replace(/^\"|\"$/g, '')\n      .replace(/\\\\\"/g, '\"') \n  }}\",\n  \"status\": \"rejected\",\n  \"rejection_reason\": \"{{ \n    Number($json.amount || 0) < 1 \n      ? 'Payment amount is too small (must be at least 1 sat)' \n      : Number($json.amount || 0) > 1000000 \n        ? 'Payment amount exceeds maximum limit (1,000,000 sats)' \n        : 'Agent A did not approve the payment'\n  }}\"\n}",
+        "jsonOutput": "={\n  \"pay\": false,\n  \"amount\": \"{{ Number($json.amount || 0) }}\",\n  \"reason\": \"{{ $json.reason || $json.output?.reason || 'No reason provided' }}\",\n  \"message\": \"{{ \n    String($json.message || $json.raw_message || $json.output || '')\n      .replace(/^\"|\"$/g, '')\n      .replace(/\\\\\"/g, '\"') \n  }}\",\n  \"status\": \"rejected\",\n  \"rejection_reason\": \"{{ \n    Number($json.amount || 0) < 1 \n      ? 'Payment amount is too small (must be at least 1 sat)' \n      : Number($json.amount || 0) > 1000000 \n        ? 'Payment amount exceeds maximum limit (1,000,000 sats)' \n        : 'Agent A did not approve the payment'\n  }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -927,7 +927,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const input = items[0].json;\n\nlet message = input.message \n           || input.raw_message \n           || input.output \n           || \"No message from Agent A\";\n\n// Clean the message if it's a stringified JSON\nif (typeof message === 'string' && message.trim().startsWith('{')) {\n  try {\n    const parsed = JSON.parse(message);\n    message = parsed.reason || message;\n  } catch (e) {\n    // If parsing fails, remove outer quotes if present\n    message = message.replace(/^\"|\"$/g, '').replace(/\\\\\"/g, '\"');\n  }\n}\n\nreturn [{\n  json: {\n    pay: false,\n    amount: Number(input.amount || 0),\n    reason: input.reason || \"No reason provided\",\n    message: message,\n    status: \"rejected\",\n    rejection_reason: Number(input.amount || 0) < 1 \n      ? \"Payment amount is too small (must be at least 1 sat)\" \n      : Number(input.amount || 0) > 1000000 \n        ? \"Payment amount exceeds maximum limit (1,000,000 sats)\" \n        : \"Agent A did not approve the payment\"\n  }\n}];"
+        "jsCode": "const input = items[0].json;\n\n// Extract raw output from Agent-A\nlet rawOutput = input.output || input.message || input.raw_message || '';\n\n// Try to parse if it's a stringified JSON\nlet parsed = {};\nif (typeof rawOutput === 'string' && rawOutput.trim().startsWith('{')) {\n  try {\n    parsed = JSON.parse(rawOutput);\n  } catch (e) {\n    // Try cleaning escaped quotes and parse again\n    try {\n      const cleaned = rawOutput.replace(/^\"|\"$/g, '').replace(/\\\\\"/g, '\"');\n      parsed = JSON.parse(cleaned);\n    } catch (e2) {}\n  }\n}\n\nreturn [{\n  json: {\n    pay: false,\n    amount: Number(input.amount || parsed.amount || 0),\n    reason: parsed.reason || input.reason || \"No reason provided\",\n    message: parsed.reason || message || rawOutput || \"No message from Agent A\",\n    status: \"rejected\",\n    rejection_reason: Number(input.amount || parsed.amount || 0) < 1 \n      ? \"Payment amount is too small (must be at least 1 sat)\" \n      : Number(input.amount || parsed.amount || 0) > 1000000 \n        ? \"Payment amount exceeds maximum limit (1,000,000 sats)\" \n        : \"Agent A did not approve the payment\"\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1418,7 +1418,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "2ebc60bc-bdac-4f5f-ae2c-5dddd36c1745",
+  "versionId": "a9fe74fd-fcb8-43f8-8409-0a593ffb6269",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
