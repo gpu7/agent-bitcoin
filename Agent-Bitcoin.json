@@ -814,7 +814,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"pay\": \"{{ $json.pay === true || $json.pay === 'true' || $json.pay === 1 }}\",\n  \"amount\": \"{{ Number($json.amount || 0) }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n  \"message\": \"{{ $json.message || $json.raw_message || $json.output || 'No message from Agent A' }}\",\n  \"status\": \"rejected\",\n  \"rejection_reason\": \"{{ \n    Number($json.amount || 0) < 1 \n      ? 'Payment amount is too small (must be at least 1 sat)' \n      : Number($json.amount || 0) > 1000000 \n        ? 'Payment amount exceeds maximum limit (1,000,000 sats)' \n        : 'Agent A did not approve the payment'\n  }}\"\n}",
+        "jsonOutput": "={\n  \"pay\": false,\n  \"amount\": \"{{ Number($json.amount || 0) }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n  \"message\": \"{{ \n    String($json.message || $json.raw_message || $json.output || '')\n      .replace(/^\"|\"$/g, '')\n      .replace(/\\\\\"/g, '\"') \n  }}\",\n  \"status\": \"rejected\",\n  \"rejection_reason\": \"{{ \n    Number($json.amount || 0) < 1 \n      ? 'Payment amount is too small (must be at least 1 sat)' \n      : Number($json.amount || 0) > 1000000 \n        ? 'Payment amount exceeds maximum limit (1,000,000 sats)' \n        : 'Agent A did not approve the payment'\n  }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -924,6 +924,19 @@
       "id": "602352e9-3cde-491e-954e-b19cf824a478",
       "name": "Check Payment Decision",
       "notes": "Checks if Agent-A wants to proceed with a payment to Agent-B."
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = items[0].json;\n\nlet message = input.message \n           || input.raw_message \n           || input.output \n           || \"No message from Agent A\";\n\n// Clean the message if it's a stringified JSON\nif (typeof message === 'string' && message.trim().startsWith('{')) {\n  try {\n    const parsed = JSON.parse(message);\n    message = parsed.reason || message;\n  } catch (e) {\n    // If parsing fails, remove outer quotes if present\n    message = message.replace(/^\"|\"$/g, '').replace(/\\\\\"/g, '\"');\n  }\n}\n\nreturn [{\n  json: {\n    pay: false,\n    amount: Number(input.amount || 0),\n    reason: input.reason || \"No reason provided\",\n    message: message,\n    status: \"rejected\",\n    rejection_reason: Number(input.amount || 0) < 1 \n      ? \"Payment amount is too small (must be at least 1 sat)\" \n      : Number(input.amount || 0) > 1000000 \n        ? \"Payment amount exceeds maximum limit (1,000,000 sats)\" \n        : \"Agent A did not approve the payment\"\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2480,
+        784
+      ],
+      "id": "fcfafcfb-8673-4d33-818d-41d0b20d7db6",
+      "name": "Clean Rejection Data"
     }
   ],
   "pinData": {},
@@ -1380,6 +1393,17 @@
         ],
         [
           {
+            "node": "Clean Rejection Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean Rejection Data": {
+      "main": [
+        [
+          {
             "node": "Payment Rejected by Check Payment Decision",
             "type": "main",
             "index": 0
@@ -1394,7 +1418,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "bba0807b-5f3a-4067-bfbb-8671f60dca97",
+  "versionId": "2ebc60bc-bdac-4f5f-ae2c-5dddd36c1745",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
