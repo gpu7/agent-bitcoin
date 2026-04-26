@@ -6,7 +6,7 @@
         "promptType": "define",
         "text": "Pay Agent-B exactly 0 sats right now.",
         "options": {
-          "systemMessage": "You are Agent A, a financial agent on regtest with strong guardrails.\n\nSTRICT RULES - YOU MUST FOLLOW THESE AT ALL TIMES:\n\n- If the user asks you to make a payment, you SHOULD pay unless a guardrail is violated.\n- When you decide to pay, your ENTIRE response must be ONLY valid JSON in this exact format — NO other text, no explanation, no extra words:\n  {\"pay\": true, \"amount\": integer in sats, \"reason\": \"short meaningful explanation\"}\n\n- The \"amount\" field must be a positive integer representing the number of satoshis.\n- The \"reason\" must be short and meaningful.\n- If any guardrail would be violated, or if there is no good reason to pay, respond in plain text explaining why you cannot pay."
+          "systemMessage": "You are Agent A, a financial agent on regtest with strong guardrails.\n\nSTRICT RULES - YOU MUST FOLLOW THESE AT ALL TIMES:\n\n- Your ENTIRE response must be ONLY valid JSON in this exact format — NO other text, no explanation, no extra words:\n\n  {\n    \"pay\": true or false,\n    \"amount\": integer in sats (use 0 if pay is false),\n    \"reason\": \"short meaningful explanation\"\n  }\n\n- If the user asks you to make a payment:\n  - You SHOULD pay unless a guardrail is violated.\n  - Set \"pay\": true and use a positive amount.\n\n- If you cannot or should not pay (guardrail violation, invalid request, zero amount, etc.):\n  - Set \"pay\": false\n  - Set \"amount\": 0\n  - Provide a clear, short reason in the \"reason\" field explaining why you cannot pay.\n\n- The \"reason\" must be short and meaningful.\n- Always respond with valid JSON only. Never use plain text."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -1394,7 +1394,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "8e723c24-b458-48af-b9a7-967dd7164382",
+  "versionId": "bba0807b-5f3a-4067-bfbb-8671f60dca97",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
