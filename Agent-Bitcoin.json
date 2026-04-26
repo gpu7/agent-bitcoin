@@ -43,7 +43,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -2968,
+        -2976,
         912
       ],
       "id": "7598f97e-0abc-48cb-b6e8-2ca89420b1ae",
@@ -101,7 +101,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        2536,
+        2544,
         912
       ],
       "id": "a47872ee-84a2-434d-843d-ea1e1b07be20",
@@ -799,7 +799,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"payment_amount\": \"{{ $json.payment_amount || $json.amount || $node[\"Extract Payment Data\"].json.payment_amount || $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}\",\n  \"payment_fee\": \"{{ $json.payment_fee || $json.fee || 0 }}\",\n    \"payment_hash\": \"{{ \n    $json.payment_hash || \n    $node[\"Pay Invoice Agent-A\"].json?.payment_hash || \n    $node[\"Pay Invoice Agent-A\"].json?.payment_route?.payment_hash || \n    $node[\"Extract Payment Data\"].json?.payment_hash || \n    'N/A' \n  }}\",\n  \"reason\": \"{{ $json.reason || $node[\"Extract Payment Data\"].json.reason || $node[\"Parse Grok Payment Decision\"].json.reason || 'No reason provided' }}\",\n\n   \"status\": \"{{ \n    $json.status === 'success' || \n    $json.pay === true || \n    ($node[\"Parse Grok Payment Decision\"].json.pay === true && \n     $node[\"Parse Grok Payment Decision\"].json.amount > 0) \n      ? 'success' \n      : 'rejected' \n  }}\",\n   \"agent_b_message\": \"{{ \n    $json.agent_b_message || \n    $node[\"Parse Grok Payment Decision\"].json.message || \n    ($json.pay === true || $node[\"Parse Grok Payment Decision\"].json.pay === true \n      ? 'Payment completed successfully' \n      : 'Payment was rejected or blocked by guardrail') \n  }}\"\n\n  \"agent_b_lightning_total\": \"{{ $node[\"Get Current State\"].json.agent_b_lightning_total || 0 }}\",\n  \"agent_b_onchain_confirmed\": \"{{ $node[\"Get Current State\"].json.agent_b_onchain_confirmed || 0 }}\",\n  \"agent_b_onchain_unconfirmed\": \"{{ $node[\"Get Current State\"].json.agent_b_onchain_unconfirmed || 0 }}\",\n\n  \"channel_capacity\": \"{{ $node[\"Get Current State\"].json.channel_capacity || 5000000 }}\",\n  \"channel_local_balance\": \"{{ $node[\"Get Current State\"].json.channel_local_balance || 0 }}\",\n  \"channel_remote_balance\": \"{{ $node[\"Get Current State\"].json.channel_remote_balance || 0 }}\",\n\n  \"sweep_triggered\": \"{{ $node[\"Should Sweep\"]?.isExecuted ? ($node[\"Should Sweep\"].json.outputIndex === 0 ? 'Yes' : 'No') : 'No' }}\"\n}",
+        "jsonOutput": "={\n  \"payment_amount\": \"{{ $json.payment_amount || $json.amount || $node[\"Extract Payment Data\"].json.payment_amount || $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}\",\n  \"payment_fee\": \"{{ $json.payment_fee || $json.fee || 0 }}\",\n    \"payment_hash\": \"{{ \n    ($json.status === 'success' || $json.pay === true) \n      ? ($json.payment_hash || $node[\"Pay Invoice Agent-A\"].json?.payment_hash || $node[\"Pay Invoice Agent-A\"].json?.payment_route?.payment_hash || $node[\"Extract Payment Data\"].json?.payment_hash || 'N/A')\n      : 'N/A' \n  }}\",\n  \"reason\": \"{{ $json.reason || $node[\"Extract Payment Data\"].json.reason || $node[\"Parse Grok Payment Decision\"].json.reason || 'No reason provided' }}\",\n    \"status\": \"{{ \n    $json.status === 'success' || \n    $json.pay === true \n      ? 'success' \n      : 'rejected' \n  }}\",\n   \"agent_b_message\": \"{{ \n    $json.message || \n    $json.agent_b_message || \n    ($json.pay === true ? 'Payment completed successfully' : 'Payment was rejected or blocked by guardrail')\n  }}\",\n  \"agent_b_lightning_total\": \"{{ $node[\"Get Current State\"].json.agent_b_lightning_total || 0 }}\",\n  \"agent_b_onchain_confirmed\": \"{{ $node[\"Get Current State\"].json.agent_b_onchain_confirmed || 0 }}\",\n  \"agent_b_onchain_unconfirmed\": \"{{ $node[\"Get Current State\"].json.agent_b_onchain_unconfirmed || 0 }}\",\n\n  \"channel_capacity\": \"{{ $node[\"Get Current State\"].json.channel_capacity || 5000000 }}\",\n  \"channel_local_balance\": \"{{ $node[\"Get Current State\"].json.channel_local_balance || 0 }}\",\n  \"channel_remote_balance\": \"{{ $node[\"Get Current State\"].json.channel_remote_balance || 0 }}\",\n\n  \"sweep_triggered\": \"{{ $node[\"Should Sweep\"]?.isExecuted ? ($node[\"Should Sweep\"].json.outputIndex === 0 ? 'Yes' : 'No') : 'No' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -813,42 +813,8 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "033f7e29-f7bf-4d0c-acdb-67d87d4bd081",
-              "leftValue": "={{ \n  $json.pay === true || \n  $json.pay === \"true\" || \n  $json.pay === 1 \n}}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -2688,
-        688
-      ],
-      "id": "602352e9-3cde-491e-954e-b19cf824a478",
-      "name": "Check Pay Decision"
-    },
-    {
-      "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"pay\": \"{{ $json.pay }}\",\n  \"amount\": \"{{ Number($json.amount || 0) }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n  \"message\": \"{{ $json.message || '' }}\",\n  \"status\": \"{{ \n    $json.pay === true && \n    Number.isInteger(Number($json.amount)) && \n    Number($json.amount) >= 1 && \n    Number($json.amount) <= 1000000 \n      ? 'success' \n      : 'rejected' \n  }}\",\n  \"rejection_reason\": \"{{ \n    $json.pay !== true ? 'Agent A did not approve the payment' :\n    !Number.isInteger(Number($json.amount)) ? 'Amount is not a valid integer' :\n    Number($json.amount) < 1 ? 'Payment amount is too small (must be at least 1 sat)' :\n    Number($json.amount) > 1000000 ? 'Payment amount exceeds maximum limit (1,000,000 sats)' :\n    'Unknown rejection reason'\n  }}\"\n}",
+        "jsonOutput": "={\n  \"pay\": \"{{ $json.pay === true || $json.pay === 'true' || $json.pay === 1 }}\",\n  \"amount\": \"{{ Number($json.amount || 0) }}\",\n  \"reason\": \"{{ $json.reason || 'No reason provided' }}\",\n  \"message\": \"{{ $json.message || $json.raw_message || $json.output || 'No message from Agent A' }}\",\n  \"status\": \"rejected\",\n  \"rejection_reason\": \"{{ \n    Number($json.amount || 0) < 1 \n      ? 'Payment amount is too small (must be at least 1 sat)' \n      : Number($json.amount || 0) > 1000000 \n        ? 'Payment amount exceeds maximum limit (1,000,000 sats)' \n        : 'Agent A did not approve the payment'\n  }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -923,6 +889,41 @@
       ],
       "id": "d748755f-8e1c-45c0-8e37-f0472d5daebc",
       "name": "Payment Accepted"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "033f7e29-f7bf-4d0c-acdb-67d87d4bd081",
+              "leftValue": "={{ \n  $json.pay === true || \n  $json.pay === \"true\" || \n  $json.pay === 1 \n}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2688,
+        688
+      ],
+      "id": "602352e9-3cde-491e-954e-b19cf824a478",
+      "name": "Check Payment Decision",
+      "notes": "Checks if Agent-A wants to proceed with a payment to Agent-B."
     }
   ],
   "pinData": {},
@@ -931,7 +932,7 @@
       "main": [
         [
           {
-            "node": "Check Pay Decision",
+            "node": "Check Payment Decision",
             "type": "main",
             "index": 0
           }
@@ -1317,24 +1318,6 @@
         ]
       ]
     },
-    "Check Pay Decision": {
-      "main": [
-        [
-          {
-            "node": "Check Payment Amount",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Payment Rejected by Check Payment Decision",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Payment Rejected by Check Payment Decision": {
       "main": [
         [
@@ -1385,6 +1368,24 @@
           }
         ]
       ]
+    },
+    "Check Payment Decision": {
+      "main": [
+        [
+          {
+            "node": "Check Payment Amount",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Payment Rejected by Check Payment Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -1393,7 +1394,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "ca4a3439-8fd0-4b64-9f47-03bab80b5499",
+  "versionId": "46d9a2d3-6598-4503-8d4c-aa8972c88f94",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
