@@ -4,9 +4,9 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "Pay Agent-B exactly 0 sats right now.",
+        "text": "Pay Agent-B exactly 1000001 sats right now.",
         "options": {
-          "systemMessage": "You are Agent A, a financial agent on regtest with strong guardrails.\n\nSTRICT RULES - YOU MUST FOLLOW THESE AT ALL TIMES:\n\n- Your ENTIRE response must be ONLY valid JSON in this exact format — NO other text, no explanation, no extra words:\n\n  {\n    \"pay\": true or false,\n    \"amount\": integer in sats,\n    \"reason\": \"short meaningful explanation\"\n  }\n\n- If the user asks you to make a payment:\n  - You SHOULD pay unless a guardrail is violated.\n  - Set \"pay\": true and use a positive amount.\n\n- If you cannot or should not pay (guardrail violation, invalid request, amount < 1, amount > 1000000, etc.):\n  - Set \"pay\": false\n  - Set \"amount\": integer in sats\n  - Provide a clear, short reason in the \"reason\" field explaining why you cannot pay.\n\n- The \"reason\" must be short and meaningful.\n- Always respond with valid JSON only. Never use plain text."
+          "systemMessage": "You are Agent A, a financial agent on regtest with strong guardrails.\n\nSTRICT RULES - YOU MUST FOLLOW THESE AT ALL TIMES:\n\n- Your ENTIRE response must be a clean JSON object.\n- Do NOT stringify the JSON. Do NOT wrap it in quotes.\n- Do NOT add any text before or after the JSON.\n- Output raw JSON only.\n\nGeneral format:\n\n  {\n    \"pay\": true or false,\n    \"amount\": integer in sats,\n    \"reason\": \"short meaningful explanation\"\n  }\n\n- If the user asks you to make a payment:\n  - You SHOULD pay unless a guardrail is violated.\n  - Set \"pay\": true and use a positive amount.\n\n- If you cannot or should not pay (guardrail violation, invalid request, amount < 1, amount > 1000000, etc.):\n  - Set \"pay\": false\n  - Set \"amount\": integer in sats\n  - Provide a clear, short reason in the \"reason\" field explaining why you cannot pay.\n\n- The \"reason\" must be short and meaningful.\n- Always respond with valid JSON only. Never use plain text."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -29,7 +29,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        2464,
+        2688,
         688
       ],
       "id": "e4cd716d-c244-4b8f-a07f-0e093a709516",
@@ -43,7 +43,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -2976,
+        -2968,
         912
       ],
       "id": "7598f97e-0abc-48cb-b6e8-2ca89420b1ae",
@@ -64,7 +64,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -896,
+        -672,
         304
       ],
       "id": "a8764fc8-c33e-4354-8ee9-0581478a6b2d",
@@ -87,7 +87,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        672,
+        896,
         688
       ],
       "id": "a4d8e748-d6de-4566-bcbe-e84b79ab3004",
@@ -101,7 +101,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        2544,
+        2760,
         912
       ],
       "id": "a47872ee-84a2-434d-843d-ea1e1b07be20",
@@ -152,7 +152,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -2016,
+        -1792,
         496
       ],
       "id": "1288c09b-6bba-466e-b948-06ff02d4cf57",
@@ -186,7 +186,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -1568,
+        -1344,
         400
       ],
       "id": "daba8d4f-dcaa-4873-9948-aed758e25449",
@@ -218,7 +218,7 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        2240,
+        2464,
         688
       ],
       "id": "7a24b685-ba38-464d-a26e-d407e14a42e7",
@@ -242,7 +242,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        896,
+        1120,
         688
       ],
       "id": "e827a150-e2e1-44b2-8cea-26ac8e50f65c",
@@ -257,7 +257,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1120,
+        1344,
         688
       ],
       "id": "648619f7-e737-4bc5-8616-612cb6343007",
@@ -272,7 +272,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        224,
+        448,
         112
       ],
       "id": "75850b31-a7c6-4a2e-8ffd-34e1abb80cfe",
@@ -302,7 +302,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        448,
+        672,
         112
       ],
       "id": "bd17dfa6-6732-4b64-96db-36f604b8a5df",
@@ -328,7 +328,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        0,
+        224,
         112
       ],
       "id": "413a8fdd-73df-447c-aad9-9eac235a5b84",
@@ -339,7 +339,7 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        672,
+        896,
         112
       ],
       "id": "bf51f864-2506-4d9b-8044-7cf2505a40bf",
@@ -375,7 +375,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1120,
+        -896,
         304
       ],
       "id": "4bd0156c-38d9-40b7-aef1-d6d621670ba0",
@@ -401,7 +401,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -672,
+        -448,
         304
       ],
       "id": "a9c05ee3-9f0c-4e0b-85a9-f509f53c65ae",
@@ -416,7 +416,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        672,
+        896,
         880
       ],
       "id": "af8d67fc-dcb1-40f3-8c96-147efeda51ee",
@@ -459,7 +459,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1792,
+        -1568,
         496
       ],
       "id": "3c5b58b3-ab67-4377-8a03-e622424032b9",
@@ -494,7 +494,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -224,
+        0,
         208
       ],
       "id": "39a0bebc-c8a2-43ac-9dd7-bccd235c17fe",
@@ -528,7 +528,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1344,
+        -1120,
         400
       ],
       "id": "40977027-098f-4cfe-a1eb-255485da6e4b",
@@ -562,7 +562,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -448,
+        -224,
         304
       ],
       "id": "b7e65508-ff65-4879-a256-71e1b4bfedf6",
@@ -578,7 +578,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        672,
+        896,
         496
       ],
       "id": "967ddce7-ea98-4b92-a81b-89adc324b011",
@@ -593,7 +593,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        672,
+        896,
         304
       ],
       "id": "8bfde6e7-502b-4c34-8f01-214938601e87",
@@ -620,7 +620,7 @@
       "typeVersion": 4.4,
       "position": [
         -4160,
-        1104
+        1488
       ],
       "id": "4a30e0f6-712b-42a3-a8c2-a147f1cf035e",
       "name": "Get Lightning Wallet Balance Agent-B"
@@ -712,7 +712,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1344,
+        1568,
         688
       ],
       "id": "efa7b740-4866-4d89-9ffb-123fcb9175f0",
@@ -738,7 +738,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1568,
+        1792,
         688
       ],
       "id": "0be4bd2a-dd93-427a-b2f9-4826420504e2",
@@ -764,7 +764,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1792,
+        2016,
         688
       ],
       "id": "8c001b31-bdaf-4238-b248-ad32d7e9c5ea",
@@ -805,7 +805,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        2016,
+        2240,
         688
       ],
       "id": "b55a07a3-6651-44b8-b1cf-5278d70d7d23",
@@ -820,7 +820,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        672,
+        896,
         1264
       ],
       "id": "8cdf7c9e-4b77-4c44-93c1-0aa2464cf674",
@@ -838,7 +838,7 @@
           "conditions": [
             {
               "id": "e091b38f-584d-4e5e-a831-bd52db13b661",
-              "leftValue": "={{    Number($json.amount) >= 1 &&    Number($json.amount) <= 1000000  }}",
+              "leftValue": "={{ \n  Number(\n    JSON.parse($json.output || '{}').amount || $json.amount || 0\n  ) >= 1 && \n  Number(\n    JSON.parse($json.output || '{}').amount || $json.amount || 0\n  ) <= 1000000\n}}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -854,7 +854,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -2464,
+        -2240,
         592
       ],
       "id": "7e120567-6486-4a9b-b6d0-33247f1abaf0",
@@ -869,7 +869,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        672,
+        896,
         1072
       ],
       "id": "fe0078ba-7c79-4f2f-849c-9718307b54ad",
@@ -878,13 +878,13 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "{\n  \"pay\": true,\n  \"amount\": \"{{ Number($json.amount || 0) }}\",\n  \"reason\": \"{{ $json.reason || 'No reason given' }}\",\n  \"status\": \"success\",\n  \"message\": \"Payment accepted and will be processed\"\n}",
+        "jsonOutput": "={\n  \"pay\": true,\n  \"amount\": \"{{ Number($json.amount || JSON.parse($json.output || '{}').amount || 0) }}\",\n  \"reason\": \"{{ \n    $json.reason || \n    JSON.parse($json.output || '{}').reason || \n    'Payment to Agent-B executed' \n  }}\",\n  \"status\": \"success\",\n  \"message\": \"Payment accepted and will be processed\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -2240,
+        -2016,
         496
       ],
       "id": "d748755f-8e1c-45c0-8e37-f0472d5daebc",
@@ -902,7 +902,7 @@
           "conditions": [
             {
               "id": "033f7e29-f7bf-4d0c-acdb-67d87d4bd081",
-              "leftValue": "={{ \n  $json.pay === true || \n  $json.pay === \"true\" || \n  $json.pay === 1 \n}}",
+              "leftValue": "={{ \n  ($json.pay === true || $json.pay === \"true\" || $json.pay === 1) ||\n  ($json.output && JSON.parse($json.output).pay === true) ||\n  ($json.output && JSON.parse($json.output).pay === \"true\") ||\n  ($json.output && JSON.parse($json.output).pay === 1)\n}}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -918,7 +918,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -2688,
+        -2464,
         688
       ],
       "id": "602352e9-3cde-491e-954e-b19cf824a478",
@@ -932,11 +932,24 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2480,
-        784
+        672,
+        1264
       ],
       "id": "fcfafcfb-8673-4d33-818d-41d0b20d7db6",
       "name": "Clean Rejection Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = items[0].json;\n\n// Get the raw output (usually inside .output)\nlet raw = input.output || input.message || input.raw_message || input.text || '';\n\n// If it's already a proper object, return it\nif (typeof raw === 'object' && raw !== null) {\n  return [{ json: raw }];\n}\n\n// If it's stringified JSON, parse it\nif (typeof raw === 'string' && raw.trim().startsWith('{')) {\n  try {\n    const parsed = JSON.parse(raw);\n    return [{ json: parsed }];\n  } catch (e) {\n    // Try cleaning escaped quotes\n    try {\n      const cleaned = raw.replace(/^\"|\"$/g, '').replace(/\\\\\"/g, '\"');\n      const parsed = JSON.parse(cleaned);\n      return [{ json: parsed }];\n    } catch (e2) {}\n  }\n}\n\n// Fallback\nreturn [{\n  json: {\n    pay: false,\n    amount: 0,\n    reason: \"Failed to parse Agent-A response\",\n    message: raw\n  }\n}];;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2688,
+        688
+      ],
+      "id": "891d01b2-bab6-4e8b-899a-2ad21ca521bb",
+      "name": "Parse Agent-A Output"
     }
   ],
   "pinData": {},
@@ -945,7 +958,7 @@
       "main": [
         [
           {
-            "node": "Check Payment Decision",
+            "node": "Parse Agent-A Output",
             "type": "main",
             "index": 0
           }
@@ -1410,6 +1423,17 @@
           }
         ]
       ]
+    },
+    "Parse Agent-A Output": {
+      "main": [
+        [
+          {
+            "node": "Check Payment Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -1418,7 +1442,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "9d24bb90-86a3-49b9-8c7e-ce1bbb19b439",
+  "versionId": "f86a0561-4421-422e-8938-44a77b6b9dc1",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
