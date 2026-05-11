@@ -4,7 +4,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "Pay Agent-B exactly 1 sat right now.",
+        "text": "Pay Agent-B exactly 200000 sats right now.",
         "options": {
           "systemMessage": "You are Agent A, a financial agent on regtest with strong guardrails.\n\nSTRICT RULES - YOU MUST FOLLOW THESE AT ALL TIMES:\n\n- Your ENTIRE response must be a clean JSON object.\n- Do NOT stringify the JSON. Do NOT wrap it in quotes.\n- Do NOT add any text before or after the JSON.\n- Output raw JSON only.\n\nGeneral format:\n\n  {\n    \"pay\": true or false,\n    \"amount\": integer in sats,\n    \"reason\": \"short meaningful explanation\"\n  }\n\n- If the user asks you to make a payment:\n  - You SHOULD pay unless a guardrail is violated.\n  - Set \"pay\": true and use a positive amount.\n\n- If you cannot or should not pay (guardrail violation, invalid request, amount < 1, amount > 1000000, etc.):\n  - Set \"pay\": false\n  - Set \"amount\": integer in sats\n  - Provide a clear, short reason in the \"reason\" field explaining why you cannot pay.\n\n- The \"reason\" must be short and meaningful.\n- Always respond with valid JSON only. Never use plain text."
         }
@@ -43,7 +43,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -2968,
+        -2976,
         816
       ],
       "id": "7598f97e-0abc-48cb-b6e8-2ca89420b1ae",
@@ -101,7 +101,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        2536,
+        2544,
         816
       ],
       "id": "a47872ee-84a2-434d-843d-ea1e1b07be20",
@@ -293,7 +293,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"addr\": \"{{ $json.sweep_address }}\",\n  \"sat_per_vbyte\": 2,\n  \"amount\": \"{{ Math.max(10000, Math.floor(($node[\"Capture Payment Amount\"].json.payment_amount_sats || 0) * 0.6)) }}\"\n}",
+        "jsonBody": "={\n  \"addr\": \"{{ $json.sweep_address }}\",\n  \"sat_per_vbyte\": 2,\n  \"amount\": \"{{ \n    Math.max(\n      5000, \n      Math.min(\n        50000, \n        Math.floor( ($node[\"Get Lightning Balance Agent-B\"].json.local_balance?.sat || 0) * 0.15 )\n      )\n    ) \n  }}\"\n}",
         "options": {
           "allowUnauthorizedCerts": true,
           "timeout": 120000
@@ -420,7 +420,7 @@
             {
               "id": "c3845312-aa60-495b-a975-073c60c8156d",
               "leftValue": "={{ $node[\"Capture Payment Amount\"].json.payment_amount_sats || 0 }}",
-              "rightValue": 30000,
+              "rightValue": 100000,
               "operator": {
                 "type": "number",
                 "operation": "gt"
@@ -1323,7 +1323,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "7bd8be04-b08f-49f3-adc8-bf463e0dbf0e",
+  "versionId": "0fe51ac4-2909-4b65-9d57-27120346aa4a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
