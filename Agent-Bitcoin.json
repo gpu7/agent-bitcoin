@@ -4,7 +4,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "Pay Agent-B exactly  50000 sats right now.",
+        "text": "Pay Agent-B exactly 0 sats right now.",
         "options": {
           "systemMessage": "You are Agent A, a financial agent on regtest with strong guardrails.\n\nSTRICT RULES - YOU MUST FOLLOW THESE AT ALL TIMES:\n\n- Your ENTIRE response must be a clean JSON object.\n- Do NOT stringify the JSON. Do NOT wrap it in quotes.\n- Do NOT add any text before or after the JSON.\n- Output raw JSON only.\n\nGeneral format:\n\n  {\n    \"pay\": true or false,\n    \"amount\": integer in sats,\n    \"reason\": \"short meaningful explanation\"\n  }\n\n- If the user asks you to make a payment:\n  - You SHOULD pay unless a guardrail is violated.\n  - Set \"pay\": true and use a positive amount.\n\n- If you cannot or should not pay (guardrail violation, invalid request, amount < 1, amount > 1000000, etc.):\n  - Set \"pay\": false\n  - Set \"amount\": integer in sats\n  - Provide a clear, short reason in the \"reason\" field explaining why you cannot pay.\n\n- The \"reason\" must be short and meaningful.\n- Always respond with valid JSON only. Never use plain text."
         }
@@ -228,7 +228,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"payment_amount\": \"{{ $json.payment_amount || $json.amount || $node[\"Payment Accepted\"]?.json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $json.payment_fee || $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || $json.paymentHash || $node[\"Pay Invoice Agent-A\"]?.json?.payment_hash || $node[\"Pay Invoice Agent-A\"]?.json?.payment_route?.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || $node[\"Payment Accepted\"]?.json.reason || 'No reason provided' }}\",\n  \"pay\": \"{{ $json.pay || $node[\"Payment Accepted\"]?.json.pay }}\",\n  \"status\": \"{{ $json.status || ($json.pay === true ? 'success' : 'rejected') }}\",\n  \"agent_b_message\": \"{{ $json.agent_b_message || ($json.pay === true ? 'Payment completed successfully' : 'Payment was rejected or blocked by guardrail') }}\",\n  \"rejection_reason\": \"{{ $json.rejection_reason || 'N/A' }}\"\n}",
+        "jsonOutput": "={\n  \"payment_amount\": \"{{ $node[\"Merge\"].json.payment_amount || $json.payment_amount || $json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $node[\"Merge\"].json.payment_fee || $json.payment_fee || $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $node[\"Merge\"].json.payment_hash || $json.payment_hash || $json.paymentHash || 'N/A' }}\",\n  \"reason\": \"{{ $node[\"Merge\"].json.reason || $json.reason || 'No reason provided' }}\",\n  \"pay\": \"{{ $node[\"Merge\"].json.pay }}\",\n  \"status\": \"{{ $node[\"Merge\"].json.status || ($json.pay === true ? 'success' : 'rejected') }}\",\n  \"agent_b_message\": \"{{ $node[\"Merge\"].json.agent_b_message || ($json.pay === true ? 'Payment completed successfully' : 'Payment was rejected or blocked by guardrail') }}\",\n  \"rejection_reason\": \"{{ $node[\"Merge\"].json.rejection_reason || 'N/A' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -594,21 +594,6 @@
     },
     {
       "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={\n  \"pay\": false,\n  \"amount\": \"{{ Number($json.amount || 0) }}\",\n  \"reason\": \"{{ $json.reason || $json.output?.reason || 'No reason provided' }}\",\n  \"message\": \"{{ \n    String($json.message || $json.raw_message || $json.output || '')\n      .replace(/^\"|\"$/g, '')\n      .replace(/\\\\\"/g, '\"') \n  }}\",\n  \"status\": \"rejected\",\n  \"rejection_reason\": \"{{ \n    Number($json.amount || 0) < 1 \n      ? 'Payment amount is too small (must be at least 1 sat)' \n      : Number($json.amount || 0) > 1000000 \n        ? 'Payment amount exceeds maximum limit (1,000,000 sats)' \n        : 'Agent A did not approve the payment'\n  }}\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -224,
-        880
-      ],
-      "id": "8cdf7c9e-4b77-4c44-93c1-0aa2464cf674",
-      "name": "Payment Rejected by Check Payment Decision"
-    },
-    {
-      "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
@@ -705,19 +690,6 @@
       "id": "602352e9-3cde-491e-954e-b19cf824a478",
       "name": "Check Payment Decision",
       "notes": "Checks if Agent-A wants to proceed with a payment to Agent-B."
-    },
-    {
-      "parameters": {
-        "jsCode": "const input = items[0].json;\n\n// Debug: show what we actually received\nconsole.log(\"Raw input to Clean Rejection Data:\", JSON.stringify(input, null, 2));\n\n// Extract raw output from Agent-A\nlet rawOutput = input.output || input.message || input.raw_message || '';\n\n// Try to parse if it's a stringified JSON\nlet parsed = {};\nif (typeof rawOutput === 'string' && rawOutput.trim().startsWith('{')) {\n  try {\n    parsed = JSON.parse(rawOutput);\n  } catch (e) {\n    try {\n      const cleaned = rawOutput.replace(/^\"|\"$/g, '').replace(/\\\\\"/g, '\"');\n      parsed = JSON.parse(cleaned);\n    } catch (e2) {}\n  }\n}\n\n// Use the most reliable amount source possible\nconst amount = Number(\n  input.amount || \n  parsed.amount || \n  input[\"amount\"] || \n  0\n);\n\nreturn [{\n  json: {\n    pay: false,\n    amount: amount,\n    reason: parsed.reason || input.reason || \"No reason provided\",\n    message: parsed.reason || input.message || rawOutput || \"No message from Agent A\",\n    status: \"rejected\",\n    rejection_reason: amount < 1 \n      ? \"Payment amount is too small (must be at least 1 sat)\" \n      : amount > 1000000 \n        ? \"Payment amount exceeds maximum limit (1,000,000 sats)\" \n        : \"Agent A did not approve the payment\"\n  }\n}];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -448,
-        880
-      ],
-      "id": "fcfafcfb-8673-4d33-818d-41d0b20d7db6",
-      "name": "Clean Rejection Data"
     },
     {
       "parameters": {
@@ -1037,17 +1009,6 @@
         ]
       ]
     },
-    "Payment Rejected by Check Payment Decision": {
-      "main": [
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
     "Check Payment Amount": {
       "main": [
         [
@@ -1099,18 +1060,7 @@
         ],
         [
           {
-            "node": "Clean Rejection Data",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Clean Rejection Data": {
-      "main": [
-        [
-          {
-            "node": "Payment Rejected by Check Payment Decision",
+            "node": "Normalize Rejection",
             "type": "main",
             "index": 0
           }
@@ -1157,7 +1107,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "06a84705-7485-405c-987c-bb194813e617",
+  "versionId": "2b408f10-e8ba-427b-a4a9-f130bee885eb",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
