@@ -4,7 +4,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "Pay Agent-B exactly  1 sat right now.",
+        "text": "Pay Agent-B exactly  50000 sats right now.",
         "options": {
           "systemMessage": "You are Agent A, a financial agent on regtest with strong guardrails.\n\nSTRICT RULES - YOU MUST FOLLOW THESE AT ALL TIMES:\n\n- Your ENTIRE response must be a clean JSON object.\n- Do NOT stringify the JSON. Do NOT wrap it in quotes.\n- Do NOT add any text before or after the JSON.\n- Output raw JSON only.\n\nGeneral format:\n\n  {\n    \"pay\": true or false,\n    \"amount\": integer in sats,\n    \"reason\": \"short meaningful explanation\"\n  }\n\n- If the user asks you to make a payment:\n  - You SHOULD pay unless a guardrail is violated.\n  - Set \"pay\": true and use a positive amount.\n\n- If you cannot or should not pay (guardrail violation, invalid request, amount < 1, amount > 1000000, etc.):\n  - Set \"pay\": false\n  - Set \"amount\": integer in sats\n  - Provide a clear, short reason in the \"reason\" field explaining why you cannot pay.\n\n- The \"reason\" must be short and meaningful.\n- Always respond with valid JSON only. Never use plain text."
         }
@@ -750,7 +750,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"success\": false,\n  \"payment_amount\": 0,\n  \"payment_fee\": 0,\n  \"payment_hash\": \"N/A\",\n  \"reason\": \"{{ $json.reason || 'Payment rejected by guardrail' }}\",\n  \"status\": \"rejected\",\n  \"pay\": false,\n  \"agent_b_message\": \"Payment was rejected or blocked by guardrail\",\n  \"rejection_reason\": \"{{ $json.rejection_reason || $json.reason || 'Unknown reason' }}\"\n}\n",
+        "jsonOutput": "={\n  \"success\": false,\n  \"payment_amount\": 0,\n  \"payment_fee\": 0,\n  \"payment_hash\": \"N/A\",\n  \"reason\": \"{{ $json.reason || $json.payment_error || 'Payment rejected by guardrail' }}\",\n  \"status\": \"rejected\",\n  \"pay\": false,\n  \"agent_b_message\": \"Payment was rejected or blocked by guardrail\",\n  \"rejection_reason\": \"{{ \n    $json.payment_error === 'insufficient_balance' \n      ? 'Agent A does not have enough Lightning balance to send this payment' \n      : $json.payment_error === 'no_route' \n        ? 'No route found to Agent B'\n        : $json.payment_error || \n          $json.rejection_reason || \n          $json.reason || \n          'Unknown reason' \n  }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -1157,7 +1157,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "761baa74-8982-4a09-b833-a49ef0abb5b7",
+  "versionId": "06a84705-7485-405c-987c-bb194813e617",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
