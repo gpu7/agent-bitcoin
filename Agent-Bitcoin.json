@@ -13,7 +13,7 @@
       "typeVersion": 3.1,
       "position": [
         -3040,
-        496
+        448
       ],
       "id": "734c5a45-e86f-4ae8-920b-82a9282cf6c9",
       "name": "Agent-A"
@@ -30,7 +30,7 @@
       "typeVersion": 3.1,
       "position": [
         1568,
-        496
+        400
       ],
       "id": "e4cd716d-c244-4b8f-a07f-0e093a709516",
       "name": "Agent-B"
@@ -43,8 +43,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -2968,
-        720
+        -2976,
+        672
       ],
       "id": "7598f97e-0abc-48cb-b6e8-2ca89420b1ae",
       "name": "xAI Grok Chat Model",
@@ -78,8 +78,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        1640,
-        720
+        1648,
+        624
       ],
       "id": "a47872ee-84a2-434d-843d-ea1e1b07be20",
       "name": "xAI Grok Chat Model1",
@@ -89,21 +89,6 @@
           "name": "xAi account"
         }
       }
-    },
-    {
-      "parameters": {
-        "jsCode": "const lastMessage = items[0].json.messages?.slice(-1)[0]?.content \n                 || items[0].json.output \n                 || '';\n\nconst parsed = JSON.parse(lastMessage);\n\nif (parsed.pay === true || parsed.pay === \"true\" || parsed.pay === 1) {\n  const amount = Number(parsed.amount);\n  \n  if (Number.isInteger(amount) && amount >= 1 && amount <= 1000000) {\n    return [{ \n      json: { \n        pay: true,                    \n        amount: amount, \n        reason: parsed.reason || 'No reason given' \n      } \n    }];\n  } else {\n    return [{ \n      json: { \n        pay: false, \n        amount: amount,\n        reason: parsed.reason || 'No reason given',\n        message: `Payment amount ${amount} sats is outside allowed range (1 to 1,000,000 sats)` \n      } \n    }];\n  }\n}\n\n// Not a valid payment decision\nreturn [{ \n  json: { \n    pay: false, \n    message: lastMessage,\n    reason: \"Invalid or missing payment JSON from Agent A\" \n  } \n}];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -4160,
-        -112
-      ],
-      "id": "422b01e2-ce80-43f5-aeb5-668769180eb3",
-      "name": "Parse Grok Payment Decision",
-      "disabled": true,
-      "notes": "Check if Agent-A sent valid JSON code.\nChecks if Agent-A sent pay = true.\n\n"
     },
     {
       "parameters": {
@@ -174,17 +159,6 @@
       "notes": "Send Lightning payment from Agent A to Agent B \n\n"
     },
     {
-      "parameters": {},
-      "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
-      "position": [
-        -4160,
-        496
-      ],
-      "id": "5e29b287-512c-41d2-adb7-6f3fa5b6809c",
-      "name": "Manual Trigger"
-    },
-    {
       "parameters": {
         "fromEmail": "richardcaseyhpc@protonmail.com",
         "toEmail": "richardcaseyhpc@protonmail.com",
@@ -196,7 +170,7 @@
       "typeVersion": 2.1,
       "position": [
         1344,
-        496
+        400
       ],
       "id": "7a24b685-ba38-464d-a26e-d407e14a42e7",
       "name": "Send Email Report",
@@ -220,7 +194,7 @@
       "typeVersion": 3.2,
       "position": [
         0,
-        496
+        400
       ],
       "id": "e827a150-e2e1-44b2-8cea-26ac8e50f65c",
       "name": "Merge"
@@ -235,7 +209,7 @@
       "typeVersion": 3.4,
       "position": [
         224,
-        496
+        400
       ],
       "id": "648619f7-e737-4bc5-8616-612cb6343007",
       "name": "Extract Payment Data"
@@ -401,7 +375,7 @@
       "typeVersion": 3.4,
       "position": [
         -224,
-        288
+        304
       ],
       "id": "967ddce7-ea98-4b92-a81b-89adc324b011",
       "name": "Payment Blocked Agent-B Reserve"
@@ -416,7 +390,7 @@
       "typeVersion": 3.4,
       "position": [
         -3264,
-        496
+        448
       ],
       "id": "5b85288f-0370-4c4e-9ef1-ebbef9163b7a",
       "name": "Get Current State"
@@ -442,7 +416,7 @@
       "typeVersion": 4.4,
       "position": [
         -3936,
-        496
+        448
       ],
       "id": "31c929fa-b594-4bc7-bff3-4424edda1c29",
       "name": "Get Current Lightning Wallet Balance Agent-B"
@@ -468,7 +442,7 @@
       "typeVersion": 4.4,
       "position": [
         -3712,
-        496
+        448
       ],
       "id": "e9a089c3-9d0d-4e5d-8f8c-5997f2449687",
       "name": "Get Current Bitcoin Wallet Balance Agent-B"
@@ -494,7 +468,7 @@
       "typeVersion": 4.4,
       "position": [
         448,
-        496
+        400
       ],
       "id": "efa7b740-4866-4d89-9ffb-123fcb9175f0",
       "name": "Get Final Lightning Wallet Balance Agent-B"
@@ -520,7 +494,7 @@
       "typeVersion": 4.4,
       "position": [
         672,
-        496
+        400
       ],
       "id": "0be4bd2a-dd93-427a-b2f9-4826420504e2",
       "name": "Get Final Bitcoin Wallet Balance Agent-B"
@@ -546,7 +520,7 @@
       "typeVersion": 4.4,
       "position": [
         896,
-        496
+        400
       ],
       "id": "8c001b31-bdaf-4238-b248-ad32d7e9c5ea",
       "name": "Get Final Lightning Channel Info Agent-B"
@@ -572,7 +546,7 @@
       "typeVersion": 4.4,
       "position": [
         -3488,
-        496
+        448
       ],
       "id": "b62769f9-bfd6-461c-880e-5db71db454ec",
       "name": "Get Current Lightning Channel Info Agent-B"
@@ -587,7 +561,7 @@
       "typeVersion": 3.4,
       "position": [
         1120,
-        496
+        400
       ],
       "id": "b55a07a3-6651-44b8-b1cf-5278d70d7d23",
       "name": "Get Final State"
@@ -621,7 +595,7 @@
       "typeVersion": 2.3,
       "position": [
         -2240,
-        400
+        384
       ],
       "id": "7e120567-6486-4a9b-b6d0-33247f1abaf0",
       "name": "Check Payment Amount"
@@ -636,7 +610,7 @@
       "typeVersion": 3.4,
       "position": [
         -224,
-        688
+        624
       ],
       "id": "fe0078ba-7c79-4f2f-849c-9718307b54ad",
       "name": "Payment Rejected Bad Amount"
@@ -685,7 +659,7 @@
       "typeVersion": 2.3,
       "position": [
         -2464,
-        496
+        448
       ],
       "id": "602352e9-3cde-491e-954e-b19cf824a478",
       "name": "Check Payment Decision",
@@ -699,7 +673,7 @@
       "typeVersion": 2,
       "position": [
         -2688,
-        496
+        448
       ],
       "id": "891d01b2-bab6-4e8b-899a-2ad21ca521bb",
       "name": "Parse Agent-A Output"
@@ -714,7 +688,7 @@
       "typeVersion": 3.4,
       "position": [
         -224,
-        48
+        112
       ],
       "id": "524a7670-f181-49a0-aec1-63d47f5287e6",
       "name": "Normalize Success"
@@ -728,11 +702,34 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -224,
-        496
+        -1120,
+        480
       ],
       "id": "5719870b-7faf-495a-ad46-06031f52ac71",
       "name": "Normalize Rejection"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agent-bitcoin-pay",
+        "authentication": "headerAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -4224,
+        448
+      ],
+      "id": "759dbcb4-4ec5-46fd-93a9-8fa708e7d435",
+      "name": "Webhook",
+      "webhookId": "21393d4b-4f1c-4134-8547-92294910fe7a",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "1f4SW5LnawV1fIjc",
+          "name": "Header Auth account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -781,11 +778,6 @@
         ]
       ]
     },
-    "Parse Grok Payment Decision": {
-      "main": [
-        []
-      ]
-    },
     "Create Invoice Agent-B": {
       "main": [
         [
@@ -802,17 +794,6 @@
         [
           {
             "node": "Did Payment Succeed",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Manual Trigger": {
-      "main": [
-        [
-          {
-            "node": "Get Current Lightning Wallet Balance Agent-B",
             "type": "main",
             "index": 0
           }
@@ -1099,15 +1080,29 @@
           }
         ]
       ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get Current Lightning Wallet Balance Agent-B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
-    "availableInMCP": false
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "America/Denver",
+    "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "792ef559-8580-47ca-9cac-89c3c81ba570",
+  "versionId": "ac440658-724f-4dd6-950a-61f1df68e27a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
