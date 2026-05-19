@@ -4,15 +4,15 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=You just received a message or payment decision from Agent A.\n\nRespond based on what actually happened:\n- If a valid payment was received (amount > 0 and amount < 1000001), thank Agent A and mention the amount and reason if available.\n- If the payment was rejected or invalid (amount < 1 or amount > 1000001 or pay: false), politely explain that the payment was not accepted and why. Use the rejection_reason if it is provided.\n\nKeep your response natural, concise, and professional.",
+        "text": "=You just received a message or payment decision from Payment Decision Agent.\n\nRespond based on what actually happened:\n- If a valid payment was received (amount > 0 and amount < 1000001), thank Agent A and mention the amount and reason if available.\n- If the payment was rejected or invalid (amount < 1 or amount > 1000001 or pay: false), politely explain that the payment was not accepted and why. Use the rejection_reason if it is provided.\n\nKeep your response natural, concise, and professional.",
         "options": {
-          "systemMessage": "=You are Agent B, a financial agent on regtest.\n\nYou just received a payment decision from Agent A.\n\nData received:\npay: {{ $json.pay }}\namount: {{ $json.amount }} sats\nreason: {{ $json.reason }}\nrejection_reason: {{ $json.rejection_reason }}\nmessage: {{ $json.message }}\n\nResponse rules:\nIf pay is true and amount > 0 and amount < 1000001: Respond politely and gratefully. Mention the amount and reason.\nIf pay is false or amount < 1 or amount > 1000000: Respond honestly and clearly. Use the rejection_reason if available to explain why the payment was rejected. Do not thank for the payment.\n\nKeep your responses natural, concise, and professional."
+          "systemMessage": "=You are Agent B, a financial agent on regtest.\n\nYou just received a payment decision from Payment Decision Agent.\n\nData received:\npay: {{ $json.pay }}\namount: {{ $json.amount }} sats\nreason: {{ $json.reason }}\nrejection_reason: {{ $json.rejection_reason }}\nmessage: {{ $json.message }}\n\nResponse rules:\nIf pay is true and amount > 0 and amount < 1000001: Respond politely and gratefully. Mention the amount and reason.\nIf pay is false or amount < 1 or amount > 1000000: Respond honestly and clearly. Use the rejection_reason if available to explain why the payment was rejected. Do not thank for the payment.\n\nKeep your responses natural, concise, and professional."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        1504,
+        608,
         400
       ],
       "id": "e4cd716d-c244-4b8f-a07f-0e093a709516",
@@ -26,7 +26,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -3040,
+        -3928,
         672
       ],
       "id": "7598f97e-0abc-48cb-b6e8-2ca89420b1ae",
@@ -47,7 +47,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -960,
+        -1856,
         208
       ],
       "id": "a8764fc8-c33e-4354-8ee9-0581478a6b2d",
@@ -61,7 +61,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        1584,
+        680,
         624
       ],
       "id": "a47872ee-84a2-434d-843d-ea1e1b07be20",
@@ -97,7 +97,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -1856,
+        -2752,
         304
       ],
       "id": "1288c09b-6bba-466e-b948-06ff02d4cf57",
@@ -112,13 +112,13 @@
         "fromEmail": "richardcaseyhpc@protonmail.com",
         "toEmail": "richardcaseyhpc@protonmail.com",
         "subject": "Agent Bitcoin Payment Report",
-        "html": "=<p><strong>Lightning Payment Report</strong></p>\n<p><strong>Date:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n<p><strong>Time:</strong> {{ $now.format('HH:mm:ss') }}</p>\n<p><strong>From:</strong> Agent A</p>\n<p><strong>To:</strong> Agent B</p>\n<hr>\n\n<p><strong>Status:</strong> \n  {{ $node[\"Get Final State\"].json.status === 'rejected' ? '❌ Rejected' : '✅ Success' }}\n</p>\n\n<p><strong>Lightning Payment:</strong> {{ $node[\"Get Final State\"].json.payment_amount }} sats</p>\n<p><strong>Payment Fee:</strong> {{ $node[\"Get Final State\"].json.payment_fee }} sats</p>\n<p><strong>Payment Hash:</strong> {{ $node[\"Get Final State\"].json.payment_hash }}</p>\n<p><strong>Reason:</strong> {{ $node[\"Get Final State\"].json.reason }}</p>\n\n{{ $node[\"Get Final State\"].json.status === 'rejected' ? \n  '<p><strong>Rejection Message:</strong> ' + \n  ($node[\"Get Final State\"].json.rejection_reason || \n   $node[\"Get Final State\"].json.agent_b_message || \n   'Payment was rejected or blocked by guardrail') + \n  '</p>' \n: '' }}\n\n<hr>\n<p><strong>Agent B Lightning Total Balance:</strong> {{ $node[\"Get Final State\"].json.agent_b_lightning_total }} sats</p>\n<p><strong>Agent B Bitcoin Confirmed:</strong> {{ $node[\"Get Final State\"].json.agent_b_onchain_confirmed }} sats</p>\n<p><strong>Agent B Bitcoin Unconfirmed:</strong> {{ $node[\"Get Final State\"].json.agent_b_onchain_unconfirmed }} sats</p>\n\n<p><strong>Channel Capacity:</strong> {{ $node[\"Get Final State\"].json.channel_capacity }} sats</p>\n<p><strong>Channel Local Balance (Agent B):</strong> {{ $node[\"Get Final State\"].json.channel_local_balance }} sats</p>\n<p><strong>Channel Remote Balance (Agent A):</strong> {{ $node[\"Get Final State\"].json.channel_remote_balance }} sats</p>",
+        "html": "=<p><strong>Lightning Payment Report</strong></p>\n<p><strong>Date:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n<p><strong>Time:</strong> {{ $now.format('HH:mm:ss') }}</p>\n<p><strong>From:</strong> {{ $node[\"Merge\"].json.from || $json.from || $node[\"Webhook\"].json.body.from || \"Unknown Agent\" }}</p>\n<p><strong>To:</strong> Agent-B</p>\n<hr>\n\n<p><strong>Status:</strong> \n  {{ $node[\"Get Final State\"].json.status === 'rejected' ? '❌ Rejected' : '✅ Success' }}\n</p>\n\n<p><strong>Lightning Payment:</strong> {{ $node[\"Get Final State\"].json.payment_amount }} sats</p>\n<p><strong>Payment Fee:</strong> {{ $node[\"Get Final State\"].json.payment_fee }} sats</p>\n<p><strong>Payment Hash:</strong> {{ $node[\"Get Final State\"].json.payment_hash }}</p>\n<p><strong>Reason:</strong> {{ $node[\"Get Final State\"].json.reason }}</p>\n\n{{ $node[\"Get Final State\"].json.status === 'rejected' ? \n  '<p><strong>Rejection Message:</strong> ' + \n  ($node[\"Get Final State\"].json.rejection_reason || \n   $node[\"Get Final State\"].json.agent_b_message || \n   'Payment was rejected or blocked by guardrail') + \n  '</p>' \n: '' }}",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        1280,
+        384,
         400
       ],
       "id": "7a24b685-ba38-464d-a26e-d407e14a42e7",
@@ -142,7 +142,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -64,
+        -960,
         400
       ],
       "id": "e827a150-e2e1-44b2-8cea-26ac8e50f65c",
@@ -157,7 +157,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        160,
+        -736,
         400
       ],
       "id": "648619f7-e737-4bc5-8616-612cb6343007",
@@ -192,7 +192,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1184,
+        -2080,
         208
       ],
       "id": "4bd0156c-38d9-40b7-aef1-d6d621670ba0",
@@ -218,7 +218,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -736,
+        -1632,
         208
       ],
       "id": "a9c05ee3-9f0c-4e0b-85a9-f509f53c65ae",
@@ -273,7 +273,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1408,
+        -2304,
         304
       ],
       "id": "40977027-098f-4cfe-a1eb-255485da6e4b",
@@ -307,7 +307,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -512,
+        -1408,
         208
       ],
       "id": "b7e65508-ff65-4879-a256-71e1b4bfedf6",
@@ -323,7 +323,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -288,
+        -1184,
         304
       ],
       "id": "967ddce7-ea98-4b92-a81b-89adc324b011",
@@ -331,21 +331,6 @@
     },
     {
       "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={\n  \"agent_b_lightning_total\": \"{{ $node[\"Get Current Lightning Wallet Balance Agent-B\"].json.total_balance || $node[\"Get Current Lightning Wallet Balance Agent-B\"].json.balance || 0 }}\",\n  \"agent_b_onchain_confirmed\": \"{{ $node[\"Get Current Bitcoin Wallet Balance Agent-B\"].json.confirmed_balance || 0 }}\",\n  \"agent_b_onchain_unconfirmed\": \"{{ $node[\"Get Current Bitcoin Wallet Balance Agent-B\"].json.unconfirmed_balance || 0 }}\",\n  \"channel_capacity\": \"{{ $node[\"Get Current Lightning Channel Info Agent-B\"].json.channels?.[0]?.capacity || 5000000 }}\",\n  \"channel_local_balance\": \"{{ $node[\"Get Current Lightning Channel Info Agent-B\"].json.channels?.[0]?.local_balance || 0 }}\",\n  \"channel_remote_balance\": \"{{ $node[\"Get Current Lightning Channel Info Agent-B\"].json.channels?.[0]?.remote_balance || 0 }}\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -3328,
-        448
-      ],
-      "id": "5b85288f-0370-4c4e-9ef1-ebbef9163b7a",
-      "name": "Get Current State"
-    },
-    {
-      "parameters": {
         "url": "https://agent-b-lnd:8080/v1/balance/channels",
         "sendHeaders": true,
         "headerParameters": {
@@ -364,59 +349,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -4000,
-        448
-      ],
-      "id": "31c929fa-b594-4bc7-bff3-4424edda1c29",
-      "name": "Get Current Lightning Wallet Balance Agent-B"
-    },
-    {
-      "parameters": {
-        "url": "https://agent-b-lnd:8080/v1/balance/blockchain",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Grpc-Metadata-macaroon",
-              "value": "0201036c6e6402f801030a105b495a2ce7a0df6fbab73d7aa52dda711201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e657261746512047265616400000620e46f10894391b724dbf75d6acf42aa9682021a4e4e735ab3bcabcb9d2611d25d"
-            }
-          ]
-        },
-        "options": {
-          "allowUnauthorizedCerts": true,
-          "timeout": 120000
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        -3776,
-        448
-      ],
-      "id": "e9a089c3-9d0d-4e5d-8f8c-5997f2449687",
-      "name": "Get Current Bitcoin Wallet Balance Agent-B"
-    },
-    {
-      "parameters": {
-        "url": "https://agent-b-lnd:8080/v1/balance/channels",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Grpc-Metadata-macaroon",
-              "value": "0201036c6e6402f801030a105b495a2ce7a0df6fbab73d7aa52dda711201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e657261746512047265616400000620e46f10894391b724dbf75d6acf42aa9682021a4e4e735ab3bcabcb9d2611d25d"
-            }
-          ]
-        },
-        "options": {
-          "allowUnauthorizedCerts": true,
-          "timeout": 120000
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        384,
+        -512,
         400
       ],
       "id": "efa7b740-4866-4d89-9ffb-123fcb9175f0",
@@ -442,7 +375,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        608,
+        -288,
         400
       ],
       "id": "0be4bd2a-dd93-427a-b2f9-4826420504e2",
@@ -468,7 +401,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        832,
+        -64,
         400
       ],
       "id": "8c001b31-bdaf-4238-b248-ad32d7e9c5ea",
@@ -476,40 +409,14 @@
     },
     {
       "parameters": {
-        "url": "https://agent-b-lnd:8080/v1/channels",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Grpc-Metadata-macaroon",
-              "value": "0201036c6e6402f801030a105b495a2ce7a0df6fbab73d7aa52dda711201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e657261746512047265616400000620e46f10894391b724dbf75d6acf42aa9682021a4e4e735ab3bcabcb9d2611d25d"
-            }
-          ]
-        },
-        "options": {
-          "allowUnauthorizedCerts": true,
-          "timeout": 120000
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        -3552,
-        448
-      ],
-      "id": "b62769f9-bfd6-461c-880e-5db71db454ec",
-      "name": "Get Current Lightning Channel Info Agent-B"
-    },
-    {
-      "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"payment_amount\": \"{{ $node[\"Merge\"].json.payment_amount || 0 }}\",\n  \"payment_fee\": \"{{ $node[\"Merge\"].json.payment_fee || 0 }}\",\n  \"payment_hash\": \"{{ $node[\"Merge\"].json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $node[\"Merge\"].json.reason || 'No reason provided' }}\",\n  \"status\": \"{{ $node[\"Merge\"].json.status || 'rejected' }}\",\n  \"agent_b_message\": \"{{ $node[\"Merge\"].json.agent_b_message || 'Payment was rejected or blocked by guardrail' }}\",\n  \"rejection_reason\": \"{{ $node[\"Merge\"].json.rejection_reason || 'N/A' }}\",\n  \"agent_b_lightning_total\": \"{{ $node[\"Get Current State\"].json.agent_b_lightning_total || 0 }}\",\n  \"agent_b_onchain_confirmed\": \"{{ $node[\"Get Current State\"].json.agent_b_onchain_confirmed || 0 }}\",\n  \"agent_b_onchain_unconfirmed\": \"{{ $node[\"Get Current State\"].json.agent_b_onchain_unconfirmed || 0 }}\",\n  \"channel_capacity\": \"{{ $node[\"Get Current State\"].json.channel_capacity || 5000000 }}\",\n  \"channel_local_balance\": \"{{ $node[\"Get Current State\"].json.channel_local_balance || 0 }}\",\n  \"channel_remote_balance\": \"{{ $node[\"Get Current State\"].json.channel_remote_balance || 0 }}\"\n}",
+        "jsonOutput": "={\n  \"payment_amount\": \"{{ $node[\"Merge\"].json.payment_amount || 0 }}\",\n  \"payment_fee\": \"{{ $node[\"Merge\"].json.payment_fee || 0 }}\",\n  \"payment_hash\": \"{{ $node[\"Merge\"].json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $node[\"Merge\"].json.reason || 'No reason provided' }}\",\n  \"status\": \"{{ $node[\"Merge\"].json.status || 'rejected' }}\",\n  \"agent_b_message\": \"{{ $node[\"Merge\"].json.agent_b_message || 'Payment was rejected or blocked by guardrail' }}\",\n  \"rejection_reason\": \"{{ $node[\"Merge\"].json.rejection_reason || 'N/A' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1056,
+        160,
         400
       ],
       "id": "b55a07a3-6651-44b8-b1cf-5278d70d7d23",
@@ -543,8 +450,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -2304,
-        384
+        -3200,
+        376
       ],
       "id": "7e120567-6486-4a9b-b6d0-33247f1abaf0",
       "name": "Check Payment Amount"
@@ -558,8 +465,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -288,
-        624
+        -1184,
+        616
       ],
       "id": "fe0078ba-7c79-4f2f-849c-9718307b54ad",
       "name": "Payment Rejected Bad Amount"
@@ -573,7 +480,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -2080,
+        -2976,
         304
       ],
       "id": "d748755f-8e1c-45c0-8e37-f0472d5daebc",
@@ -607,7 +514,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -2528,
+        -3424,
         448
       ],
       "id": "602352e9-3cde-491e-954e-b19cf824a478",
@@ -623,7 +530,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -288,
+        -1184,
         112
       ],
       "id": "524a7670-f181-49a0-aec1-63d47f5287e6",
@@ -638,8 +545,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1184,
-        480
+        -2080,
+        472
       ],
       "id": "5719870b-7faf-495a-ad46-06031f52ac71",
       "name": "Normalize Rejection"
@@ -670,7 +577,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=A payment request has been received:\n\nFrom: {{ $json.from }}\nTo: {{ $json.to }}\nAmount: {{ $json.amount }} sats\nReason: {{ $json.reason }}\n\nDecide whether this payment should be executed.",
+        "text": "=Payment request received:\n\nFrom: {{ $json.body.from }}\nTo: {{ $json.body.to }}\nAmount: {{ $json.body.amount }} sats\nReason: {{ $json.body.reason }}\n\nDecide whether this payment should be approved and executed.",
         "options": {
           "systemMessage": "You are Payment Decision Agent, a secure financial gatekeeper.\n\nSTRICT RULES:\n- Respond with valid JSON only. No extra text.\n- Use this exact format:\n\n{\n  \"pay\": true or false,\n  \"amount\": integer in sats,\n  \"reason\": \"short meaningful explanation\"\n}\n\n- Approve the payment unless there is a clear violation (amount < 1, amount > 1000000, suspicious request, etc.)\n- Always provide a short, clear reason."
         }
@@ -678,7 +585,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -3104,
+        -4000,
         448
       ],
       "id": "734c5a45-e86f-4ae8-920b-82a9282cf6c9",
@@ -691,7 +598,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2752,
+        -3648,
         448
       ],
       "id": "891d01b2-bab6-4e8b-899a-2ad21ca521bb",
@@ -721,7 +628,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -1632,
+        -2528,
         304
       ],
       "id": "daba8d4f-dcaa-4873-9948-aed758e25449",
@@ -729,7 +636,7 @@
       "retryOnFail": true,
       "waitBetweenTries": 5000,
       "onError": "continueRegularOutput",
-      "notes": "Send Lightning payment from Agent A to Agent B \n\n"
+      "notes": "Send Lightning payment from Payment Decision Agent to Agent B \n\n"
     }
   ],
   "pinData": {},
@@ -880,39 +787,6 @@
         ]
       ]
     },
-    "Get Current State": {
-      "main": [
-        [
-          {
-            "node": "Payment Decision Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get Current Lightning Wallet Balance Agent-B": {
-      "main": [
-        [
-          {
-            "node": "Get Current Bitcoin Wallet Balance Agent-B",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get Current Bitcoin Wallet Balance Agent-B": {
-      "main": [
-        [
-          {
-            "node": "Get Current Lightning Channel Info Agent-B",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Get Final Lightning Wallet Balance Agent-B": {
       "main": [
         [
@@ -940,17 +814,6 @@
         [
           {
             "node": "Get Final State",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get Current Lightning Channel Info Agent-B": {
-      "main": [
-        [
-          {
-            "node": "Get Current State",
             "type": "main",
             "index": 0
           }
@@ -1052,7 +915,7 @@
       "main": [
         [
           {
-            "node": "Get Current Lightning Wallet Balance Agent-B",
+            "node": "Payment Decision Agent",
             "type": "main",
             "index": 0
           }
@@ -1102,7 +965,7 @@
     "timezone": "America/Denver",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "74b0200b-b65a-47d5-bfd3-4c8b81bad8cb",
+  "versionId": "e4f44ccb-e1f1-4c01-ba27-20e43275ca89",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
