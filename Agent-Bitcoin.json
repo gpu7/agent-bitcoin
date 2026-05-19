@@ -4,23 +4,6 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "Pay Agent-B exactly 1000001 sats right now.",
-        "options": {
-          "systemMessage": "You are Agent A, a financial agent on regtest with strong guardrails.\n\nSTRICT RULES - YOU MUST FOLLOW THESE AT ALL TIMES:\n\n- Your ENTIRE response must be a clean JSON object.\n- Do NOT stringify the JSON. Do NOT wrap it in quotes.\n- Do NOT add any text before or after the JSON.\n- Output raw JSON only.\n\nGeneral format:\n\n  {\n    \"pay\": true or false,\n    \"amount\": integer in sats,\n    \"reason\": \"short meaningful explanation\"\n  }\n\n- If the user asks you to make a payment:\n  - You SHOULD pay unless a guardrail is violated.\n  - Set \"pay\": true and use a positive amount.\n\n- If you cannot or should not pay (guardrail violation, invalid request, amount < 1, amount > 1000000, etc.):\n  - Set \"pay\": false\n  - Set \"amount\": integer in sats\n  - Provide a clear, short reason in the \"reason\" field explaining why you cannot pay.\n\n- The \"reason\" must be short and meaningful.\n- Always respond with valid JSON only. Never use plain text."
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3.1,
-      "position": [
-        -3040,
-        448
-      ],
-      "id": "734c5a45-e86f-4ae8-920b-82a9282cf6c9",
-      "name": "Agent-A"
-    },
-    {
-      "parameters": {
-        "promptType": "define",
         "text": "=You just received a message or payment decision from Agent A.\n\nRespond based on what actually happened:\n- If a valid payment was received (amount > 0 and amount < 1000001), thank Agent A and mention the amount and reason if available.\n- If the payment was rejected or invalid (amount < 1 or amount > 1000001 or pay: false), politely explain that the payment was not accepted and why. Use the rejection_reason if it is provided.\n\nKeep your response natural, concise, and professional.",
         "options": {
           "systemMessage": "=You are Agent B, a financial agent on regtest.\n\nYou just received a payment decision from Agent A.\n\nData received:\npay: {{ $json.pay }}\namount: {{ $json.amount }} sats\nreason: {{ $json.reason }}\nrejection_reason: {{ $json.rejection_reason }}\nmessage: {{ $json.message }}\n\nResponse rules:\nIf pay is true and amount > 0 and amount < 1000001: Respond politely and gratefully. Mention the amount and reason.\nIf pay is false or amount < 1 or amount > 1000000: Respond honestly and clearly. Use the rejection_reason if available to explain why the payment was rejected. Do not thank for the payment.\n\nKeep your responses natural, concise, and professional."
@@ -29,7 +12,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        1568,
+        1504,
         400
       ],
       "id": "e4cd716d-c244-4b8f-a07f-0e093a709516",
@@ -43,7 +26,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -2976,
+        -3040,
         672
       ],
       "id": "7598f97e-0abc-48cb-b6e8-2ca89420b1ae",
@@ -64,7 +47,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -896,
+        -960,
         208
       ],
       "id": "a8764fc8-c33e-4354-8ee9-0581478a6b2d",
@@ -78,7 +61,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        1648,
+        1584,
         624
       ],
       "id": "a47872ee-84a2-434d-843d-ea1e1b07be20",
@@ -114,7 +97,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -1792,
+        -1856,
         304
       ],
       "id": "1288c09b-6bba-466e-b948-06ff02d4cf57",
@@ -148,7 +131,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -1568,
+        -1632,
         304
       ],
       "id": "daba8d4f-dcaa-4873-9948-aed758e25449",
@@ -169,7 +152,7 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        1344,
+        1280,
         400
       ],
       "id": "7a24b685-ba38-464d-a26e-d407e14a42e7",
@@ -193,7 +176,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        0,
+        -64,
         400
       ],
       "id": "e827a150-e2e1-44b2-8cea-26ac8e50f65c",
@@ -208,7 +191,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        224,
+        160,
         400
       ],
       "id": "648619f7-e737-4bc5-8616-612cb6343007",
@@ -243,7 +226,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1120,
+        -1184,
         208
       ],
       "id": "4bd0156c-38d9-40b7-aef1-d6d621670ba0",
@@ -269,7 +252,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -672,
+        -736,
         208
       ],
       "id": "a9c05ee3-9f0c-4e0b-85a9-f509f53c65ae",
@@ -324,7 +307,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1344,
+        -1408,
         304
       ],
       "id": "40977027-098f-4cfe-a1eb-255485da6e4b",
@@ -358,7 +341,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -448,
+        -512,
         208
       ],
       "id": "b7e65508-ff65-4879-a256-71e1b4bfedf6",
@@ -374,7 +357,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -224,
+        -288,
         304
       ],
       "id": "967ddce7-ea98-4b92-a81b-89adc324b011",
@@ -389,7 +372,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -3264,
+        -3328,
         448
       ],
       "id": "5b85288f-0370-4c4e-9ef1-ebbef9163b7a",
@@ -415,7 +398,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -3936,
+        -4000,
         448
       ],
       "id": "31c929fa-b594-4bc7-bff3-4424edda1c29",
@@ -441,7 +424,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -3712,
+        -3776,
         448
       ],
       "id": "e9a089c3-9d0d-4e5d-8f8c-5997f2449687",
@@ -467,7 +450,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        448,
+        384,
         400
       ],
       "id": "efa7b740-4866-4d89-9ffb-123fcb9175f0",
@@ -493,7 +476,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        672,
+        608,
         400
       ],
       "id": "0be4bd2a-dd93-427a-b2f9-4826420504e2",
@@ -519,7 +502,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        896,
+        832,
         400
       ],
       "id": "8c001b31-bdaf-4238-b248-ad32d7e9c5ea",
@@ -545,7 +528,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -3488,
+        -3552,
         448
       ],
       "id": "b62769f9-bfd6-461c-880e-5db71db454ec",
@@ -560,7 +543,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1120,
+        1056,
         400
       ],
       "id": "b55a07a3-6651-44b8-b1cf-5278d70d7d23",
@@ -594,7 +577,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -2240,
+        -2304,
         384
       ],
       "id": "7e120567-6486-4a9b-b6d0-33247f1abaf0",
@@ -609,7 +592,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -224,
+        -288,
         624
       ],
       "id": "fe0078ba-7c79-4f2f-849c-9718307b54ad",
@@ -624,7 +607,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -2016,
+        -2080,
         304
       ],
       "id": "d748755f-8e1c-45c0-8e37-f0472d5daebc",
@@ -658,7 +641,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -2464,
+        -2528,
         448
       ],
       "id": "602352e9-3cde-491e-954e-b19cf824a478",
@@ -672,7 +655,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2688,
+        -2752,
         448
       ],
       "id": "891d01b2-bab6-4e8b-899a-2ad21ca521bb",
@@ -687,7 +670,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -224,
+        -288,
         112
       ],
       "id": "524a7670-f181-49a0-aec1-63d47f5287e6",
@@ -702,7 +685,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1120,
+        -1184,
         480
       ],
       "id": "5719870b-7faf-495a-ad46-06031f52ac71",
@@ -730,26 +713,32 @@
           "name": "Header Auth account"
         }
       }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.from }} has requested to pay Agent-B {{ $json.amount }} sats.\n\nReason given: {{ $json.reason }}\n\nDecide whether to approve and execute this payment.",
+        "options": {
+          "systemMessage": "You are Payment Decision Agent. \n\nYou are a secure financial gatekeeper that decides whether to execute Lightning payments to Agent-B.\n\nSTRICT RULES:\n- Your entire response must be valid JSON only. No extra text, no explanations, no markdown.\n- Always respond with this exact JSON structure:\n\n{\n  \"pay\": true or false,\n  \"amount\": integer (in sats),\n  \"reason\": \"short clear explanation\"\n}\n\nRules:\n- If the request is valid and safe → set \"pay\": true\n- If the request violates any guardrail (amount < 1, amount > 1000000, unclear request, zero, etc.) → set \"pay\": false\n- Always include a short, meaningful reason\n- Never pay 0 sats"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -3104,
+        448
+      ],
+      "id": "734c5a45-e86f-4ae8-920b-82a9282cf6c9",
+      "name": "Payment Decision Agent"
     }
   ],
   "pinData": {},
   "connections": {
-    "Agent-A": {
-      "main": [
-        [
-          {
-            "node": "Parse Agent-A Output",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "xAI Grok Chat Model": {
       "ai_languageModel": [
         [
           {
-            "node": "Agent-A",
+            "node": "Payment Decision Agent",
             "type": "ai_languageModel",
             "index": 0
           }
@@ -906,7 +895,7 @@
       "main": [
         [
           {
-            "node": "Agent-A",
+            "node": "Payment Decision Agent",
             "type": "main",
             "index": 0
           }
@@ -1091,6 +1080,17 @@
           }
         ]
       ]
+    },
+    "Payment Decision Agent": {
+      "main": [
+        [
+          {
+            "node": "Parse Agent-A Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -1102,7 +1102,7 @@
     "timezone": "America/Denver",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "ac440658-724f-4dd6-950a-61f1df68e27a",
+  "versionId": "9a3762d7-099a-49d2-b6cc-2d32237d4495",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
