@@ -109,40 +109,6 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://agent-a-lnd:8080/v1/channels/transactions",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Grpc-Metadata-macaroon",
-              "value": "0201036c6e6402f801030a10b49dca709d4517a0adf77bbf7c6f36b31201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e657261746512047265616400000620eac62ce6822106f97abd663d9b88d248f5924171497d5eb8d9600b5031f7e13a"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"payment_request\": \"{{ $json.payment_request }}\"\n}",
-        "options": {
-          "allowUnauthorizedCerts": true,
-          "timeout": 120000
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        -1632,
-        304
-      ],
-      "id": "daba8d4f-dcaa-4873-9948-aed758e25449",
-      "name": "Pay Invoice Agent-A",
-      "retryOnFail": true,
-      "waitBetweenTries": 5000,
-      "onError": "continueRegularOutput",
-      "notes": "Send Lightning payment from Agent A to Agent B \n\n"
-    },
-    {
-      "parameters": {
         "fromEmail": "richardcaseyhpc@protonmail.com",
         "toEmail": "richardcaseyhpc@protonmail.com",
         "subject": "Agent Bitcoin Payment Report",
@@ -650,21 +616,8 @@
     },
     {
       "parameters": {
-        "jsCode": "const input = items[0].json;\n\n// Get the raw output (usually inside .output)\nlet raw = input.output || input.message || input.raw_message || input.text || '';\n\n// If it's already a proper object, return it\nif (typeof raw === 'object' && raw !== null) {\n  return [{ json: raw }];\n}\n\n// If it's stringified JSON, parse it\nif (typeof raw === 'string' && raw.trim().startsWith('{')) {\n  try {\n    const parsed = JSON.parse(raw);\n    return [{ json: parsed }];\n  } catch (e) {\n    // Try cleaning escaped quotes\n    try {\n      const cleaned = raw.replace(/^\"|\"$/g, '').replace(/\\\\\"/g, '\"');\n      const parsed = JSON.parse(cleaned);\n      return [{ json: parsed }];\n    } catch (e2) {}\n  }\n}\n\n// Fallback\nreturn [{\n  json: {\n    pay: false,\n    amount: 0,\n    reason: \"Failed to parse Agent-A response\",\n    message: raw\n  }\n}];;"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -2752,
-        448
-      ],
-      "id": "891d01b2-bab6-4e8b-899a-2ad21ca521bb",
-      "name": "Parse Agent-A Output"
-    },
-    {
-      "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"success\": true,\n  \"payment_amount\": \"{{ $json.amount || $node[\"Capture Payment Amount\"]?.json.payment_amount_sats || $node[\"Payment Accepted\"]?.json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || $json.payment_route?.payment_hash || $node[\"Pay Invoice Agent-A\"]?.json?.payment_hash || $node[\"Pay Invoice Agent-A\"]?.json?.payment_route?.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || $node[\"Payment Accepted\"]?.json.reason || 'Payment to Agent-B executed' }}\",\n  \"status\": \"success\",\n  \"pay\": true,\n  \"agent_b_message\": \"Payment completed successfully\",\n  \"rejection_reason\": \"N/A\"\n}",
+        "jsonOutput": "={\n  \"success\": true,\n  \"payment_amount\": \"{{ $json.amount || $node[\"Capture Payment Amount\"]?.json.payment_amount_sats || $node[\"Payment Accepted\"]?.json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || $json.payment_route?.payment_hash || $node[\"Pay Invoice Payment Decision Agent\"]?.json?.payment_hash || $node[\"Pay Invoice Payment Decision Agent\"]?.json?.payment_route?.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || $node[\"Payment Accepted\"]?.json.reason || 'Payment to Agent-B executed' }}\",\n  \"status\": \"success\",\n  \"pay\": true,\n  \"agent_b_message\": \"Payment completed successfully\",\n  \"rejection_reason\": \"N/A\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -717,9 +670,9 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "={{ $json.from }} has requested to pay Agent-B {{ $json.amount }} sats.\n\nReason given: {{ $json.reason }}\n\nDecide whether to approve and execute this payment.",
+        "text": "=A payment request has been received:\n\nFrom: {{ $json.from }}\nTo: {{ $json.to }}\nAmount: {{ $json.amount }} sats\nReason: {{ $json.reason }}\n\nDecide whether this payment should be executed.",
         "options": {
-          "systemMessage": "You are Payment Decision Agent. \n\nYou are a secure financial gatekeeper that decides whether to execute Lightning payments to Agent-B.\n\nSTRICT RULES:\n- Your entire response must be valid JSON only. No extra text, no explanations, no markdown.\n- Always respond with this exact JSON structure:\n\n{\n  \"pay\": true or false,\n  \"amount\": integer (in sats),\n  \"reason\": \"short clear explanation\"\n}\n\nRules:\n- If the request is valid and safe → set \"pay\": true\n- If the request violates any guardrail (amount < 1, amount > 1000000, unclear request, zero, etc.) → set \"pay\": false\n- Always include a short, meaningful reason\n- Never pay 0 sats"
+          "systemMessage": "You are Payment Decision Agent, a secure financial gatekeeper.\n\nSTRICT RULES:\n- Respond with valid JSON only. No extra text.\n- Use this exact format:\n\n{\n  \"pay\": true or false,\n  \"amount\": integer in sats,\n  \"reason\": \"short meaningful explanation\"\n}\n\n- Approve the payment unless there is a clear violation (amount < 1, amount > 1000000, suspicious request, etc.)\n- Always provide a short, clear reason."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -730,6 +683,53 @@
       ],
       "id": "734c5a45-e86f-4ae8-920b-82a9282cf6c9",
       "name": "Payment Decision Agent"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = items[0].json;\n\n// Get the raw output (usually inside .output)\nlet raw = input.output || input.message || input.raw_message || input.text || '';\n\n// If it's already a proper object, return it\nif (typeof raw === 'object' && raw !== null) {\n  return [{ json: raw }];\n}\n\n// If it's stringified JSON, parse it\nif (typeof raw === 'string' && raw.trim().startsWith('{')) {\n  try {\n    const parsed = JSON.parse(raw);\n    return [{ json: parsed }];\n  } catch (e) {\n    // Try cleaning escaped quotes\n    try {\n      const cleaned = raw.replace(/^\"|\"$/g, '').replace(/\\\\\"/g, '\"');\n      const parsed = JSON.parse(cleaned);\n      return [{ json: parsed }];\n    } catch (e2) {}\n  }\n}\n\n// Fallback\nreturn [{\n  json: {\n    pay: false,\n    amount: 0,\n    reason: \"Failed to parse Agent-A response\",\n    message: raw\n  }\n}];;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2752,
+        448
+      ],
+      "id": "891d01b2-bab6-4e8b-899a-2ad21ca521bb",
+      "name": "Parse Payment Decision Agent Output"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://agent-a-lnd:8080/v1/channels/transactions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Grpc-Metadata-macaroon",
+              "value": "0201036c6e6402f801030a10b49dca709d4517a0adf77bbf7c6f36b31201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e657261746512047265616400000620eac62ce6822106f97abd663d9b88d248f5924171497d5eb8d9600b5031f7e13a"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"payment_request\": \"{{ $json.payment_request }}\"\n}",
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "timeout": 120000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1632,
+        304
+      ],
+      "id": "daba8d4f-dcaa-4873-9948-aed758e25449",
+      "name": "Pay Invoice Payment Decision Agent",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput",
+      "notes": "Send Lightning payment from Agent A to Agent B \n\n"
     }
   ],
   "pinData": {},
@@ -771,18 +771,7 @@
       "main": [
         [
           {
-            "node": "Pay Invoice Agent-A",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Pay Invoice Agent-A": {
-      "main": [
-        [
-          {
-            "node": "Did Payment Succeed",
+            "node": "Pay Invoice Payment Decision Agent",
             "type": "main",
             "index": 0
           }
@@ -1037,17 +1026,6 @@
         ]
       ]
     },
-    "Parse Agent-A Output": {
-      "main": [
-        [
-          {
-            "node": "Check Payment Decision",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Normalize Success": {
       "main": [
         [
@@ -1085,7 +1063,29 @@
       "main": [
         [
           {
-            "node": "Parse Agent-A Output",
+            "node": "Parse Payment Decision Agent Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Payment Decision Agent Output": {
+      "main": [
+        [
+          {
+            "node": "Check Payment Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pay Invoice Payment Decision Agent": {
+      "main": [
+        [
+          {
+            "node": "Did Payment Succeed",
             "type": "main",
             "index": 0
           }
@@ -1102,7 +1102,7 @@
     "timezone": "America/Denver",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "9a3762d7-099a-49d2-b6cc-2d32237d4495",
+  "versionId": "74b0200b-b65a-47d5-bfd3-4c8b81bad8cb",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
