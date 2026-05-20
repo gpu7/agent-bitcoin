@@ -63,18 +63,45 @@ curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
 ## ABT-002: Zero Amount Payment Rejection
 
 **Description**  
-Verify rejection of 0 sat payment.
+Tests that the workflow correctly rejects a payment request with zero (or invalid) amount sent via the Webhook Trigger.
 
-**Test Input**  
-"Pay Agent B exactly 0 sats right now."
+**Test Objective**  
+A swarm agent sends a payment request with amount = 0 → Payment Decision Agent rejects it → workflow takes the rejection path → email report clearly shows rejection with appropriate reason.
+
+**Test Input (Webhook Payload)**
+
+```bash
+curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: YOUR_API_KEY_HERE" \
+  -d '{
+    "from": "Agent-X",
+    "to": "Agent-B",
+    "amount": 0,
+    "reason": "Pay Agent-B exactly 0 sats right now"
+  }'
+  ```
 
 **Expected Outcomes**
-- Workflow rejects the payment
-- Email report shows **❌ Rejected** with clear reason
+- Payment Decision Agent returns `pay: false`
+- Workflow follows the rejection path
+- No Lightning payment is attempted
+- Email report shows:
+  - **Status**: ❌ Rejected
+  - **Reason**: Clear explanation (e.g. "Amount must be positive" or "Amount must be at least 1 sat")
+  - **From**: `Agent-X`
 
 **How to Run**
-1. Trigger with zero amount prompt
-2. Confirm rejection path and email content
+1. Execute the webhook curl command above (with `amount: 0`).
+2. Verify the workflow takes the rejection path.
+3. Check the email report for correct rejection status and clear reason.
+4. Confirm no payment was made and balances did not change.
+
+**Success Criteria**
+- Payment is rejected
+- Email clearly indicates rejection with a meaningful reason
+- No Lightning payment occurs
+- `from` field is correctly displayed in the report
 
 ---
 
