@@ -15,23 +15,48 @@
 ## ABT-001: Successful Nominal Payment
 
 **Description**  
-Tests the complete happy path with a normal payment amount.
+Tests the complete happy path with a normal payment amount using the new Webhook Trigger.
 
 **Test Objective**  
-User requests a valid payment → full success path → correct email report.
+A swarm agent sends a valid payment request via webhook → Payment Decision Agent approves → full success path → correct email report with proper `from` field.
 
-**Test Input**  
-"Pay Agent B exactly 50000 sats right now."
+**Test Input (Webhook Payload)**
+
+```bash
+curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: YOUR_API_KEY_HERE" \
+  -d '{
+    "from": "Agent-X",
+    "to": "Agent-B",
+    "amount": 50000,
+    "reason": "Payment for services rendered"
+  }'
+  ```
 
 **Expected Outcomes**
-- Agent A outputs valid JSON with `pay: true`
-- Invoice created and payment succeeds
-- Email report shows **✅ Success** with correct amount and details
+- Payment Decision Agent returns `pay: true`
+- Invoice is created on Agent-B
+- Lightning payment is executed successfully
+- Email report shows:
+  - **From**: `Agent-X` (or the actual sender)
+  - **Status**: ✅ Success
+  - **Lightning Payment**: 50,000 sats
+  - Valid **Payment Hash**
+  - Clear **Reason**
 
 **How to Run**
-1. Trigger workflow with the prompt
-2. Verify email report shows success
-3. Check balances updated correctly
+1. Ensure Agent A has sufficient outbound balance and an open channel to Agent B.
+2. Execute the webhook curl command above.
+3. Verify the workflow completes the success path.
+4. Check the email report for correct `From`, amount, hash, and status.
+5. Confirm Agent B’s Lightning balance increased by the correct amount.
+
+**Success Criteria**
+- No rejection occurs
+- Payment Hash is present and valid
+- Email clearly shows the correct sender (`from` field)
+- Balances update correctly
 
 ---
 
