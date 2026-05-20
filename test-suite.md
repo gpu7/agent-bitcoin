@@ -107,34 +107,50 @@ curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
 
 ## ABT-003: Minimum Amount Payment (1 sat)
 
-**Description**  
-Tests the workflow with the smallest valid payment amount (1 sat). Verifies that the system correctly handles the minimum allowed amount, creates a valid 1-sat invoice, processes the payment successfully, and generates a proper success email report.
+**Description**
+Tests the workflow with the smallest valid payment amount (1 sat) using the Webhook Trigger.
 
-**Test Objective**  
-User requests a 1-sat payment → Agent A decides to pay → Invoice created on B with correct 1-sat amount → Payment succeeds → Email report shows success with accurate 1-sat amount.
+**Test Objective**
+A swarm agent sends a 1-sat payment request via webhook → Payment Decision Agent approves → valid 1-sat invoice is created → payment succeeds → email report shows success with accurate details.
 
-**Test Input (user prompt to Agent A)**  
-"Pay Agent B exactly 1 sat right now."
+**Test Input (Webhook Payload)**
+```bash
+curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: YOUR_API_KEY_HERE" \
+  -d '{
+    "from": "Agent-X",
+    "to": "Agent-B",
+    "amount": 1,
+    "reason": "Pay Agent-B exactly 1 sat right now"
+  }'
+  ```
 
 **Expected Outcomes**
-- Agent A outputs valid JSON: `{"pay": true, "amount": 1, "reason": "..."}`
-- Parse Grok Payment Decision node succeeds.
-- Invoice is created on Agent B with exactly 1 sat.
-- Payment via Pay Invoice Agent-A succeeds (payment_hash present).
-- Did Payment Succeed? → true branch.
-- Lightning reserve check passes (assuming sufficient balance).
-- Amount passes size guardrail (≥ 1 sat).
-- Gather Balances shows correct 1-sat payment and `status: "success"`.
-- Email report shows **Success**, Lightning Payment = 1 sat, correct reason, and updated balances.
+- Payment Decision Agent returns `pay: true`
+- Invoice is created on Agent-B with exactly 1 sat
+- Lightning payment is executed successfully
+- Payment Hash is generated and present
+- Email report shows:
+  - **From**: `Agent-X`
+  - **Status**: ✅ Success
+  - **Lightning Payment**: 1 sat
+  - Valid **Payment Hash**
+  - Clear **Reason**
 
 **How to Run**
-1. Trigger the workflow manually with the prompt "Pay Agent B exactly 1 sat right now."
-2. Run the full workflow.
-3. Verify:
-   - The created Lightning invoice decodes to exactly 1 sat.
-   - Payment succeeds and a payment_hash is generated.
-   - Email report shows correct amount (1 sat) and Success status.
-   - Balances are updated appropriately (no unexpected rounding or scaling).
+1. Ensure Agent A has sufficient outbound balance and an open channel to Agent B.
+2. Execute the webhook curl command above.
+3. Verify the workflow completes the success path.
+4. Check the email report for correct `From`, amount (1 sat), Payment Hash, and Success status.
+5. Confirm Agent B’s Lightning balance increased by exactly 1 sat.
+
+**Success Criteria**
+- Payment Decision Agent approves the 1-sat request
+- Payment succeeds with a valid Payment Hash
+- Email report clearly shows the correct sender and 1 sat amount
+- No rejection occurs
+- Balances update correctly
 
 ---
 
