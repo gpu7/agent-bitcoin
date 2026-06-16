@@ -26,7 +26,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -3928,
+        -3936,
         672
       ],
       "id": "7598f97e-0abc-48cb-b6e8-2ca89420b1ae",
@@ -61,7 +61,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        680,
+        688,
         624
       ],
       "id": "a47872ee-84a2-434d-843d-ea1e1b07be20",
@@ -451,7 +451,7 @@
       "typeVersion": 2.3,
       "position": [
         -3200,
-        376
+        384
       ],
       "id": "7e120567-6486-4a9b-b6d0-33247f1abaf0",
       "name": "Check Payment Amount"
@@ -466,7 +466,7 @@
       "typeVersion": 3.4,
       "position": [
         -1184,
-        616
+        624
       ],
       "id": "fe0078ba-7c79-4f2f-849c-9718307b54ad",
       "name": "Payment Rejected Bad Amount"
@@ -539,14 +539,14 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"success\": false,\n  \"payment_amount\": 0,\n  \"payment_fee\": 0,\n  \"payment_hash\": \"N/A\",\n  \"reason\": \"{{ $json.reason || $json.payment_error || 'Payment rejected by guardrail' }}\",\n  \"status\": \"rejected\",\n  \"pay\": false,\n  \"agent_b_message\": \"Payment was rejected or blocked by guardrail\",\n  \"rejection_reason\": \"{{ \n    $json.payment_error === 'insufficient_balance' \n      ? 'Agent A does not have enough Lightning balance to send this payment' \n      : $json.payment_error === 'no_route' \n        ? 'No route found to Agent B'\n        : $json.payment_error || \n          $json.rejection_reason || \n          $json.reason || \n          'Unknown reason' \n  }}\"\n}",
+        "jsonOutput": "={\n  \"success\": false,\n  \"payment_amount\": 0,\n  \"payment_fee\": 0,\n  \"payment_hash\": \"N/A\",\n  \"reason\": \"{{ $json.reason || $json.payment_error || 'Payment rejected by guardrail' }}\",\n  \"status\": \"rejected\",\n  \"pay\": false,\n  \"agent_b_message\": \"Payment was rejected or blocked by guardrail\",\n  \"rejection_reason\": \"{{ \n    $json.payment_error === 'insufficient_balance' \n      ? 'Agent-X does not have enough Lightning balance to send this payment' \n      : $json.payment_error === 'no_route' \n        ? 'No route found to Agent B'\n        : $json.payment_error || \n          $json.rejection_reason || \n          $json.reason || \n          'Unknown reason' \n  }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
         -2080,
-        472
+        480
       ],
       "id": "5719870b-7faf-495a-ad46-06031f52ac71",
       "name": "Normalize Rejection"
@@ -965,7 +965,7 @@
     "timezone": "America/Denver",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "e4f44ccb-e1f1-4c01-ba27-20e43275ca89",
+  "versionId": "c9b46be0-240b-4e6b-b713-3b460e13b626",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
