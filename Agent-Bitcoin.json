@@ -12,8 +12,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        832,
-        400
+        -736,
+        304
       ],
       "id": "e4cd716d-c244-4b8f-a07f-0e093a709516",
       "name": "Agent-B"
@@ -27,7 +27,7 @@
       "typeVersion": 1,
       "position": [
         -3928,
-        672
+        504
       ],
       "id": "7598f97e-0abc-48cb-b6e8-2ca89420b1ae",
       "name": "xAI Grok Chat Model",
@@ -40,29 +40,14 @@
     },
     {
       "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={\n  \"message\": \"Payment of {{ $node['Capture Payment Amount'].json.payment_amount_sats || 0 }} sats sent successfully!\",\n  \"amount\": \"{{ $node['Capture Payment Amount'].json.payment_amount_sats || 0 }}\",\n  \"reason\": \"{{ $json.reason || 'Test successful payment flow' }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || 'N/A' }}\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -1632,
-        208
-      ],
-      "id": "a8764fc8-c33e-4354-8ee9-0581478a6b2d",
-      "name": "Payment Succeeded"
-    },
-    {
-      "parameters": {
         "model": "grok-4-1-fast-reasoning",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        904,
-        624
+        -664,
+        528
       ],
       "id": "a47872ee-84a2-434d-843d-ea1e1b07be20",
       "name": "xAI Grok Chat Model1",
@@ -98,7 +83,7 @@
       "typeVersion": 4.4,
       "position": [
         -2528,
-        304
+        136
       ],
       "id": "1288c09b-6bba-466e-b948-06ff02d4cf57",
       "name": "Create Invoice Agent-B",
@@ -118,8 +103,8 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        608,
-        400
+        -960,
+        304
       ],
       "id": "7a24b685-ba38-464d-a26e-d407e14a42e7",
       "name": "Send Email Report",
@@ -142,8 +127,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -736,
-        400
+        -1632,
+        304
       ],
       "id": "e827a150-e2e1-44b2-8cea-26ac8e50f65c",
       "name": "Merge"
@@ -157,72 +142,11 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -512,
-        400
+        -1408,
+        304
       ],
       "id": "648619f7-e737-4bc5-8616-612cb6343007",
       "name": "Extract Payment Data"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "93b441a9-b033-4b00-a63d-cfd576d46f1d",
-              "name": "payment_amount_sats",
-              "value": "={{ $json.amt_to_forward || $json.payment_route.total_amt || $json.payment_route.hops[0].amt_to_forward || 0 }}",
-              "type": "string"
-            },
-            {
-              "id": "b02c12d1-5cd9-46b3-bccb-d5fec3bc255f",
-              "name": "payment_amount_msat",
-              "value": "={{ $json.amt_to_forward_msat || $json.payment_route.total_amt_msat || $json.payment_route.hops[0].amt_to_forward_msat || 0 }}",
-              "type": "string"
-            },
-            {
-              "id": "72984801-16b9-4535-be2f-3bf2539de742",
-              "name": "payment_hash",
-              "value": "={{ $json.payment_hash || 'N/A' }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -1856,
-        208
-      ],
-      "id": "4bd0156c-38d9-40b7-aef1-d6d621670ba0",
-      "name": "Capture Payment Amount"
-    },
-    {
-      "parameters": {
-        "url": "https://agent-b-lnd:8080/v1/balance/channels",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Grpc-Metadata-macaroon",
-              "value": "0201036c6e6402f801030a105b495a2ce7a0df6fbab73d7aa52dda711201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e657261746512047265616400000620e46f10894391b724dbf75d6acf42aa9682021a4e4e735ab3bcabcb9d2611d25d"
-            }
-          ]
-        },
-        "options": {
-          "allowUnauthorizedCerts": true,
-          "timeout": 120000
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        -1408,
-        208
-      ],
-      "id": "a9c05ee3-9f0c-4e0b-85a9-f509f53c65ae",
-      "name": "Get Lightning Balance Agent-B"
     },
     {
       "parameters": {
@@ -274,138 +198,11 @@
       "typeVersion": 2.3,
       "position": [
         -2080,
-        304
+        136
       ],
       "id": "40977027-098f-4cfe-a1eb-255485da6e4b",
       "name": "Did Payment Succeed",
       "notes": "Check whether Lightning payment was successful or not.\n\n"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "ec9b863e-f163-4570-a712-9576a63a923e",
-              "leftValue": "={{ Number($node[\"Get Lightning Balance Agent-B\"].json.local_balance?.sat || $node[\"Get Lightning Balance Agent-B\"].json.balance || 0) }}",
-              "rightValue": 100000,
-              "operator": {
-                "type": "number",
-                "operation": "gt"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -1184,
-        208
-      ],
-      "id": "b7e65508-ff65-4879-a256-71e1b4bfedf6",
-      "name": "Lightning Wallet Reserve Check Agent-B",
-      "notes": "Ensure that Agent-B lightning wallet always has sufficient funds available to keep open the lightning channel.  Avoid an unexpected forced closure of the channel."
-    },
-    {
-      "parameters": {
-        "mode": "raw",
-        "jsonOutput": "{\n  \"pay\": false,\n  \"message\": \"Sweep blocked: Lightning wallet reserve minimum would be violated on Agent B.\",\n  \"reason\": \"Lightning wallet reserve protection guardrail activated on Agent B\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -960,
-        304
-      ],
-      "id": "967ddce7-ea98-4b92-a81b-89adc324b011",
-      "name": "Payment Blocked Agent-B Reserve"
-    },
-    {
-      "parameters": {
-        "url": "https://agent-b-lnd:8080/v1/balance/channels",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Grpc-Metadata-macaroon",
-              "value": "0201036c6e6402f801030a105b495a2ce7a0df6fbab73d7aa52dda711201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e657261746512047265616400000620e46f10894391b724dbf75d6acf42aa9682021a4e4e735ab3bcabcb9d2611d25d"
-            }
-          ]
-        },
-        "options": {
-          "allowUnauthorizedCerts": true,
-          "timeout": 120000
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        -288,
-        400
-      ],
-      "id": "efa7b740-4866-4d89-9ffb-123fcb9175f0",
-      "name": "Get Final Lightning Wallet Balance Agent-B"
-    },
-    {
-      "parameters": {
-        "url": "https://agent-b-lnd:8080/v1/balance/blockchain",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Grpc-Metadata-macaroon",
-              "value": "0201036c6e6402f801030a105b495a2ce7a0df6fbab73d7aa52dda711201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e657261746512047265616400000620e46f10894391b724dbf75d6acf42aa9682021a4e4e735ab3bcabcb9d2611d25d"
-            }
-          ]
-        },
-        "options": {
-          "allowUnauthorizedCerts": true,
-          "timeout": 120000
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        -64,
-        400
-      ],
-      "id": "0be4bd2a-dd93-427a-b2f9-4826420504e2",
-      "name": "Get Final Bitcoin Wallet Balance Agent-B"
-    },
-    {
-      "parameters": {
-        "url": "https://agent-b-lnd:8080/v1/channels",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Grpc-Metadata-macaroon",
-              "value": "0201036c6e6402f801030a105b495a2ce7a0df6fbab73d7aa52dda711201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e657261746512047265616400000620e46f10894391b724dbf75d6acf42aa9682021a4e4e735ab3bcabcb9d2611d25d"
-            }
-          ]
-        },
-        "options": {
-          "allowUnauthorizedCerts": true,
-          "timeout": 120000
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        160,
-        400
-      ],
-      "id": "8c001b31-bdaf-4238-b248-ad32d7e9c5ea",
-      "name": "Get Final Lightning Channel Info Agent-B"
     },
     {
       "parameters": {
@@ -416,8 +213,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        384,
-        400
+        -1184,
+        304
       ],
       "id": "b55a07a3-6651-44b8-b1cf-5278d70d7d23",
       "name": "Get Final State"
@@ -451,7 +248,7 @@
       "typeVersion": 2.3,
       "position": [
         -3200,
-        376
+        208
       ],
       "id": "7e120567-6486-4a9b-b6d0-33247f1abaf0",
       "name": "Check Payment Amount"
@@ -465,8 +262,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -960,
-        616
+        -1856,
+        520
       ],
       "id": "fe0078ba-7c79-4f2f-849c-9718307b54ad",
       "name": "Payment Rejected Bad Amount"
@@ -481,7 +278,7 @@
       "typeVersion": 3.4,
       "position": [
         -2976,
-        304
+        136
       ],
       "id": "d748755f-8e1c-45c0-8e37-f0472d5daebc",
       "name": "Payment Accepted"
@@ -515,7 +312,7 @@
       "typeVersion": 2.3,
       "position": [
         -3424,
-        448
+        280
       ],
       "id": "602352e9-3cde-491e-954e-b19cf824a478",
       "name": "Check Payment Decision",
@@ -524,13 +321,13 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"success\": true,\n  \"payment_amount\": \"{{ $json.amount || $node[\"Capture Payment Amount\"]?.json.payment_amount_sats || $node[\"Payment Accepted\"]?.json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || $json.payment_route?.payment_hash || $node[\"Pay Invoice Payment Decision Agent\"]?.json?.payment_hash || $node[\"Pay Invoice Payment Decision Agent\"]?.json?.payment_route?.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || $node[\"Payment Accepted\"]?.json.reason || 'Payment to Agent-B executed' }}\",\n  \"status\": \"success\",\n  \"pay\": true,\n  \"agent_b_message\": \"Payment completed successfully\",\n  \"rejection_reason\": \"N/A\",\n  \n  \"original_amount\": \"={{ $node[\"Calculate Fixed Fee\"].json.original_amount }}\",\n  \"fee_sats\": \"={{ $node[\"Calculate Fixed Fee\"].json.fee_sats }}\",\n  \"net_amount_to_payee\": \"={{ $node[\"Calculate Fixed Fee\"].json.net_amount_to_payee }}\",\n  \"fee_reason\": \"={{ $node[\"Calculate Fixed Fee\"].json.fee_reason }}\"\n}",
+        "jsonOutput": "={\n  \"success\": true,\n  \"payment_amount\": \"{{ $json.amount || $node[\"Pay Invoice Payment Decision Agent\"]?.json?.payment_route?.total_amt || $node[\"Pay Invoice Payment Decision Agent\"]?.json?.amt_to_forward || 0 }}\",\n  \"payment_fee\": \"{{ $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || $json.payment_route?.payment_hash || $node[\"Pay Invoice Payment Decision Agent\"]?.json?.payment_hash || $node[\"Pay Invoice Payment Decision Agent\"]?.json?.payment_route?.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || $node[\"Payment Accepted\"]?.json.reason || 'Payment to Agent-B executed' }}\",\n  \"status\": \"success\",\n  \"pay\": true,\n  \"agent_b_message\": \"Payment completed successfully\",\n  \"rejection_reason\": \"N/A\",\n  \n  \"original_amount\": \"={{ $node[\"Calculate Fixed Fee\"].json.original_amount }}\",\n  \"fee_sats\": \"={{ $node[\"Calculate Fixed Fee\"].json.fee_sats }}\",\n  \"net_amount_to_payee\": \"={{ $node[\"Calculate Fixed Fee\"].json.net_amount_to_payee }}\",\n  \"fee_reason\": \"={{ $node[\"Calculate Fixed Fee\"].json.fee_reason }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -960,
+        -1856,
         112
       ],
       "id": "524a7670-f181-49a0-aec1-63d47f5287e6",
@@ -546,7 +343,7 @@
       "typeVersion": 3.4,
       "position": [
         -1856,
-        472
+        328
       ],
       "id": "5719870b-7faf-495a-ad46-06031f52ac71",
       "name": "Normalize Rejection"
@@ -562,7 +359,7 @@
       "typeVersion": 2.1,
       "position": [
         -4224,
-        448
+        280
       ],
       "id": "759dbcb4-4ec5-46fd-93a9-8fa708e7d435",
       "name": "Webhook",
@@ -586,7 +383,7 @@
       "typeVersion": 3.1,
       "position": [
         -4000,
-        448
+        280
       ],
       "id": "734c5a45-e86f-4ae8-920b-82a9282cf6c9",
       "name": "Payment Decision Agent"
@@ -599,7 +396,7 @@
       "typeVersion": 2,
       "position": [
         -3648,
-        448
+        280
       ],
       "id": "891d01b2-bab6-4e8b-899a-2ad21ca521bb",
       "name": "Parse Payment Decision Agent Output"
@@ -629,7 +426,7 @@
       "typeVersion": 4.4,
       "position": [
         -2304,
-        304
+        136
       ],
       "id": "daba8d4f-dcaa-4873-9948-aed758e25449",
       "name": "Pay Invoice Payment Decision Agent",
@@ -648,7 +445,7 @@
       "typeVersion": 3.4,
       "position": [
         -2752,
-        304
+        136
       ],
       "id": "abf135a8-0ba5-4a7d-91c8-c2d9cc5b4bdf",
       "name": "Calculate Fixed Fee"
@@ -662,17 +459,6 @@
           {
             "node": "Payment Decision Agent",
             "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Payment Succeeded": {
-      "main": [
-        [
-          {
-            "node": "Get Lightning Balance Agent-B",
-            "type": "main",
             "index": 0
           }
         ]
@@ -726,29 +512,7 @@
       "main": [
         [
           {
-            "node": "Get Final Lightning Wallet Balance Agent-B",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Capture Payment Amount": {
-      "main": [
-        [
-          {
-            "node": "Payment Succeeded",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get Lightning Balance Agent-B": {
-      "main": [
-        [
-          {
-            "node": "Lightning Wallet Reserve Check Agent-B",
+            "node": "Get Final State",
             "type": "main",
             "index": 0
           }
@@ -759,24 +523,6 @@
       "main": [
         [
           {
-            "node": "Capture Payment Amount",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Normalize Rejection",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Lightning Wallet Reserve Check Agent-B": {
-      "main": [
-        [
-          {
             "node": "Normalize Success",
             "type": "main",
             "index": 0
@@ -784,51 +530,7 @@
         ],
         [
           {
-            "node": "Payment Blocked Agent-B Reserve",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Payment Blocked Agent-B Reserve": {
-      "main": [
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Get Final Lightning Wallet Balance Agent-B": {
-      "main": [
-        [
-          {
-            "node": "Get Final Bitcoin Wallet Balance Agent-B",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get Final Bitcoin Wallet Balance Agent-B": {
-      "main": [
-        [
-          {
-            "node": "Get Final Lightning Channel Info Agent-B",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get Final Lightning Channel Info Agent-B": {
-      "main": [
-        [
-          {
-            "node": "Get Final State",
+            "node": "Normalize Rejection",
             "type": "main",
             "index": 0
           }
@@ -991,7 +693,7 @@
     "timezone": "America/Denver",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "ef0bc1f8-d98d-4dc7-b868-065bd611123d",
+  "versionId": "1de25966-1226-4b41-a70d-270c28abfe77",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
