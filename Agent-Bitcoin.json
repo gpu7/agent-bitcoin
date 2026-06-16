@@ -12,7 +12,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -736,
+        -960,
         304
       ],
       "id": "e4cd716d-c244-4b8f-a07f-0e093a709516",
@@ -46,7 +46,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -664,
+        -888,
         528
       ],
       "id": "a47872ee-84a2-434d-843d-ea1e1b07be20",
@@ -103,7 +103,7 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        -960,
+        -1184,
         304
       ],
       "id": "7a24b685-ba38-464d-a26e-d407e14a42e7",
@@ -132,21 +132,6 @@
       ],
       "id": "e827a150-e2e1-44b2-8cea-26ac8e50f65c",
       "name": "Merge"
-    },
-    {
-      "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={\n  \"payment_amount\": \"{{ $node[\"Merge\"].json.payment_amount || $json.payment_amount || $json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $node[\"Merge\"].json.payment_fee || $json.payment_fee || $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $node[\"Merge\"].json.payment_hash || $json.payment_hash || $json.paymentHash || 'N/A' }}\",\n  \"reason\": \"{{ $node[\"Merge\"].json.reason || $json.reason || 'No reason provided' }}\",\n  \"pay\": \"{{ $node[\"Merge\"].json.pay }}\",\n  \"status\": \"{{ $node[\"Merge\"].json.status || ($json.pay === true ? 'success' : 'rejected') }}\",\n  \"agent_b_message\": \"{{ $node[\"Merge\"].json.agent_b_message || ($json.pay === true ? 'Payment completed successfully' : 'Payment was rejected or blocked by guardrail') }}\",\n  \"rejection_reason\": \"{{ $node[\"Merge\"].json.rejection_reason || 'N/A' }}\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -1408,
-        304
-      ],
-      "id": "648619f7-e737-4bc5-8616-612cb6343007",
-      "name": "Extract Payment Data"
     },
     {
       "parameters": {
@@ -213,7 +198,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1184,
+        -1408,
         304
       ],
       "id": "b55a07a3-6651-44b8-b1cf-5278d70d7d23",
@@ -501,17 +486,6 @@
       "main": [
         [
           {
-            "node": "Extract Payment Data",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract Payment Data": {
-      "main": [
-        [
-          {
             "node": "Get Final State",
             "type": "main",
             "index": 0
@@ -693,7 +667,7 @@
     "timezone": "America/Denver",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "1de25966-1226-4b41-a70d-270c28abfe77",
+  "versionId": "a4c10863-9b76-489e-9d31-23bfb0cd505e",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
