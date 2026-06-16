@@ -12,7 +12,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        832,
+        608,
         400
       ],
       "id": "e4cd716d-c244-4b8f-a07f-0e093a709516",
@@ -26,7 +26,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -3928,
+        -3936,
         672
       ],
       "id": "7598f97e-0abc-48cb-b6e8-2ca89420b1ae",
@@ -47,7 +47,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1632,
+        -1856,
         208
       ],
       "id": "a8764fc8-c33e-4354-8ee9-0581478a6b2d",
@@ -61,7 +61,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        904,
+        688,
         624
       ],
       "id": "a47872ee-84a2-434d-843d-ea1e1b07be20",
@@ -88,7 +88,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"memo\": \"{{ $json.reason }}\",\n  \"value\": \"={{ $node[\"Calculate Fixed Fee\"].json.net_amount_to_payee }}\"\n}",
+        "jsonBody": "={\n  \"memo\": \"{{ $json.reason }}\",\n  \"value\": \"{{ $json.amount }}\"\n}",
         "options": {
           "allowUnauthorizedCerts": true,
           "timeout": 120000
@@ -97,7 +97,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -2528,
+        -2752,
         304
       ],
       "id": "1288c09b-6bba-466e-b948-06ff02d4cf57",
@@ -112,13 +112,13 @@
         "fromEmail": "richardcaseyhpc@protonmail.com",
         "toEmail": "richardcaseyhpc@protonmail.com",
         "subject": "Agent Bitcoin Payment Report",
-        "html": "=<p><strong>Lightning Payment Report</strong></p>\n<p><strong>Date:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n<p><strong>Time:</strong> {{ $now.format('HH:mm:ss') }}</p>\n<p><strong>From:</strong> {{ $node[\"Merge\"].json.from || $json.from || $node[\"Webhook\"].json.body.from || \"Unknown Agent\" }}</p>\n<p><strong>To:</strong> Agent-B</p>\n<hr>\n\n<p><strong>Status:</strong> \n  {{ $node[\"Get Final State\"].json.status === 'rejected' ? '❌ Rejected' : '✅ Success' }}\n</p>\n\n<p><strong>Original Amount:</strong> {{ $node[\"Get Final State\"].json.original_amount || $node[\"Merge\"].json.payment_amount || 0 }} sats</p>\n<p><strong>Fee (Intermediary):</strong> {{ $node[\"Get Final State\"].json.fee_sats || 0 }} sats</p>\n<p><strong>Net Amount to Recipient:</strong> {{ $node[\"Get Final State\"].json.net_amount_to_payee || $node[\"Get Final State\"].json.payment_amount || 0 }} sats</p>\n\n<p><strong>Payment Hash:</strong> {{ $node[\"Get Final State\"].json.payment_hash }}</p>\n<p><strong>Reason:</strong> {{ $node[\"Get Final State\"].json.reason }}</p>\n\n{{ $node[\"Get Final State\"].json.status === 'rejected' ? \n  '<p><strong>Rejection Message:</strong> ' + \n  ($node[\"Get Final State\"].json.rejection_reason || \n   $node[\"Get Final State\"].json.agent_b_message || \n   'Payment was rejected or blocked by guardrail') + \n  '</p>' \n: '' }}",
+        "html": "=<p><strong>Lightning Payment Report</strong></p>\n<p><strong>Date:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n<p><strong>Time:</strong> {{ $now.format('HH:mm:ss') }}</p>\n<p><strong>From:</strong> {{ $node[\"Merge\"].json.from || $json.from || $node[\"Webhook\"].json.body.from || \"Unknown Agent\" }}</p>\n<p><strong>To:</strong> Agent-B</p>\n<hr>\n\n<p><strong>Status:</strong> \n  {{ $node[\"Get Final State\"].json.status === 'rejected' ? '❌ Rejected' : '✅ Success' }}\n</p>\n\n<p><strong>Lightning Payment:</strong> {{ $node[\"Get Final State\"].json.payment_amount }} sats</p>\n<p><strong>Payment Fee:</strong> {{ $node[\"Get Final State\"].json.payment_fee }} sats</p>\n<p><strong>Payment Hash:</strong> {{ $node[\"Get Final State\"].json.payment_hash }}</p>\n<p><strong>Reason:</strong> {{ $node[\"Get Final State\"].json.reason }}</p>\n\n{{ $node[\"Get Final State\"].json.status === 'rejected' ? \n  '<p><strong>Rejection Message:</strong> ' + \n  ($node[\"Get Final State\"].json.rejection_reason || \n   $node[\"Get Final State\"].json.agent_b_message || \n   'Payment was rejected or blocked by guardrail') + \n  '</p>' \n: '' }}",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        608,
+        384,
         400
       ],
       "id": "7a24b685-ba38-464d-a26e-d407e14a42e7",
@@ -142,7 +142,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -736,
+        -960,
         400
       ],
       "id": "e827a150-e2e1-44b2-8cea-26ac8e50f65c",
@@ -157,7 +157,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -512,
+        -736,
         400
       ],
       "id": "648619f7-e737-4bc5-8616-612cb6343007",
@@ -192,7 +192,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1856,
+        -2080,
         208
       ],
       "id": "4bd0156c-38d9-40b7-aef1-d6d621670ba0",
@@ -218,7 +218,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -1408,
+        -1632,
         208
       ],
       "id": "a9c05ee3-9f0c-4e0b-85a9-f509f53c65ae",
@@ -273,7 +273,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -2080,
+        -2304,
         304
       ],
       "id": "40977027-098f-4cfe-a1eb-255485da6e4b",
@@ -307,7 +307,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1184,
+        -1408,
         208
       ],
       "id": "b7e65508-ff65-4879-a256-71e1b4bfedf6",
@@ -323,7 +323,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -960,
+        -1184,
         304
       ],
       "id": "967ddce7-ea98-4b92-a81b-89adc324b011",
@@ -349,7 +349,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -288,
+        -512,
         400
       ],
       "id": "efa7b740-4866-4d89-9ffb-123fcb9175f0",
@@ -375,7 +375,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -64,
+        -288,
         400
       ],
       "id": "0be4bd2a-dd93-427a-b2f9-4826420504e2",
@@ -401,7 +401,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        160,
+        -64,
         400
       ],
       "id": "8c001b31-bdaf-4238-b248-ad32d7e9c5ea",
@@ -410,13 +410,13 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"payment_amount\": \"{{ $node[\"Merge\"].json.payment_amount || 0 }}\",\n  \"payment_fee\": \"{{ $node[\"Merge\"].json.payment_fee || 0 }}\",\n  \"payment_hash\": \"{{ $node[\"Merge\"].json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $node[\"Merge\"].json.reason || 'No reason provided' }}\",\n  \"status\": \"{{ $node[\"Merge\"].json.status || 'rejected' }}\",\n  \"agent_b_message\": \"{{ $node[\"Merge\"].json.agent_b_message || 'Payment was rejected or blocked by guardrail' }}\",\n  \"rejection_reason\": \"{{ $node[\"Merge\"].json.rejection_reason || 'N/A' }}\",\n\n  \"original_amount\": \"={{ $node[\"Calculate Fixed Fee\"].json.original_amount }}\",\n  \"fee_sats\": \"={{ $node[\"Calculate Fixed Fee\"].json.fee_sats }}\",\n  \"net_amount_to_payee\": \"={{ $node[\"Calculate Fixed Fee\"].json.net_amount_to_payee }}\",\n  \"fee_reason\": \"={{ $node[\"Calculate Fixed Fee\"].json.fee_reason }}\"\n}",
+        "jsonOutput": "={\n  \"payment_amount\": \"{{ $node[\"Merge\"].json.payment_amount || 0 }}\",\n  \"payment_fee\": \"{{ $node[\"Merge\"].json.payment_fee || 0 }}\",\n  \"payment_hash\": \"{{ $node[\"Merge\"].json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $node[\"Merge\"].json.reason || 'No reason provided' }}\",\n  \"status\": \"{{ $node[\"Merge\"].json.status || 'rejected' }}\",\n  \"agent_b_message\": \"{{ $node[\"Merge\"].json.agent_b_message || 'Payment was rejected or blocked by guardrail' }}\",\n  \"rejection_reason\": \"{{ $node[\"Merge\"].json.rejection_reason || 'N/A' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        384,
+        160,
         400
       ],
       "id": "b55a07a3-6651-44b8-b1cf-5278d70d7d23",
@@ -451,7 +451,7 @@
       "typeVersion": 2.3,
       "position": [
         -3200,
-        376
+        384
       ],
       "id": "7e120567-6486-4a9b-b6d0-33247f1abaf0",
       "name": "Check Payment Amount"
@@ -465,8 +465,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -960,
-        616
+        -1184,
+        624
       ],
       "id": "fe0078ba-7c79-4f2f-849c-9718307b54ad",
       "name": "Payment Rejected Bad Amount"
@@ -524,13 +524,13 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"success\": true,\n  \"payment_amount\": \"{{ $json.amount || $node[\"Capture Payment Amount\"]?.json.payment_amount_sats || $node[\"Payment Accepted\"]?.json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || $json.payment_route?.payment_hash || $node[\"Pay Invoice Payment Decision Agent\"]?.json?.payment_hash || $node[\"Pay Invoice Payment Decision Agent\"]?.json?.payment_route?.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || $node[\"Payment Accepted\"]?.json.reason || 'Payment to Agent-B executed' }}\",\n  \"status\": \"success\",\n  \"pay\": true,\n  \"agent_b_message\": \"Payment completed successfully\",\n  \"rejection_reason\": \"N/A\",\n  \n  \"original_amount\": \"={{ $node[\"Calculate Fixed Fee\"].json.original_amount }}\",\n  \"fee_sats\": \"={{ $node[\"Calculate Fixed Fee\"].json.fee_sats }}\",\n  \"net_amount_to_payee\": \"={{ $node[\"Calculate Fixed Fee\"].json.net_amount_to_payee }}\",\n  \"fee_reason\": \"={{ $node[\"Calculate Fixed Fee\"].json.fee_reason }}\"\n}",
+        "jsonOutput": "={\n  \"success\": true,\n  \"payment_amount\": \"{{ $json.amount || $node[\"Capture Payment Amount\"]?.json.payment_amount_sats || $node[\"Payment Accepted\"]?.json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || $json.payment_route?.payment_hash || $node[\"Pay Invoice Payment Decision Agent\"]?.json?.payment_hash || $node[\"Pay Invoice Payment Decision Agent\"]?.json?.payment_route?.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || $node[\"Payment Accepted\"]?.json.reason || 'Payment to Agent-B executed' }}\",\n  \"status\": \"success\",\n  \"pay\": true,\n  \"agent_b_message\": \"Payment completed successfully\",\n  \"rejection_reason\": \"N/A\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -960,
+        -1184,
         112
       ],
       "id": "524a7670-f181-49a0-aec1-63d47f5287e6",
@@ -545,8 +545,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1856,
-        472
+        -2080,
+        480
       ],
       "id": "5719870b-7faf-495a-ad46-06031f52ac71",
       "name": "Normalize Rejection"
@@ -628,7 +628,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -2304,
+        -2528,
         304
       ],
       "id": "daba8d4f-dcaa-4873-9948-aed758e25449",
@@ -637,21 +637,6 @@
       "waitBetweenTries": 5000,
       "onError": "continueRegularOutput",
       "notes": "Send Lightning payment from Payment Decision Agent to Agent B \n\n"
-    },
-    {
-      "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={\n  \"original_amount\": \"={{ $json.amount || JSON.parse($json.output || '{}').amount || 0 }}\",\n  \"net_amount_to_payee\": \"={{ (Number($json.amount) || Number(JSON.parse($json.output || '{}').amount) || 0) - 50 }}\",\n  \"fee_sats\": 50,\n  \"fee_reason\": \"Fixed intermediary fee (50 sats)\"\n}\n",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -2752,
-        304
-      ],
-      "id": "abf135a8-0ba5-4a7d-91c8-c2d9cc5b4bdf",
-      "name": "Calculate Fixed Fee"
     }
   ],
   "pinData": {},
@@ -879,7 +864,7 @@
       "main": [
         [
           {
-            "node": "Calculate Fixed Fee",
+            "node": "Create Invoice Agent-B",
             "type": "main",
             "index": 0
           }
@@ -969,17 +954,6 @@
           }
         ]
       ]
-    },
-    "Calculate Fixed Fee": {
-      "main": [
-        [
-          {
-            "node": "Create Invoice Agent-B",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
     }
   },
   "active": false,
@@ -991,7 +965,7 @@
     "timezone": "America/Denver",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "ef0bc1f8-d98d-4dc7-b868-065bd611123d",
+  "versionId": "c9b46be0-240b-4e6b-b713-3b460e13b626",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1c18e68605ce8f3e072c499c819d0c2e64205791086bb93003c044099abd17eb"
