@@ -2,10 +2,13 @@
 
 echo "=== Agent-Bitcoin Full Infrastructure Start ==="
 
+# Clean previous run
 docker compose down -v --remove-orphans 2>/dev/null || true
+
+# Start all services
 docker compose up -d
 
-echo "Waiting for bitcoind..."
+echo "Waiting for bitcoind to be ready..."
 until docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass getblockchaininfo >/dev/null 2>&1; do 
   sleep 2
 done
@@ -27,29 +30,38 @@ docker compose exec -T agent-b-lnd mkdir -p /macaroons
 echo "=== Mining + Funding + Channel Setup ==="
 NEWADDR=$(docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass getnewaddress "")
 
+# Mine blocks for coinbase maturity
 docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass generatetoaddress 110 "$NEWADDR"
 
+# Fund both nodes
+echo "Funding nodes..."
 ADDR_X=$(docker compose exec -T agent-x-lnd lncli --network=regtest newaddress p2wkh | jq -r .address)
 ADDR_B=$(docker compose exec -T agent-b-lnd lncli --network=regtest newaddress p2wkh | jq -r .address)
 
 docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass sendtoaddress "$ADDR_X" 15
 docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass sendtoaddress "$ADDR_B" 10
+
 docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass generatetoaddress 10 "$NEWADDR"
 
+echo "=== Connecting nodes ==="
 PUBKEY_X=$(docker compose exec -T agent-x-lnd lncli --network=regtest getinfo | jq -r '.identity_pubkey')
 PUBKEY_B=$(docker compose exec -T agent-b-lnd lncli --network=regtest getinfo | jq -r '.identity_pubkey')
+
+echo "Agent-X PubKey: $PUBKEY_X"
+echo "Agent-B PubKey: $PUBKEY_B"
 
 docker compose exec -T agent-x-lnd lncli --network=regtest connect "$PUBKEY_B@agent-b-lnd:9735" || true
 docker compose exec -T agent-b-lnd lncli --network=regtest connect "$PUBKEY_X@agent-x-lnd:9735" || true
 
 sleep 6
 
-echo "=== Opening channel ==="
+echo "=== Opening Lightning channel ==="
 docker compose exec -T agent-x-lnd lncli --network=regtest openchannel \
   --node_key "$PUBKEY_B" \
   --local_amt 5000000 \
   --push_amt 2000000
 
+echo "=== Mining 6 blocks to confirm channel ==="
 docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass generatetoaddress 6 "$NEWADDR"
 sleep 6
 
@@ -66,14 +78,22 @@ docker compose exec -T agent-b-lnd lncli --network=regtest bakemacaroon \
   macaroon:read macaroon:write message:read message:write offchain:read offchain:write \
   onchain:read onchain:write peers:read peers:write
 
+# Copy macaroons to convenient location
 docker compose exec -T agent-x-lnd cp /root/.lnd/data/chain/bitcoin/regtest/admin.macaroon /macaroons/admin.macaroon
 docker compose exec -T agent-b-lnd cp /root/.lnd/data/chain/bitcoin/regtest/admin.macaroon /macaroons/admin.macaroon
 
-echo "=== MACAROONS ==="
+echo "=== MACAROONS (Copy these for n8n!) ==="
 echo "Agent-X (Payer):"
 docker compose exec -T agent-x-lnd cat /macaroons/admin.macaroon | base64 | tr -d '\n'
 echo -e "\n\nAgent-B (Payee):"
 docker compose exec -T agent-b-lnd cat /macaroons/admin.macaroon | base64 | tr -d '\n'
 
-echo -e "\n✅ FULL INFRASTRUCTURE READY! Lightning channel is ACTIVE."
+echo "=== Starting n8n ==="
+docker compose up -d n8n
+
+echo -e "\n🌐 n8n UI is available at: http://localhost:5678"
+echo "Import your workflow: agent-bitcoin.json"
+echo -e "\n✅ FULL INFRASTRUCTURE READY!"
+echo "Bitcoin Core + Agent-X LND + Agent-B LND + n8n are all running."
+
 docker compose ps

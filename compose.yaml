@@ -8,6 +8,7 @@ volumes:
   bitcoind-regtest-data:
   agent-x-lnd-data:
   agent-b-lnd-data:
+  n8n-data: 
 
 services:
   bitcoind:
@@ -16,9 +17,9 @@ services:
     networks:
       - agent-lightning-net
     ports:
-      - "18443:18443"   # RPC
-      - "28332:28332"   # ZMQ rawblock
-      - "28333:28333"   # ZMQ rawtx
+      - "18443:18443"
+      - "28332:28332"
+      - "28333:28333"
     volumes:
       - bitcoind-regtest-data:/root/.bitcoin
     command: >
@@ -52,19 +53,6 @@ services:
       - "10009:10009"  # gRPC
     volumes:
       - agent-x-lnd-data:/root/.lnd
-    command: >
-      lnd
-      --bitcoin.regtest
-      --bitcoin.node=bitcoind
-      --bitcoind.rpcuser=rpcuser
-      --bitcoind.rpcpass=rpcpass
-      --bitcoind.rpchost=bitcoind
-      --bitcoind.zmqpubrawblock=tcp://bitcoind:28332
-      --bitcoind.zmqpubrawtx=tcp://bitcoind:28333
-      --listen=0.0.0.0:9735
-      --rpclisten=0.0.0.0:10009
-      --restlisten=0.0.0.0:8080
-      --debuglevel=info
 
   agent-b-lnd:
     image: lightninglabs/lnd:v0.20.1-beta
@@ -80,16 +68,29 @@ services:
       - "10010:10009"  # gRPC
     volumes:
       - agent-b-lnd-data:/root/.lnd
-    command: >
-      lnd
-      --bitcoin.regtest
-      --bitcoin.node=bitcoind
-      --bitcoind.rpcuser=rpcuser
-      --bitcoind.rpcpass=rpcpass
-      --bitcoind.rpchost=bitcoind
-      --bitcoind.zmqpubrawblock=tcp://bitcoind:28332
-      --bitcoind.zmqpubrawtx=tcp://bitcoind:28333
-      --listen=0.0.0.0:9735
-      --rpclisten=0.0.0.0:10009
-      --restlisten=0.0.0.0:8080
-      --debuglevel=info
+
+  # ==================== n8n ====================
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    networks:
+      - agent-lightning-net
+    depends_on:
+      - agent-x-lnd
+      - agent-b-lnd
+    ports:
+      - "5678:5678"                    # n8n UI
+    environment:
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://localhost:5678/
+      - N8N_SECURE_COOKIE=false
+      - N8N_EDITOR_BASE_URL=http://localhost:5678
+      # Optional: Increase memory limit for agents
+      - NODE_OPTIONS=--max-old-space-size=4096
+    volumes:
+      - n8n-data:/home/node/.n8n
+    # This allows n8n to reach agent-x-lnd and agent-b-lnd by name
