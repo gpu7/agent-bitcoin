@@ -1,0 +1,94 @@
+name: agent-bitcoin
+
+networks:
+  agent-lightning-net:
+    driver: bridge
+
+volumes:
+  bitcoind-regtest-data:
+  agent-x-lnd-data:
+  agent-b-lnd-data:
+
+services:
+  bitcoind:
+    image: ruimarinho/bitcoin-core:latest
+    container_name: bitcoind
+    networks:
+      - agent-lightning-net
+    ports:
+      - "18443:18443"   # RPC
+      - "28332:28332"   # ZMQ rawblock
+      - "28333:28333"   # ZMQ rawtx
+    volumes:
+      - bitcoind-regtest-data:/root/.bitcoin
+    command: >
+      bitcoind
+      -regtest
+      -rpcuser=rpcuser
+      -rpcpassword=rpcpass
+      -rpcallowip=0.0.0.0/0
+      -rpcbind=0.0.0.0
+      -zmqpubrawblock=tcp://0.0.0.0:28332
+      -zmqpubrawtx=tcp://0.0.0.0:28333
+      -fallbackfee=0.00001000
+    healthcheck:
+      test: ["CMD", "bitcoin-cli", "-regtest", "-rpcuser=rpcuser", "-rpcpassword=rpcpass", "getblockchaininfo"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  agent-x-lnd:
+    image: lightninglabs/lnd:v0.20.1-beta
+    container_name: agent-x-lnd
+    networks:
+      - agent-lightning-net
+    depends_on:
+      bitcoind:
+        condition: service_healthy
+    ports:
+      - "8082:8080"    # REST
+      - "9737:9735"    # P2P
+      - "10009:10009"  # gRPC
+    volumes:
+      - agent-x-lnd-data:/root/.lnd
+    command: >
+      lnd
+      --bitcoin.regtest
+      --bitcoin.node=bitcoind
+      --bitcoind.rpcuser=rpcuser
+      --bitcoind.rpcpass=rpcpass
+      --bitcoind.rpchost=bitcoind
+      --bitcoind.zmqpubrawblock=tcp://bitcoind:28332
+      --bitcoind.zmqpubrawtx=tcp://bitcoind:28333
+      --listen=0.0.0.0:9735
+      --rpclisten=0.0.0.0:10009
+      --restlisten=0.0.0.0:8080
+      --debuglevel=info
+
+  agent-b-lnd:
+    image: lightninglabs/lnd:v0.20.1-beta
+    container_name: agent-b-lnd
+    networks:
+      - agent-lightning-net
+    depends_on:
+      bitcoind:
+        condition: service_healthy
+    ports:
+      - "8083:8080"
+      - "9738:9735"
+      - "10010:10009"
+    volumes:
+      - agent-b-lnd-data:/root/.lnd
+    command: >
+      lnd
+      --bitcoin.regtest
+      --bitcoin.node=bitcoind
+      --bitcoind.rpcuser=rpcuser
+      --bitcoind.rpcpass=rpcpass
+      --bitcoind.rpchost=bitcoind
+      --bitcoind.zmqpubrawblock=tcp://bitcoind:28332
+      --bitcoind.zmqpubrawtx=tcp://bitcoind:28333
+      --listen=0.0.0.0:9735
+      --rpclisten=0.0.0.0:10009
+      --restlisten=0.0.0.0:8080
+      --debuglevel=info
