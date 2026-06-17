@@ -33,9 +33,10 @@ services:
       -fallbackfee=0.00001000
     healthcheck:
       test: ["CMD", "bitcoin-cli", "-regtest", "-rpcuser=rpcuser", "-rpcpassword=rpcpass", "getblockchaininfo"]
-      interval: 5s
-      timeout: 3s
-      retries: 20
+      interval: 3s
+      timeout: 2s
+      retries: 30
+      start_period: 10s
 
   agent-x-lnd:
     image: lightninglabs/lnd:v0.20.1-beta
@@ -74,9 +75,9 @@ services:
       bitcoind:
         condition: service_healthy
     ports:
-      - "8083:8080"
-      - "9738:9735"
-      - "10010:10009"
+      - "8083:8080"    # REST
+      - "9738:9735"    # P2P
+      - "10010:10009"  # gRPC
     volumes:
       - agent-b-lnd-data:/root/.lnd
     command: >
