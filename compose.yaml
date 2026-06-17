@@ -53,12 +53,25 @@ services:
       - "10009:10009"
     volumes:
       - agent-x-lnd-data:/root/.lnd
+    command: >
+      lnd
+      --bitcoin.regtest
+      --bitcoin.node=bitcoind
+      --bitcoind.rpcuser=rpcuser
+      --bitcoind.rpcpass=rpcpass
+      --bitcoind.rpchost=bitcoind
+      --bitcoind.zmqpubrawblock=tcp://bitcoind:28332
+      --bitcoind.zmqpubrawtx=tcp://bitcoind:28333
+      --listen=0.0.0.0:9735
+      --rpclisten=0.0.0.0:10009
+      --restlisten=0.0.0.0:8080
+      --debuglevel=info
     healthcheck:
       test: ["CMD", "lncli", "--network=regtest", "getinfo"]
       interval: 5s
       timeout: 3s
       retries: 30
-      start_period: 20s
+      start_period: 25s
 
   agent-b-lnd:
     image: lightninglabs/lnd:v0.20.1-beta
@@ -74,12 +87,25 @@ services:
       - "10010:10009"
     volumes:
       - agent-b-lnd-data:/root/.lnd
+    command: >
+      lnd
+      --bitcoin.regtest
+      --bitcoin.node=bitcoind
+      --bitcoind.rpcuser=rpcuser
+      --bitcoind.rpcpass=rpcpass
+      --bitcoind.rpchost=bitcoind
+      --bitcoind.zmqpubrawblock=tcp://bitcoind:28332
+      --bitcoind.zmqpubrawtx=tcp://bitcoind:28333
+      --listen=0.0.0.0:9735
+      --rpclisten=0.0.0.0:10009
+      --restlisten=0.0.0.0:8080
+      --debuglevel=info
     healthcheck:
       test: ["CMD", "lncli", "--network=regtest", "getinfo"]
       interval: 5s
       timeout: 3s
       retries: 30
-      start_period: 20s
+      start_period: 25s
 
   n8n:
     image: n8nio/n8n:latest
