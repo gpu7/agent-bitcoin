@@ -2,17 +2,21 @@
 
 echo "=== Agent-Bitcoin Full Infrastructure Start ==="
 
-# Clean previous run
+# Clean start
 docker compose down -v --remove-orphans 2>/dev/null || true
 
-# Start all services
+# Start everything
 docker compose up -d
 
-echo "Waiting for bitcoind to be ready..."
+echo "Waiting for bitcoind..."
 until docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass getblockchaininfo >/dev/null 2>&1; do 
   sleep 2
 done
 
+echo "Waiting for LND nodes to be fully ready (healthcheck)..."
+docker compose wait agent-x-lnd agent-b-lnd
+
+echo "Creating Bitcoin wallet..."
 docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass createwallet "" 2>/dev/null || true
 
 echo "=== Creating LND Wallets (Interactive) ==="
@@ -23,17 +27,15 @@ echo "=== Unlocking wallets ==="
 docker compose exec -it agent-x-lnd lncli --network=regtest unlock
 docker compose exec -it agent-b-lnd lncli --network=regtest unlock
 
-echo "=== Preparing macaroons directory ==="
+echo "=== Preparing macaroons ==="
 docker compose exec -T agent-x-lnd mkdir -p /macaroons
 docker compose exec -T agent-b-lnd mkdir -p /macaroons
 
-echo "=== Mining + Funding + Channel Setup ==="
+echo "=== Mining + Funding ==="
 NEWADDR=$(docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass getnewaddress "")
 
-# Mine blocks for coinbase maturity
 docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass generatetoaddress 110 "$NEWADDR"
 
-# Fund both nodes
 echo "Funding nodes..."
 ADDR_X=$(docker compose exec -T agent-x-lnd lncli --network=regtest newaddress p2wkh | jq -r .address)
 ADDR_B=$(docker compose exec -T agent-b-lnd lncli --network=regtest newaddress p2wkh | jq -r .address)
@@ -43,7 +45,7 @@ docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpasswo
 
 docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass generatetoaddress 10 "$NEWADDR"
 
-echo "=== Connecting nodes ==="
+echo "=== Connecting nodes & Opening channel ==="
 PUBKEY_X=$(docker compose exec -T agent-x-lnd lncli --network=regtest getinfo | jq -r '.identity_pubkey')
 PUBKEY_B=$(docker compose exec -T agent-b-lnd lncli --network=regtest getinfo | jq -r '.identity_pubkey')
 
@@ -51,11 +53,8 @@ echo "Agent-X PubKey: $PUBKEY_X"
 echo "Agent-B PubKey: $PUBKEY_B"
 
 docker compose exec -T agent-x-lnd lncli --network=regtest connect "$PUBKEY_B@agent-b-lnd:9735" || true
-docker compose exec -T agent-b-lnd lncli --network=regtest connect "$PUBKEY_X@agent-x-lnd:9735" || true
+sleep 5
 
-sleep 6
-
-echo "=== Opening Lightning channel ==="
 docker compose exec -T agent-x-lnd lncli --network=regtest openchannel \
   --node_key "$PUBKEY_B" \
   --local_amt 5000000 \
@@ -63,7 +62,7 @@ docker compose exec -T agent-x-lnd lncli --network=regtest openchannel \
 
 echo "=== Mining 6 blocks to confirm channel ==="
 docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass generatetoaddress 6 "$NEWADDR"
-sleep 6
+sleep 8
 
 echo "=== Baking macaroons ==="
 docker compose exec -T agent-x-lnd lncli --network=regtest bakemacaroon \
@@ -78,11 +77,10 @@ docker compose exec -T agent-b-lnd lncli --network=regtest bakemacaroon \
   macaroon:read macaroon:write message:read message:write offchain:read offchain:write \
   onchain:read onchain:write peers:read peers:write
 
-# Copy macaroons to convenient location
 docker compose exec -T agent-x-lnd cp /root/.lnd/data/chain/bitcoin/regtest/admin.macaroon /macaroons/admin.macaroon
 docker compose exec -T agent-b-lnd cp /root/.lnd/data/chain/bitcoin/regtest/admin.macaroon /macaroons/admin.macaroon
 
-echo "=== MACAROONS (Copy these for n8n!) ==="
+echo "=== MACAROONS (Copy for n8n) ==="
 echo "Agent-X (Payer):"
 docker compose exec -T agent-x-lnd cat /macaroons/admin.macaroon | base64 | tr -d '\n'
 echo -e "\n\nAgent-B (Payee):"
@@ -91,9 +89,6 @@ docker compose exec -T agent-b-lnd cat /macaroons/admin.macaroon | base64 | tr -
 echo "=== Starting n8n ==="
 docker compose up -d n8n
 
-echo -e "\n🌐 n8n UI is available at: http://localhost:5678"
-echo "Import your workflow: agent-bitcoin.json"
 echo -e "\n✅ FULL INFRASTRUCTURE READY!"
-echo "Bitcoin Core + Agent-X LND + Agent-B LND + n8n are all running."
-
+echo "n8n UI: http://localhost:5678"
 docker compose ps
