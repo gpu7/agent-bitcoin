@@ -215,21 +215,6 @@
     },
     {
       "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={\n  \"pay\": true,\n  \"amount\": \"{{ Number($json.amount) }}\",\n  \"reason\": \"{{ \n    $json.reason || \n    JSON.parse($json.output || '{}').reason || \n    'Payment to Agent-B executed' \n  }}\",\n  \"status\": \"success\",\n  \"message\": \"Payment accepted and will be processed\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        224,
-        32
-      ],
-      "id": "e103b7a7-bc88-400a-b893-952edc60acb6",
-      "name": "Payment Accepted"
-    },
-    {
-      "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
@@ -266,7 +251,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"success\": true,\n  \"payment_amount\": \"{{ $json.amount || $node[\"Pay Invoice Payment Decision Agent\"]?.json?.payment_route?.total_amt || $node[\"Pay Invoice Payment Decision Agent\"]?.json?.amt_to_forward || 0 }}\",\n  \"payment_fee\": \"{{ $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || $json.payment_route?.payment_hash || $node[\"Pay Invoice Payment Decision Agent\"]?.json?.payment_hash || $node[\"Pay Invoice Payment Decision Agent\"]?.json?.payment_route?.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || $node[\"Payment Accepted\"]?.json.reason || 'Payment to Agent-B executed' }}\",\n  \"status\": \"success\",\n  \"pay\": true,\n  \"agent_b_message\": \"Payment completed successfully\",\n  \"rejection_reason\": \"N/A\",\n  \n  \"original_amount\": \"={{ $node[\"Calculate Fixed Fee\"].json.original_amount }}\",\n  \"fee_sats\": \"={{ $node[\"Calculate Fixed Fee\"].json.fee_sats }}\",\n  \"net_amount_to_payee\": \"={{ $node[\"Calculate Fixed Fee\"].json.net_amount_to_payee }}\",\n  \"fee_reason\": \"={{ $node[\"Calculate Fixed Fee\"].json.fee_reason }}\"\n}",
+        "jsonOutput": "={\n  \"success\": true,\n  \"payment_amount\": \"{{ $json.amount || $node[\"Pay Invoice Payment Decision Agent\"]?.json?.payment_route?.total_amt || $node[\"Pay Invoice Payment Decision Agent\"]?.json?.amt_to_forward || 0 }}\",\n  \"payment_fee\": \"{{ $json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $json.payment_hash || $json.payment_route?.payment_hash || $node[\"Pay Invoice Payment Decision Agent\"]?.json?.payment_hash || $node[\"Pay Invoice Payment Decision Agent\"]?.json?.payment_route?.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $json.reason || $node[\"Payment Accepted 1\"]?.json.reason || 'Payment to Agent-B executed' }}\",\n  \"status\": \"success\",\n  \"pay\": true,\n  \"agent_b_message\": \"Payment completed successfully\",\n  \"rejection_reason\": \"N/A\",\n  \n  \"original_amount\": \"={{ $node[\"Calculate Fixed Fee\"].json.original_amount }}\",\n  \"fee_sats\": \"={{ $node[\"Calculate Fixed Fee\"].json.fee_sats }}\",\n  \"net_amount_to_payee\": \"={{ $node[\"Calculate Fixed Fee\"].json.net_amount_to_payee }}\",\n  \"fee_reason\": \"={{ $node[\"Calculate Fixed Fee\"].json.fee_reason }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -396,20 +381,6 @@
     },
     {
       "parameters": {
-        "jsCode": "const input = items[0].json;\n\nreturn [{\n  json: {\n    memo: input.reason || \"Payment from Agent-X\",\n    value: Number(input.value || input.net_amount_to_payee || 0)\n  }\n}];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1024,
-        864
-      ],
-      "id": "51c79695-b809-4338-bcc3-020502b915db",
-      "name": "Prepare Invoice Data",
-      "disabled": true
-    },
-    {
-      "parameters": {
         "method": "POST",
         "url": "https://agent-b-lnd:8080/v1/invoices",
         "sendHeaders": true,
@@ -423,7 +394,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"memo\": \"{{ $json.memo }}\",\n  \"value\": \"{{ $json.value }}\"\n}",
+        "jsonBody": "={\n  \"memo\": \"{{ $json.reason || 'Payment from Agent-X' }}\",\n  \"value\": \"={{ Number($json.net_amount_to_payee) }}\"\n}",
         "options": {
           "allowUnauthorizedCerts": true,
           "timeout": 120000
@@ -441,6 +412,19 @@
       "waitBetweenTries": 5000,
       "alwaysOutputData": false,
       "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = items[0].json;\nconst amount = Number(input.amount || 0);\n\nreturn [{\n  json: {\n    pay: true,\n    amount: amount,\n    reason: input.reason || \"Valid request within limits\",\n    status: \"success\",\n    message: \"Payment accepted and will be processed\",\n    net_amount_to_payee: amount - 50,\n    fee_sats: 50\n  }\n}];;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        32
+      ],
+      "id": "8c747f7c-44a2-4c8b-a7eb-3db42f511a68",
+      "name": "Payment Accepted"
     }
   ],
   "pinData": {},
@@ -547,17 +531,6 @@
         ]
       ]
     },
-    "Payment Accepted": {
-      "main": [
-        [
-          {
-            "node": "Create Invoice Agent-B",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Check Payment Decision": {
       "main": [
         [
@@ -647,16 +620,22 @@
         []
       ]
     },
-    "Prepare Invoice Data": {
-      "main": [
-        []
-      ]
-    },
     "Create Invoice Agent-B": {
       "main": [
         [
           {
             "node": "Pay Invoice Payment Decision Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment Accepted": {
+      "main": [
+        [
+          {
+            "node": "Create Invoice Agent-B",
             "type": "main",
             "index": 0
           }
@@ -669,7 +648,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "65085121-57f1-4fcd-ba9f-f3bbb724a13e",
+  "versionId": "b96b0545-753e-4656-bc1b-e4ed0d90a2bc",
   "meta": {
     "instanceId": "0866c2f6ae81acacc8b7b731367af13d3cbcae0a860698a765bd02c7feac3502"
   },
