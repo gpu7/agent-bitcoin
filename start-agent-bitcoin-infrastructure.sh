@@ -49,18 +49,19 @@ PUBKEY_B=$(docker compose exec -T agent-b-lnd lncli --network=regtest getinfo | 
 docker compose exec -T agent-x-lnd lncli --network=regtest openchannel --node_key "$PUBKEY_B" --local_amt 5000000 --push_amt 2000000
 sleep 8
 
-echo "=== Baking macaroons ==="
-docker compose exec -T agent-x-lnd lncli --network=regtest bakemacaroon \
-  --save_to /root/.lnd/data/chain/bitcoin/regtest/admin.macaroon \
-  address:read address:write info:read info:write invoices:read invoices:write \
-  macaroon:read macaroon:write message:read message:write offchain:read offchain:write \
-  onchain:read onchain:write peers:read peers:write
-
-docker compose exec -T agent-b-lnd lncli --network=regtest bakemacaroon \
-  --save_to /root/.lnd/data/chain/bitcoin/regtest/admin.macaroon \
-  address:read address:write info:read info:write invoices:read invoices:write \
-  macaroon:read macaroon:write message:read message:write offchain:read offchain:write \
-  onchain:read onchain:write peers:read peers:write
+echo "=== Baking macaroons only if they don't exist ==="
+for agent in agent-x-lnd agent-b-lnd; do
+  if docker compose exec -T $agent test ! -f /root/.lnd/data/chain/bitcoin/regtest/admin.macaroon; then
+    echo "→ Baking new macaroon for $agent"
+    docker compose exec -T $agent lncli --network=regtest bakemacaroon \
+      --save_to /root/.lnd/data/chain/bitcoin/regtest/admin.macaroon \
+      address:read address:write info:read info:write invoices:read invoices:write \
+      macaroon:read macaroon:write message:read message:write offchain:read offchain:write \
+      onchain:read onchain:write peers:read peers:write
+  else
+    echo "→ Macaroon already exists for $agent (skipping bake)"
+  fi
+done
 
 echo "=== MACAROONS (Copy these for n8n!) ==="
 echo "Agent-X (Payer):"
