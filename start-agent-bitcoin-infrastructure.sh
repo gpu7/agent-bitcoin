@@ -12,15 +12,22 @@ until docker compose ps --format "{{.Name}} {{.Status}}" bitcoind | grep -q "(he
 done
 echo "✅ bitcoind is healthy"
 
-echo "Waiting for LND nodes to be healthy..."
-until docker compose ps --format "{{.Name}} {{.Status}}" agent-x-lnd | grep -q "(healthy)" && \
-      docker compose ps --format "{{.Name}} {{.Status}}" agent-b-lnd | grep -q "(healthy)"; do
-  echo "  LND nodes not healthy yet..."
-  sleep 8
-done
-echo "✅ Both LND nodes are healthy"
+# === Added: Robust bitcoind wallet fix ===
+echo "Fixing bitcoind wallet..."
+docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass createwallet "" 2>/dev/null || true
+docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass loadwallet "" 2>/dev/null || true
 
-# Create Bitcoin wallet
+# === Wait for LND nodes to initialize ===
+echo "Waiting 30 seconds for LND nodes to initialize..."
+sleep 30
+
+# Force mining to help LND sync
+echo "Mining blocks to help LND sync..."
+NEWADDR=$(docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass getnewaddress)
+docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass generatetoaddress 150 "$NEWADDR"
+sleep 20
+
+# Create Bitcoin wallet (again, just in case)
 echo "Creating Bitcoin wallet..."
 docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass createwallet "" 2>/dev/null || true
 

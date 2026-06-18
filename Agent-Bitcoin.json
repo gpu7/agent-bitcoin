@@ -12,10 +12,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        2240,
-        176
+        2016,
+        192
       ],
-      "id": "15ce0d94-1a3f-4e55-8a55-cbff6fd9f470",
+      "id": "f85e6bf0-e61e-486b-8d6b-2403a9d1c5fb",
       "name": "Agent-B"
     },
     {
@@ -26,11 +26,17 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -736,
-        272
+        -720,
+        400
       ],
-      "id": "e43d8318-9e88-4675-83cf-8f81c25ecaec",
-      "name": "xAI Grok Chat Model"
+      "id": "094f3c37-ebe6-4b54-9443-daa25a2f7292",
+      "name": "xAI Grok Chat Model",
+      "credentials": {
+        "xAiApi": {
+          "id": "MG6GTeEysQ6QmKL0",
+          "name": "xAi account"
+        }
+      }
     },
     {
       "parameters": {
@@ -40,45 +46,17 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        2320,
-        400
+        2096,
+        416
       ],
-      "id": "224ec20a-fb55-4027-b350-f7522af47b95",
-      "name": "xAI Grok Chat Model1"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://agent-b-lnd:8080/v1/invoices",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Grpc-Metadata-macaroon",
-              "value": "AgEDbG5kAtQBAwoQl2a24n/c6/JD4GHMSFISbBIBMBoWCgdhZGRyZXNzEgRyZWFkEgV3cml0ZRoTCgRpbmZvEgRyZWFkEgV3cml0ZRoXCghpbnZvaWNlcxIEcmVhZBIFd3JpdGUaFwoIbWFjYXJvb24SBHJlYWQSBXdyaXRlGhYKB21lc3NhZ2USBHJlYWQSBXdyaXRlGhcKCG9mZmNoYWluEgRyZWFkEgV3cml0ZRoWCgdvbmNoYWluEgRyZWFkEgV3cml0ZRoUCgVwZWVycxIEcmVhZBIFd3JpdGUAAAYguW/H9ThYGOYXJJ1RHlFJnMUSl6OxI4uThLnPHThYKWU=%"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"memo\": \"{{ $json.reason || 'Payment from Agent-X' }}\",\n  \"value\": \"={{ Number($node[\"Calculate Fixed Fee\"].json.net_amount_to_payee) }}\"\n}",
-        "options": {
-          "allowUnauthorizedCerts": true,
-          "timeout": 120000
+      "id": "3d9df441-5a76-4816-800d-6dcb0550ec6f",
+      "name": "xAI Grok Chat Model1",
+      "credentials": {
+        "xAiApi": {
+          "id": "MG6GTeEysQ6QmKL0",
+          "name": "xAi account"
         }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        672,
-        0
-      ],
-      "id": "b6bc9782-9d14-416d-97f1-647f8c38c770",
-      "name": "Create Invoice Agent-B",
-      "retryOnFail": false,
-      "waitBetweenTries": 5000,
-      "alwaysOutputData": false,
-      "onError": "continueRegularOutput"
+      }
     },
     {
       "parameters": {
@@ -91,10 +69,10 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        2016,
-        176
+        1792,
+        192
       ],
-      "id": "7b39a587-a70b-431a-af44-6b501b023ca4",
+      "id": "68d54f50-c9f1-4543-a8a6-f8e62d0c5978",
       "name": "Send Email Report",
       "webhookId": "8046c746-8f9f-4a48-b844-a4f79bc97f0c"
     },
@@ -109,10 +87,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        1568,
-        176
+        1344,
+        192
       ],
-      "id": "a8e054cb-1e26-4739-a6ab-c080f774c13c",
+      "id": "4079fbfc-5099-4b00-aa88-4543bdef9aae",
       "name": "Merge"
     },
     {
@@ -164,10 +142,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        1120,
-        0
+        896,
+        32
       ],
-      "id": "016afac8-8eea-4647-a876-bb34fe915dae",
+      "id": "7d6f1e4d-f170-4c66-a09f-64de15488b22",
       "name": "Did Payment Succeed",
       "notes": "Check whether Lightning payment was successful or not.\n\n"
     },
@@ -180,10 +158,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1792,
-        176
+        1568,
+        192
       ],
-      "id": "e4096547-1ca3-4189-a161-cb4c0d6af439",
+      "id": "84d74c20-837d-43ba-a84c-73cc35921d4f",
       "name": "Get Final State"
     },
     {
@@ -215,9 +193,9 @@
       "typeVersion": 2.3,
       "position": [
         0,
-        0
+        96
       ],
-      "id": "ded87d20-4382-4fbc-9796-2d0642a1387d",
+      "id": "33b1814c-2356-4e39-a7ce-70d054fa54aa",
       "name": "Check Payment Amount"
     },
     {
@@ -229,10 +207,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1344,
-        384
+        1120,
+        416
       ],
-      "id": "d083b756-794c-4930-95cb-1f450a770af0",
+      "id": "c8525fdd-46ed-4e1c-a5e8-957e8f37584a",
       "name": "Payment Rejected Bad Amount"
     },
     {
@@ -245,9 +223,9 @@
       "typeVersion": 3.4,
       "position": [
         224,
-        0
+        32
       ],
-      "id": "81f52472-52de-4a2e-980f-a59ac65548f5",
+      "id": "e103b7a7-bc88-400a-b893-952edc60acb6",
       "name": "Payment Accepted"
     },
     {
@@ -279,9 +257,9 @@
       "typeVersion": 2.3,
       "position": [
         -224,
-        48
+        176
       ],
-      "id": "5525de28-1ede-4ed1-8dbd-333d891ed563",
+      "id": "5d358b6c-9e42-4309-b643-f7adfaedbf38",
       "name": "Check Payment Decision",
       "notes": "Checks if Agent-X wants to proceed with a payment to Agent-B."
     },
@@ -294,10 +272,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1344,
-        192
+        1120,
+        0
       ],
-      "id": "e9246c3d-bd4b-43b3-9ff0-9c572ba4c5da",
+      "id": "2a5ae02c-46be-4b4e-a929-00b2195e932d",
       "name": "Normalize Success"
     },
     {
@@ -309,10 +287,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1072,
+        1120,
         224
       ],
-      "id": "d63a7d26-e7b2-46b9-9140-2ad461249d24",
+      "id": "d22bb5a5-0f0b-41e4-8447-2fca6c4f5a14",
       "name": "Normalize Rejection"
     },
     {
@@ -326,11 +304,17 @@
       "typeVersion": 2.1,
       "position": [
         -1024,
-        48
+        176
       ],
-      "id": "7201ff5d-ed3f-45c4-af68-f5752969243a",
+      "id": "bf654e37-868e-4804-9160-3f087e822c6a",
       "name": "Webhook",
-      "webhookId": "21393d4b-4f1c-4134-8547-92294910fe7a"
+      "webhookId": "21393d4b-4f1c-4134-8547-92294910fe7a",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "5FhdJUr1kwFXSH4A",
+          "name": "Header Auth account"
+        }
+      }
     },
     {
       "parameters": {
@@ -344,9 +328,9 @@
       "typeVersion": 3.1,
       "position": [
         -800,
-        48
+        176
       ],
-      "id": "3b6037d6-3354-455a-97c4-2eed5312b982",
+      "id": "03eabd56-a17d-4d11-bbba-0e4e508871b9",
       "name": "Payment Decision Agent"
     },
     {
@@ -357,9 +341,9 @@
       "typeVersion": 2,
       "position": [
         -448,
-        48
+        176
       ],
-      "id": "fc3c2862-49e5-4164-bd10-74bf1c357110",
+      "id": "a89e3ae3-578e-4677-a06d-6485704483b0",
       "name": "Parse Payment Decision Agent Output"
     },
     {
@@ -371,7 +355,7 @@
           "parameters": [
             {
               "name": "Grpc-Metadata-macaroon",
-              "value": "AgEDbG5kAtQBAwoQMwqiewMrCul6GTFZO/q1hhIBMBoWCgdhZGRyZXNzEgRyZWFkEgV3cml0ZRoTCgRpbmZvEgRyZWFkEgV3cml0ZRoXCghpbnZvaWNlcxIEcmVhZBIFd3JpdGUaFwoIbWFjYXJvb24SBHJlYWQSBXdyaXRlGhYKB21lc3NhZ2USBHJlYWQSBXdyaXRlGhcKCG9mZmNoYWluEgRyZWFkEgV3cml0ZRoWCgdvbmNoYWluEgRyZWFkEgV3cml0ZRoUCgVwZWVycxIEcmVhZBIFd3JpdGUAAAYgcSyhEXVH3sUPVBWoHHkjtDphbmm9hmIuiCJkrgv9/Xg=%"
+              "value": "AgEDbG5kAvgBAwoQMDQM2v2FKwa7wp3OrH3NxxIBMBoWCgdhZGRyZXNzEgRyZWFkEgV3cml0ZRoTCgRpbmZvEgRyZWFkEgV3cml0ZRoXCghpbnZvaWNlcxIEcmVhZBIFd3JpdGUaIQoIbWFjYXJvb24SCGdlbmVyYXRlEgRyZWFkEgV3cml0ZRoWCgdtZXNzYWdlEgRyZWFkEgV3cml0ZRoXCghvZmZjaGFpbhIEcmVhZBIFd3JpdGUaFgoHb25jaGFpbhIEcmVhZBIFd3JpdGUaFAoFcGVlcnMSBHJlYWQSBXdyaXRlGhgKBnNpZ25lchIIZ2VuZXJhdGUSBHJlYWQAAAYgV1Xd+i2i+uNTTjnUyj0wHcqiaxY2TEK+k14W1SD6b0Y="
             }
           ]
         },
@@ -386,10 +370,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        896,
-        0
+        672,
+        32
       ],
-      "id": "6a6f789c-b93a-4a63-96a0-b45e2a32d4f5",
+      "id": "b0e8ed01-4285-472d-b978-e75c67085ca9",
       "name": "Pay Invoice Payment Decision Agent",
       "retryOnFail": true,
       "waitBetweenTries": 5000,
@@ -403,11 +387,60 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        432,
-        0
+        -1024,
+        640
       ],
-      "id": "7b195310-d0de-4d58-a7f9-0747ed7f93a1",
-      "name": "Calculate Fixed Fee"
+      "id": "8f6f7df3-c996-4791-bf98-ac14c37347a8",
+      "name": "Calculate Fixed Fee",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = items[0].json;\n\nreturn [{\n  json: {\n    memo: input.reason || \"Payment from Agent-X\",\n    value: Number(input.value || input.net_amount_to_payee || 0)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1024,
+        864
+      ],
+      "id": "51c79695-b809-4338-bcc3-020502b915db",
+      "name": "Prepare Invoice Data",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://agent-b-lnd:8080/v1/invoices",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Grpc-Metadata-macaroon",
+              "value": "AgEDbG5kAvgBAwoQvT+0tPNoZRY18X2N8cDH6hIBMBoWCgdhZGRyZXNzEgRyZWFkEgV3cml0ZRoTCgRpbmZvEgRyZWFkEgV3cml0ZRoXCghpbnZvaWNlcxIEcmVhZBIFd3JpdGUaIQoIbWFjYXJvb24SCGdlbmVyYXRlEgRyZWFkEgV3cml0ZRoWCgdtZXNzYWdlEgRyZWFkEgV3cml0ZRoXCghvZmZjaGFpbhIEcmVhZBIFd3JpdGUaFgoHb25jaGFpbhIEcmVhZBIFd3JpdGUaFAoFcGVlcnMSBHJlYWQSBXdyaXRlGhgKBnNpZ25lchIIZ2VuZXJhdGUSBHJlYWQAAAYgKAtuSLwIHzqS/nIc+bUsY3Fqz8/q7DxTN3y6UBp4H1E="
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"memo\": \"{{ $json.memo }}\",\n  \"value\": \"{{ $json.value }}\"\n}",
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "timeout": 120000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        448,
+        32
+      ],
+      "id": "f1706f80-f7e2-468a-87ef-c6f9116874d5",
+      "name": "Create Invoice Agent-B",
+      "retryOnFail": false,
+      "waitBetweenTries": 5000,
+      "alwaysOutputData": false,
+      "onError": "continueRegularOutput"
     }
   ],
   "pinData": {},
@@ -429,17 +462,6 @@
           {
             "node": "Agent-B",
             "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Create Invoice Agent-B": {
-      "main": [
-        [
-          {
-            "node": "Pay Invoice Payment Decision Agent",
-            "type": "main",
             "index": 0
           }
         ]
@@ -529,7 +551,7 @@
       "main": [
         [
           {
-            "node": "Calculate Fixed Fee",
+            "node": "Create Invoice Agent-B",
             "type": "main",
             "index": 0
           }
@@ -622,9 +644,19 @@
     },
     "Calculate Fixed Fee": {
       "main": [
+        []
+      ]
+    },
+    "Prepare Invoice Data": {
+      "main": [
+        []
+      ]
+    },
+    "Create Invoice Agent-B": {
+      "main": [
         [
           {
-            "node": "Create Invoice Agent-B",
+            "node": "Pay Invoice Payment Decision Agent",
             "type": "main",
             "index": 0
           }
@@ -637,11 +669,11 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "1a632797-32bb-4581-aa19-4dfc8642ea38",
+  "versionId": "65085121-57f1-4fcd-ba9f-f3bbb724a13e",
   "meta": {
-    "instanceId": "0a4749d55a11ffe796be4c67899cf7507f2af406af788d1dc09989fcd1e47615"
+    "instanceId": "0866c2f6ae81acacc8b7b731367af13d3cbcae0a860698a765bd02c7feac3502"
   },
   "nodeGroups": [],
-  "id": "oZT4FBEtjHZZDmpA",
+  "id": "ssMcGFNzSlX9TrHg",
   "tags": []
 }
