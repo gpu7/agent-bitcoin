@@ -34,10 +34,10 @@ services:
       -fallbackfee=0.00001000
     healthcheck:
       test: ["CMD", "bitcoin-cli", "-regtest", "-rpcuser=rpcuser", "-rpcpassword=rpcpass", "getblockchaininfo"]
-      interval: 3s
-      timeout: 2s
-      retries: 30
-      start_period: 10s
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 15s
 
   agent-x-lnd:
     image: lightninglabs/lnd:v0.20.1-beta
@@ -68,10 +68,10 @@ services:
       --debuglevel=info
     healthcheck:
       test: ["CMD", "lncli", "--network=regtest", "getinfo"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
-      start_period: 25s
+      interval: 8s
+      timeout: 5s
+      retries: 25
+      start_period: 30s
 
   agent-b-lnd:
     image: lightninglabs/lnd:v0.20.1-beta
@@ -102,10 +102,10 @@ services:
       --debuglevel=info
     healthcheck:
       test: ["CMD", "lncli", "--network=regtest", "getinfo"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
-      start_period: 25s
+      interval: 8s
+      timeout: 5s
+      retries: 25
+      start_period: 30s
 
   n8n:
     image: n8nio/n8n:latest
@@ -126,3 +126,9 @@ services:
       - N8N_SECURE_COOKIE=false
     volumes:
       - n8n-data:/home/node/.n8n
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5678/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
