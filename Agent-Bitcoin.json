@@ -12,10 +12,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        2016,
+        896,
         192
       ],
-      "id": "f85e6bf0-e61e-486b-8d6b-2403a9d1c5fb",
+      "id": "776525dc-1ca6-4056-ab45-25b73d976739",
       "name": "Agent-B"
     },
     {
@@ -26,14 +26,14 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -720,
+        -1840,
         400
       ],
-      "id": "094f3c37-ebe6-4b54-9443-daa25a2f7292",
+      "id": "dafe7ac1-94a0-4f94-b186-7cff5c9ce7aa",
       "name": "xAI Grok Chat Model",
       "credentials": {
         "xAiApi": {
-          "id": "MG6GTeEysQ6QmKL0",
+          "id": "X182C4MgMNJebCTY",
           "name": "xAi account"
         }
       }
@@ -46,14 +46,14 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        2096,
+        976,
         416
       ],
-      "id": "3d9df441-5a76-4816-800d-6dcb0550ec6f",
+      "id": "f5359406-14a3-443a-9f47-543ed82508a3",
       "name": "xAI Grok Chat Model1",
       "credentials": {
         "xAiApi": {
-          "id": "MG6GTeEysQ6QmKL0",
+          "id": "X182C4MgMNJebCTY",
           "name": "xAi account"
         }
       }
@@ -69,10 +69,10 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        1792,
+        672,
         192
       ],
-      "id": "68d54f50-c9f1-4543-a8a6-f8e62d0c5978",
+      "id": "9fec9e20-449f-4c41-9169-a3d7223d9366",
       "name": "Send Email Report",
       "webhookId": "8046c746-8f9f-4a48-b844-a4f79bc97f0c"
     },
@@ -87,10 +87,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        1344,
+        224,
         192
       ],
-      "id": "4079fbfc-5099-4b00-aa88-4543bdef9aae",
+      "id": "a882635d-de6b-498b-93d5-60252c2c9dd7",
       "name": "Merge"
     },
     {
@@ -142,10 +142,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        896,
+        -224,
         32
       ],
-      "id": "7d6f1e4d-f170-4c66-a09f-64de15488b22",
+      "id": "be80e686-a7a1-42b3-9bbc-d4acb55e93e5",
       "name": "Did Payment Succeed",
       "notes": "Check whether Lightning payment was successful or not.\n\n"
     },
@@ -158,10 +158,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1568,
+        448,
         192
       ],
-      "id": "84d74c20-837d-43ba-a84c-73cc35921d4f",
+      "id": "7586bcff-31b3-4623-b704-d3b5cb02fd3a",
       "name": "Get Final State"
     },
     {
@@ -192,10 +192,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        0,
+        -1120,
         96
       ],
-      "id": "33b1814c-2356-4e39-a7ce-70d054fa54aa",
+      "id": "a0e284d2-3d75-404d-89f4-1f69dbc1db7d",
       "name": "Check Payment Amount"
     },
     {
@@ -207,10 +207,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1120,
+        0,
         416
       ],
-      "id": "c8525fdd-46ed-4e1c-a5e8-957e8f37584a",
+      "id": "7024ec19-4039-41a3-a116-a778270b0a1f",
       "name": "Payment Rejected Bad Amount"
     },
     {
@@ -241,10 +241,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -224,
+        -1344,
         176
       ],
-      "id": "5d358b6c-9e42-4309-b643-f7adfaedbf38",
+      "id": "16cbf103-fd90-4b76-a3eb-5e106d207e79",
       "name": "Check Payment Decision",
       "notes": "Checks if Agent-X wants to proceed with a payment to Agent-B."
     },
@@ -257,10 +257,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1120,
+        0,
         0
       ],
-      "id": "2a5ae02c-46be-4b4e-a929-00b2195e932d",
+      "id": "d6fdc75c-1b53-4f80-b913-359df3292b8b",
       "name": "Normalize Success"
     },
     {
@@ -272,10 +272,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1120,
+        0,
         224
       ],
-      "id": "d22bb5a5-0f0b-41e4-8447-2fca6c4f5a14",
+      "id": "9321050a-d94b-4d1f-b020-79afcd8700d5",
       "name": "Normalize Rejection"
     },
     {
@@ -288,16 +288,16 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -1024,
+        -2144,
         176
       ],
-      "id": "bf654e37-868e-4804-9160-3f087e822c6a",
+      "id": "78a74085-6865-4a92-8dc0-0693c501a67a",
       "name": "Webhook",
       "webhookId": "21393d4b-4f1c-4134-8547-92294910fe7a",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "5FhdJUr1kwFXSH4A",
-          "name": "Header Auth account"
+          "id": "M27upyR0bEaWboeh",
+          "name": "Webhook x-api-key"
         }
       }
     },
@@ -312,10 +312,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -800,
+        -1920,
         176
       ],
-      "id": "03eabd56-a17d-4d11-bbba-0e4e508871b9",
+      "id": "f6468c26-f9d6-4936-b7f6-4e446378f502",
       "name": "Payment Decision Agent"
     },
     {
@@ -325,11 +325,38 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -448,
+        -1568,
         176
       ],
-      "id": "a89e3ae3-578e-4677-a06d-6485704483b0",
+      "id": "3095d5e0-d1ae-4a00-ae2a-70a99607f7fc",
       "name": "Parse Payment Decision Agent Output"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = items[0].json;\n\n// Force amount to be a real number\nconst amount = Number(input.amount || 0);\n\nreturn [{\n  json: {\n    original_amount: amount,\n    net_amount_to_payee: amount - 50,\n    fee_sats: 50,\n    fee_reason: \"Fixed intermediary fee (50 sats)\"\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2144,
+        640
+      ],
+      "id": "4c48fc84-c372-43aa-a566-a05348f3dda3",
+      "name": "Calculate Fixed Fee",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = items[0].json;\nconst amount = Number(input.amount || 0);\n\nreturn [{\n  json: {\n    pay: true,\n    amount: amount,\n    reason: input.reason || \"Valid request within limits\",\n    status: \"success\",\n    message: \"Payment accepted and will be processed\",\n    net_amount_to_payee: amount - 50,\n    fee_sats: 50\n  }\n}];;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -896,
+        32
+      ],
+      "id": "352fc861-7ff3-46f0-93cf-47c24bf37eee",
+      "name": "Payment Accepted"
     },
     {
       "parameters": {
@@ -340,7 +367,7 @@
           "parameters": [
             {
               "name": "Grpc-Metadata-macaroon",
-              "value": "AgEDbG5kAvgBAwoQMDQM2v2FKwa7wp3OrH3NxxIBMBoWCgdhZGRyZXNzEgRyZWFkEgV3cml0ZRoTCgRpbmZvEgRyZWFkEgV3cml0ZRoXCghpbnZvaWNlcxIEcmVhZBIFd3JpdGUaIQoIbWFjYXJvb24SCGdlbmVyYXRlEgRyZWFkEgV3cml0ZRoWCgdtZXNzYWdlEgRyZWFkEgV3cml0ZRoXCghvZmZjaGFpbhIEcmVhZBIFd3JpdGUaFgoHb25jaGFpbhIEcmVhZBIFd3JpdGUaFAoFcGVlcnMSBHJlYWQSBXdyaXRlGhgKBnNpZ25lchIIZ2VuZXJhdGUSBHJlYWQAAAYgV1Xd+i2i+uNTTjnUyj0wHcqiaxY2TEK+k14W1SD6b0Y="
+              "value": "AgEDbG5kAvgBAwoQMDQM2v2FKwa7wp3OrH3NxxIAgEDbG5kAvgBAwoQMDQM2v2FKwa7wp3OrH3NxxIBMBoWCgdhZGRyZXNzEgRyZWFkEgV3cml0ZRoTCgRpbmZvEgRyZWFkEgV3cml0ZRoXCghpbnZvaWNlcxIEcmVhZBIFd3JpdGUaIQoIbWFjYXJvb24SCGdlbmVyYXRlEgRyZWFkEgV3cml0ZRoWCgdtZXNzYWdlEgRyZWFkEgV3cml0ZRoXCghvZmZjaGFpbhIEcmVhZBIFd3JpdGUaFgoHb25jaGFpbhIEcmVhZBIFd3JpdGUaFAoFcGVlcnMSBHJlYWQSBXdyaXRlGhgKBnNpZ25lchIIZ2VuZXJhdGUSBHJlYWQAAAYgV1Xd+i2i+uNTTjnUyj0wHcqiaxY2TEK+k14W1SD6b0Y="
             }
           ]
         },
@@ -355,29 +382,15 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        672,
+        -448,
         32
       ],
-      "id": "b0e8ed01-4285-472d-b978-e75c67085ca9",
+      "id": "94443e7e-545a-422b-bbdf-ff7ff3740bee",
       "name": "Pay Invoice Payment Decision Agent",
       "retryOnFail": true,
       "waitBetweenTries": 5000,
       "onError": "continueRegularOutput",
-      "notes": "Send Lightning payment from Payment Decision Agent to Agent B \n\n"
-    },
-    {
-      "parameters": {
-        "jsCode": "const input = items[0].json;\n\n// Force amount to be a real number\nconst amount = Number(input.amount || 0);\n\nreturn [{\n  json: {\n    original_amount: amount,\n    net_amount_to_payee: amount - 50,\n    fee_sats: 50,\n    fee_reason: \"Fixed intermediary fee (50 sats)\"\n  }\n}];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1024,
-        640
-      ],
-      "id": "8f6f7df3-c996-4791-bf98-ac14c37347a8",
-      "name": "Calculate Fixed Fee",
-      "disabled": true
+      "notes": "Send Lightning payment from Payment Decision Agent to Agent B.\n\nUse Agent-X macaroon.\n\n"
     },
     {
       "parameters": {
@@ -388,13 +401,13 @@
           "parameters": [
             {
               "name": "Grpc-Metadata-macaroon",
-              "value": "AgEDbG5kAvgBAwoQvT+0tPNoZRY18X2N8cDH6hIBMBoWCgdhZGRyZXNzEgRyZWFkEgV3cml0ZRoTCgRpbmZvEgRyZWFkEgV3cml0ZRoXCghpbnZvaWNlcxIEcmVhZBIFd3JpdGUaIQoIbWFjYXJvb24SCGdlbmVyYXRlEgRyZWFkEgV3cml0ZRoWCgdtZXNzYWdlEgRyZWFkEgV3cml0ZRoXCghvZmZjaGFpbhIEcmVhZBIFd3JpdGUaFgoHb25jaGFpbhIEcmVhZBIFd3JpdGUaFAoFcGVlcnMSBHJlYWQSBXdyaXRlGhgKBnNpZ25lchIIZ2VuZXJhdGUSBHJlYWQAAAYgKAtuSLwIHzqS/nIc+bUsY3Fqz8/q7DxTN3y6UBp4H1E="
+              "value": "AgEDbG5kAvgBAwoQO6MEqivRyMhBH+YXMUtgfBIBMBoWCgdhZGRyZXNzEgRyZWFkEgV3cml0ZRoTCgRpbmZvEgRyZWFkEgV3cml0ZRoXCghpbnZvaWNlcxIEcmVhZBIFd3JpdGUaIQoIbWFjYXJvb24SCGdlbmVyYXRlEgRyZWFkEgV3cml0ZRoWCgdtZXNzYWdlEgRyZWFkEgV3cml0ZRoXCghvZmZjaGFpbhIEcmVhZBIFd3JpdGUaFgoHb25jaGFpbhIEcmVhZBIFd3JpdGUaFAoFcGVlcnMSBHJlYWQSBXdyaXRlGhgKBnNpZ25lchIIZ2VuZXJhdGUSBHJlYWQAAAYgHHu1ouf5fs/UNcbb5383e3tXXsdwTzkt3zYUgmaZMU8="
             }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"memo\": \"{{ $json.reason || 'Payment from Agent-X' }}\",\n  \"value\": \"={{ Number($json.net_amount_to_payee) }}\"\n}",
+        "jsonBody": "={\n  \"memo\": \"{{ $json.reason || 'Payment from Agent-X' }}\",\n  \"value\": \"{{ $json.net_amount_to_payee }}\"\n}",
         "options": {
           "allowUnauthorizedCerts": true,
           "timeout": 120000
@@ -403,28 +416,31 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        448,
-        32
+        -1200,
+        496
       ],
-      "id": "f1706f80-f7e2-468a-87ef-c6f9116874d5",
-      "name": "Create Invoice Agent-B",
+      "id": "99dbbe18-3949-4fbf-974b-2c8a51280123",
+      "name": "Create Invoice Agent-B 1",
       "retryOnFail": false,
       "waitBetweenTries": 5000,
       "alwaysOutputData": false,
-      "onError": "continueRegularOutput"
+      "disabled": true,
+      "onError": "continueRegularOutput",
+      "notes": "Use Agent-B macaroon."
     },
     {
       "parameters": {
-        "jsCode": "const input = items[0].json;\nconst amount = Number(input.amount || 0);\n\nreturn [{\n  json: {\n    pay: true,\n    amount: amount,\n    reason: input.reason || \"Valid request within limits\",\n    status: \"success\",\n    message: \"Payment accepted and will be processed\",\n    net_amount_to_payee: amount - 50,\n    fee_sats: 50\n  }\n}];;"
+        "jsCode": "const input = items[0].json;\n\nconst memo = input.reason || \"Payment from Agent-X\";\nconst value = Number(input.net_amount_to_payee || 950);\n\nconst result = await this.helpers.executeCommand({\n  command: `docker compose exec agent-b-lnd lncli --network=regtest addinvoice --memo=\"${memo}\" --value=${value}`\n});\n\nreturn [{\n  json: {\n    success: true,\n    memo: memo,\n    value: value,\n    raw: result\n  }\n}];;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        224,
-        32
+        -928,
+        464
       ],
-      "id": "8c747f7c-44a2-4c8b-a7eb-3db42f511a68",
-      "name": "Payment Accepted"
+      "id": "a85dda70-66b1-4761-9e2f-d1abd6fba0be",
+      "name": "Create Invoice Agent-B",
+      "disabled": true
     }
   ],
   "pinData": {},
@@ -604,6 +620,11 @@
         ]
       ]
     },
+    "Payment Accepted": {
+      "main": [
+        []
+      ]
+    },
     "Pay Invoice Payment Decision Agent": {
       "main": [
         [
@@ -615,44 +636,28 @@
         ]
       ]
     },
-    "Calculate Fixed Fee": {
+    "Create Invoice Agent-B 1": {
       "main": [
         []
       ]
     },
     "Create Invoice Agent-B": {
       "main": [
-        [
-          {
-            "node": "Pay Invoice Payment Decision Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Payment Accepted": {
-      "main": [
-        [
-          {
-            "node": "Create Invoice Agent-B",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1",
-    "binaryMode": "separate"
+    "binaryMode": "separate",
+    "availableInMCP": false
   },
-  "versionId": "b96b0545-753e-4656-bc1b-e4ed0d90a2bc",
+  "versionId": "f6ac8f44-884a-4464-aa26-2d7384403fbc",
   "meta": {
-    "instanceId": "0866c2f6ae81acacc8b7b731367af13d3cbcae0a860698a765bd02c7feac3502"
+    "instanceId": "64ada1b137071ce064db3b3f16b1cb1909535864bf28977b3f161e8def5cbeac"
   },
   "nodeGroups": [],
-  "id": "ssMcGFNzSlX9TrHg",
+  "id": "2KfuMatQU9gt20Aq",
   "tags": []
 }

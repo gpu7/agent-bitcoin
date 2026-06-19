@@ -108,7 +108,7 @@ services:
       start_period: 30s
 
   n8n:
-    image: n8nio/n8n:latest
+    image: docker.n8n.io/n8nio/n8n:latest
     container_name: n8n
     restart: unless-stopped
     networks:
@@ -124,6 +124,10 @@ services:
       - N8N_PROTOCOL=http
       - WEBHOOK_URL=http://localhost:5678/
       - N8N_SECURE_COOKIE=false
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+      - NODE_EXTRA_CA_CERTS=/dev/null
+      - NODES_EXCLUDE=[]
+      - N8N_ENABLE_EXECUTE_COMMAND=true
     volumes:
       - n8n-data:/home/node/.n8n
     healthcheck:
