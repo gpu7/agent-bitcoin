@@ -108,7 +108,8 @@ services:
       start_period: 30s
 
   n8n:
-    image: docker.n8n.io/n8nio/n8n:latest
+    build: .
+    # image: docker.n8n.io/n8nio/n8n:latest
     container_name: n8n
     restart: unless-stopped
     networks:
@@ -130,6 +131,7 @@ services:
       - N8N_ENABLE_EXECUTE_COMMAND=true
     volumes:
       - n8n-data:/home/node/.n8n
+      - /var/run/docker.sock:/var/run/docker.sock
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5678/healthz"]
       interval: 30s
