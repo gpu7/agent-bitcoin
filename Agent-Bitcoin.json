@@ -30,7 +30,13 @@
         400
       ],
       "id": "17784e5a-54c0-44f8-9966-c9de7d12fe48",
-      "name": "xAI Grok Chat Model"
+      "name": "xAI Grok Chat Model",
+      "credentials": {
+        "xAiApi": {
+          "id": "QOevGrZZM0L1h3J3",
+          "name": "xAi account"
+        }
+      }
     },
     {
       "parameters": {
@@ -44,7 +50,13 @@
         416
       ],
       "id": "f9221a1d-e18c-4b66-8fce-cadad0722a65",
-      "name": "xAI Grok Chat Model1"
+      "name": "xAI Grok Chat Model1",
+      "credentials": {
+        "xAiApi": {
+          "id": "QOevGrZZM0L1h3J3",
+          "name": "xAi account"
+        }
+      }
     },
     {
       "parameters": {
@@ -281,7 +293,13 @@
       ],
       "id": "678792ae-cd79-4d74-9888-8aa3a06494ff",
       "name": "Webhook",
-      "webhookId": "21393d4b-4f1c-4134-8547-92294910fe7a"
+      "webhookId": "21393d4b-4f1c-4134-8547-92294910fe7a",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "HE7orNIUHHq4iLey",
+          "name": "Header Auth account"
+        }
+      }
     },
     {
       "parameters": {
@@ -655,7 +673,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "8be7d9b0-cae8-45b6-a009-a501a4613148",
+  "versionId": "5777ca72-fabc-4fd2-b52d-52c1625cbeb3",
   "meta": {
     "instanceId": "d487c6793332feee125146b84aef0e2dab19b0186ed21afb8b0472842b1d62ec"
   },
