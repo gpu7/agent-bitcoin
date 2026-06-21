@@ -342,7 +342,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Parse Payment Result - Robust Version\nconst text = items[0].json.stdout || '';\n\n// Find the FINAL \"Payment status\" line\nconst statusMatch = text.match(/Payment status:\\s*(SUCCEEDED|IN_FLIGHT|FAILED|UNKNOWN)/i);\nconst finalStatus = statusMatch ? statusMatch[1].toUpperCase() : 'UNKNOWN';\n\n// Extract payment hash\nconst hashMatch = text.match(/Payment hash:\\s*([a-f0-9]+)/i);\n\n// Extract preimage (only appears on success)\nconst preimageMatch = text.match(/preimage:\\s*([a-f0-9]+)/i);\n\n// Extract final amount from the last \"Amount + fee\" line\nconst amountMatches = text.match(/Amount \\+ fee:.*?(\\d+)/gi);\nconst finalAmount = amountMatches && amountMatches.length > 0 \n  ? parseInt(amountMatches[amountMatches.length - 1]) \n  : 0;\n\nreturn [{\n  json: {\n    success: finalStatus === \"SUCCEEDED\",\n    status: finalStatus,\n    payment_amount: finalAmount,\n    payment_fee: 0,\n    payment_hash: hashMatch ? hashMatch[1] : null,\n    preimage: preimageMatch ? preimageMatch[1] : null,\n    raw_stdout: text.substring(0, 600)\n  }\n}];"
+        "jsCode": "// Parse Payment Result - Final Robust Version\nconst text = items[0].json.stdout || '';\n\n// Get the LAST \"Payment status\" (most important)\nconst statusMatches = text.match(/Payment status:\\s*(SUCCEEDED|IN_FLIGHT|FAILED|UNKNOWN)/gi);\nconst finalStatusLine = statusMatches ? statusMatches[statusMatches.length - 1] : '';\nconst finalStatus = finalStatusLine.includes('SUCCEEDED') ? 'SUCCEEDED' : \n                    finalStatusLine.includes('FAILED') ? 'FAILED' : 'UNKNOWN';\n\n// Extract final amount from the last \"Amount + fee\" line\nconst amountMatches = text.match(/Amount \\+ fee:.*?(\\d+)/gi);\nconst finalAmount = amountMatches && amountMatches.length > 0 \n  ? parseInt(amountMatches[amountMatches.length - 1]) \n  : 0;\n\n// Extract hash and preimage\nconst hashMatch = text.match(/Payment hash:\\s*([a-f0-9]+)/i);\nconst preimageMatch = text.match(/preimage:\\s*([a-f0-9]+)/i);\n\nreturn [{\n  json: {\n    success: finalStatus === \"SUCCEEDED\",\n    status: finalStatus,\n    payment_amount: finalAmount,\n    payment_fee: 0,\n    payment_hash: hashMatch ? hashMatch[1] : null,\n    preimage: preimageMatch ? preimageMatch[1] : null,\n    raw_stdout: text.substring(0, 700)\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -637,7 +637,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "c5e72655-f840-4137-b2a9-df0e833d88c5",
+  "versionId": "d3747a03-cae8-422e-adec-b485865f799a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "90674cc3e99f79254920211fd6f118b4c8ca8211843aa0957f7c7ec0bdb9a219"
