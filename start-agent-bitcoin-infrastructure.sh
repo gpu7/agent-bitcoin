@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "=== Agent-Bitcoin Full Infrastructure Start (Updated) ==="
+echo "=== Agent-Bitcoin Full Infrastructure Start (Updated with Manual Channel Flow) ==="
 
 # Clean start
 docker compose down -v --remove-orphans 2>/dev/null || true
@@ -51,18 +51,30 @@ for i in {1..60}; do
   sleep 10
 done
 
-echo "=== Opening channel from Agent-X to Agent-B (with retries) ==="
+echo "=== Opening channel from Agent-X to Agent-B (with explicit connect) ==="
 PUBKEY_B=$(docker compose exec -T agent-b-lnd lncli --network=regtest getinfo | jq -r '.identity_pubkey')
 
-for i in {1..12}; do
-  echo "Channel open attempt $i of 12..."
+# Explicit connect first
+echo "Connecting Agent-X to Agent-B..."
+docker compose exec -T agent-x-lnd lncli --network=regtest connect "$PUBKEY_B@agent-b-lnd:9735"
+sleep 8
+
+# Then open channel with retries
+for i in {1..10}; do
+  echo "Channel open attempt $i of 10..."
   if docker compose exec -T agent-x-lnd lncli --network=regtest openchannel --node_key "$PUBKEY_B" --local_amt 8000000 --push_amt 3000000; then
     echo "✅ Channel opened successfully!"
     break
   fi
   echo "  Peer not ready yet, waiting..."
-  sleep 15
+  sleep 12
 done
+
+# === NEW: Confirm the channel by mining blocks ===
+echo "Mining 6 blocks to confirm the channel..."
+NEWADDR=$(docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass getnewaddress)
+docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass generatetoaddress 6 "$NEWADDR"
+sleep 8
 
 sleep 10
 
