@@ -12,10 +12,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        1120,
+        896,
         192
       ],
-      "id": "b1947647-8003-4c21-bdea-45c217d5ee2e",
+      "id": "45973533-0f86-4768-b3d5-6740f4617906",
       "name": "Agent-B"
     },
     {
@@ -26,17 +26,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -1840,
+        -2064,
         400
       ],
-      "id": "17784e5a-54c0-44f8-9966-c9de7d12fe48",
-      "name": "xAI Grok Chat Model",
-      "credentials": {
-        "xAiApi": {
-          "id": "QOevGrZZM0L1h3J3",
-          "name": "xAi account"
-        }
-      }
+      "id": "193cd6f0-1e78-45cf-be9f-78b3e85ad146",
+      "name": "xAI Grok Chat Model"
     },
     {
       "parameters": {
@@ -46,17 +40,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        1200,
+        976,
         416
       ],
-      "id": "f9221a1d-e18c-4b66-8fce-cadad0722a65",
-      "name": "xAI Grok Chat Model1",
-      "credentials": {
-        "xAiApi": {
-          "id": "QOevGrZZM0L1h3J3",
-          "name": "xAi account"
-        }
-      }
+      "id": "5b40f9fc-ad52-44af-92fd-7987046d85dd",
+      "name": "xAI Grok Chat Model1"
     },
     {
       "parameters": {
@@ -69,10 +57,10 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        896,
+        672,
         192
       ],
-      "id": "766b8bc6-524c-4609-9440-c37084ef39c7",
+      "id": "fd7419ec-8acb-4b55-96e4-4aa5b74d96e7",
       "name": "Send Email Report",
       "webhookId": "8046c746-8f9f-4a48-b844-a4f79bc97f0c"
     },
@@ -87,10 +75,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        448,
+        224,
         192
       ],
-      "id": "1c1e4ba6-680c-43aa-a5ac-f9e066277dbe",
+      "id": "195d7fb4-aa12-46f7-9efb-f504fe96318e",
       "name": "Merge"
     },
     {
@@ -142,10 +130,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        0,
+        -224,
         32
       ],
-      "id": "9783b386-6348-4936-80c8-87c6a1bb62e1",
+      "id": "30e78d82-dffa-4b6c-898c-e451badc2713",
       "name": "Did Payment Succeed",
       "notes": "Check whether Lightning payment was successful or not.\n\n"
     },
@@ -158,10 +146,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        672,
+        448,
         192
       ],
-      "id": "abac011f-64df-4a80-9bb9-8f95113bf5d2",
+      "id": "8f6a5ea6-f98e-4d7a-90b9-974c753f635a",
       "name": "Get Final State"
     },
     {
@@ -192,10 +180,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1120,
+        -1344,
         96
       ],
-      "id": "f639bc9d-d64a-4909-bdca-71d7a96a68e6",
+      "id": "d2db2ce3-725d-489e-91b6-a456e0691773",
       "name": "Check Payment Amount"
     },
     {
@@ -207,10 +195,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        224,
+        0,
         416
       ],
-      "id": "1a1d32f6-8659-4127-af9d-965ad71b55ac",
+      "id": "8565b62f-7d09-43c8-9e5b-573175c46fa9",
       "name": "Payment Rejected Bad Amount"
     },
     {
@@ -241,10 +229,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1344,
+        -1568,
         176
       ],
-      "id": "650dee73-0f5e-42c0-b799-2488cf637d9a",
+      "id": "9f213ba8-5e2a-4591-a956-d87fd80c0bff",
       "name": "Check Payment Decision",
       "notes": "Checks if Agent-X wants to proceed with a payment to Agent-B."
     },
@@ -257,10 +245,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        224,
+        0,
         0
       ],
-      "id": "127be140-42d3-4c98-b315-df503cc69cc1",
+      "id": "5afef3b8-6381-4e7e-ada3-a0ee6f4fe32e",
       "name": "Normalize Success"
     },
     {
@@ -272,10 +260,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        224,
+        0,
         224
       ],
-      "id": "f42b89cf-3dd3-4910-a7d5-fb803cd6006c",
+      "id": "abcc66fc-ef2e-4654-bf11-cd342b49e569",
       "name": "Normalize Rejection"
     },
     {
@@ -288,18 +276,12 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -2144,
+        -2368,
         176
       ],
-      "id": "678792ae-cd79-4d74-9888-8aa3a06494ff",
+      "id": "b49cee4b-3735-40cd-a370-49b6cb517593",
       "name": "Webhook",
-      "webhookId": "21393d4b-4f1c-4134-8547-92294910fe7a",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "HE7orNIUHHq4iLey",
-          "name": "Header Auth account"
-        }
-      }
+      "webhookId": "21393d4b-4f1c-4134-8547-92294910fe7a"
     },
     {
       "parameters": {
@@ -312,10 +294,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -1920,
+        -2144,
         176
       ],
-      "id": "4a02064a-89f4-4cb3-8764-83e83a148337",
+      "id": "4bc2ee56-5b22-4dd0-b98b-c90a943ff782",
       "name": "Payment Decision Agent",
       "retryOnFail": true,
       "waitBetweenTries": 3000
@@ -327,10 +309,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1568,
+        -1792,
         176
       ],
-      "id": "f029bed0-e36d-48f7-a440-d90252074ef9",
+      "id": "391486b6-b4d1-4cbb-938a-0b125f37af3c",
       "name": "Parse Payment Decision Agent Output"
     },
     {
@@ -340,10 +322,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2144,
+        -2368,
         1312
       ],
-      "id": "0dd9c5fa-df3a-4c8b-9632-1d5a4785e366",
+      "id": "f12b4268-be1a-4efe-b0b3-c12cbfe241a0",
       "name": "Calculate Fixed Fee",
       "disabled": true
     },
@@ -354,10 +336,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -896,
+        -1120,
         32
       ],
-      "id": "b4470619-0cbe-47ab-8fc9-fbf7708532c7",
+      "id": "3395eadc-8f44-4539-8c27-dada5ecadc2a",
       "name": "Payment Accepted"
     },
     {
@@ -384,10 +366,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -2144,
+        -2368,
         1088
       ],
-      "id": "1b3213c4-4dba-4a81-887b-760606d4caeb",
+      "id": "f0ec7c3f-fc76-46ea-92eb-9099c02c09c4",
       "name": "Pay Invoice Payment Decision Agent",
       "retryOnFail": true,
       "waitBetweenTries": 5000,
@@ -419,10 +401,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -2144,
+        -2368,
         864
       ],
-      "id": "455b87c0-4fb1-4bcf-a142-f2898cc9a9e0",
+      "id": "57ab9c7e-b880-4a11-88cb-3177b67bb16e",
       "name": "Create Invoice Agent-B 2",
       "retryOnFail": false,
       "waitBetweenTries": 5000,
@@ -438,37 +420,37 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2144,
+        -2368,
         640
       ],
-      "id": "a9b4bf1b-1049-4225-b9cc-0c1df9c17ff7",
+      "id": "e72f6ffd-3bf3-4ea4-aeaf-96ef35d8e01f",
       "name": "Create Invoice Agent-B 1",
       "disabled": true
     },
     {
       "parameters": {
-        "command": "=docker exec agent-b-lnd lncli --network=regtest addinvoice --memo=\"{{ $json.reason || 'Payment from Agent-X' }}\" --amt={{ $json.net_amount_to_payee }}"
+        "command": "=docker exec agent-b-lnd lncli --network=regtest --macaroonpath=/root/.lnd/data/chain/bitcoin/regtest/admin.macaroon addinvoice --memo=\"{{ $json.reason || 'Payment from Agent-X' }}\" --amt={{ $json.net_amount_to_payee }}"
       },
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        -672,
+        -896,
         32
       ],
-      "id": "cedf3ce5-9bd5-4ba3-b04f-2add317b72bb",
+      "id": "1e36e109-6967-4c83-8075-4a4022eebd37",
       "name": "Create Invoice Agent-B"
     },
     {
       "parameters": {
-        "command": "=docker exec agent-x-lnd lncli --network=regtest payinvoice --pay_req=\"{{ $json.payment_request }}\" --fee_limit=200"
+        "command": "=docker exec agent-x-lnd lncli --network=regtest --macaroonpath=/root/.lnd/data/chain/bitcoin/regtest/admin.macaroon payinvoice --pay_req=\"{{ $json.payment_request }}\" --fee_limit=200 --force"
       },
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        -224,
+        -448,
         32
       ],
-      "id": "31cf5a8b-3c04-42a5-93f8-ee68a2750f71",
+      "id": "28f7e105-0211-46fb-9ab1-375a9abbf767",
       "name": "Pay Invoice Agent-X"
     },
     {
@@ -478,10 +460,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -448,
+        -672,
         32
       ],
-      "id": "6139e18c-6813-461d-8228-b658d7e514db",
+      "id": "610739b5-cb67-42b4-a4bd-3315689f15cf",
       "name": "Parse Invoice Output"
     }
   ],
@@ -662,11 +644,6 @@
         ]
       ]
     },
-    "Pay Invoice Payment Decision Agent": {
-      "main": [
-        []
-      ]
-    },
     "Payment Accepted": {
       "main": [
         [
@@ -715,14 +692,13 @@
   "active": false,
   "settings": {
     "executionOrder": "v1",
-    "binaryMode": "separate",
-    "availableInMCP": false
+    "binaryMode": "separate"
   },
-  "versionId": "230648c3-ad91-4bbd-b2ff-b315871a6985",
+  "versionId": "a46cbfbd-9d4a-4eac-8b3d-b612eb23f691",
   "meta": {
-    "instanceId": "d487c6793332feee125146b84aef0e2dab19b0186ed21afb8b0472842b1d62ec"
+    "instanceId": "90674cc3e99f79254920211fd6f118b4c8ca8211843aa0957f7c7ec0bdb9a219"
   },
   "nodeGroups": [],
-  "id": "ctiSrcnLfptDkMwF",
+  "id": "pQGPqdgmQb2bDGDp",
   "tags": []
 }
