@@ -132,7 +132,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"payment_amount\": \"{{ $node[\"Merge\"].json.payment_amount || 0 }}\",\n  \"payment_fee\": \"{{ $node[\"Merge\"].json.payment_fee || 0 }}\",\n  \"payment_hash\": \"{{ $node[\"Merge\"].json.payment_hash || 'N/A' }}\",\n  \"reason\": \"{{ $node[\"Merge\"].json.reason || 'No reason provided' }}\",\n  \"status\": \"{{ $node[\"Merge\"].json.status || 'rejected' }}\",\n  \"agent_b_message\": \"{{ $node[\"Merge\"].json.agent_b_message || 'Payment was rejected or blocked by guardrail' }}\",\n  \"rejection_reason\": \"{{ $node[\"Merge\"].json.rejection_reason || 'N/A' }}\",\n\n  \"original_amount\": \"={{ $node[\"Calculate Fixed Fee\"].json.original_amount }}\",\n  \"fee_sats\": \"={{ $node[\"Calculate Fixed Fee\"].json.fee_sats }}\",\n  \"net_amount_to_payee\": \"={{ $node[\"Calculate Fixed Fee\"].json.net_amount_to_payee }}\",\n  \"fee_reason\": \"={{ $node[\"Calculate Fixed Fee\"].json.fee_reason }}\"\n}",
+        "jsonOutput": "={\n  \"success\": \"{{ $node[\"Merge\"].json.success }}\",\n  \"pay\": \"{{ $node[\"Merge\"].json.pay }}\",\n  \"status\": \"{{ $node[\"Merge\"].json.status }}\",\n  \"payment_amount\": \"{{ $node[\"Merge\"].json.payment_amount || 0 }}\",\n  \"payment_fee\": \"{{ $node[\"Merge\"].json.payment_fee || 0 }}\",\n  \"payment_hash\": \"{{ $node[\"Merge\"].json.payment_hash || 'N/A' }}\",\n  \"preimage\": \"{{ $node[\"Merge\"].json.preimage || null }}\",\n  \"reason\": \"{{ $node[\"Merge\"].json.reason || 'No reason provided' }}\",\n  \"agent_b_message\": \"{{ $node[\"Merge\"].json.agent_b_message || 'Payment attempt completed' }}\",\n  \"rejection_reason\": \"{{ $node[\"Merge\"].json.rejection_reason || 'N/A' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -631,7 +631,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "434b7bd0-b925-4b04-9d8f-07935b204d74",
+  "versionId": "b0502ba8-26b1-4577-9fc1-dddd9ccb43b1",
   "meta": {
     "instanceId": "90674cc3e99f79254920211fd6f118b4c8ca8211843aa0957f7c7ec0bdb9a219"
   },
