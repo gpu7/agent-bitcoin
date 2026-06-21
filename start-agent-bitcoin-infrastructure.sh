@@ -1,62 +1,74 @@
 #!/bin/bash
-echo "=== Agent-Bitcoin Full Infrastructure Start (Retry) ==="
+echo "=== Agent-Bitcoin Full Infrastructure Start (Updated) ==="
 
+# Clean start
 docker compose down -v --remove-orphans 2>/dev/null || true
 docker compose up -d
 
-echo "Waiting for bitcoind..."
-until docker compose ps --format "{{.Name}} {{.Status}}" bitcoind | grep -q "(healthy)"; do sleep 5; done
-echo "✅ bitcoind ready"
+echo "Waiting for bitcoind to be healthy..."
+until docker compose ps --format "{{.Name}} {{.Status}}" bitcoind | grep -q "(healthy)"; do
+  echo "  bitcoind not healthy yet..."
+  sleep 5
+done
+echo "✅ bitcoind is healthy"
 
-# Fix wallet
+# Fix bitcoind wallet
+echo "Fixing bitcoind wallet..."
 docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass createwallet "" 2>/dev/null || true
 docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass loadwallet "" 2>/dev/null || true
 
-# Heavy mining
-echo "Mining blocks..."
+# Heavy initial mining
+echo "Mining blocks to help LND sync..."
 NEWADDR=$(docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass getnewaddress)
-docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass generatetoaddress 250 "$NEWADDR"
+docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass generatetoaddress 300 "$NEWADDR"
 sleep 20
 
-echo "Creating wallets..."
+echo "=== Creating LND Wallets ==="
 docker compose exec -it agent-x-lnd lncli --network=regtest create
 docker compose exec -it agent-b-lnd lncli --network=regtest create
 
-echo "Unlocking..."
+echo "=== Unlocking wallets ==="
 echo -e "\n" | docker compose exec -i agent-x-lnd lncli --network=regtest unlock
 echo -e "\n" | docker compose exec -i agent-b-lnd lncli --network=regtest unlock
 
-echo "Funding nodes..."
+echo "=== Funding nodes ==="
 ADDR_X=$(docker compose exec -T agent-x-lnd lncli --network=regtest newaddress p2wkh | jq -r .address)
 ADDR_B=$(docker compose exec -T agent-b-lnd lncli --network=regtest newaddress p2wkh | jq -r .address)
-docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass sendtoaddress "$ADDR_X" 30
+
+docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass sendtoaddress "$ADDR_X" 35
 docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass sendtoaddress "$ADDR_B" 15
 docker compose exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass generatetoaddress 50 "$NEWADDR"
-sleep 15
+sleep 20
 
-echo "Waiting for full sync..."
-for i in {1..50}; do
-  if docker compose exec -T agent-b-lnd lncli --network=regtest getinfo 2>/dev/null | grep -q '"synced_to_chain": true'; then
-    echo "✅ Synced!"
+echo "Waiting for LND nodes to fully sync..."
+for i in {1..60}; do
+  SYNCED=$(docker compose exec -T agent-b-lnd lncli --network=regtest getinfo 2>/dev/null | grep -o '"synced_to_chain": true' || echo "false")
+  if [ "$SYNCED" = '"synced_to_chain": true' ]; then
+    echo "✅ LND nodes are synced!"
     break
   fi
+  echo "  Still syncing... ($i/60)"
   sleep 10
 done
 
-echo "=== Opening channel (with retries) ==="
+echo "=== Opening channel from Agent-X to Agent-B (with retries) ==="
 PUBKEY_B=$(docker compose exec -T agent-b-lnd lncli --network=regtest getinfo | jq -r '.identity_pubkey')
 
-for i in {1..8}; do
-  echo "Channel open attempt $i..."
+for i in {1..12}; do
+  echo "Channel open attempt $i of 12..."
   if docker compose exec -T agent-x-lnd lncli --network=regtest openchannel --node_key "$PUBKEY_B" --local_amt 8000000 --push_amt 3000000; then
     echo "✅ Channel opened successfully!"
     break
   fi
-  sleep 12
+  echo "  Peer not ready yet, waiting..."
+  sleep 15
 done
+
+sleep 10
 
 echo "=== Baking macaroons ==="
 for agent in agent-x-lnd agent-b-lnd; do
+  echo "→ Baking macaroon for $agent"
   docker compose exec -T $agent lncli --network=regtest bakemacaroon \
     --save_to /root/.lnd/data/chain/bitcoin/regtest/admin.macaroon \
     address:read address:write info:read info:write invoices:read invoices:write \
@@ -64,12 +76,16 @@ for agent in agent-x-lnd agent-b-lnd; do
     onchain:read onchain:write peers:read peers:write 2>/dev/null || true
 done
 
-echo "=== MACAROONS ==="
-echo "Agent-X:"
+echo "=== MACAROONS (Copy these for n8n!) ==="
+echo "Agent-X (Payer):"
 docker compose exec -T agent-x-lnd cat /root/.lnd/data/chain/bitcoin/regtest/admin.macaroon | base64 | tr -d '\n'
-echo -e "\n\nAgent-B:"
+echo -e "\n\nAgent-B (Payee):"
 docker compose exec -T agent-b-lnd cat /root/.lnd/data/chain/bitcoin/regtest/admin.macaroon | base64 | tr -d '\n'
 
-echo -e "\n✅ DONE!"
+echo -e "\n✅ FULL INFRASTRUCTURE READY!"
 docker compose ps
+
+# Final status
+echo "Final status:"
 docker compose exec agent-x-lnd lncli --network=regtest listchannels
+docker compose exec agent-x-lnd lncli --network=regtest getinfo | grep -E "block_height|synced_to_chain"
