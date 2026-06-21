@@ -63,7 +63,7 @@
         "fromEmail": "richardcaseyhpc@protonmail.com",
         "toEmail": "richardcaseyhpc@protonmail.com",
         "subject": "Agent Bitcoin Payment Report",
-        "html": "=<p><strong>Lightning Payment Report</strong></p>\n<p><strong>Date:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n<p><strong>Time:</strong> {{ $now.format('HH:mm:ss') }}</p>\n<p><strong>From:</strong> {{ $node[\"Merge\"].json.from || $json.from || $node[\"Webhook\"].json.body.from || \"Unknown Agent\" }}</p>\n<p><strong>To:</strong> Agent-B</p>\n<hr>\n\n<p><strong>Status:</strong> \n  {{ $node[\"Get Final State\"].json.status === 'rejected' ? '❌ Rejected' : '✅ Success' }}\n</p>\n\n<p><strong>Original Amount:</strong> {{ $node[\"Get Final State\"].json.original_amount || $node[\"Merge\"].json.payment_amount || 0 }} sats</p>\n<p><strong>Fee (Intermediary):</strong> {{ $node[\"Get Final State\"].json.fee_sats || 0 }} sats</p>\n<p><strong>Net Amount to Recipient:</strong> {{ $node[\"Get Final State\"].json.net_amount_to_payee || $node[\"Get Final State\"].json.payment_amount || 0 }} sats</p>\n\n<p><strong>Payment Hash:</strong> {{ $node[\"Get Final State\"].json.payment_hash }}</p>\n<p><strong>Reason:</strong> {{ $node[\"Get Final State\"].json.reason }}</p>\n\n{{ $node[\"Get Final State\"].json.status === 'rejected' ? \n  '<p><strong>Rejection Message:</strong> ' + \n  ($node[\"Get Final State\"].json.rejection_reason || \n   $node[\"Get Final State\"].json.agent_b_message || \n   'Payment was rejected or blocked by guardrail') + \n  '</p>' \n: '' }}",
+        "html": "=<p><strong>Lightning Payment Report</strong></p>\n<p><strong>Date:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n<p><strong>Time:</strong> {{ $now.format('HH:mm:ss') }}</p>\n<p><strong>From:</strong> Agent-X</p>\n<p><strong>To:</strong> Agent-B</p>\n<hr>\n\n<p><strong>Status:</strong> \n  {{ $node[\"Get Final State\"].json.status === 'rejected' ? '❌ Rejected' : '✅ Success' }}\n</p>\n\n<p><strong>Payment Amount:</strong> {{ $node[\"Get Final State\"].json.payment_amount }} sats</p>\n<p><strong>Payment Fee:</strong> {{ $node[\"Get Final State\"].json.payment_fee }} sats</p>\n\n<p><strong>Payment Hash:</strong> {{ $node[\"Get Final State\"].json.payment_hash }}</p>\n<p><strong>Reason:</strong> {{ $node[\"Get Final State\"].json.reason }}</p>\n\n{{ $node[\"Get Final State\"].json.status === 'rejected' ? \n  '<p><strong>Rejection Message:</strong> ' + \n  ($node[\"Get Final State\"].json.rejection_reason || \n   $node[\"Get Final State\"].json.agent_b_message || \n   'Unknown rejection reason') + '</p>' \n: \n  '<p><strong>Preimage:</strong> ' + $node[\"Get Final State\"].json.preimage + '</p>' \n}}",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
@@ -631,7 +631,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "b0502ba8-26b1-4577-9fc1-dddd9ccb43b1",
+  "versionId": "b35a2b34-e598-487f-8a6a-ff69debcd0e3",
   "meta": {
     "instanceId": "90674cc3e99f79254920211fd6f118b4c8ca8211843aa0957f7c7ec0bdb9a219"
   },
