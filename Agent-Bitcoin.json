@@ -186,21 +186,6 @@
     },
     {
       "parameters": {
-        "mode": "raw",
-        "jsonOutput": "{\n  \"pay\": false,\n  \"amount\": \"{{ Number($json.amount || 0) }}\",\n  \"reason\": \"{{ $json.reason || 'No reason given' }}\",\n  \"message\": \"Payment amount {{ Number($json.amount || 0) }} sats is outside allowed range (1 to 1,000,000 sats)\",\n  \"status\": \"rejected\",\n  \"rejection_reason\": \"Amount is outside allowed range (1 to 1,000,000 sats)\"\n}\n",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        224,
-        416
-      ],
-      "id": "8565b62f-7d09-43c8-9e5b-573175c46fa9",
-      "name": "Payment Rejected Bad Amount"
-    },
-    {
-      "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
@@ -371,6 +356,21 @@
     {
       "parameters": {
         "mode": "raw",
+        "jsonOutput": "={\n  \"success\": false,\n  \"pay\": false,\n  \"status\": \"rejected\",\n  \"payment_amount\": \"{{ Number($json.amount || 0) }}\",\n  \"payment_fee\": 0,\n  \"payment_hash\": \"N/A\",\n  \"preimage\": null,\n  \"reason\": \"Amount is outside allowed range\",\n  \"agent_b_message\": \"Payment was rejected by guardrail\",\n  \"rejection_reason\": \"Payment amount {{ Number($json.amount || 0) }} sats is outside allowed range (1 to 1,000,000 sats)\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        416
+      ],
+      "id": "8565b62f-7d09-43c8-9e5b-573175c46fa9",
+      "name": "Parse Check Payment Amount False"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
         "jsonOutput": "={\n  \"success\": true,\n  \"pay\": true,\n  \"status\": \"success\",\n  \"payment_amount\": \"{{ $node[\"Parse Payment Result\"].json.amount }}\",\n  \"payment_fee\": \"{{ $node[\"Parse Payment Result\"].json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $node[\"Parse Payment Result\"].json.payment_hash }}\",\n  \"preimage\": \"{{ $node[\"Parse Payment Result\"].json.preimage }}\",\n  \"reason\": \"{{ $node[\"Payment Accepted\"].json.reason || 'Payment executed successfully' }}\",\n  \"agent_b_message\": \"Payment completed successfully\",\n  \"rejection_reason\": \"N/A\"\n}",
         "options": {}
       },
@@ -381,7 +381,7 @@
         0
       ],
       "id": "5afef3b8-6381-4e7e-ada3-a0ee6f4fe32e",
-      "name": "Parse Payment Succeed True"
+      "name": "Parse Did Payment Succeed True"
     },
     {
       "parameters": {
@@ -396,7 +396,7 @@
         224
       ],
       "id": "abcc66fc-ef2e-4654-bf11-cd342b49e569",
-      "name": "Parse Payment Succeed False"
+      "name": "Parse Did Payment Succeed False"
     }
   ],
   "pinData": {},
@@ -449,14 +449,14 @@
       "main": [
         [
           {
-            "node": "Parse Payment Succeed True",
+            "node": "Parse Did Payment Succeed True",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Parse Payment Succeed False",
+            "node": "Parse Did Payment Succeed False",
             "type": "main",
             "index": 0
           }
@@ -485,20 +485,9 @@
         ],
         [
           {
-            "node": "Payment Rejected Bad Amount",
+            "node": "Parse Check Payment Amount False",
             "type": "main",
             "index": 0
-          }
-        ]
-      ]
-    },
-    "Payment Rejected Bad Amount": {
-      "main": [
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 1
           }
         ]
       ]
@@ -514,7 +503,7 @@
         ],
         [
           {
-            "node": "Parse Payment Succeed False",
+            "node": "Parse Did Payment Succeed False",
             "type": "main",
             "index": 0
           }
@@ -609,7 +598,18 @@
         ]
       ]
     },
-    "Parse Payment Succeed True": {
+    "Parse Check Payment Amount False": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Parse Did Payment Succeed True": {
       "main": [
         [
           {
@@ -620,7 +620,7 @@
         ]
       ]
     },
-    "Parse Payment Succeed False": {
+    "Parse Did Payment Succeed False": {
       "main": [
         [
           {
@@ -637,7 +637,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "9fb97c3f-dc9c-4a45-b944-082e6ee9e3d8",
+  "versionId": "c5e72655-f840-4137-b2a9-df0e833d88c5",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "90674cc3e99f79254920211fd6f118b4c8ca8211843aa0957f7c7ec0bdb9a219"
