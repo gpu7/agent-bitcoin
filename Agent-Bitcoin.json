@@ -74,7 +74,13 @@
       ],
       "id": "fd7419ec-8acb-4b55-96e4-4aa5b74d96e7",
       "name": "Send Email Report",
-      "webhookId": "8046c746-8f9f-4a48-b844-a4f79bc97f0c"
+      "webhookId": "8046c746-8f9f-4a48-b844-a4f79bc97f0c",
+      "credentials": {
+        "smtp": {
+          "id": "qfmM0z32EY9fckgS",
+          "name": "SMTP account"
+        }
+      }
     },
     {
       "parameters": {
@@ -351,7 +357,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Parse Payment Result (Code node)\nconst stdout = items[0].json.stdout || '';\n\nconst statusMatch = stdout.match(/Payment status:\\s*(SUCCEEDED|IN_FLIGHT|FAILED|UNKNOWN)/i);\nconst preimageMatch = stdout.match(/preimage:\\s*([a-f0-9]+)/i);\nconst hashMatch = stdout.match(/Payment hash:\\s*([a-f0-9]+)/i);\nconst amountMatch = stdout.match(/Amount \\+ fee:.*?(\\d+)/);\n\nreturn [{\n  json: {\n    success: statusMatch && statusMatch[1].toUpperCase() === 'SUCCEEDED',\n    status: statusMatch ? statusMatch[1].toUpperCase() : 'UNKNOWN',\n    preimage: preimageMatch ? preimageMatch[1] : null,\n    payment_hash: hashMatch ? hashMatch[1] : null,\n    amount: amountMatch ? parseInt(amountMatch[1]) : 0,\n    raw_stdout: stdout.substring(0, 500)   // truncate for debugging\n  }\n}];"
+        "jsCode": "// Parse Payment Result - Robust Version\nconst text = items[0].json.stdout || '';\n\n// Find the FINAL \"Payment status\" line\nconst statusMatch = text.match(/Payment status:\\s*(SUCCEEDED|IN_FLIGHT|FAILED|UNKNOWN)/i);\nconst finalStatus = statusMatch ? statusMatch[1].toUpperCase() : 'UNKNOWN';\n\n// Extract payment hash\nconst hashMatch = text.match(/Payment hash:\\s*([a-f0-9]+)/i);\n\n// Extract preimage (only appears on success)\nconst preimageMatch = text.match(/preimage:\\s*([a-f0-9]+)/i);\n\n// Extract final amount from the last \"Amount + fee\" line\nconst amountMatches = text.match(/Amount \\+ fee:.*?(\\d+)/gi);\nconst finalAmount = amountMatches && amountMatches.length > 0 \n  ? parseInt(amountMatches[amountMatches.length - 1]) \n  : 0;\n\nreturn [{\n  json: {\n    success: finalStatus === \"SUCCEEDED\",\n    status: finalStatus,\n    payment_amount: finalAmount,\n    payment_fee: 0,\n    payment_hash: hashMatch ? hashMatch[1] : null,\n    preimage: preimageMatch ? preimageMatch[1] : null,\n    raw_stdout: text.substring(0, 600)\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -631,8 +637,9 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "b35a2b34-e598-487f-8a6a-ff69debcd0e3",
+  "versionId": "9fb97c3f-dc9c-4a45-b944-082e6ee9e3d8",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "90674cc3e99f79254920211fd6f118b4c8ca8211843aa0957f7c7ec0bdb9a219"
   },
   "nodeGroups": [],
