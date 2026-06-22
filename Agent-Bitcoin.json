@@ -342,7 +342,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Parse Payment Result - Using 'amount' for consistency\nconst text = items[0].json.stdout || '';\n\n// Get final status\nconst statusMatches = text.match(/Payment status:\\s*(SUCCEEDED|IN_FLIGHT|FAILED|UNKNOWN)/gi);\nconst finalStatus = statusMatches ? statusMatches[statusMatches.length - 1].toUpperCase() : 'UNKNOWN';\n\n// Extract final amount\nconst amountMatches = text.match(/Amount \\+ fee:.*?(\\d+)/gi);\nconst finalAmount = amountMatches && amountMatches.length > 0 \n  ? parseInt(amountMatches[amountMatches.length - 1]) \n  : 0;\n\nconst hashMatch = text.match(/Payment hash:\\s*([a-f0-9]+)/i);\nconst preimageMatch = text.match(/preimage:\\s*([a-f0-9]+)/i);\n\nreturn [{\n  json: {\n    success: finalStatus === \"SUCCEEDED\",\n    status: finalStatus,\n    amount: finalAmount,\n    payment_fee: 0,\n    payment_hash: hashMatch ? hashMatch[1] : \"N/A\",\n    preimage: preimageMatch ? preimageMatch[1] : null,\n    raw_stdout: text.substring(0, 700)\n  }\n}];"
+        "jsCode": "// Parse Payment Result - Using 'amount' for consistency\nconst text = items[0].json.stdout || '';\n\n// Get final status\nconst statusMatches = text.match(/Payment status:\\s*(SUCCEEDED|IN_FLIGHT|FAILED|UNKNOWN)/gi);\nconst finalStatus = statusMatches ? statusMatches[statusMatches.length - 1].toUpperCase() : 'UNKNOWN';\n\n// Extract final amount - Improved with multiple fallbacks\nlet finalAmount = 0;\n\nconst amountMatches = text.match(/Amount \\+ fee:.*?(\\d+)/gi);\nif (amountMatches && amountMatches.length > 0) {\n  finalAmount = parseInt(amountMatches[amountMatches.length - 1]);\n} else {\n  // Stronger fallback: look for RECEIVER_AMT in the table\n  const receiverMatch = text.match(/RECEIVER_AMT\\s*\\|\\s*(\\d+)/i);\n  if (receiverMatch) finalAmount = parseInt(receiverMatch[1]);\n}\n\nconst hashMatch = text.match(/Payment hash:\\s*([a-f0-9]+)/i);\nconst preimageMatch = text.match(/preimage:\\s*([a-f0-9]+)/i);\n\nreturn [{\n  json: {\n    success: finalStatus === \"SUCCEEDED\",\n    status: finalStatus,\n    amount: finalAmount,\n    payment_fee: 0,\n    payment_hash: hashMatch ? hashMatch[1] : \"N/A\",\n    preimage: preimageMatch ? preimageMatch[1] : null,\n    raw_stdout: text.substring(0, 700)\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -663,7 +663,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "9641ca6f-2dd6-447e-9e55-941e2bfc751d",
+  "versionId": "9940265f-c106-4ee9-9c43-d4e15584a9a8",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "90674cc3e99f79254920211fd6f118b4c8ca8211843aa0957f7c7ec0bdb9a219"
