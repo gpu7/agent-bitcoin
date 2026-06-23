@@ -13,7 +13,7 @@
       "typeVersion": 3.1,
       "position": [
         1120,
-        192
+        288
       ],
       "id": "45973533-0f86-4768-b3d5-6740f4617906",
       "name": "Agent-B"
@@ -27,7 +27,7 @@
       "typeVersion": 1,
       "position": [
         -2064,
-        400
+        512
       ],
       "id": "193cd6f0-1e78-45cf-be9f-78b3e85ad146",
       "name": "xAI Grok Chat Model",
@@ -47,7 +47,7 @@
       "typeVersion": 1,
       "position": [
         1200,
-        416
+        512
       ],
       "id": "5b40f9fc-ad52-44af-92fd-7987046d85dd",
       "name": "xAI Grok Chat Model1",
@@ -70,7 +70,7 @@
       "typeVersion": 2.1,
       "position": [
         896,
-        192
+        288
       ],
       "id": "fd7419ec-8acb-4b55-96e4-4aa5b74d96e7",
       "name": "Send Email Report",
@@ -94,7 +94,7 @@
       "typeVersion": 3.2,
       "position": [
         448,
-        192
+        288
       ],
       "id": "195d7fb4-aa12-46f7-9efb-f504fe96318e",
       "name": "Merge"
@@ -129,7 +129,7 @@
       "typeVersion": 2.3,
       "position": [
         0,
-        32
+        96
       ],
       "id": "30e78d82-dffa-4b6c-898c-e451badc2713",
       "name": "Did Payment Succeed",
@@ -145,7 +145,7 @@
       "typeVersion": 3.4,
       "position": [
         672,
-        192
+        288
       ],
       "id": "8f6a5ea6-f98e-4d7a-90b9-974c753f635a",
       "name": "Get Final State"
@@ -179,7 +179,7 @@
       "typeVersion": 2.3,
       "position": [
         -1344,
-        96
+        192
       ],
       "id": "d2db2ce3-725d-489e-91b6-a456e0691773",
       "name": "Check Payment Amount"
@@ -213,7 +213,7 @@
       "typeVersion": 2.3,
       "position": [
         -1568,
-        176
+        288
       ],
       "id": "9f213ba8-5e2a-4591-a956-d87fd80c0bff",
       "name": "Check Payment Decision",
@@ -230,7 +230,7 @@
       "typeVersion": 2.1,
       "position": [
         -2368,
-        176
+        288
       ],
       "id": "b49cee4b-3735-40cd-a370-49b6cb517593",
       "name": "Webhook",
@@ -254,7 +254,7 @@
       "typeVersion": 3.1,
       "position": [
         -2144,
-        176
+        288
       ],
       "id": "4bc2ee56-5b22-4dd0-b98b-c90a943ff782",
       "name": "Payment Decision Agent",
@@ -269,7 +269,7 @@
       "typeVersion": 2,
       "position": [
         -1792,
-        176
+        288
       ],
       "id": "391486b6-b4d1-4cbb-938a-0b125f37af3c",
       "name": "Parse Payment Decision Agent Output"
@@ -282,7 +282,7 @@
       "typeVersion": 2,
       "position": [
         -2368,
-        640
+        800
       ],
       "id": "f12b4268-be1a-4efe-b0b3-c12cbfe241a0",
       "name": "Calculate Fixed Fee",
@@ -296,7 +296,7 @@
       "typeVersion": 2,
       "position": [
         -1120,
-        32
+        96
       ],
       "id": "3395eadc-8f44-4539-8c27-dada5ecadc2a",
       "name": "Payment Accepted"
@@ -309,7 +309,7 @@
       "typeVersion": 1,
       "position": [
         -896,
-        32
+        96
       ],
       "id": "1e36e109-6967-4c83-8075-4a4022eebd37",
       "name": "Create Invoice Agent-B"
@@ -322,7 +322,7 @@
       "typeVersion": 1,
       "position": [
         -448,
-        32
+        96
       ],
       "id": "28f7e105-0211-46fb-9ab1-375a9abbf767",
       "name": "Pay Invoice Agent-X"
@@ -335,20 +335,20 @@
       "typeVersion": 2,
       "position": [
         -672,
-        32
+        96
       ],
       "id": "610739b5-cb67-42b4-a4bd-3315689f15cf",
       "name": "Parse Invoice Output"
     },
     {
       "parameters": {
-        "jsCode": "// Parse Payment Result - Using 'amount' for consistency\nconst text = items[0].json.stdout || '';\n\n// Get final status\nconst statusMatches = text.match(/Payment status:\\s*(SUCCEEDED|IN_FLIGHT|FAILED|UNKNOWN)/gi);\nconst finalStatus = statusMatches ? statusMatches[statusMatches.length - 1].toUpperCase() : 'UNKNOWN';\n\n// Extract final amount - Improved with multiple fallbacks\nlet finalAmount = 0;\n\nconst amountMatches = text.match(/Amount \\+ fee:.*?(\\d+)/gi);\nif (amountMatches && amountMatches.length > 0) {\n  finalAmount = parseInt(amountMatches[amountMatches.length - 1]);\n} else {\n  // Stronger fallback: look for RECEIVER_AMT in the table\n  const receiverMatch = text.match(/RECEIVER_AMT\\s*\\|\\s*(\\d+)/i);\n  if (receiverMatch) finalAmount = parseInt(receiverMatch[1]);\n}\n\nconst hashMatch = text.match(/Payment hash:\\s*([a-f0-9]+)/i);\nconst preimageMatch = text.match(/preimage:\\s*([a-f0-9]+)/i);\n\nreturn [{\n  json: {\n    success: finalStatus === \"SUCCEEDED\",\n    status: finalStatus,\n    amount: finalAmount,\n    payment_fee: 0,\n    payment_hash: hashMatch ? hashMatch[1] : \"N/A\",\n    preimage: preimageMatch ? preimageMatch[1] : null,\n    raw_stdout: text.substring(0, 700)\n  }\n}];"
+        "jsCode": "// Parse Payment Result\nconst text = items[0].json.stdout || '';\n\n// === Status (get the LAST occurrence) ===\nconst statusMatches = text.match(/Payment status:\\s*(SUCCEEDED|IN_FLIGHT|FAILED|UNKNOWN)/gi);\nlet finalStatus = 'UNKNOWN';\n\nif (statusMatches && statusMatches.length > 0) {\n  // Take the last match and extract only the status word\n  const lastMatch = statusMatches[statusMatches.length - 1];\n  const statusWord = lastMatch.match(/(SUCCEEDED|IN_FLIGHT|FAILED|UNKNOWN)/i);\n  if (statusWord) finalStatus = statusWord[1].toUpperCase();\n}\n\n// === Amount ===\nlet finalAmount = 0;\nconst amountLineMatch = text.match(/Amount \\+ fee:\\s*(\\d+)/gi);\nif (amountLineMatch && amountLineMatch.length > 0) {\n  const lastLine = amountLineMatch[amountLineMatch.length - 1];\n  const numMatch = lastLine.match(/(\\d+)/);\n  if (numMatch) finalAmount = parseInt(numMatch[1]);\n}\n\nif (finalAmount === 0) {\n  const receiverMatch = text.match(/RECEIVER_AMT\\s*\\|\\s*(\\d+)/i);\n  if (receiverMatch) finalAmount = parseInt(receiverMatch[1]);\n}\n\n// === Hash & Preimage ===\nconst hashMatch = text.match(/Payment hash:\\s*([a-f0-9]+)/i);\nconst preimageMatch = text.match(/preimage:\\s*([a-f0-9]+)/i);\n\nreturn [{\n  json: {\n    success: finalStatus === \"SUCCEEDED\",\n    status: finalStatus,\n    amount: finalAmount,\n    payment_fee: 0,\n    payment_hash: hashMatch ? hashMatch[1] : \"N/A\",\n    preimage: preimageMatch ? preimageMatch[1] : null,\n    raw_stdout: text.substring(0, 700)\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         -224,
-        32
+        96
       ],
       "id": "04976155-8a63-4ccb-a819-65e567fc1414",
       "name": "Parse Payment Result"
@@ -363,7 +363,7 @@
       "typeVersion": 3.4,
       "position": [
         224,
-        416
+        384
       ],
       "id": "8565b62f-7d09-43c8-9e5b-573175c46fa9",
       "name": "Parse Check Payment Amount False"
@@ -393,7 +393,7 @@
       "typeVersion": 3.4,
       "position": [
         224,
-        224
+        192
       ],
       "id": "abcc66fc-ef2e-4654-bf11-cd342b49e569",
       "name": "Parse Did Payment Succeed False"
@@ -407,8 +407,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        240,
-        640
+        224,
+        576
       ],
       "id": "21d34612-75dd-41da-a13c-40876135f146",
       "name": "Parse Check Payment Decision False"
@@ -663,7 +663,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "9940265f-c106-4ee9-9c43-d4e15584a9a8",
+  "versionId": "ba81782f-de48-49b0-a32c-cf15cf3da9ad",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "90674cc3e99f79254920211fd6f118b4c8ca8211843aa0957f7c7ec0bdb9a219"
