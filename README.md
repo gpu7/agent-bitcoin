@@ -19,5 +19,12 @@ A lightweight Python SDK that enables AI agents to send and receive Bitcoin/Ligh
 
 ## Installation
 
+### From PyPi
+pip install agent-bitcoin
+
+### Install test
 ```bash
 pip install agent-bitcointest
+
+### Install from source
+```bash

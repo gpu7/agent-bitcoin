@@ -1,21 +1,56 @@
 """
 Agent-Bitcoin SDK
-Lightning payments between autonomous AI agents.
+Lightning Network payments for autonomous AI Agents.
 """
 
-from .client import AgentBitcoinClient
+__version__ = "0.1.0"
+
 from .models import (
+    LightningConfig,
     Invoice,
     Payment,
     PaymentResult,
-    LightningConfig,
+    InvoiceCreationResult,
 )
 
-__version__ = "0.1.0"
+from .client import AgentBitcoinClient
+from .lightning import LightningManager, Lightning
+from .exceptions import (
+    AgentBitcoinError,
+    LightningConnectionError,
+    InvoiceCreationError,
+    PaymentError,
+    InsufficientBalanceError,
+    NoRouteError,
+    InvoiceExpiredError,
+    MacaroonError,
+    ValidationError,
+)
+
 __all__ = [
+    # Main classes
     "AgentBitcoinClient",
+    "LightningManager",
+    "Lightning",
+    
+    # Models
+    "LightningConfig",
     "Invoice",
     "Payment",
     "PaymentResult",
-    "LightningConfig",
+    "InvoiceCreationResult",
+    
+    # Exceptions
+    "AgentBitcoinError",
+    "LightningConnectionError",
+    "InvoiceCreationError",
+    "PaymentError",
+    "InsufficientBalanceError",
+    "NoRouteError",
+    "InvoiceExpiredError",
+    "MacaroonError",
+    "ValidationError",
 ]
+
+# Convenience alias for quick usage
+Lightning = LightningManager

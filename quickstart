@@ -1,0 +1,20 @@
+from agent_bitcoin import AgentBitcoinClient, LightningConfig
+
+# Configure connection to your LND node
+config = LightningConfig(
+    host="localhost",
+    port=8080,                    # LND REST port
+    macaroon="your_base64_macaroon_here",   # From your LND macaroon
+    network="regtest"
+)
+
+client = AgentBitcoinClient(config)
+
+# Create an invoice
+invoice = client.create_invoice(amount=1000, memo="Payment for research task")
+print("Payment Request:", invoice.payment_request)
+
+# Pay an invoice
+result = client.pay_invoice(payment_request=some_payment_request)
+print("Payment successful:", result.success)
+print("Amount paid:", result.amount)
