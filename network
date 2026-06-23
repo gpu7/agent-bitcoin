@@ -1,0 +1,3 @@
+NETWORK=regtest ./start-agent-bitcoin-infrastructure.sh
+NETWORK=testnet  ./start-agent-bitcoin-infrastructure.sh
+NETWORK=mainnet  ./start-agent-bitcoin-infrastructure.sh

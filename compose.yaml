@@ -22,9 +22,11 @@ services:
       - "28333:28333"
     volumes:
       - bitcoind-regtest-data:/root/.bitcoin
+    environment:
+      - NETWORK=${NETWORK:-regtest}          # ← Added
     command: >
       bitcoind
-      -regtest
+      -${NETWORK}                            # ← Changed
       -rpcuser=rpcuser
       -rpcpassword=rpcpass
       -rpcallowip=0.0.0.0/0
@@ -33,7 +35,7 @@ services:
       -zmqpubrawtx=tcp://0.0.0.0:28333
       -fallbackfee=0.00001000
     healthcheck:
-      test: ["CMD", "bitcoin-cli", "-regtest", "-rpcuser=rpcuser", "-rpcpassword=rpcpass", "getblockchaininfo"]
+      test: ["CMD", "bitcoin-cli", "-${NETWORK}", "-rpcuser=rpcuser", "-rpcpassword=rpcpass", "getblockchaininfo"]  # ← Changed
       interval: 5s
       timeout: 3s
       retries: 20
@@ -53,9 +55,11 @@ services:
       - "10009:10009"
     volumes:
       - agent-x-lnd-data:/root/.lnd
+    environment:
+      - NETWORK=${NETWORK:-regtest}          # ← Added
     command: >
       lnd
-      --bitcoin.regtest
+      --bitcoin.${NETWORK}                   # ← Changed
       --bitcoin.node=bitcoind
       --bitcoind.rpcuser=rpcuser
       --bitcoind.rpcpass=rpcpass
@@ -67,7 +71,7 @@ services:
       --restlisten=0.0.0.0:8080
       --debuglevel=info
     healthcheck:
-      test: ["CMD", "lncli", "--network=regtest", "getinfo"]
+      test: ["CMD", "lncli", "--network=${NETWORK}", "getinfo"]   # ← Changed
       interval: 8s
       timeout: 5s
       retries: 25
@@ -87,9 +91,11 @@ services:
       - "10010:10009"
     volumes:
       - agent-b-lnd-data:/root/.lnd
+    environment:
+      - NETWORK=${NETWORK:-regtest}          # ← Added
     command: >
       lnd
-      --bitcoin.regtest
+      --bitcoin.${NETWORK}                   # ← Changed
       --bitcoin.node=bitcoind
       --bitcoind.rpcuser=rpcuser
       --bitcoind.rpcpass=rpcpass
@@ -101,7 +107,7 @@ services:
       --restlisten=0.0.0.0:8080
       --debuglevel=info
     healthcheck:
-      test: ["CMD", "lncli", "--network=regtest", "getinfo"]
+      test: ["CMD", "lncli", "--network=${NETWORK}", "getinfo"]   # ← Changed
       interval: 8s
       timeout: 5s
       retries: 25
@@ -109,7 +115,6 @@ services:
 
   n8n:
     build: .
-    # image: docker.n8n.io/n8nio/n8n:latest
     container_name: n8n
     restart: unless-stopped
     networks:
