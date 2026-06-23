@@ -1,3 +1,9 @@
 NETWORK=regtest ./start-agent-bitcoin-infrastructure.sh
 NETWORK=testnet  ./start-agent-bitcoin-infrastructure.sh
 NETWORK=mainnet  ./start-agent-bitcoin-infrastructure.sh
+
+Running ./start-agent-bitcoin-infrastructure.sh → uses regtest (default)
+Running ./start-agent-bitcoin-infrastructure.sh testnet → uses testnet
+Running ./start-agent-bitcoin-infrastructure.sh mainnet → uses mainnet
+
+
