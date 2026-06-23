@@ -1,6 +1,10 @@
 #!/bin/bash
 echo "=== Agent-Bitcoin Full Infrastructure Start (Updated with Manual Channel Flow) ==="
 
+NETWORK=${1:-regtest}   # Default is regtest. You can pass testnet or mainnet
+echo "=== Starting Agent-Bitcoin on $NETWORK ==="
+export NETWORK=$NETWORK
+
 # Clean start
 docker compose down -v --remove-orphans 2>/dev/null || true
 docker compose up -d
