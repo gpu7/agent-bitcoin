@@ -23,10 +23,10 @@ services:
     volumes:
       - bitcoind-regtest-data:/root/.bitcoin
     environment:
-      - NETWORK=${NETWORK:-regtest}          # ← Added
+      - NETWORK=${NETWORK:-regtest}
     command: >
       bitcoind
-      -${NETWORK}                            # ← Changed
+      -${NETWORK}
       -rpcuser=rpcuser
       -rpcpassword=rpcpass
       -rpcallowip=0.0.0.0/0
@@ -35,7 +35,7 @@ services:
       -zmqpubrawtx=tcp://0.0.0.0:28333
       -fallbackfee=0.00001000
     healthcheck:
-      test: ["CMD", "bitcoin-cli", "-${NETWORK}", "-rpcuser=rpcuser", "-rpcpassword=rpcpass", "getblockchaininfo"]  # ← Changed
+      test: ["CMD", "bitcoin-cli", "-${NETWORK}", "-rpcuser=rpcuser", "-rpcpassword=rpcpass", "getblockchaininfo"]
       interval: 5s
       timeout: 3s
       retries: 20
