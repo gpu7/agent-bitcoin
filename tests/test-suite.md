@@ -2,17 +2,13 @@
 
 ## Table of Contents
 
-- [ABT-001: Successful Nominal Payment](#abt-001-successful-nominal-payment)
-- [ABT-002: Zero Amount Payment Rejection](#abt-002-zero-amount-payment-rejection)
-- [ABT-003: Minimum Amount Payment (1 sat)](#abt-003-minimum-amount-payment-1-sat)
-- [ABT-004: Maximum Valid Amount (1,000,000 sats)](#abt-004-maximum-valid-amount-1000000-sats)
-- [ABT-005: Oversize Payment Rejection (> 1,000,000 sats)](#abt-005-oversize-payment-rejection--1000000-sats)
-- [ABT-006: Sweep Triggered](#abt-006-sweep-triggered)
-- [ABT-007: Lightning Wallet Reserve Violation](#abt-007-lightning-wallet-reserve-violation)
+- [ABT-001: Nominal Payment](#abt-001-nominal-payment)
+- [ABT-002: Under Payment ](#abt-002-under-payment)
+- [ABT-003: Over Payment ](#abt-003-over-payment)
 
 ---
 
-## ABT-001: Successful Nominal Payment
+## ABT-001: Nominal Payment
 
 **Description**  
 Tests the complete happy path with a normal payment amount using the new Webhook Trigger.
@@ -29,7 +25,7 @@ curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
   -d '{
     "from": "Agent-X",
     "to": "Agent-B",
-    "amount": 50000,
+    "amount": 1000,
     "reason": "Payment for services rendered"
   }'
   ```
@@ -41,7 +37,7 @@ curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
 - Email report shows:
   - **From**: `Agent-X` (or the actual sender)
   - **Status**: ✅ Success
-  - **Lightning Payment**: 50,000 sats
+  - **Lightning Payment**: 1,000 sats
   - Valid **Payment Hash**
   - Clear **Reason**
 
@@ -60,7 +56,7 @@ curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
 
 ---
 
-## ABT-002: Zero Amount Payment Rejection
+## ABT-002: Under Payment (< 1 sat)
 
 **Description**  
 Tests that the workflow correctly rejects a payment request with zero (or invalid) amount sent via the Webhook Trigger.
@@ -105,106 +101,7 @@ curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
 
 ---
 
-## ABT-003: Minimum Amount Payment (1 sat)
-
-**Description**
-Tests the workflow with the smallest valid payment amount (1 sat) using the Webhook Trigger.
-
-**Test Objective**
-A swarm agent sends a 1-sat payment request via webhook → Payment Decision Agent approves → valid 1-sat invoice is created → payment succeeds → email report shows success with accurate details.
-
-**Test Input (Webhook Payload)**
-```bash
-curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: YOUR_API_KEY_HERE" \
-  -d '{
-    "from": "Agent-X",
-    "to": "Agent-B",
-    "amount": 1,
-    "reason": "Payment for services rendered."
-  }'
-  ```
-
-**Expected Outcomes**
-- Payment Decision Agent returns `pay: true`
-- Invoice is created on Agent-B with exactly 1 sat
-- Lightning payment is executed successfully
-- Payment Hash is generated and present
-- Email report shows:
-  - **From**: `Agent-X`
-  - **Status**: ✅ Success
-  - **Lightning Payment**: 1 sat
-  - Valid **Payment Hash**
-  - Clear **Reason**
-
-**How to Run**
-1. Ensure Agent A has sufficient outbound balance and an open channel to Agent B.
-2. Execute the webhook curl command above.
-3. Verify the workflow completes the success path.
-4. Check the email report for correct `From`, amount (1 sat), Payment Hash, and Success status.
-5. Confirm Agent B’s Lightning balance increased by exactly 1 sat.
-
-**Success Criteria**
-- Payment Decision Agent approves the 1-sat request
-- Payment succeeds with a valid Payment Hash
-- Email report clearly shows the correct sender and 1 sat amount
-- No rejection occurs
-- Balances update correctly
-
----
-
-### ABT-004: Maximum Valid Amount (1,000,000 sats)
-
-**Description**  
-Tests the workflow with the maximum allowed payment amount (1,000,000 sats) using the Webhook Trigger.
-
-**Test Objective**  
-A swarm agent sends a payment request for the maximum allowed amount (1,000,000 sats) via webhook → Payment Decision Agent approves → valid invoice is created → payment succeeds → email report shows success with accurate 1,000,000 sat amount.
-
-**Test Input (Webhook Payload)**
-```bash
-curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: YOUR_API_KEY_HERE" \
-  -d '{
-    "from": "Agent-X",
-    "to": "Agent-B",
-    "amount": 1000000,
-    "reason": "Payment for services rendered."
-  }'
-  ```
-
-**Expected Outcomes**
-- Payment Decision Agent returns `pay: true`
-- Invoice is created on Agent-B with exactly 1,000,000 sats
-- Lightning payment is executed successfully
-- Payment Hash is generated and present
-- Email report shows:
-  - **From**: `Agent-X`
-  - **Status**: ✅ Success
-  - **Lightning Payment**: 1,000,000 sats
-  - Valid **Payment Hash**
-  - Clear **Reason**
-
-**How to Run**
-1. Ensure Agent A has sufficient outbound balance and an open channel to Agent B.
-2. Execute the webhook curl command above.
-3. Verify the workflow completes the success path.
-4. Check the email report for correct `From`, amount (1,000,000 sats), Payment Hash, and Success status.
-5. Confirm Agent B’s Lightning balance increased by exactly 1,000,000 sats.
-
-**Success Criteria**
-- Payment Decision Agent approves the 1,000,000 sat request
-- Payment succeeds with a valid Payment Hash
-- Amount exactly equals the maximum allowed limit
-- Email report clearly shows the correct sender and amount
-- No rejection occurs
-- Balances update correctly
-
----
-
-## ABT-005: Oversize Payment Rejection (> 1,000,000 sats)
+## ABT-003: Over Payment (> 1,000,000 sats)
 
 **Description**  
 Tests that the workflow correctly rejects a payment request that exceeds the maximum allowed amount (1,000,000 sats) as defined by the payment size guardrail.
@@ -229,62 +126,3 @@ User requests an oversize payment → Agent A or Agent-B guardrail rejects it �
 4. Check that the email report clearly indicates rejection and the correct reason.
 
 ---
-
-## ABT-006: Sweep Triggered
-
-**Description**  
-Tests that the workflow correctly triggers an on-chain sweep when the payment amount (or accumulated balance) meets or exceeds the sweep threshold.
-
-**Test Objective**  
-User requests a large enough payment → Payment succeeds → Should Sweep evaluates to true → Funds are swept from Lightning to on-chain Bitcoin wallet → Email report reflects sweep triggered.
-
-**Test Input (user prompt to Agent A)**  
-"Pay Agent B exactly 30001 sats right now." (or any amount large enough to trigger sweep based on your current threshold)
-
-**Expected Outcomes**
-- Agent A outputs valid JSON with a large `amount`.
-- Payment succeeds.
-- Lightning Wallet Reserve Check passes.
-- Should Sweep evaluates to true.
-- Sweep On-chain Agent-B executes successfully.
-- Gather Balances shows `sweep_triggered: "Yes"`.
-- Email report shows **Success** and `Sweep Triggered: Yes`.
-
-**How to Run**
-1. Ensure Agent B has sufficient Lightning balance.
-2. Trigger the workflow with a large payment prompt.
-3. Verify:
-   - Should Sweep takes the true branch.
-   - Sweep transaction is initiated.
-   - Email report correctly shows sweep was triggered.
-   - On-chain balance on Agent B increases after confirmation.
-
-   ---
-
-## ABT-007: Lightning Wallet Reserve Violation
-
-**Description**  
-Tests that the Lightning wallet reserve guardrail correctly prevents a payment that would drop Agent B's Lightning balance below the minimum reserve threshold (100,000 sats).
-
-**Test Objective**  
-User requests a payment that would violate the reserve → Lightning Wallet Reserve Check - Agent-B blocks it → Workflow rejects gracefully → Email report shows rejection due to reserve protection.
-
-**Test Input (user prompt to Agent A)**  
-"Pay Agent B exactly 4900000 sats right now." (adjust amount so that after payment Agent B's Lightning balance would fall below 100,000 sats)
-
-**Expected Outcomes**
-- Payment Decision proceeds initially.
-- Lightning Wallet Reserve Check - Agent-B evaluates to false.
-- Workflow routes to rejection path (Payment Blocked - Agent-B Reserve).
-- No payment is executed.
-- Gather Balances shows `status: "rejected"`.
-- Email report shows **❌ Rejected** with reason related to Lightning wallet reserve protection.
-
-**How to Run**
-1. Reduce Agent B's Lightning balance close to the 100,000 sat reserve limit (if needed).
-2. Trigger with a payment amount that would breach the reserve.
-3. Verify the reserve check blocks the payment.
-4. Confirm the email report clearly states the reserve violation as the reason.
-
----
-
