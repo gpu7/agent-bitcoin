@@ -1,56 +1,55 @@
 """
 Agent-Bitcoin SDK
-Lightning Network payments for autonomous AI Agents.
+=================
+
+A Python library for Lightning Network payments between autonomous AI agents.
 """
 
 __version__ = "0.1.0"
 
+from .client import AgentBitcoinClient
 from .models import (
     LightningConfig,
     Invoice,
-    Payment,
     PaymentResult,
     InvoiceCreationResult,
 )
-
-from .client import AgentBitcoinClient
-from .lightning import LightningManager, Lightning
 from .exceptions import (
     AgentBitcoinError,
-    LightningConnectionError,
     InvoiceCreationError,
     PaymentError,
+    MacaroonError,
     InsufficientBalanceError,
     NoRouteError,
-    InvoiceExpiredError,
-    MacaroonError,
-    ValidationError,
 )
 
+# Main public API
 __all__ = [
-    # Main classes
     "AgentBitcoinClient",
-    "LightningManager",
-    "Lightning",
-    
-    # Models
     "LightningConfig",
     "Invoice",
-    "Payment",
     "PaymentResult",
     "InvoiceCreationResult",
-    
-    # Exceptions
     "AgentBitcoinError",
-    "LightningConnectionError",
     "InvoiceCreationError",
     "PaymentError",
+    "MacaroonError",
     "InsufficientBalanceError",
     "NoRouteError",
-    "InvoiceExpiredError",
-    "MacaroonError",
-    "ValidationError",
 ]
 
-# Convenience alias for quick usage
-Lightning = LightningManager
+# Optional: Create a default client factory for quick usage
+def create_client(
+    macaroon_payment_decision: str = "/root/.lnd/data/chain/bitcoin/regtest/admin.macaroon",
+    macaroon_bitcoin: str = "/root/.lnd/data/chain/bitcoin/regtest/admin.macaroon",
+    container_payment_decision: str = "agent-payment-decision-lnd",
+    container_bitcoin: str = "agent-bitcoin-lnd",
+) -> AgentBitcoinClient:
+    """Convenience function to create a client with default paths."""
+    config = LightningConfig(
+        macaroon_payment_decision=macaroon_payment_decision,
+        macaroon_bitcoin=macaroon_bitcoin,
+        container_payment_decision=container_payment_decision,
+        container_bitcoin=container_bitcoin,
+    )
+    return AgentBitcoinClient(config)
