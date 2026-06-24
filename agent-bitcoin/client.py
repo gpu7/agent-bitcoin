@@ -1,18 +1,17 @@
-import base64
+from typing import Optional, Dict, Any
+from pydantic import BaseModel, Field
+import subprocess
 import json
-from typing import Optional
-import httpx
+from pathlib import Path
 
 from .models import (
     LightningConfig,
     Invoice,
-    Payment,
     PaymentResult,
     InvoiceCreationResult,
 )
 from .exceptions import (
     AgentBitcoinError,
-    LightningConnectionError,
     InvoiceCreationError,
     PaymentError,
     MacaroonError,
@@ -21,92 +20,98 @@ from .exceptions import (
 
 class AgentBitcoinClient:
     """
-    Main client for interacting with Lightning Network (LND).
+    Main SDK client for Agent-Bitcoin.
+    Abstracts docker exec calls to the two LND containers.
     """
 
-    def __init__(self, config: LightningConfig):
-        self.config = config
-        self.base_url = f"http://{config.host}:{config.port}/v1"
+    def __init__(self, config: Optional[LightningConfig] = None):
+        self.config = config or LightningConfig()
+
+        # Verify macaroons exist
+        if not self.config.macaroon_payment_decision.exists():
+            raise MacaroonError(f"Macaroon not found: {self.config.macaroon_payment_decision}")
+        if not self.config.macaroon_bitcoin.exists():
+            raise MacaroonError(f"Macaroon not found: {self.config.macaroon_bitcoin}")
+
+    def _run_lnd_command(self, container: str, cmd: list[str]) -> Dict[str, Any]:
+        """Run a command inside an LND container."""
+        full_cmd = [
+            "docker", "exec", container, "lncli",
+            "--network=regtest",
+            f"--macaroonpath={self.config.macaroon_path}",
+            *cmd
+        ]
         
-        # Prepare macaroon header
-        if not config.macaroon:
-            raise MacaroonError("Macaroon is required")
+        try:
+            result = subprocess.run(full_cmd, capture_output=True, text=True, timeout=60)
+            
+            if result.returncode != 0:
+                raise AgentBitcoinError(f"Command failed: {result.stderr.strip()}")
+            
+            # Try to parse JSON output
+            try:
+                return json.loads(result.stdout.strip())
+            except json.JSONDecodeError:
+                # Return raw stdout for commands like payinvoice that return multi-line text
+                return {"stdout": result.stdout.strip(), "raw": True}
+                
+        except subprocess.TimeoutExpired:
+            raise AgentBitcoinError("Command timed out")
+        except FileNotFoundError:
+            raise AgentBitcoinError("docker command not found. Is Docker running?")
+
+    def create_invoice(self, memo: str, amount_sats: int) -> InvoiceCreationResult:
+        """Create an invoice on Agent-Bitcoin (payee)."""
+        if amount_sats < 1 or amount_sats > 1_000_000:
+            raise InvoiceCreationError(f"Amount {amount_sats} sats is outside allowed range (1 - 1,000,000)")
+
+        cmd = ["addinvoice", f"--memo={memo}", f"--amt={amount_sats}"]
         
-        self.headers = {
-            "Grpc-Metadata-macaroon": config.macaroon,
-            "Content-Type": "application/json",
-        }
+        response = self._run_lnd_command(
+            self.config.container_bitcoin, cmd
+        )
+        
+        return InvoiceCreationResult(
+            payment_request=response.get("payment_request"),
+            r_hash=response.get("r_hash"),
+            add_index=response.get("add_index"),
+            raw_response=response
+        )
 
-        # HTTP client
-        self.client = httpx.Client(timeout=30.0, verify=False)  # verify=False for regtest self-signed certs
+    def pay_invoice(self, payment_request: str, fee_limit_sats: int = 200) -> PaymentResult:
+        """Pay an invoice from Agent-Payment-Decision (payer)."""
+        cmd = [
+            "payinvoice",
+            f"--pay_req={payment_request}",
+            f"--fee_limit={fee_limit_sats}",
+            "--force"
+        ]
+        
+        response = self._run_lnd_command(
+            self.config.container_payment_decision, cmd
+        )
+        
+        # Parse the complex stdout from lncli payinvoice
+        stdout = response.get("stdout", "")
+        
+        # Extract key fields
+        import re
+        status_match = re.search(r"Payment status:\s*(SUCCEEDED|FAILED|IN_FLIGHT)", stdout)
+        amount_match = re.search(r"Amount \+ fee:\s*(\d+)", stdout)
+        hash_match = re.search(r"Payment hash:\s*([a-f0-9]+)", stdout)
+        preimage_match = re.search(r"preimage:\s*([a-f0-9]+)", stdout)
 
-    async def acreate_invoice(
-        self, amount: int, memo: Optional[str] = None, expiry: int = 3600
-    ) -> InvoiceCreationResult:
-        """Async: Create a new Lightning invoice."""
-        payload = {
-            "value": str(amount),
-            "memo": memo or "",
-            "expiry": str(expiry),
-        }
+        success = status_match and status_match.group(1) == "SUCCEEDED"
+        
+        return PaymentResult(
+            success=success,
+            status=status_match.group(1) if status_match else "UNKNOWN",
+            amount=int(amount_match.group(1)) if amount_match else 0,
+            payment_hash=hash_match.group(1) if hash_match else None,
+            preimage=preimage_match.group(1) if preimage_match else None,
+            raw_response=response
+        )
 
-        try:
-            response = self.client.post(
-                f"{self.base_url}/invoices",
-                json=payload,
-                headers=self.headers,
-            )
-            response.raise_for_status()
-            data = response.json()
-
-            return InvoiceCreationResult(
-                payment_request=data["payment_request"],
-                r_hash=data["r_hash"],
-                amount=amount,
-                memo=memo,
-                expiry=expiry,
-            )
-        except httpx.HTTPStatusError as e:
-            raise InvoiceCreationError(f"Failed to create invoice: {e.response.text}") from e
-        except Exception as e:
-            raise LightningConnectionError(f"Connection error: {str(e)}") from e
-
-    def create_invoice(
-        self, amount: int, memo: Optional[str] = None, expiry: int = 3600
-    ) -> InvoiceCreationResult:
-        """Sync: Create a new Lightning invoice."""
-        return self.acreate_invoice(amount, memo, expiry)  # For now we call async version
-
-    def pay_invoice(self, payment_request: str, fee_limit: int = 100) -> PaymentResult:
-        """Sync: Pay a Lightning invoice."""
-        payload = {
-            "payment_request": payment_request,
-            "fee_limit": {"fixed": str(fee_limit)},
-        }
-
-        try:
-            response = self.client.post(
-                f"{self.base_url}/channels/transactions",
-                json=payload,
-                headers=self.headers,
-            )
-            response.raise_for_status()
-            data = response.json()
-
-            return PaymentResult(
-                success=True,
-                status="SUCCEEDED",
-                amount=int(data.get("payment_route", {}).get("total_amt", 0)),
-                payment_hash=data.get("payment_hash", ""),
-                preimage=data.get("payment_preimage"),
-                fee=0,  # Can be improved later
-            )
-        except httpx.HTTPStatusError as e:
-            error_msg = e.response.text
-            raise PaymentError(f"Payment failed: {error_msg}", payment_hash=None) from e
-        except Exception as e:
-            raise LightningConnectionError(f"Connection error while paying: {str(e)}") from e
-
-    def close(self):
-        """Close the HTTP client."""
-        self.client.close()
+    def get_balance(self, container: str = "agent-bitcoin-lnd") -> Dict:
+        """Get Lightning balance for a node."""
+        return self._run_lnd_command(container, ["channelbalance"])
