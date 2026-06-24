@@ -6,8 +6,8 @@ networks:
 
 volumes:
   bitcoind-regtest-data:
-  agent-x-lnd-data:
-  agent-b-lnd-data:
+  agent-payment-decision-lnd-data:
+  agent-bitcoin-lnd-data:
   n8n-data:
 
 services:
@@ -41,9 +41,9 @@ services:
       retries: 20
       start_period: 15s
 
-  agent-x-lnd:
+  agent-payment-decision-lnd:
     image: lightninglabs/lnd:v0.20.1-beta
-    container_name: agent-x-lnd
+    container_name: agent-payment-decision-lnd
     networks:
       - agent-lightning-net
     depends_on:
@@ -54,7 +54,7 @@ services:
       - "9737:9735"
       - "10009:10009"
     volumes:
-      - agent-x-lnd-data:/root/.lnd
+      - agent-payment-decision-lnd-data:/root/.lnd
     environment:
       - NETWORK=${NETWORK:-regtest}          # ← Added
     command: >
@@ -77,9 +77,9 @@ services:
       retries: 25
       start_period: 30s
 
-  agent-b-lnd:
+  agent-bitcoin-lnd:
     image: lightninglabs/lnd:v0.20.1-beta
-    container_name: agent-b-lnd
+    container_name: agent-bitcoin-lnd
     networks:
       - agent-lightning-net
     depends_on:
@@ -90,7 +90,7 @@ services:
       - "9738:9735"
       - "10010:10009"
     volumes:
-      - agent-b-lnd-data:/root/.lnd
+      - agent-bitcoin-lnd-data:/root/.lnd
     environment:
       - NETWORK=${NETWORK:-regtest}          # ← Added
     command: >
@@ -120,8 +120,8 @@ services:
     networks:
       - agent-lightning-net
     depends_on:
-      - agent-x-lnd
-      - agent-b-lnd
+      - agent-payment-decision-lnd
+      - agent-bitcoin-lnd
     ports:
       - "5678:5678"
     environment:

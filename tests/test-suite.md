@@ -16,17 +16,17 @@
 Tests the complete workflow with a normal payment amount.
 
 **Test Objective**  
-A swarm agent sends a valid payment request via webhook → Payment Decision Agent approves → full success path (Create Invoice → Pay Invoice → Parse Payment Result) → correct email report with proper `from` field and extracted amount.
+A swarm agent sends a valid payment request via webhook → Agent-Payment-Decision approves → full success path (Create Invoice → Pay Invoice → Parse Payment Result) → correct email report with proper `from` field and extracted amount.
 
-**Test Input (Webhook Payload)**
+**Test Input**
 
 ```bash
 curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
   -H "Content-Type: application/json" \
   -H "x-api-key: YOUR_API_KEY_HERE" \
   -d '{
-    "from": "Agent-X",
-    "to": "Agent-B",
+    "from": "Agent-Payment-Decision",
+    "to": "Agent-Bitcoin",
     "amount": 1000,
     "reason": "Payment for services rendered"
   }'
@@ -38,8 +38,8 @@ curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
 - Lightning payment is executed successfully
 - `Parse Payment Result` correctly extracts `amount`, `payment_hash`, and `preimage`
 - Email report shows:
-  - **From**: `Agent-X`
-  - **To**: `Agent-B`
+  - **From**: `Agent-Payment-Decision`
+  - **To**: `Agent-Bitcoin`
   - **Status**: ✅ Success
   - **Payment Amount**: 1,000 sats
   - Valid **Payment Hash**
@@ -47,7 +47,7 @@ curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
   - Clear **Reason**
 
 **How to Run**
-1. Ensure Agent A has sufficient outbound balance and an open channel to Agent B.
+1. Ensure Agent-Payment-Decision has sufficient outbound balance and an open channel to Agent-Bitcoin.
 2. Execute the webhook curl command above.
 3. Verify the workflow completes the success path.
 4. Check the email report for correct `From`, amount, hash, and status.
@@ -67,30 +67,30 @@ curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
 Tests that the workflow correctly rejects a payment request with zero (or invalid) amount sent via the Webhook Trigger.
 
 **Test Objective**  
-A swarm agent sends a payment request with amount = 0 → Payment Decision Agent rejects it → workflow takes the rejection path → email report clearly shows rejection with appropriate reason.
+A swarm agent sends a payment request with amount = 0 → Agent-Payment-Decision rejects it → workflow takes the rejection path → email report clearly shows rejection with appropriate reason.
 
-**Test Input (Webhook Payload)**
+**Test Input**
 
 ```bash
 curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
   -H "Content-Type: application/json" \
   -H "x-api-key: YOUR_API_KEY_HERE" \
   -d '{
-    "from": "Agent-X",
-    "to": "Agent-B",
+    "from": "Agent-Payment-Decision",
+    "to": "Agent-Bitcoin",
     "amount": 0,
     "reason": "Payment is < 1 sat."
   }'
   ```
 
 **Expected Outcomes**
-- Payment Decision Agent returns `pay: false`
+- Agent-Payment-Decision returns `pay: false`
 - Workflow follows the rejection path
 - No Lightning payment is attempted
 - Email report shows:
   - **Status**: ❌ Rejected
   - **Reason**: Clear explanation (e.g. "Amount must be at least 1 sat")
-  - **From**: `Agent-X`
+  - **From**: `Agent-Payment-Decision`
 
 **How to Run**
 1. Execute the webhook curl command above (with `amount: 0`).
@@ -114,28 +114,28 @@ Tests that the workflow correctly rejects a payment request that exceeds the max
 **Test Objective**  
 User requests an oversize payment → No payment is attempted → Email report shows clear rejection with appropriate reason.
 
-**Test Input (user prompt to Agent A)**  
+**Test Input**  
 ```bash
 curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
   -H "Content-Type: application/json" \
   -H "x-api-key: YOUR_API_KEY_HERE" \
   -d '{
-    "from": "Agent-X",
-    "to": "Agent-B",
+    "from": "Agent-Payment-Decision",
+    "to": "Agent-Bitcoin",
     "amount": 1000001,
     "reason": "Payment is > 1,000,000 sats."
   }'
   ```
 
 **Expected Outcomes**
-- Agent-X either refuses in plain text or outputs `{"pay": true, "amount": 1000001, ...}`.
-- Agent-B Payment Size Guardrail catches the violation (amount > 1,000,000 sats).
+- Agent-Payment-Decision either refuses in plain text or outputs `{"pay": true, "amount": 1000001, ...}`.
+- Agent-Bitcoin Payment Size Guardrail catches the violation (amount > 1,000,000 sats).
 - Workflow routes to rejection path (no invoice created, no payment sent).
 - Gather Balances shows `status: "rejected"`.
 - Email report shows **❌ Rejected** with a clear reason (e.g., "Payment amount exceeds maximum allowed limit of 1,000,000 sats").
 
 **How to Run**
-1. Trigger the workflow manually with the prompt "Pay Agent B exactly 1000001 sats right now."
+1. Trigger the workflow manually with the prompt "Pay Agent-Bitcoin exactly 1000001 sats right now."
 2. Verify the execution path goes through the size guardrail rejection branch.
 3. Confirm no Lightning payment occurred (balances unchanged).
 4. Check that the email report clearly indicates rejection and the correct reason.
