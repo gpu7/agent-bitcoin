@@ -9,11 +9,17 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        -2224,
-        -288
+        -2288,
+        416
       ],
-      "id": "b212b0aa-7620-4dd3-b7b1-f742ef0555c3",
-      "name": "xAI Grok Chat Model"
+      "id": "f5cee593-18ed-4f70-94a4-eab2b55dd740",
+      "name": "xAI Grok Chat Model",
+      "credentials": {
+        "xAiApi": {
+          "id": "Rj9TNEQhtlSp3YiS",
+          "name": "xAi account"
+        }
+      }
     },
     {
       "parameters": {
@@ -23,29 +29,41 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        1040,
-        -288
+        752,
+        416
       ],
-      "id": "23f640c6-2503-4d35-a66d-e850edc449f3",
-      "name": "xAI Grok Chat Model1"
+      "id": "454a5c42-b277-458a-98fd-8696eff4d8ca",
+      "name": "xAI Grok Chat Model1",
+      "credentials": {
+        "xAiApi": {
+          "id": "Rj9TNEQhtlSp3YiS",
+          "name": "xAi account"
+        }
+      }
     },
     {
       "parameters": {
         "fromEmail": "richardcaseyhpc@protonmail.com",
         "toEmail": "richardcaseyhpc@protonmail.com",
         "subject": "Agent Bitcoin Payment Report",
-        "html": "=<p><strong>Lightning Payment Report</strong></p>\n<p><strong>Date:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n<p><strong>Time:</strong> {{ $now.format('HH:mm:ss') }}</p>\n<p><strong>From:</strong> Agent-X</p>\n<p><strong>To:</strong> Agent-B</p>\n<hr>\n\n<p><strong>Status:</strong> \n  {{ $node[\"Get Final State\"].json.status === 'rejected' ? '❌ Rejected' : '✅ Success' }}\n</p>\n\n<p><strong>Payment Amount:</strong> {{ $node[\"Get Final State\"].json.amount }} sats</p>\n<p><strong>Payment Fee:</strong> {{ $node[\"Get Final State\"].json.payment_fee }} sats</p>\n\n<p><strong>Payment Hash:</strong> {{ $node[\"Get Final State\"].json.payment_hash }}</p>\n<p><strong>Reason:</strong> {{ $node[\"Get Final State\"].json.reason }}</p>\n\n{{ $node[\"Get Final State\"].json.status === 'rejected' ? \n  '<p><strong>Rejection Message:</strong> ' + \n  ($node[\"Get Final State\"].json.rejection_reason || \n   $node[\"Get Final State\"].json.agent_b_message || \n   'Unknown rejection reason') + '</p>' \n: \n  '<p><strong>Preimage:</strong> ' + $node[\"Get Final State\"].json.preimage + '</p>' \n}}",
+        "html": "=<p><strong>Lightning Payment Report</strong></p>\n<p><strong>Date:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n<p><strong>Time:</strong> {{ $now.format('HH:mm:ss') }}</p>\n<p><strong>From:</strong> Agent-Payment-Decision</p>\n<p><strong>To:</strong> Agent-Bitcoin</p>\n<hr>\n\n<p><strong>Status:</strong> \n  {{ $node[\"Get Final State\"].json.status === 'rejected' ? '❌ Rejected' : '✅ Success' }}\n</p>\n\n<p><strong>Payment Amount:</strong> {{ $node[\"Get Final State\"].json.amount }} sats</p>\n<p><strong>Payment Fee:</strong> {{ $node[\"Get Final State\"].json.payment_fee }} sats</p>\n\n<p><strong>Payment Hash:</strong> {{ $node[\"Get Final State\"].json.payment_hash }}</p>\n<p><strong>Reason:</strong> {{ $node[\"Get Final State\"].json.reason }}</p>\n\n{{ $node[\"Get Final State\"].json.status === 'rejected' ? \n  '<p><strong>Rejection Message:</strong> ' + \n  ($node[\"Get Final State\"].json.rejection_reason || \n   $node[\"Get Final State\"].json.agent_b_message || \n   'Unknown rejection reason') + '</p>' \n: \n  '<p><strong>Preimage:</strong> ' + $node[\"Get Final State\"].json.preimage + '</p>' \n}}",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        736,
-        -512
+        448,
+        192
       ],
-      "id": "9a2ceb5e-1ec8-4e64-9721-a26d5d869f25",
+      "id": "abb7a66c-82db-4d90-a9d6-ad21726930c8",
       "name": "Send Email Report",
-      "webhookId": "8046c746-8f9f-4a48-b844-a4f79bc97f0c"
+      "webhookId": "8046c746-8f9f-4a48-b844-a4f79bc97f0c",
+      "credentials": {
+        "smtp": {
+          "id": "pxMRbfC9bLLnaGQk",
+          "name": "SMTP account"
+        }
+      }
     },
     {
       "parameters": {
@@ -58,10 +76,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        288,
-        -512
+        0,
+        192
       ],
-      "id": "464714a8-b8c5-4d3f-9088-c233abb1f985",
+      "id": "0531a5c9-1d79-4acd-8de4-9242a512b2e8",
       "name": "Merge"
     },
     {
@@ -93,10 +111,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -160,
-        -704
+        -448,
+        96
       ],
-      "id": "1b7e7b1e-9135-4ec6-93bd-01b4b7fe79bd",
+      "id": "0ef2f922-e1df-4c89-9388-34f7441f7b59",
       "name": "Did Payment Succeed",
       "notes": "Check whether Lightning payment was successful or not.\n\n"
     },
@@ -109,45 +127,11 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        512,
-        -512
+        224,
+        192
       ],
-      "id": "0873cd98-96b3-4038-bb3e-f0d60ab1895f",
+      "id": "3877c9d2-b8a7-4eb6-81ef-2544bee1fbdb",
       "name": "Get Final State"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "e091b38f-584d-4e5e-a831-bd52db13b661",
-              "leftValue": "={{ \n  Number(\n    JSON.parse($json.output || '{}').amount || $json.amount || 0\n  ) >= 1 && \n  Number(\n    JSON.parse($json.output || '{}').amount || $json.amount || 0\n  ) <= 1000000\n}}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -1504,
-        -608
-      ],
-      "id": "b4b2f092-644b-4f22-8bad-ea4aa1d75be3",
-      "name": "Check Payment Amount"
     },
     {
       "parameters": {
@@ -177,10 +161,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1728,
-        -512
+        -1792,
+        192
       ],
-      "id": "7e3a4dbc-9e54-4814-b299-2cb4d1e8c3d9",
+      "id": "e0fd9e96-4ded-4cb4-97d3-8e8b3d309376",
       "name": "Check Payment Decision",
       "notes": "Checks if Agent-X wants to proceed with a payment to Agent-B."
     },
@@ -194,12 +178,18 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -2528,
-        -512
+        -2592,
+        192
       ],
-      "id": "b4800be1-bf5d-4ebe-a057-b2fd2f44b339",
+      "id": "f0f691d3-1bf8-480a-bb4e-36b567a04556",
       "name": "Webhook",
-      "webhookId": "21393d4b-4f1c-4134-8547-92294910fe7a"
+      "webhookId": "21393d4b-4f1c-4134-8547-92294910fe7a",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "MtWTftusX6KElmbR",
+          "name": "Header Auth account"
+        }
+      }
     },
     {
       "parameters": {
@@ -208,10 +198,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2528,
-        0
+        -2592,
+        608
       ],
-      "id": "a6d36067-0272-4a35-9d1d-83e25da4d20c",
+      "id": "2ee88541-327d-4992-8cd7-f4932b6ab036",
       "name": "Calculate Fixed Fee",
       "disabled": true
     },
@@ -222,10 +212,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1280,
-        -704
+        -1568,
+        96
       ],
-      "id": "edefe8e3-d98e-45d3-833e-9380fc700d4b",
+      "id": "bbc7852b-ee77-4a7a-8212-672ef94a9782",
       "name": "Payment Accepted"
     },
     {
@@ -235,10 +225,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -832,
-        -704
+        -1120,
+        96
       ],
-      "id": "d7589304-19a5-4960-bcd5-b1b6fe0f8af8",
+      "id": "db470542-eaab-4b9e-be24-6f215aa96b90",
       "name": "Parse Invoice Output"
     },
     {
@@ -248,26 +238,11 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -384,
-        -704
+        -672,
+        96
       ],
-      "id": "04722fbe-cad2-4210-9295-30ade040627e",
+      "id": "a1c49f59-f8b7-434c-a2ab-a1ded6a1b126",
       "name": "Parse Payment Result"
-    },
-    {
-      "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={\n  \"success\": false,\n  \"pay\": false,\n  \"status\": \"rejected\",\n  \"amount\": \"{{ Number($json.amount || 0) }}\",\n  \"payment_fee\": 0,\n  \"payment_hash\": \"N/A\",\n  \"preimage\": null,\n  \"reason\": \"Amount is outside allowed range\",\n  \"agent_bitcoin_message\": \"Payment was rejected by guardrail\",\n  \"rejection_reason\": \"Payment amount {{ Number($json.amount || 0) }} sats is outside allowed range (1 to 1,000,000 sats)\"\n}\n",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        64,
-        -416
-      ],
-      "id": "041917b5-9663-4b0e-8f86-ae1bb011484f",
-      "name": "Parse Check Payment Amount False"
     },
     {
       "parameters": {
@@ -278,10 +253,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        64,
-        -800
+        -224,
+        0
       ],
-      "id": "af1d18db-f864-4f56-b256-2996a0dd8b41",
+      "id": "5c47e6f2-24ea-426f-8117-ba481d5bfe9e",
       "name": "Parse Did Payment Succeed True"
     },
     {
@@ -293,10 +268,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        64,
-        -608
+        -224,
+        192
       ],
-      "id": "f8adc5d6-caa1-4a67-b08b-720887160df8",
+      "id": "867c80af-f284-4b42-8907-b5844d3cdb11",
       "name": "Parse Did Payment Succeed False"
     },
     {
@@ -308,10 +283,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        64,
-        -224
+        -224,
+        384
       ],
-      "id": "38b899c2-c365-442e-b9c3-145d8cea47eb",
+      "id": "d68a3642-58a1-40d5-a5b0-01f29f32ba5f",
       "name": "Parse Check Payment Decision False"
     },
     {
@@ -325,10 +300,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        960,
-        -512
+        672,
+        192
       ],
-      "id": "e24c6ee5-57fa-4fb7-8049-7bfba65c3736",
+      "id": "278c861e-7785-4a4e-85db-fc34ce9835f4",
       "name": "Agent-Bitcoin"
     },
     {
@@ -338,10 +313,10 @@
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        -1056,
-        -704
+        -1344,
+        96
       ],
-      "id": "8e9e046c-2a9c-4394-bd3b-5f6791c7fa32",
+      "id": "75c585a2-ffdf-48c8-bc18-f6f67d117002",
       "name": "Create Invoice Agent-Bitcoin"
     },
     {
@@ -355,10 +330,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -2304,
-        -512
+        -2368,
+        192
       ],
-      "id": "614f734e-603d-49db-9cf4-dd01ca8c34cf",
+      "id": "59a26612-e637-49c7-977c-977e625c8dca",
       "name": "Agent-Payment-Decision",
       "retryOnFail": true,
       "waitBetweenTries": 3000
@@ -370,10 +345,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1952,
-        -512
+        -2016,
+        192
       ],
-      "id": "6483abab-7efc-4cc0-a2e3-46a0f831468a",
+      "id": "d4b14a63-a32d-45d4-bc45-fc5332cbe2c2",
       "name": "Parse Agent-Payment-Decision Output"
     },
     {
@@ -383,10 +358,10 @@
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        -608,
-        -704
+        -896,
+        96
       ],
-      "id": "4cb083d1-243e-4429-abad-8f0a72aa09f6",
+      "id": "7790f3f0-d001-44a4-9516-fe5ba0d1b1cd",
       "name": "Pay Invoice Agent-Payment-Decision"
     }
   ],
@@ -465,29 +440,11 @@
         ]
       ]
     },
-    "Check Payment Amount": {
-      "main": [
-        [
-          {
-            "node": "Payment Accepted",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Parse Check Payment Amount False",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Check Payment Decision": {
       "main": [
         [
           {
-            "node": "Check Payment Amount",
+            "node": "Payment Accepted",
             "type": "main",
             "index": 0
           }
@@ -541,17 +498,6 @@
             "node": "Did Payment Succeed",
             "type": "main",
             "index": 0
-          }
-        ]
-      ]
-    },
-    "Parse Check Payment Amount False": {
-      "main": [
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 1
           }
         ]
       ]
@@ -639,11 +585,12 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "16a8773f-9f4f-40da-bad4-875e4f2bfab7",
+  "versionId": "e49c473e-525a-46ea-b413-fc44c92b198f",
   "meta": {
-    "instanceId": "b7c8e4aa0d3e2d87155f64e6a2f20e5ae336a7536d472fc55faf8ccf644a5c2a"
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c0b42d3325724569e4545cf0a563429c2ec6cb4e213df030e24e2d578f9caa43"
   },
   "nodeGroups": [],
-  "id": "WkQy0jgFVXlsgybK",
+  "id": "aKIR61GeWMfRSMEZ",
   "tags": []
 }
