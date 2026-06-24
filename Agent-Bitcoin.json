@@ -3,23 +3,6 @@
   "nodes": [
     {
       "parameters": {
-        "promptType": "define",
-        "text": "=You just received a message or payment decision from Payment Decision Agent.\n\nRespond based on what actually happened:\n- If a valid payment was received (amount > 0 and amount < 1000001), thank Agent A and mention the amount and reason if available.\n- If the payment was rejected or invalid (amount < 1 or amount > 1000001 or pay: false), politely explain that the payment was not accepted and why. Use the rejection_reason if it is provided.\n\nKeep your response natural, concise, and professional.",
-        "options": {
-          "systemMessage": "=You are Agent B, a financial agent on regtest.\n\nYou just received a payment decision from Payment Decision Agent.\n\nData received:\npay: {{ $json.pay }}\namount: {{ $json.amount }} sats\nreason: {{ $json.reason }}\nrejection_reason: {{ $json.rejection_reason }}\nmessage: {{ $json.message }}\n\nResponse rules:\nIf pay is true and amount > 0 and amount < 1000001: Respond politely and gratefully. Mention the amount and reason.\nIf pay is false or amount < 1 or amount > 1000000: Respond honestly and clearly. Use the rejection_reason if available to explain why the payment was rejected. Do not thank for the payment.\n\nKeep your responses natural, concise, and professional."
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3.1,
-      "position": [
-        1120,
-        288
-      ],
-      "id": "45973533-0f86-4768-b3d5-6740f4617906",
-      "name": "Agent-B"
-    },
-    {
-      "parameters": {
         "model": "grok-4-1-fast-reasoning",
         "options": {}
       },
@@ -138,7 +121,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"success\": \"{{ $node[\"Merge\"].json.success }}\",\n  \"pay\": \"{{ $node[\"Merge\"].json.pay }}\",\n  \"status\": \"{{ $node[\"Merge\"].json.status }}\",\n  \"amount\": \"{{ $node[\"Merge\"].json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $node[\"Merge\"].json.payment_fee || 0 }}\",\n  \"payment_hash\": \"{{ $node[\"Merge\"].json.payment_hash || 'N/A' }}\",\n  \"preimage\": \"{{ $node[\"Merge\"].json.preimage || null }}\",\n  \"reason\": \"{{ $node[\"Merge\"].json.reason || 'No reason provided' }}\",\n  \"agent_b_message\": \"{{ $node[\"Merge\"].json.agent_b_message || 'Payment attempt completed' }}\",\n  \"rejection_reason\": \"{{ $node[\"Merge\"].json.rejection_reason || 'N/A' }}\"\n}",
+        "jsonOutput": "={\n  \"success\": \"{{ $node[\"Merge\"].json.success }}\",\n  \"pay\": \"{{ $node[\"Merge\"].json.pay }}\",\n  \"status\": \"{{ $node[\"Merge\"].json.status }}\",\n  \"amount\": \"{{ $node[\"Merge\"].json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $node[\"Merge\"].json.payment_fee || 0 }}\",\n  \"payment_hash\": \"{{ $node[\"Merge\"].json.payment_hash || 'N/A' }}\",\n  \"preimage\": \"{{ $node[\"Merge\"].json.preimage || null }}\",\n  \"reason\": \"{{ $node[\"Merge\"].json.reason || 'No reason provided' }}\",\n  \"agent_bitcoin_message\": \"{{ $node[\"Merge\"].json.agent_b_message || 'Payment attempt completed' }}\",\n  \"rejection_reason\": \"{{ $node[\"Merge\"].json.rejection_reason || 'N/A' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -244,38 +227,6 @@
     },
     {
       "parameters": {
-        "promptType": "define",
-        "text": "=Payment request received:\n\nFrom: {{ $json.body.from }}\nTo: {{ $json.body.to }}\nAmount: {{ $json.body.amount }} sats\nReason: {{ $json.body.reason }}\n\nDecide whether this payment should be approved and executed.",
-        "options": {
-          "systemMessage": "You are Payment Decision Agent, a secure financial gatekeeper.\n\nSTRICT RULES:\n- Respond with valid JSON only. No extra text.\n- Use this exact format:\n\n{\n  \"pay\": true or false,\n  \"amount\": integer in sats,\n  \"reason\": \"short meaningful explanation\"\n}\n\n- Approve the payment unless there is a clear violation (amount < 1, amount > 1000000, suspicious request, etc.)\n- Always provide a short, clear reason."
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3.1,
-      "position": [
-        -2144,
-        288
-      ],
-      "id": "4bc2ee56-5b22-4dd0-b98b-c90a943ff782",
-      "name": "Payment Decision Agent",
-      "retryOnFail": true,
-      "waitBetweenTries": 3000
-    },
-    {
-      "parameters": {
-        "jsCode": "const input = items[0].json;\n\n// Get the raw output (usually inside .output)\nlet raw = input.output || input.message || input.raw_message || input.text || '';\n\n// If it's already a proper object, return it\nif (typeof raw === 'object' && raw !== null) {\n  return [{ json: raw }];\n}\n\n// If it's stringified JSON, parse it\nif (typeof raw === 'string' && raw.trim().startsWith('{')) {\n  try {\n    const parsed = JSON.parse(raw);\n    return [{ json: parsed }];\n  } catch (e) {\n    // Try cleaning escaped quotes\n    try {\n      const cleaned = raw.replace(/^\"|\"$/g, '').replace(/\\\\\"/g, '\"');\n      const parsed = JSON.parse(cleaned);\n      return [{ json: parsed }];\n    } catch (e2) {}\n  }\n}\n\n// Fallback\nreturn [{\n  json: {\n    pay: false,\n    amount: 0,\n    reason: \"Failed to parse Agent-X response\",\n    message: raw\n  }\n}];;"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1792,
-        288
-      ],
-      "id": "391486b6-b4d1-4cbb-938a-0b125f37af3c",
-      "name": "Parse Payment Decision Agent Output"
-    },
-    {
-      "parameters": {
         "jsCode": "const input = items[0].json;\n\n// Force amount to be a real number\nconst amount = Number(input.amount || 0);\n\nreturn [{\n  json: {\n    original_amount: amount,\n    net_amount_to_payee: amount - 50,\n    fee_sats: 50,\n    fee_reason: \"Fixed intermediary fee (50 sats)\"\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
@@ -300,32 +251,6 @@
       ],
       "id": "3395eadc-8f44-4539-8c27-dada5ecadc2a",
       "name": "Payment Accepted"
-    },
-    {
-      "parameters": {
-        "command": "=docker exec agent-b-lnd lncli --network=regtest --macaroonpath=/root/.lnd/data/chain/bitcoin/regtest/admin.macaroon addinvoice --memo=\"{{ $json.reason || 'Payment from Agent-X' }}\" --amt={{ $json.net_amount_to_payee }}"
-      },
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [
-        -896,
-        96
-      ],
-      "id": "1e36e109-6967-4c83-8075-4a4022eebd37",
-      "name": "Create Invoice Agent-B"
-    },
-    {
-      "parameters": {
-        "command": "=docker exec agent-x-lnd lncli --network=regtest --macaroonpath=/root/.lnd/data/chain/bitcoin/regtest/admin.macaroon payinvoice --pay_req=\"{{ $json.payment_request }}\" --fee_limit=200 --force"
-      },
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [
-        -448,
-        96
-      ],
-      "id": "28f7e105-0211-46fb-9ab1-375a9abbf767",
-      "name": "Pay Invoice Agent-X"
     },
     {
       "parameters": {
@@ -356,7 +281,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"success\": false,\n  \"pay\": false,\n  \"status\": \"rejected\",\n  \"amount\": \"{{ Number($json.amount || 0) }}\",\n  \"payment_fee\": 0,\n  \"payment_hash\": \"N/A\",\n  \"preimage\": null,\n  \"reason\": \"Amount is outside allowed range\",\n  \"agent_b_message\": \"Payment was rejected by guardrail\",\n  \"rejection_reason\": \"Payment amount {{ Number($json.amount || 0) }} sats is outside allowed range (1 to 1,000,000 sats)\"\n}\n",
+        "jsonOutput": "={\n  \"success\": false,\n  \"pay\": false,\n  \"status\": \"rejected\",\n  \"amount\": \"{{ Number($json.amount || 0) }}\",\n  \"payment_fee\": 0,\n  \"payment_hash\": \"N/A\",\n  \"preimage\": null,\n  \"reason\": \"Amount is outside allowed range\",\n  \"agent_bitcoin_message\": \"Payment was rejected by guardrail\",\n  \"rejection_reason\": \"Payment amount {{ Number($json.amount || 0) }} sats is outside allowed range (1 to 1,000,000 sats)\"\n}\n",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -386,7 +311,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"success\": false,\n  \"pay\": false,\n  \"status\": \"rejected\",\n  \"amount\": 0,\n  \"payment_fee\": 0,\n  \"payment_hash\": \"N/A\",\n  \"preimage\": null,\n  \"reason\": \"{{ $json.reason || $json.payment_error || 'Payment rejected by guardrail' }}\",\n  \"agent_b_message\": \"Payment was rejected or blocked by guardrail\",\n  \"rejection_reason\": \"{{ \n    $json.payment_error === 'insufficient_balance' \n      ? 'Agent-X does not have enough Lightning balance to send this payment' \n      : $json.payment_error === 'no_route' \n        ? 'No route found to Agent B'\n        : $json.payment_error || \n          $json.rejection_reason || \n          $json.reason || \n          'Unknown reason' \n  }}\"\n}",
+        "jsonOutput": "={\n  \"success\": false,\n  \"pay\": false,\n  \"status\": \"rejected\",\n  \"amount\": 0,\n  \"payment_fee\": 0,\n  \"payment_hash\": \"N/A\",\n  \"preimage\": null,\n  \"reason\": \"{{ $json.reason || $json.payment_error || 'Payment rejected by guardrail' }}\",\n  \"agent_bitcoin_message\": \"Payment was rejected or blocked by guardrail\",\n  \"rejection_reason\": \"{{ \n    $json.payment_error === 'insufficient_balance' \n      ? 'Agent-Payment-Decision does not have enough Lightning balance to send this payment' \n      : $json.payment_error === 'no_route' \n        ? 'No route found to Agent-Bitcoin'\n        : $json.payment_error || \n          $json.rejection_reason || \n          $json.reason || \n          'Unknown reason' \n  }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -401,7 +326,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"success\": false,\n  \"pay\": false,\n  \"status\": \"rejected\",\n  \"amount\": 0,\n  \"payment_fee\": 0,\n  \"payment_hash\": \"N/A\",\n  \"preimage\": null,\n  \"reason\": \"{{ $json.reason || 'Payment decision rejected by guardrail' }}\",\n  \"agent_b_message\": \"Payment was rejected by decision agent\",\n  \"rejection_reason\": \"{{ \n    $json.rejection_reason || \n    $json.message || \n    $json.reason || \n    'Payment decision returned false' \n  }}\"\n}",
+        "jsonOutput": "={\n  \"success\": false,\n  \"pay\": false,\n  \"status\": \"rejected\",\n  \"amount\": 0,\n  \"payment_fee\": 0,\n  \"payment_hash\": \"N/A\",\n  \"preimage\": null,\n  \"reason\": \"{{ $json.reason || 'Payment decision rejected by guardrail' }}\",\n  \"agent_bitcoin_message\": \"Payment was rejected by decision agent\",\n  \"rejection_reason\": \"{{ \n    $json.rejection_reason || \n    $json.message || \n    $json.reason || \n    'Payment decision returned false' \n  }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -412,6 +337,81 @@
       ],
       "id": "21d34612-75dd-41da-a13c-40876135f146",
       "name": "Parse Check Payment Decision False"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You just received a message or payment decision from Agent-Payment-Decision.\n\nRespond based on what actually happened:\n- If a valid payment was received (amount > 0 and amount < 1000001), thank Agent-Payment-Decision and mention the amount and reason if available.\n- If the payment was rejected or invalid (amount < 1 or amount > 1000001 or pay: false), politely explain that the payment was not accepted and why. Use the rejection_reason if it is provided.\n\nKeep your response natural, concise, and professional.",
+        "options": {
+          "systemMessage": "=You are Agent-Bitcoin, a financial agent on regtest.\n\nYou just received a payment decision from Agent-Payment-Decision.\n\nData received:\npay: {{ $json.pay }}\namount: {{ $json.amount }} sats\nreason: {{ $json.reason }}\nrejection_reason: {{ $json.rejection_reason }}\nmessage: {{ $json.message }}\n\nResponse rules:\nIf pay is true and amount > 0 and amount < 1000001: Respond politely and gratefully. Mention the amount and reason.\nIf pay is false or amount < 1 or amount > 1000000: Respond honestly and clearly. Use the rejection_reason if available to explain why the payment was rejected. Do not thank for the payment.\n\nKeep your responses natural, concise, and professional."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1120,
+        288
+      ],
+      "id": "45973533-0f86-4768-b3d5-6740f4617906",
+      "name": "Agent-Bitcoin"
+    },
+    {
+      "parameters": {
+        "command": "=docker exec agent-b-lnd lncli --network=regtest --macaroonpath=/root/.lnd/data/chain/bitcoin/regtest/admin.macaroon addinvoice --memo=\"{{ $json.reason || 'Payment from Agent-Payment-Decision' }}\" --amt={{ $json.net_amount_to_payee }}"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -896,
+        96
+      ],
+      "id": "1e36e109-6967-4c83-8075-4a4022eebd37",
+      "name": "Create Invoice Agent-Bitcoin"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Payment request received:\n\nFrom: {{ $json.body.from }}\nTo: {{ $json.body.to }}\nAmount: {{ $json.body.amount }} sats\nReason: {{ $json.body.reason }}\n\nDecide whether this payment should be approved and executed.",
+        "options": {
+          "systemMessage": "You are Agent-Payment-Decision, a secure financial gatekeeper.\n\nSTRICT RULES:\n- Respond with valid JSON only. No extra text.\n- Use this exact format:\n\n{\n  \"pay\": true or false,\n  \"amount\": integer in sats,\n  \"reason\": \"short meaningful explanation\"\n}\n\n- Approve the payment unless there is a clear violation (amount < 1, amount > 1000000, suspicious request, etc.)\n- Always provide a short, clear reason."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -2144,
+        288
+      ],
+      "id": "4bc2ee56-5b22-4dd0-b98b-c90a943ff782",
+      "name": "Agent-Payment-Decision",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = items[0].json;\n\n// Get the raw output (usually inside .output)\nlet raw = input.output || input.message || input.raw_message || input.text || '';\n\n// If it's already a proper object, return it\nif (typeof raw === 'object' && raw !== null) {\n  return [{ json: raw }];\n}\n\n// If it's stringified JSON, parse it\nif (typeof raw === 'string' && raw.trim().startsWith('{')) {\n  try {\n    const parsed = JSON.parse(raw);\n    return [{ json: parsed }];\n  } catch (e) {\n    // Try cleaning escaped quotes\n    try {\n      const cleaned = raw.replace(/^\"|\"$/g, '').replace(/\\\\\"/g, '\"');\n      const parsed = JSON.parse(cleaned);\n      return [{ json: parsed }];\n    } catch (e2) {}\n  }\n}\n\n// Fallback\nreturn [{\n  json: {\n    pay: false,\n    amount: 0,\n    reason: \"Failed to parse Agent-Payment-Decision response\",\n    message: raw\n  }\n}];;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1792,
+        288
+      ],
+      "id": "391486b6-b4d1-4cbb-938a-0b125f37af3c",
+      "name": "Parse Agent-Payment-Decision Output"
+    },
+    {
+      "parameters": {
+        "command": "=docker exec agent-x-lnd lncli --network=regtest --macaroonpath=/root/.lnd/data/chain/bitcoin/regtest/admin.macaroon payinvoice --pay_req=\"{{ $json.payment_request }}\" --fee_limit=200 --force"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        96
+      ],
+      "id": "28f7e105-0211-46fb-9ab1-375a9abbf767",
+      "name": "Pay Invoice Agent-Payment-Decision"
     }
   ],
   "pinData": {},
@@ -420,7 +420,7 @@
       "ai_languageModel": [
         [
           {
-            "node": "Payment Decision Agent",
+            "node": "Agent-Payment-Decision",
             "type": "ai_languageModel",
             "index": 0
           }
@@ -431,7 +431,7 @@
       "ai_languageModel": [
         [
           {
-            "node": "Agent-B",
+            "node": "Agent-Bitcoin",
             "type": "ai_languageModel",
             "index": 0
           }
@@ -442,7 +442,7 @@
       "main": [
         [
           {
-            "node": "Agent-B",
+            "node": "Agent-Bitcoin",
             "type": "main",
             "index": 0
           }
@@ -529,29 +529,7 @@
       "main": [
         [
           {
-            "node": "Payment Decision Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Payment Decision Agent": {
-      "main": [
-        [
-          {
-            "node": "Parse Payment Decision Agent Output",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Parse Payment Decision Agent Output": {
-      "main": [
-        [
-          {
-            "node": "Check Payment Decision",
+            "node": "Agent-Payment-Decision",
             "type": "main",
             "index": 0
           }
@@ -562,29 +540,7 @@
       "main": [
         [
           {
-            "node": "Create Invoice Agent-B",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Create Invoice Agent-B": {
-      "main": [
-        [
-          {
-            "node": "Parse Invoice Output",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Pay Invoice Agent-X": {
-      "main": [
-        [
-          {
-            "node": "Parse Payment Result",
+            "node": "Create Invoice Agent-Bitcoin",
             "type": "main",
             "index": 0
           }
@@ -595,7 +551,7 @@
       "main": [
         [
           {
-            "node": "Pay Invoice Agent-X",
+            "node": "Pay Invoice Agent-Payment-Decision",
             "type": "main",
             "index": 0
           }
@@ -656,6 +612,50 @@
           }
         ]
       ]
+    },
+    "Create Invoice Agent-Bitcoin": {
+      "main": [
+        [
+          {
+            "node": "Parse Invoice Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent-Payment-Decision": {
+      "main": [
+        [
+          {
+            "node": "Parse Agent-Payment-Decision Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Agent-Payment-Decision Output": {
+      "main": [
+        [
+          {
+            "node": "Check Payment Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pay Invoice Agent-Payment-Decision": {
+      "main": [
+        [
+          {
+            "node": "Parse Payment Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -663,7 +663,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "ba81782f-de48-49b0-a32c-cf15cf3da9ad",
+  "versionId": "99aee377-ed4c-4a95-bee3-3eef0d617766",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "90674cc3e99f79254920211fd6f118b4c8ca8211843aa0957f7c7ec0bdb9a219"
