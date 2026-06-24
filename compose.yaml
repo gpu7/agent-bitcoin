@@ -5,7 +5,7 @@ networks:
     driver: bridge
 
 volumes:
-  bitcoind-regtest-data:
+  bitcoind-data:
   agent-payment-decision-lnd-data:
   agent-bitcoin-lnd-data:
   n8n-data:
@@ -21,12 +21,12 @@ services:
       - "28332:28332"
       - "28333:28333"
     volumes:
-      - bitcoind-regtest-data:/root/.bitcoin
+      - bitcoind-data:/root/.bitcoin
     environment:
       - NETWORK=${NETWORK:-regtest}
     command: >
       bitcoind
-      -${NETWORK}
+      -${NETWORK:-regtest}
       -rpcuser=rpcuser
       -rpcpassword=rpcpass
       -rpcallowip=0.0.0.0/0
@@ -35,7 +35,7 @@ services:
       -zmqpubrawtx=tcp://0.0.0.0:28333
       -fallbackfee=0.00001000
     healthcheck:
-      test: ["CMD", "bitcoin-cli", "-${NETWORK}", "-rpcuser=rpcuser", "-rpcpassword=rpcpass", "getblockchaininfo"]
+      test: ["CMD", "bitcoin-cli", "-${NETWORK:-regtest}", "-rpcuser=rpcuser", "-rpcpassword=rpcpass", "getblockchaininfo"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -56,10 +56,10 @@ services:
     volumes:
       - agent-payment-decision-lnd-data:/root/.lnd
     environment:
-      - NETWORK=${NETWORK:-regtest}          # ← Added
+      - NETWORK=${NETWORK:-regtest}
     command: >
       lnd
-      --bitcoin.${NETWORK}                   # ← Changed
+      --bitcoin.${NETWORK:-regtest}
       --bitcoin.node=bitcoind
       --bitcoind.rpcuser=rpcuser
       --bitcoind.rpcpass=rpcpass
@@ -71,7 +71,7 @@ services:
       --restlisten=0.0.0.0:8080
       --debuglevel=info
     healthcheck:
-      test: ["CMD", "lncli", "--network=${NETWORK}", "getinfo"]   # ← Changed
+      test: ["CMD", "lncli", "--network=${NETWORK:-regtest}", "getinfo"]
       interval: 8s
       timeout: 5s
       retries: 25
@@ -92,10 +92,10 @@ services:
     volumes:
       - agent-bitcoin-lnd-data:/root/.lnd
     environment:
-      - NETWORK=${NETWORK:-regtest}          # ← Added
+      - NETWORK=${NETWORK:-regtest}
     command: >
       lnd
-      --bitcoin.${NETWORK}                   # ← Changed
+      --bitcoin.${NETWORK:-regtest}
       --bitcoin.node=bitcoind
       --bitcoind.rpcuser=rpcuser
       --bitcoind.rpcpass=rpcpass
@@ -107,7 +107,7 @@ services:
       --restlisten=0.0.0.0:8080
       --debuglevel=info
     healthcheck:
-      test: ["CMD", "lncli", "--network=${NETWORK}", "getinfo"]   # ← Changed
+      test: ["CMD", "lncli", "--network=${NETWORK:-regtest}", "getinfo"]
       interval: 8s
       timeout: 5s
       retries: 25
