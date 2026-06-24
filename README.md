@@ -1,6 +1,6 @@
 # Agent-Bitcoin
 
-**Lightning Network payments for autonomous AI Agents.**
+**Bitcoin Lightning network payments for autonomous AI Agents.**
 
 A lightweight Python SDK that enables AI agents to send and receive Bitcoin/Lightning payments trustlessly and programmatically.
 
