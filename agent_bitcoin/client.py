@@ -90,22 +90,30 @@ class AgentBitcoinClient:
             self.config.container_payment_decision, cmd
         )
         
-        # Parse the complex stdout from lncli payinvoice
         stdout = response.get("stdout", "")
         
-        # Extract key fields
+        # Improved parsing
         import re
-        status_match = re.search(r"Payment status:\s*(SUCCEEDED|FAILED|IN_FLIGHT)", stdout)
-        amount_match = re.search(r"Amount \+ fee:\s*(\d+)", stdout)
+        
+        # Get the LAST status (most reliable)
+        status_matches = re.findall(r"Payment status:\s*(SUCCEEDED|IN_FLIGHT|FAILED|UNKNOWN)", stdout)
+        final_status = status_matches[-1] if status_matches else "UNKNOWN"
+        
+        # Get the LAST amount
+        amount_matches = re.findall(r"Amount \+ fee:\s*(\d+)", stdout)
+        amount = int(amount_matches[-1]) if amount_matches else 0
+        
+        # Extract hash and preimage
         hash_match = re.search(r"Payment hash:\s*([a-f0-9]+)", stdout)
         preimage_match = re.search(r"preimage:\s*([a-f0-9]+)", stdout)
-
-        success = status_match and status_match.group(1) == "SUCCEEDED"
+        
+        success = final_status == "SUCCEEDED"
         
         return PaymentResult(
             success=success,
-            status=status_match.group(1) if status_match else "UNKNOWN",
-            amount=int(amount_match.group(1)) if amount_match else 0,
+            status=final_status,
+            amount=amount,
+            payment_fee=0,
             payment_hash=hash_match.group(1) if hash_match else None,
             preimage=preimage_match.group(1) if preimage_match else None,
             raw_response=response
