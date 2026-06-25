@@ -27,21 +27,21 @@ curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
   -d '{
     "from": "Agent-Payment-Decision",
     "to": "Agent-Bitcoin",
-    "amount": 1000,
+    "amount": 2000,
     "reason": "Payment for services rendered"
   }'
   ```
 
 **Expected Outcomes**
-- Payment Decision Agent returns `pay: true`
-- Invoice is created on Agent-B
+- Payment Agent-Payment-Decision returns `pay: true`
+- Invoice is created on Agent-Bitcoin
 - Lightning payment is executed successfully
 - `Parse Payment Result` correctly extracts `amount`, `payment_hash`, and `preimage`
 - Email report shows:
   - **From**: `Agent-Payment-Decision`
   - **To**: `Agent-Bitcoin`
   - **Status**: ✅ Success
-  - **Payment Amount**: 1,000 sats
+  - **Payment Amount**: 2,000 sats
   - Valid **Payment Hash**
   - Valid **Preimage**
   - Clear **Reason**
