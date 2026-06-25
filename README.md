@@ -72,3 +72,40 @@ You can monitor fee deposits using:
 ```bash
 docker exec agent-bitcoin-lnd lncli --network=regtest walletbalance
 ```
+
+## Examples
+
+### Basic Usage
+
+```python
+from agent_bitcoin import create_client
+
+# Create client (automatically loads from .env)
+client = create_client()
+
+# Create an invoice
+invoice = client.create_invoice(
+    memo="Payment from Agent-X",
+    amount_sats=5000
+)
+print(f"Invoice created: {invoice.payment_request[:60]}...")
+
+# Pay an invoice
+result = client.pay_invoice(invoice.payment_request)
+
+if result.success:
+    print(f"✅ Payment successful!")
+    print(f"   Amount: {result.amount} sats")
+    print(f"   Hash: {result.payment_hash}")
+    print(f"   Preimage: {result.preimage}")
+else:
+    print(f"❌ Payment failed: {result.status}")
+
+# Get node information
+balance = client.get_balance()
+info = client.get_info()
+
+print(f"Node alias: {info.get('alias')}")
+print(f"Pubkey: {info.get('identity_pubkey')}")
+print(f"Total balance: {balance.get('total_balance')} sats")
+```
