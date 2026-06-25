@@ -10,7 +10,7 @@
       "typeVersion": 1,
       "position": [
         -2288,
-        416
+        352
       ],
       "id": "f5cee593-18ed-4f70-94a4-eab2b55dd740",
       "name": "xAI Grok Chat Model",
@@ -29,8 +29,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        752,
-        416
+        1424,
+        352
       ],
       "id": "454a5c42-b277-458a-98fd-8696eff4d8ca",
       "name": "xAI Grok Chat Model1",
@@ -52,8 +52,8 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        448,
-        192
+        1120,
+        128
       ],
       "id": "abb7a66c-82db-4d90-a9d6-ad21726930c8",
       "name": "Send Email Report",
@@ -76,8 +76,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        0,
-        192
+        672,
+        128
       ],
       "id": "0531a5c9-1d79-4acd-8de4-9242a512b2e8",
       "name": "Merge"
@@ -111,8 +111,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -448,
-        96
+        -224,
+        32
       ],
       "id": "0ef2f922-e1df-4c89-9388-34f7441f7b59",
       "name": "Did Payment Succeed",
@@ -127,8 +127,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        224,
-        192
+        896,
+        128
       ],
       "id": "3877c9d2-b8a7-4eb6-81ef-2544bee1fbdb",
       "name": "Get Final State"
@@ -162,7 +162,7 @@
       "typeVersion": 2.3,
       "position": [
         -1792,
-        192
+        128
       ],
       "id": "e0fd9e96-4ded-4cb4-97d3-8e8b3d309376",
       "name": "Check Payment Decision",
@@ -179,7 +179,7 @@
       "typeVersion": 2.1,
       "position": [
         -2592,
-        192
+        128
       ],
       "id": "f0f691d3-1bf8-480a-bb4e-36b567a04556",
       "name": "Webhook",
@@ -193,27 +193,26 @@
     },
     {
       "parameters": {
-        "jsCode": "const input = items[0].json;\n\n// Force amount to be a real number\nconst amount = Number(input.amount || 0);\n\nreturn [{\n  json: {\n    original_amount: amount,\n    net_amount_to_payee: amount - 50,\n    fee_sats: 50,\n    fee_reason: \"Fixed intermediary fee (50 sats)\"\n  }\n}];"
+        "jsCode": "{\n  \"amount\": \"={{ Number($json.amount) }}\",\n  \"net_amount_to_payee\": \"={{ Number($json.amount) - 1 }}\",\n  \"fee_sats\": 1,\n  \"fee_reason\": \"Fixed transaction fee (1 sat)\"\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2592,
-        608
+        -1344,
+        32
       ],
       "id": "2ee88541-327d-4992-8cd7-f4932b6ab036",
-      "name": "Calculate Fixed Fee",
-      "disabled": true
+      "name": "Calculate Fixed Fee"
     },
     {
       "parameters": {
-        "jsCode": "const input = items[0].json;\nconst amount = Number(input.amount || 0);\n\nreturn [{\n  json: {\n    pay: true,\n    amount: amount,\n    reason: input.reason || \"Valid request within limits\",\n    status: \"success\",\n    message: \"Payment accepted and will be processed\",\n    net_amount_to_payee: amount - 50,\n    fee_sats: 50\n  }\n}];;"
+        "jsCode": "const input = items[0].json;\nconst amount = Number(input.amount || 0);\n\nreturn [{\n  json: {\n    pay: true,\n    amount: amount,\n    net_amount_to_payee: amount - 1,\n    fee_sats: 1,\n    reason: input.reason || \"Valid request within limits\",\n    status: \"success\",\n    message: \"Payment accepted and will be processed\"\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         -1568,
-        96
+        32
       ],
       "id": "bbc7852b-ee77-4a7a-8212-672ef94a9782",
       "name": "Payment Accepted"
@@ -225,8 +224,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1120,
-        96
+        -896,
+        32
       ],
       "id": "db470542-eaab-4b9e-be24-6f215aa96b90",
       "name": "Parse Invoice Output"
@@ -238,8 +237,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -672,
-        96
+        -448,
+        32
       ],
       "id": "a1c49f59-f8b7-434c-a2ab-a1ded6a1b126",
       "name": "Parse Payment Result"
@@ -253,8 +252,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -224,
-        0
+        448,
+        -64
       ],
       "id": "5c47e6f2-24ea-426f-8117-ba481d5bfe9e",
       "name": "Parse Did Payment Succeed True"
@@ -268,8 +267,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -224,
-        192
+        448,
+        128
       ],
       "id": "867c80af-f284-4b42-8907-b5844d3cdb11",
       "name": "Parse Did Payment Succeed False"
@@ -283,8 +282,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -224,
-        384
+        448,
+        320
       ],
       "id": "d68a3642-58a1-40d5-a5b0-01f29f32ba5f",
       "name": "Parse Check Payment Decision False"
@@ -300,8 +299,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        672,
-        192
+        1344,
+        128
       ],
       "id": "278c861e-7785-4a4e-85db-fc34ce9835f4",
       "name": "Agent-Bitcoin"
@@ -313,8 +312,8 @@
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        -1344,
-        96
+        -1120,
+        32
       ],
       "id": "75c585a2-ffdf-48c8-bc18-f6f67d117002",
       "name": "Create Invoice Agent-Bitcoin"
@@ -331,7 +330,7 @@
       "typeVersion": 3.1,
       "position": [
         -2368,
-        192
+        128
       ],
       "id": "59a26612-e637-49c7-977c-977e625c8dca",
       "name": "Agent-Payment-Decision",
@@ -346,7 +345,7 @@
       "typeVersion": 2,
       "position": [
         -2016,
-        192
+        128
       ],
       "id": "d4b14a63-a32d-45d4-bc45-fc5332cbe2c2",
       "name": "Parse Agent-Payment-Decision Output"
@@ -358,11 +357,37 @@
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        -896,
-        96
+        -672,
+        32
       ],
       "id": "7790f3f0-d001-44a4-9516-fe5ba0d1b1cd",
       "name": "Pay Invoice Agent-Payment-Decision"
+    },
+    {
+      "parameters": {
+        "command": "docker exec agent-bitcoin-lnd lncli --network=regtest newaddress p2wkh"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -64
+      ],
+      "id": "bcc031db-cf9f-4967-b457-af9b82b76853",
+      "name": "Get Agent-Bitcoin Address"
+    },
+    {
+      "parameters": {
+        "command": "=docker exec agent-payment-decision-lnd lncli --network=regtest sendcoins --addr=\"{{ $json.address }}\" --amt=1"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        224,
+        -64
+      ],
+      "id": "647c8c26-c3b8-46ad-bbfc-318b42924a30",
+      "name": "Send Transaction Fee"
     }
   ],
   "pinData": {},
@@ -415,7 +440,7 @@
       "main": [
         [
           {
-            "node": "Parse Did Payment Succeed True",
+            "node": "Get Agent-Bitcoin Address",
             "type": "main",
             "index": 0
           }
@@ -473,7 +498,7 @@
       "main": [
         [
           {
-            "node": "Create Invoice Agent-Bitcoin",
+            "node": "Calculate Fixed Fee",
             "type": "main",
             "index": 0
           }
@@ -578,6 +603,39 @@
           }
         ]
       ]
+    },
+    "Calculate Fixed Fee": {
+      "main": [
+        [
+          {
+            "node": "Create Invoice Agent-Bitcoin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Agent-Bitcoin Address": {
+      "main": [
+        [
+          {
+            "node": "Send Transaction Fee",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Transaction Fee": {
+      "main": [
+        [
+          {
+            "node": "Parse Did Payment Succeed True",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -585,7 +643,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "e49c473e-525a-46ea-b413-fc44c92b198f",
+  "versionId": "137fe7c2-df65-44f0-8eca-cfb987dd151f",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c0b42d3325724569e4545cf0a563429c2ec6cb4e213df030e24e2d578f9caa43"
