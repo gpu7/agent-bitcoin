@@ -11,48 +11,47 @@ from pathlib import Path
 from typing import Optional
 
 from .client import AgentBitcoinClient
-from .models import (
-    LightningConfig,
-    Invoice,
-    PaymentResult,
-    InvoiceCreationResult,
-)
+from .models import LightningConfig
 from .exceptions import (
     AgentBitcoinError,
     InvoiceCreationError,
     PaymentError,
     MacaroonError,
-    InsufficientBalanceError,
-    NoRouteError,
 )
 
 # Main public API
 __all__ = [
     "AgentBitcoinClient",
     "LightningConfig",
-    "Invoice",
-    "PaymentResult",
-    "InvoiceCreationResult",
     "AgentBitcoinError",
     "InvoiceCreationError",
     "PaymentError",
     "MacaroonError",
-    "InsufficientBalanceError",
-    "NoRouteError",
 ]
 
-# Convenience function
 def create_client(
-    macaroon_payment_decision: str = "/tmp/agent-payment-decision.macaroon",
-    macaroon_bitcoin: str = "/tmp/agent-bitcoin.macaroon",
-    container_payment_decision: str = "agent-payment-decision-lnd",
-    container_bitcoin: str = "agent-bitcoin-lnd",
+    env_file: str = ".env",
+    container_payment_decision: Optional[str] = None,
+    container_bitcoin: Optional[str] = None,
+    macaroon_payment_decision: Optional[str] = None,
+    macaroon_bitcoin: Optional[str] = None,
 ) -> AgentBitcoinClient:
-    """Convenience function to create a client with local development defaults."""
-    config = LightningConfig(
-        macaroon_payment_decision=Path(macaroon_payment_decision),
-        macaroon_bitcoin=Path(macaroon_bitcoin),
-        container_payment_decision=container_payment_decision,
-        container_bitcoin=container_bitcoin,
-    )
+    """
+    Create an AgentBitcoinClient with .env support.
+    
+    Priority: Explicit arguments > .env file > defaults
+    """
+    # Load from .env first
+    config = LightningConfig.from_env(env_file)
+
+    # Override with explicit parameters if provided
+    if container_payment_decision:
+        config.container_payment_decision = container_payment_decision
+    if container_bitcoin:
+        config.container_bitcoin = container_bitcoin
+    if macaroon_payment_decision:
+        config.macaroon_payment_decision = Path(macaroon_payment_decision)
+    if macaroon_bitcoin:
+        config.macaroon_bitcoin = Path(macaroon_bitcoin)
+
     return AgentBitcoinClient(config)
