@@ -27,11 +27,15 @@ class AgentBitcoinClient:
     def __init__(self, config: Optional[LightningConfig] = None):
         self.config = config or LightningConfig.from_env()
 
+        # Only validate macaroons if they look like host paths (not container paths)
         for name, path in [
             ("Payment Decision", self.config.macaroon_payment_decision),
             ("Bitcoin", self.config.macaroon_bitcoin),
         ]:
-            if str(path).startswith("/root/") and not path.exists():
+            if str(path).startswith("/root/"):
+                # These are paths inside Docker containers — skip host validation
+                continue
+            if not path.exists():
                 raise MacaroonError(f"{name} macaroon not found: {path}")
 
     def _run_lnd_command(self, container: str, cmd: list[str]) -> Dict[str, Any]:
