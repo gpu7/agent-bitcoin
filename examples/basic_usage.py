@@ -1,53 +1,50 @@
 """
-Basic Usage Example for Agent-Bitcoin SDK
-=======================================
-
-Simple, straightforward examples showing core functionality.
-No LangChain or complex dependencies required.
+Basic Usage + Intelligent Agent Example
 """
 
-from agent_bitcoin import create_client
+from agent_bitcoin import create_client, create_payment_decision_agent
+from langchain_ollama import ChatOllama
 
 
 def main():
-    print("🚀 Agent-Bitcoin SDK - Basic Usage Example\n")
+    print("🚀 Agent-Bitcoin SDK - Basic + Intelligent Agent Example\n")
 
-    # Initialize client (loads configuration from .env automatically)
+    # Initialize Lightning Client
     client = create_client()
 
-    print("✅ Client initialized successfully\n")
+    # Initialize Intelligent Decision Agent with Ollama
+    llm = ChatOllama(model="llama3.2", temperature=0.3)
+    decision_agent = create_payment_decision_agent(llm=llm)
 
-    # 1. Create a Lightning Invoice
-    print("📄 1. Creating Lightning Invoice...")
-    invoice = client.create_invoice(
-        memo="Test payment from basic example", amount_sats=5000
+    print("✅ Client and Intelligent Agent initialized\n")
+
+    # Test payment request
+    request = {
+        "from_agent": "Agent-X",
+        "to_agent": "Agent-Bitcoin",
+        "amount_sats": 4500,
+        "reason": "Payment for completed data analysis task"
+    }
+
+    print(f"📋 Payment Request: {request['amount_sats']} sats from {request['from_agent']}")
+    
+    decision = decision_agent.decide(
+        from_agent=request["from_agent"],
+        to_agent=request["to_agent"],
+        amount_sats=request["amount_sats"],
+        reason=request["reason"]
     )
-    print("   Amount: 5000 sats")
-    print("   Memo: 'Test payment from basic example'")
-    print(f"   Payment Request: {invoice.payment_request[:60]}...\n")
 
-    # 2. Get Balance
-    print("💰 2. Checking Lightning Balance...")
-    balance = client.get_balance()
-    print(f"   Total Balance: {balance.get('total_balance')} sats")
-    print(f"   Confirmed: {balance.get('confirmed_balance')} sats\n")
+    status = "✅ APPROVED" if decision.pay else "❌ REJECTED"
+    print(f"\n{status}")
+    print(f"Amount: {decision.amount} sats")
+    print(f"Reason: {decision.reason}")
+    print(f"Confidence: {decision.confidence:.2f}")
+    print(f"Model: {decision.model_used}")
 
-    # 3. Pay an Invoice (uncomment when you have a real payment_request)
-    # print("💸 3. Paying Lightning Invoice...")
-    # result = client.pay_invoice(invoice.payment_request)
-    #
-    # if result.success:
-    #     print(f"✅ Payment Successful!")
-    #     print(f"   Amount: {result.amount} sats")
-    #     print(f"   Payment Hash: {result.payment_hash}")
-    #     print(f"   Preimage: {result.preimage}")
-    # else:
-    #     print(f"❌ Payment Failed: {result.status}")
-
-    print("🎉 Basic examples completed!")
-    print("\nNext steps:")
-    print("   • Try the LangChain example: examples/ollama_example.py")
-    print("   • Explore more methods with: dir(client)")
+    if decision.pay:
+        print("\n💸 Proceeding to create invoice and pay...")
+        # You can add actual payment logic here later
 
 
 if __name__ == "__main__":

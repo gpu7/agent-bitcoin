@@ -112,6 +112,17 @@ Paying Lightning invoices
 Checking wallet balance
 Full LangChain tool integration with a local LLM
 
+### Payment Decision Agent
+
+File: examples/payment_decision_agent.py
+
+```bash
+# Make sure Ollama is running with a model
+ollama run llama3.2
+
+# Run the example
+uv run python examples/payment_decision_agent.py
+```
 ---
 
 ## Repository

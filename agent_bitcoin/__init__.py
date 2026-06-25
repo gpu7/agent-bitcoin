@@ -56,3 +56,18 @@ def create_client(
         config.macaroon_bitcoin = Path(macaroon_bitcoin)
 
     return AgentBitcoinClient(config)
+
+# Intelligent Agents (optional but recommended)
+from .agents.payment_decision import (
+    PaymentDecisionAgent,
+    create_payment_decision_agent,
+    create_grok_payment_decision_agent,
+    PaymentDecision,
+)
+
+__all__.extend([
+    "PaymentDecisionAgent",
+    "create_payment_decision_agent",
+    "create_grok_payment_decision_agent",
+    "PaymentDecision",
+])
