@@ -1,12 +1,11 @@
 """
-Simple LangChain + Agent-Bitcoin Example using Ollama
-No API key required.
+Simple & Reliable Example: Agent-Bitcoin SDK + Ollama
+No complex agent framework — just direct tool usage.
 """
 
 from agent_bitcoin import create_client
 from langchain_core.tools import tool
 from langchain_ollama import ChatOllama
-from langchain_core.messages import HumanMessage
 
 
 # === 1. Initialize SDK ===
@@ -18,7 +17,7 @@ client = create_client()
 def create_lightning_invoice(amount_sats: int, memo: str = "Payment from AI Agent"):
     """Create a Lightning invoice."""
     invoice = client.create_invoice(memo=memo, amount_sats=amount_sats)
-    return f"Invoice created for {amount_sats} sats. Payment Request: {invoice.payment_request[:60]}..."
+    return f"✅ Invoice created!\nAmount: {amount_sats} sats\nMemo: {memo}\nPayment Request: {invoice.payment_request[:80]}..." 
 
 
 @tool
@@ -26,32 +25,40 @@ def pay_lightning_invoice(payment_request: str):
     """Pay a Lightning invoice."""
     result = client.pay_invoice(payment_request=payment_request)
     if result.success:
-        return f"✅ Payment successful! Amount: {result.amount} sats | Preimage: {result.preimage}"
+        return f"✅ Payment Successful!\nAmount: {result.amount} sats\nHash: {result.payment_hash}\nPreimage: {result.preimage}"
     else:
-        return f"❌ Payment failed: {result.status}"
+        return f"❌ Payment Failed: {result.status}"
 
 
 @tool
 def check_balance():
     """Check Lightning balance."""
     balance = client.get_balance()
-    return f"Current balance: {balance.get('total_balance')} sats"
+    return f"Current Balance: {balance.get('total_balance')} sats (Confirmed: {balance.get('confirmed_balance')} sats)"
 
 
 tools = [create_lightning_invoice, pay_lightning_invoice, check_balance]
 
 
-# === 3. Setup LLM and Test ===
+# === 3. Setup Local LLM ===
 llm = ChatOllama(model="llama3.2", temperature=0)
 
-print("🚀 Testing Agent-Bitcoin with Ollama...\n")
 
-# Simple test
-messages = [HumanMessage(content="Create an invoice for 3000 sats with memo 'Test from Ollama'")]
-
-response = llm.bind_tools(tools).invoke(messages)
-print("Response:")
-print(response.content)
-
-if response.tool_calls:
-    print("\nTool calls:", response.tool_calls)
+# === 4. Test Tools Directly ===
+if __name__ == "__main__":
+    print("🚀 Agent-Bitcoin SDK + Ollama Example\n")
+    
+    # Test 1: Create Invoice
+    print("🟡 Creating invoice for 5000 sats...")
+    result1 = create_lightning_invoice.invoke({"amount_sats": 5000, "memo": "Test from Ollama"})
+    print(result1)
+    
+    print("\n" + "="*60)
+    
+    # Test 2: Check Balance
+    print("🟡 Checking balance...")
+    result2 = check_balance.invoke({})
+    print(result2)
+    
+    print("\n✅ Example completed successfully!")
+    print("You can now expand this into a full agent if desired.")
