@@ -127,6 +127,51 @@ MIT License — see LICENSE file.
 
 ---
 
+## Contributing
+
+Thank you for considering contributing to Agent-Bitcoin!
+
+### Development Setup
+
+```bash
+git clone https://github.com/gpu7/agent-bitcoin.git
+cd agent-bitcoin
+uv sync
+```
+
+### Code Style
+
+-Formatting: Black
+-Linting: Ruff
+-Type Checking: Optional (we use Pydantic)
+
+Run checks before submitting:
+
+```bash
+uv run ruff check .
+uv run black --check .
+```
+
+### Testing
+```bash
+uv run pytest tests/ -v
+```
+
+- **Pull request process**:
+  1. Fork the repository
+  2. Create a feature branch (git checkout -b feature/amazing-feature)
+  3. Make your changes
+  4. Ensure tests pass
+  5. Submit a Pull Request
+
+### Areas We Welcome Help
+- Testnet support
+- More LangChain / Ollama examples
+- Documentation improvements
+- Bug reports and feature requests
+
+---
+
 ## Support
 
 ---
