@@ -17,6 +17,13 @@ A lightweight Python SDK that enables AI agents to send and receive Bitcoin/Ligh
 - Easy integration with LangChain, CrewAI, AutoGen, etc.
 
 ---
+## Project Status
+
+- Network: Currently optimized for regtest
+- Next: Moving to testnet after public feedback
+- Not yet: Mainnet (security review required)
+
+---
 
 ## Installation
 
@@ -77,37 +84,8 @@ docker exec agent-bitcoin-lnd lncli --network=regtest walletbalance
 
 ### Basic Usage
 
-```python
-from agent_bitcoin import create_client
-
-# Create client (automatically loads from .env)
-client = create_client()
-
-# Create an invoice
-invoice = client.create_invoice(
-    memo="Payment from Agent-X",
-    amount_sats=5000
-)
-print(f"Invoice created: {invoice.payment_request[:60]}...")
-
-# Pay an invoice
-result = client.pay_invoice(invoice.payment_request)
-
-if result.success:
-    print(f"✅ Payment successful!")
-    print(f"   Amount: {result.amount} sats")
-    print(f"   Hash: {result.payment_hash}")
-    print(f"   Preimage: {result.preimage}")
-else:
-    print(f"❌ Payment failed: {result.status}")
-
-# Get node information
-balance = client.get_balance()
-info = client.get_info()
-
-print(f"Node alias: {info.get('alias')}")
-print(f"Pubkey: {info.get('identity_pubkey')}")
-print(f"Total balance: {balance.get('total_balance')} sats")
+```bash
+uv run python examples/basic_usage.py
 ```
 
 ### LangChain + Ollama Example (Local, No API Key Required)
@@ -133,5 +111,25 @@ Creating Lightning invoices
 Paying Lightning invoices  
 Checking wallet balance
 Full LangChain tool integration with a local LLM
+
+---
+
+## Repository
+
+GitHub: https://github.com/gpu7/agent-bitcoin
+PyPI: Coming soon
+
+---
+
+## License
+
+MIT License — see LICENSE file.
+
+---
+
+## Support
+
+---
+
 
 

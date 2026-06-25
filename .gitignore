@@ -31,7 +31,12 @@ MANIFEST
 venv/
 ENV/
 env/
+ENV/
+
+# Environment variables
 .env
+.env.*
+!.env.example
 
 # IDE and editor files
 .idea/
@@ -39,43 +44,52 @@ env/
 *.swp
 *.swo
 *~
-
-# OS generated files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
+
+# Testing and coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+coverage.xml
+.coverage.*
+
+# Build artifacts
+*.tar.gz
+*.whl
 
 # Logs
 *.log
 logs/
 
-# Test coverage
-.coverage
-htmlcov/
-.pytest_cache/
-.ruff_cache/
-
-# Local development config
+# Local development
 *.local
 config.local.yaml
-.env.local
 
-# Macaroons and sensitive files (important!)
+# Sensitive files (security critical)
 *.macaroon
 *.cert
+*.key
 macaroons/
+secrets/
+credentials/
 
 # Docker
 .docker/
 .dockerignore
 
-# n8n specific
+# n8n / workflow files
 n8n-data/
 
 # Temporary files
 *.tmp
 *.bak
+*.temp
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
