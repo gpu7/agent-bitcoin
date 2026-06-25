@@ -1,6 +1,5 @@
 # agent_bitcoin/utils.py
 import base64
-from typing import Optional
 
 
 def validate_macaroon(macaroon: str) -> bool:
@@ -37,7 +36,7 @@ def parse_lnd_response(stdout: str) -> dict:
 
 class NetworkConfig:
     """Helper to manage network-specific settings."""
-    
+
     @staticmethod
     def get_default_port(network: str) -> int:
         ports = {

@@ -20,11 +20,10 @@ def main():
     # 1. Create a Lightning Invoice
     print("📄 1. Creating Lightning Invoice...")
     invoice = client.create_invoice(
-        memo="Test payment from basic example",
-        amount_sats=5000
+        memo="Test payment from basic example", amount_sats=5000
     )
-    print(f"   Amount: 5000 sats")
-    print(f"   Memo: 'Test payment from basic example'")
+    print("   Amount: 5000 sats")
+    print("   Memo: 'Test payment from basic example'")
     print(f"   Payment Request: {invoice.payment_request[:60]}...\n")
 
     # 2. Get Balance
@@ -36,7 +35,7 @@ def main():
     # 3. Pay an Invoice (uncomment when you have a real payment_request)
     # print("💸 3. Paying Lightning Invoice...")
     # result = client.pay_invoice(invoice.payment_request)
-    # 
+    #
     # if result.success:
     #     print(f"✅ Payment Successful!")
     #     print(f"   Amount: {result.amount} sats")

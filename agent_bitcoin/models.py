@@ -11,11 +11,11 @@ class LightningConfig(BaseModel):
     # Container names
     container_payment_decision: str = Field(
         default="agent-payment-decision-lnd",
-        description="Docker container name for payment decision node"
+        description="Docker container name for payment decision node",
     )
     container_bitcoin: str = Field(
         default="agent-bitcoin-lnd",
-        description="Docker container name for bitcoin node (payee)"
+        description="Docker container name for bitcoin node (payee)",
     )
 
     # Macaroon paths (inside the containers)
@@ -40,22 +40,22 @@ class LightningConfig(BaseModel):
     def from_env(cls, env_file: str = ".env") -> "LightningConfig":
         """Load configuration from .env file."""
         load_dotenv(env_file)
-        
+
         config = cls(
             container_payment_decision=os.getenv(
                 "CONTAINER_PAYMENT_DECISION", "agent-payment-decision-lnd"
             ),
-            container_bitcoin=os.getenv(
-                "CONTAINER_BITCOIN", "agent-bitcoin-lnd"
-            ),
+            container_bitcoin=os.getenv("CONTAINER_BITCOIN", "agent-bitcoin-lnd"),
         )
         return config
 
 
 # ====================== Result Models ======================
 
+
 class InvoiceCreationResult(BaseModel):
     """Result of creating a Lightning invoice."""
+
     payment_request: str
     r_hash: Optional[str] = None
     add_index: Optional[str] = None
@@ -64,6 +64,7 @@ class InvoiceCreationResult(BaseModel):
 
 class PaymentResult(BaseModel):
     """Result of paying a Lightning invoice."""
+
     success: bool
     status: str
     amount: int = 0

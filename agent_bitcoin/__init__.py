@@ -29,6 +29,7 @@ __all__ = [
     "MacaroonError",
 ]
 
+
 def create_client(
     env_file: str = ".env",
     container_payment_decision: Optional[str] = None,
@@ -38,7 +39,7 @@ def create_client(
 ) -> AgentBitcoinClient:
     """
     Create an AgentBitcoinClient with .env support.
-    
+
     Priority: Explicit arguments > .env file > defaults
     """
     # Load from .env first

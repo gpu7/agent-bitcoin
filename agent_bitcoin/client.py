@@ -2,7 +2,6 @@ from typing import Optional, Dict, Any, List
 import subprocess
 import json
 import re
-from pathlib import Path
 
 from .models import (
     LightningConfig,
@@ -12,7 +11,6 @@ from .models import (
 from .exceptions import (
     AgentBitcoinError,
     InvoiceCreationError,
-    PaymentError,
     MacaroonError,
     InsufficientBalanceError,
     NoRouteError,
@@ -41,14 +39,19 @@ class AgentBitcoinClient:
     def _run_lnd_command(self, container: str, cmd: list[str]) -> Dict[str, Any]:
         """Run lncli command inside a Docker container."""
         full_cmd = [
-            "docker", "exec", container, "lncli",
+            "docker",
+            "exec",
+            container,
+            "lncli",
             "--network=regtest",
             f"--macaroonpath={self.config.macaroon_path}",
-            *cmd
+            *cmd,
         ]
 
         try:
-            result = subprocess.run(full_cmd, capture_output=True, text=True, timeout=60)
+            result = subprocess.run(
+                full_cmd, capture_output=True, text=True, timeout=60
+            )
             if result.returncode != 0:
                 raise AgentBitcoinError(f"lncli failed: {result.stderr.strip()}")
 
@@ -76,16 +79,25 @@ class AgentBitcoinClient:
             payment_request=response.get("payment_request", ""),
             r_hash=response.get("r_hash"),
             add_index=response.get("add_index"),
-            raw_response=response
+            raw_response=response,
         )
 
-    def pay_invoice(self, payment_request: str, fee_limit_sats: int = 200) -> PaymentResult:
+    def pay_invoice(
+        self, payment_request: str, fee_limit_sats: int = 200
+    ) -> PaymentResult:
         """Pay Lightning invoice with robust parsing."""
-        cmd = ["payinvoice", f"--pay_req={payment_request}", f"--fee_limit={fee_limit_sats}", "--force"]
+        cmd = [
+            "payinvoice",
+            f"--pay_req={payment_request}",
+            f"--fee_limit={fee_limit_sats}",
+            "--force",
+        ]
         response = self._run_lnd_command(self.config.container_payment_decision, cmd)
         stdout = response.get("stdout", "")
 
-        status_matches = re.findall(r"Payment status:\s*(SUCCEEDED|IN_FLIGHT|FAILED|UNKNOWN)", stdout)
+        status_matches = re.findall(
+            r"Payment status:\s*(SUCCEEDED|IN_FLIGHT|FAILED|UNKNOWN)", stdout
+        )
         final_status = status_matches[-1] if status_matches else "UNKNOWN"
 
         amount_matches = re.findall(r"Amount \+ fee:\s*(\d+)", stdout)
@@ -96,7 +108,9 @@ class AgentBitcoinClient:
 
         # Error handling
         if "insufficient funds" in stdout.lower():
-            raise InsufficientBalanceError("Insufficient funds in Agent-Payment-Decision")
+            raise InsufficientBalanceError(
+                "Insufficient funds in Agent-Payment-Decision"
+            )
         if "no route" in stdout.lower():
             raise NoRouteError("No route found to destination")
 
@@ -109,7 +123,7 @@ class AgentBitcoinClient:
             payment_fee=0,
             payment_hash=hash_match.group(1) if hash_match else None,
             preimage=preimage_match.group(1) if preimage_match else None,
-            raw_response=response
+            raw_response=response,
         )
 
     # ====================== New Useful Methods (Step 3) ======================
@@ -124,7 +138,9 @@ class AgentBitcoinClient:
         target = container or self.config.container_bitcoin
         return self._run_lnd_command(target, ["walletbalance", "--onchain"])
 
-    def list_invoices(self, container: Optional[str] = None, limit: int = 20) -> List[Dict]:
+    def list_invoices(
+        self, container: Optional[str] = None, limit: int = 20
+    ) -> List[Dict]:
         """List recent invoices."""
         target = container or self.config.container_bitcoin
         response = self._run_lnd_command(target, ["listinvoices"])

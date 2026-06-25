@@ -1,8 +1,6 @@
 from typing import Optional
 from .client import AgentBitcoinClient
 from .models import (
-    Invoice,
-    Payment,
     PaymentResult,
     InvoiceCreationResult,
     LightningConfig,
@@ -27,17 +25,14 @@ class LightningManager:
 
         return self.client.create_invoice(amount=amount, memo=memo, expiry=expiry)
 
-    def pay_invoice(
-        self, payment_request: str, fee_limit: int = 200
-    ) -> PaymentResult:
+    def pay_invoice(self, payment_request: str, fee_limit: int = 200) -> PaymentResult:
         """Pay a Lightning invoice."""
         if not payment_request or not payment_request.startswith("lnbc"):
             raise ValueError("Invalid payment request (must be a Lightning invoice)")
 
         try:
             return self.client.pay_invoice(
-                payment_request=payment_request,
-                fee_limit=fee_limit
+                payment_request=payment_request, fee_limit=fee_limit
             )
         except Exception as e:
             raise PaymentError(f"Failed to pay invoice: {str(e)}") from e

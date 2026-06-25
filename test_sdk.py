@@ -3,7 +3,8 @@
 Quick test for the Agent-Bitcoin SDK
 """
 
-from agent_bitcoin import AgentBitcoinClient, create_client
+from agent_bitcoin import create_client
+
 
 def main():
     print("🚀 Testing Agent-Bitcoin SDK...\n")
@@ -23,17 +24,15 @@ def main():
         # Test 1: Create an invoice on Agent-Bitcoin
         print("📄 Creating invoice...")
         invoice = client.create_invoice(
-            memo="SDK Test Payment - 1000 sats",
-            amount_sats=1000
+            memo="SDK Test Payment - 1000 sats", amount_sats=1000
         )
-        print(f"✅ Invoice created!")
+        print("✅ Invoice created!")
         print(f"   Payment Request: {invoice.payment_request[:80]}...")
 
         # Test 2: Pay the invoice from Agent-Payment-Decision
         print("\n💸 Paying invoice...")
         result = client.pay_invoice(
-            payment_request=invoice.payment_request,
-            fee_limit_sats=200
+            payment_request=invoice.payment_request, fee_limit_sats=200
         )
 
         if result.success:
@@ -48,6 +47,7 @@ def main():
 
     except Exception as e:
         print(f"❌ Error: {e}")
+
 
 if __name__ == "__main__":
     main()
