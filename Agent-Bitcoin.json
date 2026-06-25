@@ -46,7 +46,7 @@
         "fromEmail": "richardcaseyhpc@protonmail.com",
         "toEmail": "richardcaseyhpc@protonmail.com",
         "subject": "Agent Bitcoin Payment Report",
-        "html": "=<p><strong>Lightning Payment Report</strong></p>\n<p><strong>Date:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n<p><strong>Time:</strong> {{ $now.format('HH:mm:ss') }}</p>\n<p><strong>From:</strong> Agent-Payment-Decision</p>\n<p><strong>To:</strong> Agent-Bitcoin</p>\n<hr>\n\n<p><strong>Status:</strong> \n  {{ $node[\"Get Final State\"].json.status === 'rejected' ? '❌ Rejected' : '✅ Success' }}\n</p>\n\n<p><strong>Payment Amount:</strong> {{ $node[\"Get Final State\"].json.amount }} sats</p>\n<p><strong>Payment Fee:</strong> {{ $node[\"Get Final State\"].json.payment_fee }} sats</p>\n\n<p><strong>Payment Hash:</strong> {{ $node[\"Get Final State\"].json.payment_hash }}</p>\n<p><strong>Reason:</strong> {{ $node[\"Get Final State\"].json.reason }}</p>\n\n{{ $node[\"Get Final State\"].json.status === 'rejected' ? \n  '<p><strong>Rejection Message:</strong> ' + \n  ($node[\"Get Final State\"].json.rejection_reason || \n   $node[\"Get Final State\"].json.agent_b_message || \n   'Unknown rejection reason') + '</p>' \n: \n  '<p><strong>Preimage:</strong> ' + $node[\"Get Final State\"].json.preimage + '</p>' \n}}",
+        "html": "=<p><strong>Lightning Payment Report</strong></p>\n<p><strong>Date:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n<p><strong>Time:</strong> {{ $now.format('HH:mm:ss') }}</p>\n<p><strong>From:</strong> Agent-Payment-Decision</p>\n<p><strong>To:</strong> Agent-Bitcoin</p>\n<hr>\n\n<p><strong>Status:</strong> \n  {{ $node[\"Get Final State\"].json.status === 'rejected' ? '❌ Rejected' : '✅ Success' }}\n</p>\n\n<p><strong>Original Amount:</strong> {{ $node[\"Get Final State\"].json.amount }} sats</p>\n<p><strong>Fee (1 sat on-chain):</strong> {{ $node[\"Get Final State\"].json.fee_sats }} sats</p>\n<p><strong>Net Amount to Agent-Bitcoin:</strong> {{ $node[\"Get Final State\"].json.net_amount_to_payee }} sats</p>\n\n<p><strong>Payment Hash:</strong> {{ $node[\"Get Final State\"].json.payment_hash }}</p>\n<p><strong>On-Chain Fee TXID:</strong> {{ $node[\"Get Final State\"].json.onchain_txid }}</p>\n<p><strong>Reason:</strong> {{ $node[\"Get Final State\"].json.reason }}</p>\n\n{{ $node[\"Get Final State\"].json.status === 'rejected' ? \n  '<p><strong>Rejection Message:</strong> ' + \n  ($node[\"Get Final State\"].json.rejection_reason || \n   $node[\"Get Final State\"].json.agent_bitcoin_message || \n   'Unknown rejection reason') + '</p>' \n: \n  '<p><strong>Preimage:</strong> ' + $node[\"Get Final State\"].json.preimage + '</p>' \n}}",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
@@ -121,7 +121,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"success\": \"{{ $node[\"Merge\"].json.success }}\",\n  \"pay\": \"{{ $node[\"Merge\"].json.pay }}\",\n  \"status\": \"{{ $node[\"Merge\"].json.status }}\",\n  \"amount\": \"{{ $node[\"Merge\"].json.amount || 0 }}\",\n  \"payment_fee\": \"{{ $node[\"Merge\"].json.payment_fee || 0 }}\",\n  \"payment_hash\": \"{{ $node[\"Merge\"].json.payment_hash || 'N/A' }}\",\n  \"preimage\": \"{{ $node[\"Merge\"].json.preimage || null }}\",\n  \"reason\": \"{{ $node[\"Merge\"].json.reason || 'No reason provided' }}\",\n  \"agent_bitcoin_message\": \"{{ $node[\"Merge\"].json.agent_b_message || 'Payment attempt completed' }}\",\n  \"rejection_reason\": \"{{ $node[\"Merge\"].json.rejection_reason || 'N/A' }}\"\n}",
+        "jsonOutput": "={\n  \"success\": \"{{ $node[\"Merge\"].json.success }}\",\n  \"pay\": \"{{ $node[\"Merge\"].json.pay }}\",\n  \"status\": \"{{ $node[\"Merge\"].json.status }}\",\n  \"amount\": \"{{ $node[\"Merge\"].json.amount || 0 }}\",\n  \"net_amount_to_payee\": \"{{ $node[\"Merge\"].json.net_amount_to_payee || ($node[\"Merge\"].json.amount - 1) }}\",\n  \"fee_sats\": 1,\n  \"fee_reason\": \"Fixed intermediary fee (1 sat) sent on-chain\",\n  \"payment_hash\": \"{{ $node[\"Merge\"].json.payment_hash || 'N/A' }}\",\n  \"preimage\": \"{{ $node[\"Merge\"].json.preimage || null }}\",\n  \"onchain_txid\": \"{{ $node[\"Merge\"].json.onchain_txid || 'N/A' }}\",\n  \"reason\": \"{{ $node[\"Merge\"].json.reason || 'No reason provided' }}\",\n  \"agent_bitcoin_message\": \"{{ $node[\"Merge\"].json.agent_b_message || $node[\"Merge\"].json.agent_bitcoin_message || 'Payment attempt completed' }}\",\n  \"rejection_reason\": \"{{ $node[\"Merge\"].json.rejection_reason || 'N/A' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -242,21 +242,6 @@
       ],
       "id": "a1c49f59-f8b7-434c-a2ab-a1ded6a1b126",
       "name": "Parse Payment Result"
-    },
-    {
-      "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={\n  \"success\": true,\n  \"pay\": true,\n  \"status\": \"success\",\n  \"amount\": \"{{ $node[\"Parse Payment Result\"].json.amount }}\",\n  \"payment_fee\": \"{{ $node[\"Parse Payment Result\"].json.fee || 0 }}\",\n  \"payment_hash\": \"{{ $node[\"Parse Payment Result\"].json.payment_hash }}\",\n  \"preimage\": \"{{ $node[\"Parse Payment Result\"].json.preimage }}\",\n  \"reason\": \"{{ $node[\"Payment Accepted\"].json.reason || 'Payment executed successfully' }}\",\n  \"agent_b_message\": \"Payment completed successfully\",\n  \"rejection_reason\": \"N/A\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        448,
-        -64
-      ],
-      "id": "5c47e6f2-24ea-426f-8117-ba481d5bfe9e",
-      "name": "Parse Did Payment Succeed True"
     },
     {
       "parameters": {
@@ -527,17 +512,6 @@
         ]
       ]
     },
-    "Parse Did Payment Succeed True": {
-      "main": [
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Parse Did Payment Succeed False": {
       "main": [
         [
@@ -630,7 +604,7 @@
       "main": [
         [
           {
-            "node": "Parse Did Payment Succeed True",
+            "node": "Merge",
             "type": "main",
             "index": 0
           }
@@ -643,7 +617,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "137fe7c2-df65-44f0-8eca-cfb987dd151f",
+  "versionId": "3e7dbe83-a5ef-4d5d-90c8-fc47c83a8c13",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c0b42d3325724569e4545cf0a563429c2ec6cb4e213df030e24e2d578f9caa43"
