@@ -109,3 +109,29 @@ print(f"Node alias: {info.get('alias')}")
 print(f"Pubkey: {info.get('identity_pubkey')}")
 print(f"Total balance: {balance.get('total_balance')} sats")
 ```
+
+### LangChain + Ollama Example (Local, No API Key Required)
+
+This is the recommended example for most users who want to integrate Agent-Bitcoin into AI agents without paying for API credits.
+
+```bash
+# 1. Install dependencies
+uv add langchain-core langchain-ollama
+
+# 2. Make sure Ollama is running and has a model
+ollama run llama3.2
+
+# 3. Run the example
+uv run python examples/ollama_example.py
+```
+
+File: examples/ollama_example.py
+
+This example demonstrates:
+
+Creating Lightning invoices
+Paying Lightning invoices  
+Checking wallet balance
+Full LangChain tool integration with a local LLM
+
+
