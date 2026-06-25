@@ -6,13 +6,19 @@ import os
 
 
 class LightningConfig(BaseModel):
-    """Configuration for Agent Bitcoin SDK."""
+    """Configuration for Agent Bitcoin SDK with .env support."""
 
     # Container names
-    container_payment_decision: str = Field(default="agent-payment-decision-lnd")
-    container_bitcoin: str = Field(default="agent-bitcoin-lnd")
+    container_payment_decision: str = Field(
+        default="agent-payment-decision-lnd",
+        description="Docker container name for payment decision node"
+    )
+    container_bitcoin: str = Field(
+        default="agent-bitcoin-lnd",
+        description="Docker container name for bitcoin node (payee)"
+    )
 
-    # Macaroon paths (inside the containers - this is what lncli needs)
+    # Macaroon paths (inside the containers)
     macaroon_payment_decision: Path = Field(
         default=Path("/root/.lnd/data/chain/bitcoin/regtest/admin.macaroon")
     )
@@ -25,8 +31,10 @@ class LightningConfig(BaseModel):
         default=Path("/root/.lnd/data/chain/bitcoin/regtest/admin.macaroon")
     )
 
-    class Config:
-        arbitrary_types_allowed = True
+    # Pydantic v2 style configuration
+    model_config = {
+        "arbitrary_types_allowed": True,
+    }
 
     @classmethod
     def from_env(cls, env_file: str = ".env") -> "LightningConfig":
