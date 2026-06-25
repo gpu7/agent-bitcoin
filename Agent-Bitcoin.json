@@ -145,7 +145,7 @@
           "conditions": [
             {
               "id": "033f7e29-f7bf-4d0c-acdb-67d87d4bd081",
-              "leftValue": "={{ \n  ($json.pay === true || $json.pay === \"true\" || $json.pay === 1) ||\n  ($json.output && JSON.parse($json.output).pay === true) ||\n  ($json.output && JSON.parse($json.output).pay === \"true\") ||\n  ($json.output && JSON.parse($json.output).pay === 1)\n}}",
+              "leftValue": "={{ \n  Number($json.amount || 0) >= 2000 &&\n  Number($json.amount || 0) <= 1000000 &&\n  (\n    ($json.pay === true || $json.pay === \"true\" || $json.pay === 1) ||\n    ($json.output && JSON.parse($json.output).pay === true) ||\n    ($json.output && JSON.parse($json.output).pay === \"true\") ||\n    ($json.output && JSON.parse($json.output).pay === 1)\n  )\n}}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -193,7 +193,7 @@
     },
     {
       "parameters": {
-        "jsCode": "{\n  \"amount\": \"={{ Number($json.amount) }}\",\n  \"net_amount_to_payee\": \"={{ Number($json.amount) - 1 }}\",\n  \"fee_sats\": 1,\n  \"fee_reason\": \"Fixed transaction fee (1 sat)\"\n}"
+        "jsCode": "const input = items[0].json;\nconst amount = Number(input.amount || 0);\nconst minAmount = 2000;\n\nreturn [{\n  json: {\n    amount: amount,\n    net_amount_to_payee: amount >= minAmount ? amount - 1000 : 0,\n    fee_sats: 1000,\n    fee_reason: \"Fixed transaction fee (1000 sats)\"\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -206,7 +206,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const input = items[0].json;\nconst amount = Number(input.amount || 0);\n\nreturn [{\n  json: {\n    pay: true,\n    amount: amount,\n    net_amount_to_payee: amount - 1,\n    fee_sats: 1,\n    reason: input.reason || \"Valid request within limits\",\n    status: \"success\",\n    message: \"Payment accepted and will be processed\"\n  }\n}];"
+        "jsCode": "const input = items[0].json;\nconst amount = Number(input.amount || 0);\nconst minAmount = 2000;\n\nreturn [{\n  json: {\n    pay: amount >= minAmount,\n    amount: amount,\n    net_amount_to_payee: amount >= minAmount ? amount - 1000 : 0,\n    fee_sats: 1000,\n    reason: amount >= minAmount ? \n      (input.reason || \"Valid request within limits\") : \n      `Amount ${amount} sats is below minimum of ${minAmount} sats`,\n    status: amount >= minAmount ? \"success\" : \"rejected\",\n    message: amount >= minAmount ? \n      \"Payment accepted and will be processed\" : \n      `Minimum payment amount is ${minAmount} sats`\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -350,7 +350,7 @@
     },
     {
       "parameters": {
-        "command": "docker exec agent-bitcoin-lnd lncli --network=regtest newaddress p2wkh"
+        "command": "=docker exec agent-bitcoin-lnd lncli --network=regtest newaddress p2wkh"
       },
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
@@ -363,16 +363,30 @@
     },
     {
       "parameters": {
-        "command": "=docker exec agent-payment-decision-lnd lncli --network=regtest sendcoins --addr=\"{{ $json.address }}\" --amt=1"
+        "executeOnce": "={{ true }}",
+        "command": "=docker exec agent-payment-decision-lnd lncli --network=regtest sendcoins --addr=\"{{ $json.address }}\" --amt=1000"
       },
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        224,
+        448,
         -64
       ],
       "id": "647c8c26-c3b8-46ad-bbfc-318b42924a30",
       "name": "Send Transaction Fee"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = items[0].json;\n\nlet address = '';\n\nif (input.stdout) {\n  try {\n    const parsed = JSON.parse(input.stdout);\n    address = parsed.address || '';\n  } catch (e) {}\n}\n\nif (!address && input.address) {\n  address = input.address;\n}\n\nreturn [{\n  json: {\n    address: address,\n    raw_output: input.stdout || input\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        -64
+      ],
+      "id": "7e150214-ad53-45ce-9805-c0841eaa07a2",
+      "name": "Extract Address"
     }
   ],
   "pinData": {},
@@ -593,7 +607,7 @@
       "main": [
         [
           {
-            "node": "Send Transaction Fee",
+            "node": "Extract Address",
             "type": "main",
             "index": 0
           }
@@ -610,6 +624,17 @@
           }
         ]
       ]
+    },
+    "Extract Address": {
+      "main": [
+        [
+          {
+            "node": "Send Transaction Fee",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -617,7 +642,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "3e7dbe83-a5ef-4d5d-90c8-fc47c83a8c13",
+  "versionId": "babd94fa-c15b-4051-a0e4-93696fbf9bb6",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c0b42d3325724569e4545cf0a563429c2ec6cb4e213df030e24e2d578f9caa43"
