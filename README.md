@@ -242,6 +242,19 @@ uv tool install twine
 uv tool run twine upload --repository testpypi dist/*
 ```
 
+### Test Installing from Test PyPI
+
+```bash
+uv pip install --index-url https://test.pypi.org/simple/ agent-bitcoin==0.1.0
+
+uv run python -c "
+from agent_bitcoin import create_client
+client = create_client()
+print('✅ Successfully installed from Test PyPI!')
+print('Balance check:', client.get_balance())
+"
+```
+
 ---
 
 ## Testing
