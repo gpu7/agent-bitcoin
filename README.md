@@ -202,7 +202,17 @@ uv run ruff check .
 uv run black --check .
 ```
 
-### Testing
+### Project build
+
+File: pyproject.toml
+
+```bash
+uv build
+```
+
+---
+
+## Testing
 ```bash
 uv run pytest tests/ -v
 ```

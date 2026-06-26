@@ -8,7 +8,7 @@ license = {text = "MIT"}
 authors = [
     {name = "Richard Casey", email = "richardcaseyhpc@protonmail.com"}
 ]
-keywords = ["bitcoin", "lightning", "lightning-network", "ai-agents", "sdk", "crypto"]
+keywords = ["bitcoin", "lightning", "lightning-network", "ai-agents", "sdk", "crypto-payments"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -30,6 +30,7 @@ dependencies = [
 langchain = [
     "langchain-core>=0.3.0",
     "langchain-ollama>=0.1.0",
+    "langchain-xai>=0.1.0",
 ]
 
 [project.urls]
@@ -37,6 +38,7 @@ Homepage = "https://github.com/gpu7/agent-bitcoin"
 Repository = "https://github.com/gpu7/agent-bitcoin"
 Documentation = "https://github.com/gpu7/agent-bitcoin/blob/main/README.md"
 Issues = "https://github.com/gpu7/agent-bitcoin/issues"
+Changelog = "https://github.com/gpu7/agent-bitcoin/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 dev = [
@@ -53,7 +55,3 @@ include = ["agent_bitcoin*"]
 [tool.pytest.ini_options]
 pythonpath = ["."]
 addopts = "--tb=short"
-
-[tool.ruff]
-line-length = 100
-target-version = "py310"
