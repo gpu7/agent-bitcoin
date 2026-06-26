@@ -210,6 +210,22 @@ File: pyproject.toml
 uv build
 ```
 
+### Project rebuild
+
+File: pyproject.toml
+
+```bash
+# 1. Clean and rebuild
+rm -rf dist/ build/ *.egg-info
+uv build
+
+# 2. Check distribution
+ls -l dist/
+
+# 3. Validate the package (important before PyPI)
+uv run twine check dist/*
+```
+
 ---
 
 ## Testing
