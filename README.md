@@ -1,9 +1,10 @@
 # Agent-Bitcoin
 
-[![Test PyPI version](https://img.shields.io/badge/Test%20PyPI-0.1.0-blue)](https://test.pypi.org/project/agent-bitcoin/)
-[![Python versions](https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12-blue)](https://pypi.org/project/agent-bitcoin/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub Release](https://img.shields.io/github/v/release/gpu7/agent-bitcoin)](https://github.com/gpu7/agent-bitcoin/releases)
+[![Test PyPI](https://img.shields.io/badge/Test%20PyPI-0.1.0-blue)](https://test.pypi.org/project/agent-bitcoin/)
+[![Python](https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12-blue)](https://www.python.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub Release](https://img.shields.io/github/v/release/gpu7/agent-bitcoin)](https://github.com/gpu7/agent-bitcoin/releases/latest)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-gpu7/agent--bitcoin-black)](https://github.com/gpu7/agent-bitcoin)
 
 **Lightning Bitcoin payments for autonomous AI Agents.**
 
