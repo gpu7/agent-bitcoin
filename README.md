@@ -228,6 +228,22 @@ uv run twine check dist/*
 
 ---
 
+## PyPi
+
+### Publish to Test PyPi
+
+https://test.pypi.org/project/agent-bitcoin/
+
+```bash
+# Install twine (if not already installed)
+uv tool install twine
+
+# Upload to Test PyPI
+uv tool run twine upload --repository testpypi dist/*
+```
+
+---
+
 ## Testing
 ```bash
 uv run pytest tests/ -v
@@ -250,6 +266,9 @@ uv run pytest tests/ -v
 
 ## Support
 
+Richard Casey
+richardcaseyhpc@protonmail.com
++1 970-980-5975
 ---
 
 
