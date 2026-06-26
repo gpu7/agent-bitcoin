@@ -12,9 +12,13 @@ from .models import (
     ChannelBalance,
 )
 
+# Pure gRPC imports
+import lightning_pb2 as ln
+import lightning_pb2_grpc as lnrpc
+
 
 class LNDClient:
-    """Low-level LND gRPC client"""
+    """Low-level LND gRPC client using pure grpcio"""
 
     def __init__(
         self,
@@ -33,14 +37,20 @@ class LNDClient:
         self._connect()
 
     def _connect(self):
-        """Establish secure gRPC connection to LND"""
+        """Establish secure gRPC connection"""
         try:
+            tls_path = os.path.expanduser(str(self.tls_cert_path))
+            mac_path = os.path.expanduser(str(self.macaroon_path))
+
+            print(f"🔑 Loading TLS cert from: {tls_path}")
+            print(f"🔑 Loading macaroon from: {mac_path}")
+
             # Load TLS certificate
-            with open(self.tls_cert_path, "rb") as f:
+            with open(tls_path, "rb") as f:
                 cert = f.read()
 
             # Load and encode macaroon
-            with open(self.macaroon_path, "rb") as f:
+            with open(mac_path, "rb") as f:
                 macaroon = codecs.encode(f.read(), "hex").decode()
 
             # Create credentials
@@ -54,10 +64,12 @@ class LNDClient:
                 f"{self.host}:{self.port}", composite_creds
             )
 
-            # Import stub here (inside method) to avoid circular imports
-            from lndgrpc import LightningStub
-            self._stub = LightningStub(self._channel)
+            self._stub = lnrpc.LightningStub(self._channel)
 
+            print("✅ Successfully connected to LND!")
+
+        except FileNotFoundError as e:
+            raise LNDException(f"File not found: {e}. Check .env paths.")
         except Exception as e:
             raise LNDException(f"Failed to connect to LND: {str(e)}")
 
@@ -68,7 +80,7 @@ class LNDClient:
     ) -> Invoice:
         """Create a new Lightning invoice"""
         try:
-            request = {"memo": memo, "value": amount_sats, "expiry": expiry_seconds}
+            request = ln.Invoice(memo=memo, value=amount_sats, expiry=expiry_seconds)
             response = self._stub.AddInvoice(request)
 
             return Invoice(
@@ -82,16 +94,16 @@ class LNDClient:
     def pay_invoice(self, payment_request: str) -> PaymentResult:
         """Pay a Lightning invoice"""
         try:
-            request = {"payment_request": payment_request}
+            request = ln.SendRequest(payment_request=payment_request)
             response = self._stub.SendPaymentSync(request)
 
-            success = getattr(response, "status", None) == "SUCCEEDED"
+            success = response.status == ln.Payment.PaymentStatus.SUCCEEDED
 
             return PaymentResult(
                 success=success,
-                payment_hash=getattr(response, "payment_hash", b"").hex() or None,
-                amount=getattr(response, "value_sat", 0),
-                status=getattr(response, "status", "UNKNOWN"),
+                payment_hash=response.payment_hash.hex() if response.payment_hash else None,
+                amount=response.value_sat,
+                status=response.status.name,
             )
         except Exception as e:
             raise LNDException(f"Failed to pay invoice: {str(e)}")
@@ -99,24 +111,17 @@ class LNDClient:
     def send_coins(self, address: str, amount_sats: int) -> OnChainSendResult:
         """Send sats on-chain (for fee collection)"""
         try:
-            request = {
-                "addr": address,
-                "amount": str(amount_sats),   # LND expects string for amount
-                "target_conf": 6,
-            }
+            request = ln.SendCoinsRequest(addr=address, amount=amount_sats, target_conf=6)
             response = self._stub.SendCoins(request)
 
-            return OnChainSendResult(
-                txid=response.txid,
-                success=True,
-            )
+            return OnChainSendResult(txid=response.txid, success=True)
         except Exception as e:
-            raise LNDException(f"Failed to send on-chain coins: {str(e)}")
+            raise LNDException(f"Failed to send on-chain: {str(e)}")
 
     def get_balance(self) -> LightningBalance:
-        """Get Lightning wallet balance"""
+        """Get wallet balance"""
         try:
-            response = self._stub.WalletBalance({})
+            response = self._stub.WalletBalance(ln.WalletBalanceRequest())
             return LightningBalance(
                 total_balance=str(response.total_balance),
                 confirmed_balance=str(response.confirmed_balance),
@@ -128,7 +133,7 @@ class LNDClient:
     def get_channel_balance(self) -> ChannelBalance:
         """Get channel balance"""
         try:
-            response = self._stub.ChannelBalance({})
+            response = self._stub.ChannelBalance(ln.ChannelBalanceRequest())
             return ChannelBalance(
                 local_balance=response.local_balance,
                 remote_balance=response.remote_balance,
@@ -137,5 +142,4 @@ class LNDClient:
             raise LNDException(f"Failed to get channel balance: {str(e)}")
 
 
-# Clean export
 __all__ = ["LNDClient"]
