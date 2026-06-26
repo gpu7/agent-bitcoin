@@ -10,8 +10,8 @@ __version__ = "0.1.0"
 from pathlib import Path
 from typing import Optional
 
-# Core Lightning client
-from .client import AgentBitcoinClient
+# Core
+from .client import AgentBitcoinClient, create_client
 from .models import LightningConfig
 
 # Exceptions

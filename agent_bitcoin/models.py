@@ -1,74 +1,63 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from typing import Optional
 from pathlib import Path
-from typing import Optional, Dict
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
 
 
-class LightningConfig(BaseModel):
-    """Configuration for Agent Bitcoin SDK with .env support."""
-
-    # Container names
-    container_payment_decision: str = Field(
-        default="agent-payment-decision-lnd",
-        description="Docker container name for payment decision node",
-    )
-    container_bitcoin: str = Field(
-        default="agent-bitcoin-lnd",
-        description="Docker container name for bitcoin node (payee)",
-    )
-
-    # Macaroon paths (inside the containers)
-    macaroon_payment_decision: Path = Field(
-        default=Path("/root/.lnd/data/chain/bitcoin/regtest/admin.macaroon")
-    )
-    macaroon_bitcoin: Path = Field(
-        default=Path("/root/.lnd/data/chain/bitcoin/regtest/admin.macaroon")
-    )
-
-    # The path actually used by _run_lnd_command
-    macaroon_path: Path = Field(
-        default=Path("/root/.lnd/data/chain/bitcoin/regtest/admin.macaroon")
-    )
-
-    # Pydantic v2 style configuration
-    model_config = {
-        "arbitrary_types_allowed": True,
-    }
-
-    @classmethod
-    def from_env(cls, env_file: str = ".env") -> "LightningConfig":
-        """Load configuration from .env file."""
-        load_dotenv(env_file)
-
-        config = cls(
-            container_payment_decision=os.getenv(
-                "CONTAINER_PAYMENT_DECISION", "agent-payment-decision-lnd"
-            ),
-            container_bitcoin=os.getenv("CONTAINER_BITCOIN", "agent-bitcoin-lnd"),
-        )
-        return config
-
-
-# ====================== Result Models ======================
-
-
-class InvoiceCreationResult(BaseModel):
-    """Result of creating a Lightning invoice."""
-
+class Invoice(BaseModel):
     payment_request: str
-    r_hash: Optional[str] = None
-    add_index: Optional[str] = None
-    raw_response: Optional[Dict] = None
+    r_hash: str
+    payment_hash: str
 
 
 class PaymentResult(BaseModel):
-    """Result of paying a Lightning invoice."""
-
     success: bool
-    status: str
-    amount: int = 0
-    payment_fee: int = 0
     payment_hash: Optional[str] = None
-    preimage: Optional[str] = None
-    raw_response: Optional[Dict] = None
+    amount: int = 0
+    status: str = "UNKNOWN"
+
+
+class OnChainSendResult(BaseModel):
+    txid: str
+    success: bool = True
+
+
+class LightningBalance(BaseModel):
+    total_balance: str
+    confirmed_balance: str
+    unconfirmed_balance: str
+
+
+class ChannelBalance(BaseModel):
+    local_balance: int
+    remote_balance: int
+
+
+class LightningConfig(BaseModel):
+    """Configuration for connecting to LND"""
+    host: str = "localhost"
+    port: int = 10009
+    tls_cert_path: Optional[Path] = None
+    macaroon_path: Optional[Path] = None
+
+    # Optional container/macaroon overrides
+    container_payment_decision: Optional[str] = None
+    container_bitcoin: Optional[str] = None
+    macaroon_payment_decision: Optional[Path] = None
+    macaroon_bitcoin: Optional[Path] = None
+
+    @classmethod
+    def from_env(cls, env_file: str = ".env"):
+        """Load configuration from .env file"""
+        load_dotenv(env_file)
+        
+        tls_path = os.getenv("LND_TLS_CERT_PATH")
+        macaroon_path = os.getenv("LND_MACAROON_PATH")
+
+        return cls(
+            host=os.getenv("LND_GRPC_HOST", "localhost"),
+            port=int(os.getenv("LND_GRPC_PORT", 10009)),
+            tls_cert_path=Path(tls_path) if tls_path else None,
+            macaroon_path=Path(macaroon_path) if macaroon_path else None,
+        )

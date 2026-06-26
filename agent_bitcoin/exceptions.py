@@ -1,55 +1,38 @@
 class AgentBitcoinError(Exception):
-    """Base exception for all Agent-Bitcoin SDK errors."""
-
+    """Base exception for the agent-bitcoin package"""
     pass
 
 
-class LightningConnectionError(AgentBitcoinError):
-    """Raised when unable to connect to LND node."""
-
+class LNDException(AgentBitcoinError):
+    """Raised when LND gRPC calls fail"""
     pass
 
 
 class InvoiceCreationError(AgentBitcoinError):
-    """Raised when invoice creation fails."""
-
+    """Raised when creating an invoice fails"""
     pass
 
 
 class PaymentError(AgentBitcoinError):
-    """Raised when a payment fails."""
-
-    def __init__(self, message: str, payment_hash: str = None, status: str = None):
-        self.payment_hash = payment_hash
-        self.status = status
-        super().__init__(message)
-
-
-class InsufficientBalanceError(PaymentError):
-    """Raised when the payer doesn't have enough balance."""
-
-    pass
-
-
-class NoRouteError(PaymentError):
-    """Raised when no route can be found to the recipient."""
-
-    pass
-
-
-class InvoiceExpiredError(AgentBitcoinError):
-    """Raised when trying to pay an expired invoice."""
-
+    """Raised when a Lightning payment fails"""
     pass
 
 
 class MacaroonError(AgentBitcoinError):
-    """Raised when there's an issue with the macaroon (auth)."""
-
+    """Raised when there is a problem loading or using the macaroon"""
     pass
 
 
-class ValidationError(AgentBitcoinError):
-    """Raised when input validation fails."""
+class InsufficientBalanceError(AgentBitcoinError):
+    """Raised when wallet balance is insufficient"""
+    pass
 
+
+class NoRouteError(AgentBitcoinError):
+    """Raised when no route can be found for a payment"""
+    pass
+
+
+class ConfigurationError(AgentBitcoinError):
+    """Raised for missing or invalid configuration"""
     pass

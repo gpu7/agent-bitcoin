@@ -2,24 +2,29 @@ from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 import os
+import logging
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Import the SDK
+# Import SDK
 from agent_bitcoin import create_client
-from agent_bitcoin.models import PaymentResult
+from agent_bitcoin.models import PaymentResult, OnChainSendResult
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("agent-bitcoin-backend")
 
 app = FastAPI(
     title="Agent-Bitcoin Backend",
-    description="Enforced Lightning payments with mandatory transaction fee",
+    description="Secure Lightning payments with mandatory 1000 sat transaction fee",
     version="0.1.0"
 )
 
 # Initialize SDK client
 client = create_client()
 
-# ====================== MODELS ======================
+# ====================== REQUEST / RESPONSE MODELS ======================
 class CreateInvoiceRequest(BaseModel):
     memo: str
     amount_sats: int
@@ -34,6 +39,7 @@ class PaymentResponse(BaseModel):
     payment_hash: Optional[str] = None
     amount_sats: Optional[int] = None
     fee_sats: int = 1000
+    fee_txid: Optional[str] = None
     message: str
 
 # ====================== ROUTES ======================
@@ -43,7 +49,10 @@ async def health():
 
 @app.post("/invoices", response_model=dict)
 async def create_invoice(req: CreateInvoiceRequest):
-    """Create a Lightning invoice"""
+    """Create Lightning invoice"""
+    if req.amount_sats < client.min_payment_sats:
+        raise HTTPException(400, f"Minimum payment is {client.min_payment_sats} sats")
+    
     invoice = client.create_invoice(
         memo=req.memo,
         amount_sats=req.amount_sats,
@@ -53,35 +62,40 @@ async def create_invoice(req: CreateInvoiceRequest):
 
 @app.post("/payments", response_model=PaymentResponse)
 async def pay_invoice(req: PayInvoiceRequest):
-    """Pay a Lightning invoice + ENFORCE 1000 sat fee"""
+    """Pay Lightning invoice + **MANDATORY** 1000 sat on-chain fee"""
     
     if not req.payment_request:
         raise HTTPException(400, "payment_request is required")
 
-    # Step 1: Pay the Lightning invoice
-    result: PaymentResult = client.pay_invoice(req.payment_request)
-    
-    if not result.success:
+    logger.info(f"Processing payment: {req.description or 'No description'}")
+
+    # Step 1: Execute Lightning payment
+    lightning_result: PaymentResult = client.pay_invoice(req.payment_request)
+
+    if not lightning_result.success:
+        logger.warning(f"Lightning payment failed: {lightning_result.status}")
         return PaymentResponse(
             success=False,
-            message=f"Lightning payment failed: {result.status}"
+            message=f"Lightning payment failed: {lightning_result.status}"
         )
 
-    # Step 2: ENFORCE on-chain fee (this cannot be easily bypassed)
+    # Step 2: ENFORCE fee collection (critical)
+    fee_txid = None
     try:
-        fee_txid = client.send_onchain(
-            address=os.getenv("FEE_WALLET_ADDRESS"),
-            amount_sats=int(os.getenv("FEE_AMOUNT_SATS", 1000))
-        )
-        fee_message = f"Fee sent on-chain. TXID: {fee_txid}"
+        fee_result: OnChainSendResult = client.collect_transaction_fee()
+        fee_txid = fee_result.txid
+        logger.info(f"✅ Fee collected successfully. TXID: {fee_txid}")
+        fee_message = f"Fee sent on-chain (TXID: {fee_txid[:12]}...)"
     except Exception as e:
-        fee_message = f"Fee collection failed: {str(e)} (but Lightning payment succeeded)"
+        logger.error(f"❌ Fee collection failed: {str(e)}")
+        fee_message = f"Lightning payment succeeded but fee collection failed: {str(e)}"
 
     return PaymentResponse(
         success=True,
-        payment_hash=result.payment_hash,
-        amount_sats=result.amount,
-        fee_sats=1000,
+        payment_hash=lightning_result.payment_hash,
+        amount_sats=lightning_result.amount,
+        fee_sats=client.fee_amount_sats,
+        fee_txid=fee_txid,
         message=fee_message
     )
 
