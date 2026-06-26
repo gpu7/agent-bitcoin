@@ -10,23 +10,48 @@ __version__ = "0.1.0"
 from pathlib import Path
 from typing import Optional
 
+# Core Lightning client
 from .client import AgentBitcoinClient
 from .models import LightningConfig
+
+# Exceptions
 from .exceptions import (
     AgentBitcoinError,
     InvoiceCreationError,
     PaymentError,
     MacaroonError,
+    InsufficientBalanceError,
+    NoRouteError,
+)
+
+# Intelligent Agents
+from .agents.payment_decision import (
+    PaymentDecisionAgent,
+    create_payment_decision_agent,
+    create_grok_payment_decision_agent,
+    PaymentDecision,
 )
 
 # Main public API
 __all__ = [
+    # Core
     "AgentBitcoinClient",
     "LightningConfig",
+    "create_client",
+    
+    # Exceptions
     "AgentBitcoinError",
     "InvoiceCreationError",
     "PaymentError",
     "MacaroonError",
+    "InsufficientBalanceError",
+    "NoRouteError",
+    
+    # Intelligent Agents
+    "PaymentDecisionAgent",
+    "create_payment_decision_agent",
+    "create_grok_payment_decision_agent",
+    "PaymentDecision",
 ]
 
 
@@ -39,7 +64,7 @@ def create_client(
 ) -> AgentBitcoinClient:
     """
     Create an AgentBitcoinClient with .env support.
-
+    
     Priority: Explicit arguments > .env file > defaults
     """
     # Load from .env first
@@ -56,18 +81,3 @@ def create_client(
         config.macaroon_bitcoin = Path(macaroon_bitcoin)
 
     return AgentBitcoinClient(config)
-
-# Intelligent Agents (optional but recommended)
-from .agents.payment_decision import (
-    PaymentDecisionAgent,
-    create_payment_decision_agent,
-    create_grok_payment_decision_agent,
-    PaymentDecision,
-)
-
-__all__.extend([
-    "PaymentDecisionAgent",
-    "create_payment_decision_agent",
-    "create_grok_payment_decision_agent",
-    "PaymentDecision",
-])

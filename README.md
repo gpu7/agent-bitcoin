@@ -92,6 +92,8 @@ uv run python examples/basic_usage.py
 
 This is the recommended example for most users who want to integrate Agent-Bitcoin into AI agents without paying for API credits.
 
+File: examples/ollama_example.py
+
 ```bash
 # 1. Install dependencies
 uv add langchain-core langchain-ollama
@@ -103,14 +105,24 @@ ollama run llama3.2
 uv run python examples/ollama_example.py
 ```
 
-File: examples/ollama_example.py
+---
 
-This example demonstrates:
+### Grok example
 
-Creating Lightning invoices
-Paying Lightning invoices  
-Checking wallet balance
-Full LangChain tool integration with a local LLM
+File: examples/grok_example.py
+
+```bash
+# Make sure you have langchain-xai installed
+uv add langchain-xai
+
+# Set your API key (one time)
+export XAI_API_KEY="xai-your-key-here"
+
+# Run the example
+uv run python examples/grok_example.py
+```
+
+---
 
 ### Payment Decision Agent
 

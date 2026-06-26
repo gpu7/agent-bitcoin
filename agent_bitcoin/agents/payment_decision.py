@@ -123,12 +123,12 @@ def create_payment_decision_agent(llm=None, model: str = "llama3.2"):
     return PaymentDecisionAgent(llm=llm, model=model)
 
 
-def create_grok_payment_decision_agent(api_key: str = None):
+def create_grok_payment_decision_agent(api_key: Optional[str] = None):
     """Create agent using xAI Grok."""
     try:
         from langchain_xai import ChatXAI
         llm = ChatXAI(
-            model="grok-4-1-fast-reasoning",   # or grok-beta
+            model="grok-4-1-fast-reasoning",
             api_key=api_key,
             temperature=0.2,
         )
