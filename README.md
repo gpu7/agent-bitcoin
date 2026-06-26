@@ -124,6 +124,33 @@ uv run python examples/grok_example.py
 
 ---
 
+### Full intelligent agent, Ollama version
+
+File: examples/full_intelligent_agent_ollama.py
+
+```bash
+uv run python examples/full_intelligent_agent_ollama.py
+```
+
+---
+
+### Full intelligent agent, Grok version
+
+File: examples/full_intelligent_agent_grok.py
+
+```bash
+# Install Grok support if not already done
+uv add langchain-xai
+
+# Set your xAI API key
+export XAI_API_KEY="xai-your-api-key-here"
+
+# Run the example
+uv run python examples/full_intelligent_agent_grok.py
+```
+
+---
+
 ### Payment Decision Agent
 
 File: examples/payment_decision_agent.py
