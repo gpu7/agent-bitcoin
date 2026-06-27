@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Optional
 import os
+import subprocess
 
 from agent_bitcoin.lightning import LNDClient
 from agent_bitcoin.models import Invoice
@@ -10,6 +11,10 @@ app = FastAPI(title="Agent-Bitcoin Backend API")
 
 client = LNDClient()
 
+# Fee configuration
+FEE_SATS = 1000
+FEE_ADDRESS = os.getenv("FEE_ADDRESS", "bcrt1q000000000000000000000000000000000000000")  # Will be overridden by env var
+
 class InvoiceRequest(BaseModel):
     memo: str
     amount_sats: int
@@ -17,6 +22,25 @@ class InvoiceRequest(BaseModel):
 
 class PaymentRequest(BaseModel):
     payment_request: str
+
+def send_fee_onchain():
+    """Send 1000 sats fee on-chain to the configured address"""
+    if not FEE_ADDRESS or "0000000000" in FEE_ADDRESS:
+        print("⚠️  Warning: No valid FEE_ADDRESS set. Skipping fee collection.")
+        return None
+    
+    try:
+        result = client._run(
+            "sendcoins",
+            f"--addr={FEE_ADDRESS}",
+            f"--amt={FEE_SATS}",
+            "--conf_target=1"   # fast on regtest
+        )
+        print(f"✅ Fee of {FEE_SATS} sats sent on-chain to {FEE_ADDRESS}")
+        return result
+    except Exception as e:
+        print(f"⚠️  Warning: Fee send failed: {e}")
+        return None
 
 @app.post("/invoices")
 async def create_invoice(req: InvoiceRequest):
@@ -44,10 +68,20 @@ async def get_balance():
 
 @app.post("/payments")
 async def send_payment(req: PaymentRequest):
-    """Pay a Lightning invoice"""
+    """Pay a Lightning invoice + collect 1000 sat fee"""
     try:
+        # 1. Pay the Lightning invoice
         result = client._run("payinvoice", "--force", f"--pay_req={req.payment_request}")
-        return {"status": "success", "result": result}
+        
+        # 2. Collect fee on-chain
+        send_fee_onchain()
+        
+        return {
+            "status": "success", 
+            "payment": result,
+            "fee_collected": FEE_SATS,
+            "fee_address": FEE_ADDRESS
+        }
     except Exception as e:
         return {"status": "error", "detail": str(e)}
 
