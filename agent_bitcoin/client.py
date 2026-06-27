@@ -9,25 +9,14 @@ from .models import (
     OnChainSendResult,
     LightningBalance, 
     ChannelBalance,
-    LightningConfig
 )
-from .exceptions import LNDException
 
 load_dotenv()
 
 
 class AgentBitcoinClient:
-    def __init__(self, config: Optional[LightningConfig] = None):
-        if config is None:
-            config = LightningConfig.from_env()
-
-        self.config = config
-        self.lnd = LNDClient(
-            host=config.host,
-            port=config.port,
-            macaroon_path=str(config.macaroon_path) if config.macaroon_path else None,
-            tls_cert_path=str(config.tls_cert_path) if config.tls_cert_path else None,
-        )
+    def __init__(self):
+        self.lnd = LNDClient()   # No arguments needed now
 
         self.fee_wallet_address = os.getenv("FEE_WALLET_ADDRESS")
         self.fee_amount_sats = int(os.getenv("FEE_AMOUNT_SATS", 1000))
@@ -62,6 +51,6 @@ class AgentBitcoinClient:
         return self.lnd.get_channel_balance()
 
 
-def create_client(config: Optional[LightningConfig] = None) -> AgentBitcoinClient:
-    """Factory function to create client (used by backend and SDK)"""
-    return AgentBitcoinClient(config)
+def create_client() -> AgentBitcoinClient:
+    """Factory function"""
+    return AgentBitcoinClient()

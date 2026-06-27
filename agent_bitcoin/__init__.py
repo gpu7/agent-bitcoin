@@ -24,7 +24,7 @@ from .exceptions import (
     NoRouteError,
 )
 
-# Intelligent Agents
+# Intelligent Agents (kept for future use)
 from .agents.payment_decision import (
     PaymentDecisionAgent,
     create_payment_decision_agent,
@@ -63,11 +63,10 @@ def create_client(
     macaroon_bitcoin: Optional[str] = None,
 ) -> AgentBitcoinClient:
     """
-    Create an AgentBitcoinClient with .env support.
-    
-    Priority: Explicit arguments > .env file > defaults
+    Create an AgentBitcoinClient.
+    The lncli-based implementation no longer needs complex config.
     """
-    # Load from .env first
+    # Still load config for backward compatibility / future use
     config = LightningConfig.from_env(env_file)
 
     # Override with explicit parameters if provided
@@ -80,4 +79,6 @@ def create_client(
     if macaroon_bitcoin:
         config.macaroon_bitcoin = Path(macaroon_bitcoin)
 
-    return AgentBitcoinClient(config)
+    # Pass config only if your AgentBitcoinClient supports it.
+    # Currently we use the simple version.
+    return AgentBitcoinClient()   # No config passed

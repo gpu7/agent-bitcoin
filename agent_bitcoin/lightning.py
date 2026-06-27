@@ -1,4 +1,6 @@
 import os
+import subprocess
+import json
 from typing import Optional
 
 from .exceptions import LNDException
@@ -10,102 +12,59 @@ from .models import (
     ChannelBalance,
 )
 
-# Use the high-level client from lnd-grpc-client
-from lndgrpc import LNDClient as RawLNDClient
-
 
 class LNDClient:
-    """Wrapper around lndgrpc.LNDClient"""
+    """LND client using lncli with explicit everything"""
 
-    def __init__(
-        self,
-        host: str = "localhost",
-        port: int = 10009,
-        macaroon_path: Optional[str] = None,
-        tls_cert_path: Optional[str] = None,
-    ):
-        self.host = host
-        self.port = port
-        self.macaroon_path = macaroon_path or os.getenv("LND_MACAROON_PATH")
-        self.tls_cert_path = tls_cert_path or os.getenv("LND_TLS_CERT_PATH")
+    def __init__(self):
+        self.lncli = "/Users/richardcasey/go/bin/lncli"
+        
+        self.tls_cert = "/Users/richardcasey/Library/Application Support/Lnd/tls.cert"
+        self.macaroon = "/tmp/agent-payment-decision.macaroon"
+        
+        self.network = "--network=regtest"
 
-        self._client = None
-        self._connect()
-
-    def _connect(self):
-        """Connect using lndgrpc high-level client"""
+    def _run(self, *args) -> dict:
+        """Run lncli with very explicit flags"""
+        cmd = [
+            self.lncli,
+            self.network,
+            f"--tlscertpath={self.tls_cert}",
+            f"--macaroonpath={self.macaroon}",
+            "--rpcserver=localhost:10009",
+            "--insecure",
+            "--no-macaroons",
+            *args
+        ]
+        
+        print(f"Running: {' '.join(cmd)}")
+        
         try:
-            tls_path = os.path.expanduser(str(self.tls_cert_path))
-            mac_path = os.path.expanduser(str(self.macaroon_path))
-
-            print(f"🔑 Loading TLS from: {tls_path}")
-            print(f"🔑 Loading macaroon from: {mac_path}")
-
-            # Fixed parameter names for this package version
-            self._client = RawLNDClient(
-                cert_filepath=tls_path,
-                macaroon_filepath=mac_path,
-            )
-
-            print("✅ Successfully connected to LND via lndgrpc!")
-
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            
+            if result.returncode != 0:
+                error_msg = result.stderr.strip() or result.stdout.strip()
+                raise LNDException(f"lncli failed:\n{error_msg}")
+            
+            return json.loads(result.stdout) if result.stdout.strip() else {}
         except Exception as e:
-            raise LNDException(f"Failed to connect to LND: {str(e)}")
-
-    # ====================== LIGHTNING METHODS ======================
+            raise LNDException(f"lncli execution failed: {str(e)}")
 
     def create_invoice(self, memo: str, amount_sats: int, expiry_seconds: int = 3600) -> Invoice:
         try:
-            resp = self._client.add_invoice(memo=memo, value=amount_sats, expiry=expiry_seconds)
+            resp = self._run(
+                "addinvoice",
+                f"--memo={memo}",
+                f"--amt={amount_sats}",
+                f"--expiry={expiry_seconds}"
+            )
             return Invoice(
-                payment_request=resp.payment_request,
-                r_hash=resp.r_hash.hex(),
-                payment_hash=resp.r_hash.hex(),
+                payment_request=resp.get("payment_request", ""),
+                r_hash=resp.get("r_hash", ""),
+                payment_hash=resp.get("r_hash", ""),
             )
         except Exception as e:
             raise LNDException(f"Failed to create invoice: {str(e)}")
-
-    def pay_invoice(self, payment_request: str) -> PaymentResult:
-        try:
-            resp = self._client.send_payment_sync(payment_request=payment_request)
-            success = resp.status == "SUCCEEDED"
-
-            return PaymentResult(
-                success=success,
-                payment_hash=resp.payment_hash.hex() if hasattr(resp, 'payment_hash') else None,
-                amount=getattr(resp, 'value_sat', 0),
-                status=getattr(resp, 'status', 'UNKNOWN'),
-            )
-        except Exception as e:
-            raise LNDException(f"Failed to pay invoice: {str(e)}")
-
-    def send_coins(self, address: str, amount_sats: int) -> OnChainSendResult:
-        try:
-            resp = self._client.send_coins(addr=address, amount=amount_sats)
-            return OnChainSendResult(txid=resp.txid, success=True)
-        except Exception as e:
-            raise LNDException(f"Failed to send on-chain: {str(e)}")
-
-    def get_balance(self) -> LightningBalance:
-        try:
-            resp = self._client.wallet_balance()
-            return LightningBalance(
-                total_balance=str(resp.total_balance),
-                confirmed_balance=str(resp.confirmed_balance),
-                unconfirmed_balance=str(resp.unconfirmed_balance),
-            )
-        except Exception as e:
-            raise LNDException(f"Failed to get balance: {str(e)}")
-
-    def get_channel_balance(self) -> ChannelBalance:
-        try:
-            resp = self._client.channel_balance()
-            return ChannelBalance(
-                local_balance=resp.local_balance,
-                remote_balance=resp.remote_balance,
-            )
-        except Exception as e:
-            raise LNDException(f"Failed to get channel balance: {str(e)}")
 
 
 __all__ = ["LNDClient"]
