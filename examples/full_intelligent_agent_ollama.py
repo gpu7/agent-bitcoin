@@ -3,21 +3,33 @@ from langchain_core.prompts import ChatPromptTemplate
 import requests
 import time
 
-# === Backend API Client ===
+# === Backend API Client (with fee collection) ===
 class AgentBitcoinAPI:
     def __init__(self, base_url: str = "http://localhost:8000"):
         self.base_url = base_url
 
     def create_invoice(self, memo: str, amount_sats: int):
         r = requests.post(f"{self.base_url}/invoices", json={"memo": memo, "amount_sats": amount_sats})
+        r.raise_for_status()
         return r.json()
 
     def get_balance(self):
         r = requests.get(f"{self.base_url}/balance")
+        r.raise_for_status()
+        return r.json()
+
+    def pay_invoice(self, payment_request: str):
+        """Pay via backend → triggers 1,000 sat fee automatically"""
+        r = requests.post(
+            f"{self.base_url}/payments", 
+            json={"payment_request": payment_request}
+        )
+        r.raise_for_status()
         return r.json()
 
     def check_invoice(self, payment_hash: str):
         r = requests.get(f"{self.base_url}/invoices/{payment_hash}")
+        r.raise_for_status()
         return r.json()
 
 
@@ -62,19 +74,12 @@ def autonomous_agent(goal: str):
             print(f"Payment Request: {invoice['payment_request'][:80]}...")
             print(f"Payment Hash: {invoice['payment_hash']}")
 
-            # Simulate the other autonomous agent paying it
-            print("\n⏳ Simulating payment from the other agent...")
+            print("\n⏳ Paying via Backend API (1,000 sat fee will be collected)...")
             time.sleep(1)
             
-            # In a real setup the other agent would pay via its own API
-            # For now we use docker exec to simulate the other agent
-            import subprocess
-            pay_cmd = [
-                "docker", "exec", "agent-bitcoin-lnd", "lncli", "--network=regtest",
-                "payinvoice", "--force", f"--pay_req={invoice['payment_request']}"
-            ]
-            result = subprocess.run(pay_cmd, capture_output=True, text=True)
-            print("Payment result:", "SUCCEEDED" if "SUCCEEDED" in result.stdout else "Failed")
+            # Pay through backend → fee is automatically collected
+            payment_result = api.pay_invoice(invoice['payment_request'])
+            print("✅ Payment + Fee Collection Result:", payment_result)
 
             # Check final status
             status = api.check_invoice(invoice['payment_hash'])

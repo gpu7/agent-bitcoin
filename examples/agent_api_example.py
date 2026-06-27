@@ -1,8 +1,8 @@
 import requests
-from typing import Dict, Optional
+from typing import Dict
 
 class AgentBitcoinAPI:
-    """AI Agent-friendly wrapper for the Backend API"""
+    """AI Agent-friendly wrapper for the Backend API (with automatic fee collection)"""
     
     def __init__(self, base_url: str = "http://localhost:8000"):
         self.base_url = base_url
@@ -17,13 +17,14 @@ class AgentBitcoinAPI:
         return response.json()
 
     def get_balance(self) -> Dict:
-        """Get current balance"""
+        """Get current Lightning + on-chain balance"""
         response = requests.get(f"{self.base_url}/balance")
         response.raise_for_status()
         return response.json()
 
     def pay_invoice(self, payment_request: str) -> Dict:
-        """Pay a Lightning invoice"""
+        """Pay a Lightning invoice via backend.
+        This automatically triggers the 1,000 sat fee collection."""
         response = requests.post(
             f"{self.base_url}/payments",
             json={"payment_request": payment_request}
@@ -56,4 +57,5 @@ if __name__ == "__main__":
     print("Payment Request:", invoice["payment_request"][:80] + "...")
     print("Payment Hash:", invoice["payment_hash"])
     
-    # In a real agent, you would now share the payment_request with the user/other agent
+    # Note: In autonomous agents, you would call api.pay_invoice(...) 
+    # to trigger payment + fee collection
