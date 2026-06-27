@@ -14,26 +14,20 @@ from .models import (
 
 
 class LNDClient:
-    """LND client using lncli with explicit everything"""
+    """LND client using lncli inside Docker container"""
 
     def __init__(self):
-        self.lncli = "/Users/richardcasey/go/bin/lncli"
-        
-        self.tls_cert = "/Users/richardcasey/Library/Application Support/Lnd/tls.cert"
-        self.macaroon = "/tmp/agent-payment-decision.macaroon"
-        
-        self.network = "--network=regtest"
+        # No longer using external lncli paths
+        pass
 
     def _run(self, *args) -> dict:
-        """Run lncli with very explicit flags"""
+        """Run lncli inside the Docker container (most reliable method)"""
+        container = "agent-payment-decision-lnd"
+        
         cmd = [
-            self.lncli,
-            self.network,
-            f"--tlscertpath={self.tls_cert}",
-            f"--macaroonpath={self.macaroon}",
-            "--rpcserver=localhost:10009",
-            "--insecure",
-            "--no-macaroons",
+            "docker", "exec", "-i", container,
+            "lncli",
+            "--network=regtest",
             *args
         ]
         
