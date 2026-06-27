@@ -22,6 +22,13 @@ A lightweight Python SDK that enables AI agents to send and receive Bitcoin/Ligh
 - Built-in error handling and Pydantic models
 - Easy integration with LangChain, CrewAI, AutoGen, etc.
 
+### Autonomous AI agents
+
+- Check Lightning and Bitcoin balances
+- Autononomously decide to create invoices
+- Trigger payments from counterparty agents
+- Complete full transactions
+
 ---
 ## Project Status
 
