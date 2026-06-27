@@ -138,6 +138,13 @@ File: examples/full_intelligent_agent_ollama.py
 uv run python examples/full_intelligent_agent_ollama.py
 ```
 
+#### Example transaction between autonomous agents
+- Agent checked balance
+- LLM decided to create an invoice for 8000 sats
+- Invoice was created via the backend API
+- The other node (agent-bitcoin-lnd) automatically paid it
+- Payment SUCCEEDED
+
 ---
 
 ### Full intelligent agent, Grok version
@@ -154,6 +161,17 @@ export XAI_API_KEY="xai-your-api-key-here"
 # Run the example
 uv run python examples/full_intelligent_agent_grok.py
 ```
+
+#### Example transaction between autonomous agents
+- 🤖 Grok Autonomous Agent started with goal: Create an invoice for 12000 sats and get it paid by the other agent
+- Current balance: 3497010412 sats
+- Grok decided: CREATE_INVOICE:12000:Payment request for 12000 sats
+- ✅ Invoice created for 12000 sats
+- Payment Request: lnbcrt120u1p4yqqn4pp5wvxgwllgr2qpvmwatft0hqqpusc2mfprun3crfgv0wsk7h8fayysdps2psh...
+- Payment Hash: 730c877fe81a80166ddd5a56fb8001e430ada423e4e381a50c7ba16f5ce9e909
+- ⏳ Simulating payment from counterparty agent...
+- Payment result: SUCCEEDED
+- Invoice status: unknown
 
 ---
 
