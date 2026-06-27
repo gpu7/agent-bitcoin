@@ -168,6 +168,17 @@ ollama run llama3.2
 # Run the example
 uv run python examples/payment_decision_agent.py
 ```
+
+---
+
+### AI Agent calls Backend API
+
+File: examples/agent_api_example.py
+
+```bash
+uv run python examples/agent_api_example.py
+```
+
 ---
 
 ## Backend API
