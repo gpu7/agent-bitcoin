@@ -170,6 +170,31 @@ uv run python examples/payment_decision_agent.py
 ```
 ---
 
+## Backend API
+
+The backend serves as the enforcement and payment routing layer for all Lightning operations.
+
+### Current State (June 2026)
+
+- Architecture: FastAPI backend + Docker-based LND nodes (regtest).
+  
+- Containers:agent-payment-decision-lnd (port 10009) — used by the backend agent-bitcoin-lnd (port 10010) — counterparty node for testing.
+
+- Key Endpoints:POST /invoices — Create Lightning invoices (used by AI agents). Built-in Lightning client using docker exec (reliable connection to LND).
+
+- Security & Control:All LND interactions go through the backend (no direct LND access for agents). Wallet and channel management handled by Docker infrastructure. Channel opened between the two nodes for instant routing.
+
+- Fee Handling: Automatic Lightning routing fees + planned 1,000 sat fixed fee logic.
+
+- Status: Fully functional for invoice creation and payment on regtest.
+
+AI agents interact only with the HTTP API — they do not need LND credentials or direct SDK calls to Lightning. 
+
+- Future enhancements planned: balance checks, outgoing payments, payment status, fee collection endpoint, and rate limiting.
+
+
+---
+
 ## Repository
 
 GitHub: https://github.com/gpu7/agent-bitcoin
