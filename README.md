@@ -247,7 +247,7 @@ AI agents interact only with the HTTP API — they do not need LND credentials o
 
 | Method | Endpoint                 | Description      | Notes |
 |:-------|:-------------------------|:-------------------------------------------|:---------------|
-| POST   | <span style="color: orange;">/invoices</span> | Create a Lightning invoice  | Requires memo and amount_sats |
+| POST   | <span style="color: #FF8C00;">/invoices</span> | Create a Lightning invoice  | Requires memo and amount_sats |
 | POST   | /payments                | Pay a Lightning invoice  | Automatically collects 1,000 sats fee |
 | GET    | /balance                 | Get combined Lightning + on-chain balance  | |
 | GET    | /invoices/{payment_hash} | Check status of an invoice/payment  | |
