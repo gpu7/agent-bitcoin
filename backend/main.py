@@ -2,18 +2,20 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Optional
 import os
-import subprocess
 
 from agent_bitcoin.lightning import LNDClient
 from agent_bitcoin.models import Invoice
 
 app = FastAPI(title="Agent-Bitcoin Backend API")
 
+# === Configuration from Environment Variables ===
+FEE_SATS = int(os.getenv("FEE_SATS", 1000))
+FEE_ADDRESS = os.getenv("FEE_ADDRESS")
+
 client = LNDClient()
 
-# Fee configuration
-FEE_SATS = 1000
-FEE_ADDRESS = os.getenv("FEE_ADDRESS", "bcrt1q000000000000000000000000000000000000000")  # Will be overridden by env var
+if not FEE_ADDRESS:
+    print("⚠️  WARNING: FEE_ADDRESS environment variable is not set!")
 
 class InvoiceRequest(BaseModel):
     memo: str
@@ -24,9 +26,9 @@ class PaymentRequest(BaseModel):
     payment_request: str
 
 def send_fee_onchain():
-    """Send 1000 sats fee on-chain to the configured address"""
-    if not FEE_ADDRESS or "0000000000" in FEE_ADDRESS:
-        print("⚠️  Warning: No valid FEE_ADDRESS set. Skipping fee collection.")
+    """Send fee on-chain if FEE_ADDRESS is configured"""
+    if not FEE_ADDRESS:
+        print("⚠️  Warning: No FEE_ADDRESS configured. Skipping fee collection.")
         return None
     
     try:
@@ -34,7 +36,7 @@ def send_fee_onchain():
             "sendcoins",
             f"--addr={FEE_ADDRESS}",
             f"--amt={FEE_SATS}",
-            "--conf_target=1"   # fast on regtest
+            "--conf_target=1" if "regtest" in os.getenv("NETWORK", "regtest").lower() else "--conf_target=6"
         )
         print(f"✅ Fee of {FEE_SATS} sats sent on-chain to {FEE_ADDRESS}")
         return result
@@ -68,7 +70,7 @@ async def get_balance():
 
 @app.post("/payments")
 async def send_payment(req: PaymentRequest):
-    """Pay a Lightning invoice + collect 1000 sat fee"""
+    """Pay a Lightning invoice + collect fee"""
     try:
         # 1. Pay the Lightning invoice
         result = client._run("payinvoice", "--force", f"--pay_req={req.payment_request}")
