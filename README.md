@@ -208,7 +208,7 @@ uv run python examples/agent_api_example.py
 
 ## Backend API
 
-The backend serves as the enforcement and payment routing layer for all Lightning operations.
+The backend serves as the enforcement and payment routing layer for all Lightning operations. The backend/ provides a simple, secure HTTP API layer on top of your Lightning node. It is the recommended way for AI agents to interact with Bitcoin/Lightning.
 
 ### Current State (June 2026)
 
@@ -228,6 +228,20 @@ AI agents interact only with the HTTP API — they do not need LND credentials o
 
 - Future enhancements planned: balance checks, outgoing payments, payment status, fee collection endpoint, and rate limiting.
 
+### Key Features
+
+- Automatic Fee Collection: Every payment made through /payments sends 1,000 sats on-chain to your configured fee address.
+- Simple JSON API: Easy for autonomous agents (LangChain, Grok, Ollama, etc.) to use.
+- Safety & Control: All Lightning operations go through a single controlled layer.
+- Regtest Ready: Works seamlessly in your local regtest environment.
+
+### Why Use the Backend?
+
+- Keeps agents simple and focused on intelligence instead of LND complexity.
+- Enforces monetization (fees) consistently.
+- Makes it easy to add logging, rate limiting, or business rules later.
+
+- Base URL: http://localhost:8000
 
 ---
 
