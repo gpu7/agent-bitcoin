@@ -12,6 +12,8 @@ services:
       - BITCOIN_ZMQPUBRAWTX=tcp://0.0.0.0:28333
     volumes:
       - bitcoin-data:/home/bitcoin/.bitcoin
+    networks:
+      - agent-net
 
   lnd:
     image: lightninglabs/lnd:v0.18.5-beta
@@ -31,13 +33,18 @@ services:
       - "--bitcoind.zmqpubrawblock=tcp://bitcoind:28332"
       - "--bitcoind.zmqpubrawtx=tcp://bitcoind:28333"
       - "--lnddir=/home/lnd/.lnd"
-      - "--adminmacaroonpath=/home/lnd/.lnd/data/chain/bitcoin/regtest/admin.macaroon"
-      - "--tlscertpath=/home/lnd/.lnd/tls.cert"
-      - "--tlskeypath=/home/lnd/.lnd/tls.key"
       - "--listen=0.0.0.0:9735"
       - "--rpclisten=0.0.0.0:10009"
     volumes:
       - lnd-data:/home/lnd/.lnd
+    networks:
+      - agent-net
+    extra_hosts:
+      - "bitcoind:172.18.0.2"   # fallback IP
+
+networks:
+  agent-net:
+    driver: bridge
 
 volumes:
   bitcoin-data:
