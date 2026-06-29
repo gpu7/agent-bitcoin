@@ -347,6 +347,21 @@ print('Balance check:', client.get_balance())
 
 ---
 
+## AWS
+
+### Start backend in tmux
+```bash
+tmux new-session -d -s backend "cd ~/agent-bitcoin && PYTHONPATH=. uv run python backend/main.py"
+```
+
+### Check if it's running
+```bash
+tmux ls
+curl http://localhost:8000/balance
+```
+
+---
+
 ## Testing
 ```bash
 uv run pytest tests/ -v
