@@ -12,7 +12,13 @@ app = FastAPI(title="Agent-Bitcoin Backend API")
 FEE_SATS = int(os.getenv("FEE_SATS", 1000))
 FEE_ADDRESS = os.getenv("FEE_ADDRESS")
 
-client = LNDClient()
+# LND Configuration (Docker volume paths)
+LND_DIR = "/home/lnd/.lnd"
+
+client = LNDClient(
+    lnd_dir=LND_DIR,
+    network="regtest"
+)
 
 if not FEE_ADDRESS:
     print("⚠️  WARNING: FEE_ADDRESS environment variable is not set!")
@@ -30,7 +36,7 @@ def send_fee_onchain():
     if not FEE_ADDRESS:
         print("⚠️  Warning: No FEE_ADDRESS configured. Skipping fee collection.")
         return None
-    
+
     try:
         result = client._run(
             "sendcoins",
@@ -74,12 +80,12 @@ async def send_payment(req: PaymentRequest):
     try:
         # 1. Pay the Lightning invoice
         result = client._run("payinvoice", "--force", f"--pay_req={req.payment_request}")
-        
+
         # 2. Collect fee on-chain
         send_fee_onchain()
-        
+
         return {
-            "status": "success", 
+            "status": "success",
             "payment": result,
             "fee_collected": FEE_SATS,
             "fee_address": FEE_ADDRESS
