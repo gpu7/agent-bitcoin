@@ -349,6 +349,11 @@ print('Balance check:', client.get_balance())
 
 ## AWS
 
+### Instance type
+
+- Currently using the AWS instance type:
+m5d.large
+
 ### Start backend in tmux
 ```bash
 tmux new-session -d -s backend "cd ~/agent-bitcoin && PYTHONPATH=. uv run python backend/main.py"
