@@ -4,12 +4,17 @@ services:
     container_name: bitcoind
     ports:
       - "18443:18443"
-    environment:
-      - BITCOIN_NETWORK=regtest
-      - BITCOIN_RPCUSER=btc
-      - BITCOIN_RPCPASSWORD=btc
-      - BITCOIN_ZMQPUBRAWBLOCK=tcp://0.0.0.0:28332
-      - BITCOIN_ZMQPUBRAWTX=tcp://0.0.0.0:28333
+    command:
+      - "bitcoind"
+      - "-regtest"
+      - "-server=1"
+      - "-rpcuser=btc"
+      - "-rpcpassword=btc"
+      - "-rpcallowip=0.0.0.0/0"
+      - "-rpcbind=0.0.0.0"
+      - "-printtoconsole"
+      - "-zmqpubrawblock=tcp://0.0.0.0:28332"
+      - "-zmqpubrawtx=tcp://0.0.0.0:28333"
     volumes:
       - bitcoin-data:/home/bitcoin/.bitcoin
     networks:
