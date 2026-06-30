@@ -17,30 +17,34 @@ class LNDClient:
     """LND client using lncli inside Docker container"""
 
     def __init__(self):
-        # No longer using external lncli paths
-        pass
+        self.container = "agent-payment-decision-lnd"
+        self.lnd_dir = "/home/lnd/.lnd"
 
     def _run(self, *args) -> dict:
-        """Run lncli inside the Docker container (most reliable method)"""
-        container = "agent-payment-decision-lnd"
-        
+        """Run lncli with correct regtest settings"""
         cmd = [
-            "docker", "exec", "-i", container,
+            "docker", "exec", "-i", self.container,
             "lncli",
+            f"--lnddir={self.lnd_dir}",
             "--network=regtest",
             *args
         ]
-        
+
         print(f"Running: {' '.join(cmd)}")
-        
+
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-            
+
             if result.returncode != 0:
                 error_msg = result.stderr.strip() or result.stdout.strip()
                 raise LNDException(f"lncli failed:\n{error_msg}")
-            
-            return json.loads(result.stdout) if result.stdout.strip() else {}
+
+            if result.stdout.strip():
+                try:
+                    return json.loads(result.stdout)
+                except json.JSONDecodeError:
+                    return {"raw_output": result.stdout.strip()}
+            return {}
         except Exception as e:
             raise LNDException(f"lncli execution failed: {str(e)}")
 
