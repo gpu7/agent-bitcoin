@@ -30,10 +30,20 @@ services:
       - "9735:9735"
       - "10009:10009"
     command:
-      - "--configfile=/home/lnd/.lnd/lnd.conf"
+      - "--bitcoin.regtest"
+      - "--bitcoin.active"
+      - "--bitcoin.node=bitcoind"
+      - "--bitcoind.rpcuser=btc"
+      - "--bitcoind.rpcpass=btc"
+      - "--bitcoind.rpchost=bitcoind:18443"
+      - "--bitcoind.zmqpubrawblock=tcp://bitcoind:28332"
+      - "--bitcoind.zmqpubrawtx=tcp://bitcoind:28333"
+      - "--lnddir=/home/lnd/.lnd"
+      - "--listen=0.0.0.0:9735"
+      - "--rpclisten=0.0.0.0:10009"
+      - "--restlisten=0.0.0.0:8080"
     volumes:
       - lnd-data:/home/lnd/.lnd
-      - ./lnd-regtest.conf:/home/lnd/.lnd/lnd.conf:ro
     networks:
       - agent-net
     extra_hosts:
