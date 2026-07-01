@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+# Load .env if it exists
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
 echo "=== Agent-Bitcoin Startup (m5d) ==="
 
 BLOCKS=${1:-300}
@@ -54,14 +59,21 @@ echo "→ Starting LND + all services..."
 docker compose -f docker-compose.regtest.yml up -d
 
 echo "→ Waiting for LND to be fully ready (wallet + chain sync)..."
-for i in {1..40}; do
+for i in {1..60}; do
     if docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null; then
         echo "LND is ready!"
         break
     fi
-    echo "Waiting for LND... ($i/40)"
+    echo "Waiting for LND... ($i/60)"
     sleep 8
 done
+
+# Auto-unlock wallet if still locked
+if docker logs --tail 30 agent-payment-decision-lnd 2>&1 | grep -q "wallet locked\|Waiting for wallet encryption password"; then
+    echo "→ Auto-unlocking LND wallet from .env..."
+    echo "$LND_WALLET_PASSWORD" | docker exec -i agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest unlock
+    sleep 5
+fi
 
 echo ""
 echo "✅ Services started."
