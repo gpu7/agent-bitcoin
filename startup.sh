@@ -53,6 +53,16 @@ docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getblock
 echo "→ Starting LND + all services..."
 docker compose -f docker-compose.regtest.yml up -d
 
+echo "→ Waiting for LND to be fully ready (wallet + chain sync)..."
+for i in {1..40}; do
+    if docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null; then
+        echo "LND is ready!"
+        break
+    fi
+    echo "Waiting for LND... ($i/40)"
+    sleep 8
+done
+
 echo ""
 echo "✅ Services started."
 echo ""

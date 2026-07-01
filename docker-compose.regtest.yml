@@ -15,6 +15,7 @@ services:
       - "-printtoconsole"
       - "-zmqpubrawblock=tcp://0.0.0.0:28332"
       - "-zmqpubrawtx=tcp://0.0.0.0:28333"
+      - "-txindex=1"
     volumes:
       - bitcoin-data:/home/bitcoin/.bitcoin
     networks:
@@ -29,23 +30,21 @@ services:
       - "9735:9735"
       - "10009:10009"
     command:
-      - "--bitcoin.regtest"
-      - "--bitcoin.active"
-      - "--bitcoin.node=bitcoind"
-      - "--bitcoind.rpcuser=btc"
-      - "--bitcoind.rpcpass=btc"
-      - "--bitcoind.rpchost=bitcoind:18443"
-      - "--bitcoind.zmqpubrawblock=tcp://bitcoind:28332"
-      - "--bitcoind.zmqpubrawtx=tcp://bitcoind:28333"
-      - "--lnddir=/home/lnd/.lnd"
-      - "--listen=0.0.0.0:9735"
-      - "--rpclisten=0.0.0.0:10009"
+      - "--configfile=/home/lnd/.lnd/lnd.conf"
     volumes:
       - lnd-data:/home/lnd/.lnd
+      - ./lnd-regtest.conf:/home/lnd/.lnd/lnd.conf:ro
     networks:
       - agent-net
     extra_hosts:
-      - "bitcoind:172.18.0.2"   # fallback IP
+      - "bitcoind:172.18.0.2"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "lncli", "--lnddir=/home/lnd/.lnd", "--network=regtest", "getinfo"]
+      interval: 8s
+      timeout: 6s
+      start_period: 30s
+      retries: 20
 
 networks:
   agent-net:
