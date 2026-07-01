@@ -42,6 +42,7 @@ services:
       - "--listen=0.0.0.0:9735"
       - "--rpclisten=0.0.0.0:10009"
       - "--restlisten=0.0.0.0:8080"
+      - "--debuglevel=debug"
     volumes:
       - lnd-data:/home/lnd/.lnd
     networks:

@@ -13,8 +13,8 @@ BLOCKS=${1:-300}
 cd ~/agent-bitcoin
 
 # === Clean Reset + Mine ===
-echo "→ Stopping services and removing volumes..."
-docker compose -f docker-compose.regtest.yml down --remove-orphans -v
+echo "→ Stopping services..."
+docker compose -f docker-compose.regtest.yml down --remove-orphans
 
 echo "→ Removing bitcoin-data volume completely..."
 docker volume rm agent-bitcoin_bitcoin-data -f 2>/dev/null || true
@@ -58,25 +58,37 @@ docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getblock
 echo "→ Starting LND + all services..."
 docker compose -f docker-compose.regtest.yml up -d
 
-echo "→ Waiting for LND to be fully ready (wallet + chain sync)..."
+echo "→ Waiting for LND RPC to be available..."
 for i in {1..30}; do
-    if docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null; then
-        echo "LND is ready!"
+    if docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null 2>&1; then
         break
     fi
-    echo "Waiting for LND... ($i/60)"
+    echo "Waiting for LND to start... ($i/30)"
+    sleep 5
+done
+
+# Unlock wallet (wallet now persists)
+echo "→ Unlocking LND wallet..."
+docker exec -i agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest unlock <<EOF
+$LND_WALLET_PASSWORD
+EOF
+sleep 5
+
+# Final readiness wait
+echo "→ Waiting for LND to be fully ready..."
+for i in {1..90}; do
+    if docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null; then
+        echo "LND is fully ready!"
+        break
+    fi
+    echo "Waiting for LND... ($i/90)"
     sleep 8
 done
 
-echo "→ Please unlock wallet manually if prompted:"
-echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest unlock"
 echo ""
 echo "✅ Services started."
 echo ""
 echo "LND Commands:"
-echo "   Create wallet (first time):"
-echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd create"
-echo ""
 echo "   Unlock wallet:"
 echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd unlock"
 echo ""
