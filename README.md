@@ -365,6 +365,15 @@ tmux ls
 curl http://localhost:8000/balance
 ```
 
+### docker-compose.regtest.yml
+
+If you modify the file docker-compose.regtest.yml, immediately instantiate the changes by running these commands:
+
+```bash
+docker compose -f docker-compose.regtest.yml down
+docker compose -f docker-compose.regtest.yml up -d
+```
+
 ---
 
 ## Testing
