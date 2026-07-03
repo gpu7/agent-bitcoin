@@ -17,13 +17,8 @@ def main():
 
     print(f"🚀 Testing Agent-Bitcoin SDK with Backend: {args.backend_url}\n")
 
-    # Configure for remote AWS backend
-    config = LightningConfig(
-        backend_url=args.backend_url,
-        container_payment_decision="agent-payment-decision-lnd",
-        container_bitcoin="agent-bitcoin-lnd"
-    )
-    client = create_client(config=config)
+    # Create client with custom backend URL
+    client = create_client(backend_url=args.backend_url)
 
     try:
         # Test 1: Get balances
