@@ -351,8 +351,9 @@ print('Balance check:', client.get_balance())
 
 ### Instance type
 
-- Currently using the AWS instance type:
+- Currently using the AWS instance types:
 m5d.large
+i4i.xlarge
 
 ### Start backend in tmux
 ```bash
