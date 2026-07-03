@@ -206,6 +206,18 @@ uv run python examples/agent_api_example.py
 
 ---
 
+## Workflow
+
+The current workflow is shown here.  This is the test workflow on regtest.  It is changing frequently during testing.
+
+- 1) Launch the AWS agent-bitcoin-api-poc instance from its AMI.  ON the instance itself, run "startup.sh" to set up the backend API  infrastructure on the instance.
+
+- 2) On the local Mac, run "start-agent-bitcoin-infrastructure-aws.sh" to set up the SDK infrastructure on the mac.  
+
+- 3) On the local Mac, run "test_aws_integration.py" to test the Mac-AWS integrated system.
+
+---
+
 ## Backend API
 
 The backend serves as the enforcement and payment routing layer for all Lightning operations. The backend/ provides a simple, secure HTTP API layer on top of your Lightning node. It is the recommended way for AI agents to interact with Bitcoin/Lightning.
