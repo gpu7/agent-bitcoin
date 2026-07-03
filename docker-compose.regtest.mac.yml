@@ -1,0 +1,28 @@
+services:
+  agent-bitcoin-lnd:
+    image: lightninglabs/lnd:v0.18.5-beta
+    container_name: agent-bitcoin-lnd
+    ports:
+      - "9736:9735"   # Different port to avoid conflict with AWS
+      - "10010:10009"
+    command:
+      - "--bitcoin.regtest"
+      - "--bitcoin.active"
+      - "--bitcoin.node=bitcoind"
+      - "--bitcoind.rpcuser=rpcuser"
+      - "--bitcoind.rpcpass=rpcpass"
+      - "--bitcoind.rpchost=bitcoind:18443"
+      - "--lnddir=/home/lnd/.lnd"
+      - "--listen=0.0.0.0:9735"
+      - "--rpclisten=0.0.0.0:10009"
+    volumes:
+      - agent-bitcoin-lnd-data:/home/lnd/.lnd
+    networks:
+      - agent-lightning-net
+
+networks:
+  agent-lightning-net:
+    driver: bridge
+
+volumes:
+  agent-bitcoin-lnd-data:
