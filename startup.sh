@@ -1,46 +1,134 @@
 #!/bin/bash
 set -e
 
-echo "=== Agent-Bitcoin Startup (m5d Optimized) ==="
-
-# Mount NVMe
-if [ -b /dev/nvme1n1 ] && ! mountpoint -q /mnt/nvme; then
-  echo "→ Mounting NVMe SSD..."
-  sudo mkdir -p /mnt/nvme
-  sudo mount /dev/nvme1n1 /mnt/nvme 2>/dev/null || {
-    echo "Formatting NVMe..."
-    sudo mkfs -t ext4 /dev/nvme1n1
-    sudo mount /dev/nvme1n1 /mnt/nvme
-  }
-  sudo chown -R ubuntu:ubuntu /mnt/nvme
-
-  # Move Docker to NVMe
-  if [ ! -L /var/lib/docker ]; then
-    sudo systemctl stop docker docker.socket
-    sudo mv /var/lib/docker /mnt/nvme/docker 2>/dev/null || true
-    sudo mkdir -p /mnt/nvme/docker
-    sudo ln -sfn /mnt/nvme/docker /var/lib/docker
-    sudo systemctl start docker
-  fi
-
-  echo "/dev/nvme1n1 /mnt/nvme ext4 defaults,nofail 0 2" | sudo tee -a /etc/fstab > /dev/null
-  echo "✅ NVMe mounted + Docker using it"
+# Load .env if it exists
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
 fi
 
-# Start services
-echo "Starting services..."
+echo "=== Agent-Bitcoin Startup (m5d) ==="
+
+BLOCKS=${1:-300}
+
+cd ~/agent-bitcoin
+
+# === Clean Reset + Mine ===
+echo "→ Stopping services..."
+docker compose -f docker-compose.regtest.yml down --remove-orphans
+
+# Only clean Bitcoin data (LND volume is preserved for pre-warming / faster restarts)
+echo "→ Removing bitcoin-data volume completely..."
+docker volume rm agent-bitcoin_bitcoin-data -f 2>/dev/null || true
+
+echo "→ Starting fresh bitcoind..."
+docker compose -f docker-compose.regtest.yml up -d --remove-orphans bitcoind
+
+echo "→ Waiting for initial start Bitcoin container..."
+sleep 40
+
+echo "→ Aggressive clean of all bitcoin data..."
+docker exec bitcoind rm -rf /home/bitcoin/.bitcoin/* 2>/dev/null || true
+
+echo "→ Restarting bitcoind..."
+docker compose -f docker-compose.regtest.yml restart bitcoind
+
+echo "→ Waiting for Bitcoin RPC to become ready..."
+for i in {1..25}; do
+    if docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getblockcount &>/dev/null; then
+        echo "RPC is ready!"
+        break
+    fi
+    echo "Waiting... ($i/25)"
+    sleep 10
+done
+
+# Check Bitcoin height
+echo "→ Check current Bitcoin height..."
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getblockcount
+
+# Create Bitcoin wallet if it doesn't exist
+echo "→ Checking/creating Bitcoin Core wallet..."
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc createwallet "default" 2>/dev/null || true
+
+# Load Bitcoin wallet
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc loadwallet "default" 2>/dev/null || true
+
+# Mine Bitcoin
+echo "→ Mining $BLOCKS blocks..."
+ADDR=$(docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getnewaddress "")
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc generatetoaddress $BLOCKS $ADDR
+
+# Check Bitcoin height
+echo "→ Check final Bitcoin height..."
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getblockcount
+
+# === Start LND + Backend ===
+echo "→ Starting LND + all services..."
 docker compose -f docker-compose.regtest.yml up -d
 
-sleep 5
+echo "→ Waiting for LND to start (RPC available)..."
+for i in {1..40}; do
+    sleep 5
+    if docker logs --tail 10 agent-payment-decision-lnd 2>&1 | grep -q "Waiting for wallet encryption password\|wallet locked"; then
+        break
+    fi
+    if docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null 2>&1; then
+        echo "LND is already ready!"
+        break
+    fi
+    echo "Waiting for LND to start... ($i/40)"
+done
 
+# Handle wallet: create or unlock
+if docker logs --tail 30 agent-payment-decision-lnd 2>&1 | grep -q "Waiting for wallet encryption password"; then
+    echo "→ No wallet found. Creating new wallet interactively..."
+    echo "   Run this in another terminal:"
+    echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest create"
+    echo ""
+    echo "After you see 'lnd successfully initialized!', press Enter here..."
+    read -r
+else
+    echo "→ Wallet exists. Unlocking interactively..."
+    echo "   Run this in another terminal:"
+    echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest unlock"
+    echo ""
+    echo "After unlocking, press Enter here..."
+    read -r
+fi
+
+# Final readiness wait
+echo "→ Waiting for agent-payment-decision-lnd to be fully ready..."
+for i in {1..180}; do
+    if docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null; then
+        echo "LND is fully ready!"
+        break
+    fi
+    echo "Waiting for agent-payment-decision-lnd ... ($i/180)"
+    sleep 8
+done
+
+echo ""
 echo "✅ Services started."
 echo ""
 echo "LND Commands:"
-echo "   Create wallet (first time):"
-echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd create"
-echo ""
 echo "   Unlock wallet:"
 echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd unlock"
 echo ""
 echo "Test API:"
 echo "   curl http://localhost:8000/balance"
+echo ""
+
+# Start backend API in tmux
+echo "Starting backend API in tmux (backend)..."
+tmux kill-session -t backend 2>/dev/null || true
+tmux new-session -d -s backend 'cd ~/agent-bitcoin && PYTHONPATH=. uv run python backend/main.py'
+
+sleep 15
+
+echo "✅ Full startup complete!"
+echo "   → Backend running at http://localhost:8000"
+echo ""
+echo "Useful commands:"
+echo "   curl http://localhost:8000/balance"
+echo "   tmux attach -t backend     # to see logs"
+echo "   ./shutdown.sh              # clean stop"

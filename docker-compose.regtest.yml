@@ -4,22 +4,34 @@ services:
     container_name: bitcoind
     ports:
       - "18443:18443"
-    environment:
-      - BITCOIN_NETWORK=regtest
-      - BITCOIN_RPCUSER=btc
-      - BITCOIN_RPCPASSWORD=btc
-      - BITCOIN_ZMQPUBRAWBLOCK=tcp://0.0.0.0:28332
-      - BITCOIN_ZMQPUBRAWTX=tcp://0.0.0.0:28333
+    command:
+      - "bitcoind"
+      - "-regtest"
+      - "-server=1"
+      - "-rpcuser=btc"
+      - "-rpcpassword=btc"
+      - "-rpcallowip=0.0.0.0/0"
+      - "-rpcbind=0.0.0.0"
+      - "-printtoconsole"
+      - "-zmqpubrawblock=tcp://0.0.0.0:28332"
+      - "-zmqpubrawtx=tcp://0.0.0.0:28333"
     volumes:
       - bitcoin-data:/home/bitcoin/.bitcoin
     networks:
       - agent-net
+    healthcheck:
+      test: ["CMD", "bitcoin-cli", "-regtest", "-rpcuser=btc", "-rpcpassword=btc", "getblockcount"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   lnd:
     image: lightninglabs/lnd:v0.18.5-beta
     container_name: agent-payment-decision-lnd
     depends_on:
-      - bitcoind
+      bitcoind:
+        condition: service_healthy
     ports:
       - "9735:9735"
       - "10009:10009"
@@ -35,12 +47,12 @@ services:
       - "--lnddir=/home/lnd/.lnd"
       - "--listen=0.0.0.0:9735"
       - "--rpclisten=0.0.0.0:10009"
+      - "--debuglevel=debug"
     volumes:
       - lnd-data:/home/lnd/.lnd
     networks:
       - agent-net
-    extra_hosts:
-      - "bitcoind:172.18.0.2"   # fallback IP
+    # Remove the extra_hosts line completely
 
 networks:
   agent-net:
