@@ -377,7 +377,26 @@ docker compose -f docker-compose.regtest.yml up -d
 
 ---
 
-## Testing
+## Tests
+
+### Test integration of frontend SDK with backend AWS API
+
+File: tests/test_aws_integration.py
+
+```bash
+# Basic usage (localhost)
+uv run python tests/test_aws_integration.py
+
+# With your AWS backend IP
+uv run python tests/test_aws_integration.py --backend-url http://34.204.169.174:8000
+
+# Custom amount
+uv run python tests/test_aws_integration.py --backend-url http://34.204.169.174:8000 --amount 10000
+```
+
+---
+
+## Developer support
 ```bash
 uv run pytest tests/ -v
 ```

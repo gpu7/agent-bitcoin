@@ -1,17 +1,29 @@
 #!/usr/bin/env python3
 """
-Test case for Agent-Bitcoin SDK with AWS Backend API (regtest)
+Test case for Agent-Bitcoin SDK with remote AWS Backend API
 """
 
-import time
-from agent_bitcoin import create_client
+import argparse
+from agent_bitcoin import create_client, LightningConfig
 
 
-def test_aws_integration():
-    print("🚀 Testing Agent-Bitcoin SDK with AWS Backend API...\n")
+def main():
+    parser = argparse.ArgumentParser(description="Test Agent-Bitcoin SDK with AWS Backend")
+    parser.add_argument("--backend-url", default="http://localhost:8000",
+                        help="Backend URL (default: http://localhost:8000)")
+    parser.add_argument("--amount", type=int, default=5000,
+                        help="Invoice amount in sats (default: 5000)")
+    args = parser.parse_args()
 
-    # Create client (points to your AWS backend on localhost:8000)
-    client = create_client()
+    print(f"🚀 Testing Agent-Bitcoin SDK with Backend: {args.backend_url}\n")
+
+    # Configure for remote AWS backend
+    config = LightningConfig(
+        backend_url=args.backend_url,
+        container_payment_decision="agent-payment-decision-lnd",
+        container_bitcoin="agent-bitcoin-lnd"
+    )
+    client = create_client(config=config)
 
     try:
         # Test 1: Get balances
@@ -20,16 +32,16 @@ def test_aws_integration():
         print(f"Lightning: {balance.lightning.balance} sats")
         print(f"On-chain: {balance.onchain.total_balance} sats")
 
-        # Test 2: Create invoice on Agent-Bitcoin (via AWS backend)
-        print("\n📄 Creating invoice...")
+        # Test 2: Create invoice
+        print(f"\n📄 Creating invoice for {args.amount} sats...")
         invoice = client.create_invoice(
-            memo="AWS Integration Test - 5000 sats",
-            amount_sats=5000
+            memo=f"AWS Test - {args.amount} sats",
+            amount_sats=args.amount
         )
         print("✅ Invoice created!")
         print(f"   Payment Request: {invoice.payment_request[:80]}...")
 
-        # Test 3: Pay the invoice (from payment-decision node via backend)
+        # Test 3: Pay the invoice
         print("\n💸 Paying invoice...")
         result = client.pay_invoice(
             payment_request=invoice.payment_request,
@@ -56,4 +68,4 @@ def test_aws_integration():
 
 
 if __name__ == "__main__":
-    test_aws_integration()
+    main()
