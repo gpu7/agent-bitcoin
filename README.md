@@ -367,6 +367,15 @@ print('Balance check:', client.get_balance())
 m5d.large
 i4i.xlarge
 
+### SSH
+Here is the command to ssh into a running AWS instance.
+
+Note: the URL will change each time a new instance is started.
+
+```bash
+ssh -i ~/.ssh/aws/agent-bitcoin-key.pem ubuntu@100.58.101.173
+```
+
 ### Start backend in tmux
 ```bash
 tmux new-session -d -s backend "cd ~/agent-bitcoin && PYTHONPATH=. uv run python backend/main.py"
