@@ -14,14 +14,14 @@ cd ~/agent-bitcoin
 
 # === Clean Reset + Mine ===
 echo "→ Stopping services..."
-docker compose -f docker-compose.regtest.yml down --remove-orphans
+docker compose -f docker-compose.regtest.aws.yml down --remove-orphans
 
 # Only clean Bitcoin data (LND volume is preserved for pre-warming / faster restarts)
 echo "→ Removing bitcoin-data volume completely..."
 docker volume rm agent-bitcoin_bitcoin-data -f 2>/dev/null || true
 
 echo "→ Starting fresh bitcoind..."
-docker compose -f docker-compose.regtest.yml up -d --remove-orphans bitcoind
+docker compose -f docker-compose.regtest.aws.yml up -d --remove-orphans bitcoind
 
 echo "→ Waiting for initial start Bitcoin container..."
 sleep 40
@@ -30,7 +30,7 @@ echo "→ Aggressive clean of all bitcoin data..."
 docker exec bitcoind rm -rf /home/bitcoin/.bitcoin/* 2>/dev/null || true
 
 echo "→ Restarting bitcoind..."
-docker compose -f docker-compose.regtest.yml restart bitcoind
+docker compose -f docker-compose.regtest.aws.yml restart bitcoind
 
 echo "→ Waiting for Bitcoin RPC to become ready..."
 for i in {1..25}; do
@@ -64,7 +64,7 @@ docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getblock
 
 # === Start LND + Backend ===
 echo "→ Starting LND + all services..."
-docker compose -f docker-compose.regtest.yml up -d
+docker compose -f docker-compose.regtest.aws.yml up -d
 
 echo "→ Waiting for LND to start (RPC available)..."
 for i in {1..40}; do
