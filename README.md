@@ -212,16 +212,9 @@ The current workflow is shown here.  This is the test workflow on regtest.  It i
 
 Note: the AWS backend url changes each time you launch a new AWS agent-bitcoin instance.
 
-- 1) On AWS instance: ./startup.sh
-- 2) On Mac: ./start-agent-bitcoin-infrastructure-aws.sh
+- 1) On AWS instance: ./startup-aws.sh
+- 2) On Mac: ./start-agent-bitcoin-infrastructure-mac.sh
 - 3) On Mac: uv run python tests/test_aws_integration.py --backend-url http://34.204.169.174:8000
-
-
-- 1) Launch the AWS agent-bitcoin-api-poc instance from its AMI.  ON the instance itself, run "startup.sh" to set up the backend API  infrastructure on the instance.
-
-- 2) On the local Mac, run "start-agent-bitcoin-infrastructure-aws.sh" to set up the SDK infrastructure on the mac.  
-
-- 3) On the local Mac, run "test_aws_integration.py" to test the Mac-AWS integrated system.
 
 ---
 
