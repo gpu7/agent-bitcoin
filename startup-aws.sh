@@ -6,7 +6,7 @@ if [ -f .env ]; then
     export $(grep -v '^#' .env | xargs)
 fi
 
-echo "=== Agent-Bitcoin Startup (m5d) ==="
+echo "=== Agent-Bitcoin Startup AWS ==="
 
 BLOCKS=${1:-300}
 

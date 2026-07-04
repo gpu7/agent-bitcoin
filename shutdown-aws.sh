@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "=== Agent-Bitcoin Graceful Shutdown ==="
+echo "=== Agent-Bitcoin Shutdown AWS ==="
 
 echo "Stopping backend API..."
 pkill -f "uv run python backend/main.py" || true

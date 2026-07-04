@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "=== Agent-Bitcoin Mac Counterparty Setup (for AWS Backend) ==="
+echo "=== Agent-Bitcoin Setup Infrastructure AWS ==="
 
 NETWORK=${1:-regtest}
 echo "=== Starting Mac Counterparty on $NETWORK ==="
