@@ -415,26 +415,6 @@ uv run python tests/test_aws_integration.py --backend-url http://34.204.169.174:
 
 ---
 
-## Developer support
-```bash
-uv run pytest tests/ -v
-```
-
-- **Pull request process**:
-  1. Fork the repository
-  2. Create a feature branch (git checkout -b feature/amazing-feature)
-  3. Make your changes
-  4. Ensure tests pass
-  5. Submit a Pull Request
-
-### Areas We Welcome Help
-- Testnet support
-- More LangChain / Ollama examples
-- Documentation improvements
-- Bug reports and feature requests
-
----
-
 ## Support
 
 Richard Casey
