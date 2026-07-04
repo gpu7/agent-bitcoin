@@ -80,19 +80,20 @@ for i in {1..40}; do
 done
 
 # Handle wallet: create or unlock
-if docker logs --tail 30 agent-payment-decision-lnd 2>&1 | grep -q "Waiting for wallet encryption password"; then
+echo "→ Checking wallet status..."
+if docker exec agent-payment-decision-lnd test -f /home/lnd/.lnd/data/chain/bitcoin/regtest/wallet.db 2>/dev/null; then
+    echo "→ Wallet exists. Unlocking interactively..."
+    echo "   Run this in another terminal:"
+    echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest unlock"
+    echo ""
+    echo "After unlocking successfully, press Enter here..."
+    read -r
+else
     echo "→ No wallet found. Creating new wallet interactively..."
     echo "   Run this in another terminal:"
     echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest create"
     echo ""
     echo "After you see 'lnd successfully initialized!', press Enter here..."
-    read -r
-else
-    echo "→ Wallet exists. Unlocking interactively..."
-    echo "   Run this in another terminal:"
-    echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest unlock"
-    echo ""
-    echo "After unlocking, press Enter here..."
     read -r
 fi
 
