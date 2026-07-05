@@ -1,11 +1,11 @@
 #!/bin/bash
-echo "=== Agent-Bitcoin Setup Infrastructure Mac ==="
+echo "=== Agent-Bitcoin Mac Counterparty Setup (for AWS Backend) ==="
 
 NETWORK=${1:-regtest}
 echo "=== Starting Mac Counterparty on $NETWORK ==="
 
-# Clean local containers
-docker compose down -v --remove-orphans 2>/dev/null || true
+# Clean local containers (DO NOT delete volumes for pre-warming)
+docker compose down --remove-orphans 2>/dev/null || true
 
 # Start ONLY the counterparty LND on Mac
 docker compose up -d agent-bitcoin-lnd
