@@ -266,6 +266,30 @@ AI agents interact only with the HTTP API — they do not need LND credentials o
 
 ---
 
+## Lightning channels
+
+Here are instructions for managing Lightning channels.
+
+### Open Channel Mac <--> AWS
+```bash
+# Get the identity pubkey of the AWS node
+# Run this command on AWS node
+docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo
+```
+
+```bash
+# 1. Connect Mac node to AWS node
+#    Run these commands on Mac
+#    Note: change the pubkey based on the previous command
+docker compose exec -T agent-bitcoin-lnd lncli --network=regtest connect 022c3c33f5974b37861859de0417bf8f95fba55dae3677053c2aa6f9aaa2032b67@100.58.101.173:9735
+
+# 2. Open channel from Mac to AWS
+docker compose exec -T agent-bitcoin-lnd lncli --network=regtest openchannel \
+  --node_key 022c3c33f5974b37861859de0417bf8f95fba55dae3677053c2aa6f9aaa2032b67 \
+  --local_amt 5000000 \
+  --push_amt 1000000
+  ```
+
 ## Repository
 
 GitHub: https://github.com/gpu7/agent-bitcoin
@@ -392,8 +416,8 @@ curl http://localhost:8000/balance
 If you modify the file docker-compose.regtest.yml, immediately instantiate the changes by running these commands:
 
 ```bash
-docker compose -f docker-compose.regtest.yml down
-docker compose -f docker-compose.regtest.yml up -d
+docker compose -f docker-compose.regtest.aws.yml down
+docker compose -f docker-compose.regtest.aws.yml up -d
 ```
 
 ---
