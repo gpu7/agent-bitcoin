@@ -2,26 +2,35 @@
 echo "=== Agent-Bitcoin Mac Counterparty Setup (for AWS Backend) ==="
 
 NETWORK=${1:-regtest}
-echo "=== Starting Mac Counterparty on $NETWORK ==="
+AWS_IP=${2:-localhost}
+COMPOSE_FILE="docker-compose.regtest.mac.yml"
 
-# Clean local containers (DO NOT delete volumes for pre-warming)
-docker compose down --remove-orphans 2>/dev/null || true
+echo "=== Starting Mac Counterparty on $NETWORK (AWS IP: $AWS_IP) ==="
 
-# Start ONLY the counterparty LND on Mac
-docker compose up -d agent-bitcoin-lnd
+export AWS_BITCOIND_HOST=$AWS_IP
 
-echo "=== Creating Counterparty LND Wallet (Mac) ==="
-docker compose exec -it agent-bitcoin-lnd lncli --network=${NETWORK} create
+docker compose -f $COMPOSE_FILE down --remove-orphans 2>/dev/null || true
+docker compose -f $COMPOSE_FILE up -d agent-bitcoin-lnd
 
-echo "=== Unlocking counterparty wallet ==="
-echo -e "\n" | docker compose exec -i agent-bitcoin-lnd lncli --network=${NETWORK} unlock
+sleep 10
+
+# Check if wallet exists
+if docker compose -f $COMPOSE_FILE exec -T agent-bitcoin-lnd test -f /home/lnd/.lnd/data/chain/bitcoin/regtest/wallet.db; then
+    echo "=== Wallet already exists. Unlocking... ==="
+    docker compose -f $COMPOSE_FILE exec -it agent-bitcoin-lnd lncli --lnddir=/home/lnd/.lnd --network=${NETWORK} unlock
+else
+    echo "=== Creating new Counterparty LND Wallet (Mac) ==="
+    docker compose -f $COMPOSE_FILE exec -it agent-bitcoin-lnd lncli --lnddir=/home/lnd/.lnd --network=${NETWORK} create
+    echo "=== Unlocking new wallet ==="
+    docker compose -f $COMPOSE_FILE exec -it agent-bitcoin-lnd lncli --lnddir=/home/lnd/.lnd --network=${NETWORK} unlock
+fi
 
 echo ""
 echo "=== Mac Counterparty Ready for AWS Backend ==="
-echo "AWS should be handling bitcoind + payment decision node."
+echo "AWS IP: $AWS_IP"
 echo ""
-echo "Test the integration with:"
-echo "   uv run python tests/test_aws_integration.py --backend-url http://YOUR_AWS_IP:8000"
+echo "Test with:"
+echo "   uv run python tests/test_aws_integration.py --backend-url http://$AWS_IP:8000"
 echo ""
-echo "✅ Mac counterparty is ready. You can now fund it from AWS if needed."
-docker compose ps
+echo "✅ Ready."
+docker compose -f $COMPOSE_FILE ps

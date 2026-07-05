@@ -3,15 +3,19 @@ services:
     image: lightninglabs/lnd:v0.18.5-beta
     container_name: agent-bitcoin-lnd
     ports:
-      - "9736:9735"   # Different port to avoid conflict with AWS
+      - "9736:9735"
       - "10010:10009"
+    environment:
+      - AWS_BITCOIND_HOST=${AWS_BITCOIND_HOST:-localhost}
     command:
       - "--bitcoin.regtest"
       - "--bitcoin.active"
       - "--bitcoin.node=bitcoind"
-      - "--bitcoind.rpcuser=rpcuser"
-      - "--bitcoind.rpcpass=rpcpass"
-      - "--bitcoind.rpchost=bitcoind:18443"
+      - "--bitcoind.rpcuser=btc"
+      - "--bitcoind.rpcpass=btc"
+      - "--bitcoind.rpchost=${AWS_BITCOIND_HOST}:18443"
+      - "--bitcoind.zmqpubrawblock=tcp://${AWS_BITCOIND_HOST}:28332"
+      - "--bitcoind.zmqpubrawtx=tcp://${AWS_BITCOIND_HOST}:28333"
       - "--lnddir=/home/lnd/.lnd"
       - "--listen=0.0.0.0:9735"
       - "--rpclisten=0.0.0.0:10009"

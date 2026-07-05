@@ -210,11 +210,11 @@ uv run python examples/agent_api_example.py
 
 The current workflow is shown here.  This is the test workflow on regtest.  It is changing frequently during testing.
 
-Note: the AWS backend url changes each time you launch a new AWS agent-bitcoin instance.
+Note: the AWS backend url changes each time a new AWS agent-bitcoin instance is launched.  Must modify #2 and #3 accordingly.
 
 - 1) On AWS instance: ./startup-aws.sh
-- 2) On Mac: ./start-agent-bitcoin-infrastructure-mac.sh
-- 3) On Mac: uv run python tests/test_aws_integration.py --backend-url http://34.204.169.174:8000
+- 2) On Mac: ./start-agent-bitcoin-infrastructure-mac.sh regtest 13.218.193.158
+- 3) On Mac: uv run python tests/test_aws_integration.py --backend-url http://13.218.193.158:8000
 
 ---
 
