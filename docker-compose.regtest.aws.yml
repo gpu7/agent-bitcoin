@@ -3,7 +3,7 @@ services:
     image: ruimarinho/bitcoin-core:latest
     container_name: bitcoind
     ports:
-      - "18443:18443"
+      - "18443:18444"
     command:
       - "bitcoind"
       - "-regtest"
