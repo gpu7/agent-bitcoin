@@ -13,7 +13,7 @@ services:
       - "--bitcoin.node=bitcoind"
       - "--bitcoind.rpcuser=btc"
       - "--bitcoind.rpcpass=btc"
-      - "--bitcoind.rpchost=${AWS_BITCOIND_HOST}:18443"
+      - "--bitcoind.rpchost=${AWS_BITCOIND_HOST}:18444"
       - "--bitcoind.zmqpubrawblock=tcp://${AWS_BITCOIND_HOST}:28332"
       - "--bitcoind.zmqpubrawtx=tcp://${AWS_BITCOIND_HOST}:28333"
       - "--lnddir=/home/lnd/.lnd"
