@@ -3,7 +3,7 @@ services:
     image: ruimarinho/bitcoin-core:latest
     container_name: bitcoind
     ports:
-      - "18443:18443"
+      - "18444:18444"
     command:
       - "bitcoind"
       - "-regtest"
@@ -12,7 +12,7 @@ services:
       - "-rpcpassword=btc"
       - "-rpcallowip=0.0.0.0/0"
       - "-rpcbind=0.0.0.0"
-      - "-rpcport=18443"
+      - "-rpcport=18444"
       - "-printtoconsole"
       - "-zmqpubrawblock=tcp://0.0.0.0:28332"
       - "-zmqpubrawtx=tcp://0.0.0.0:28333"
@@ -42,7 +42,7 @@ services:
       - "--bitcoin.node=bitcoind"
       - "--bitcoind.rpcuser=btc"
       - "--bitcoind.rpcpass=btc"
-      - "--bitcoind.rpchost=bitcoind:18443"
+      - "--bitcoind.rpchost=bitcoind:18444"
       - "--bitcoind.zmqpubrawblock=tcp://bitcoind:28332"
       - "--bitcoind.zmqpubrawtx=tcp://bitcoind:28333"
       - "--lnddir=/home/lnd/.lnd"
