@@ -12,7 +12,7 @@ services:
       - "-rpcpassword=btc"
       - "-rpcallowip=0.0.0.0/0"
       - "-rpcbind=0.0.0.0"
-      - "-rpcport=18444"
+      - "-rpcport=18443"
       - "-printtoconsole"
       - "-zmqpubrawblock=tcp://0.0.0.0:28332"
       - "-zmqpubrawtx=tcp://0.0.0.0:28333"
