@@ -270,6 +270,57 @@ AI agents interact only with the HTTP API — they do not need LND credentials o
 
 Here are instructions for managing Lightning channels.
 
+### Step 1: Fund the AWS node
+
+- Run these commands on the AWS instance:
+  
+It may be necessary to run this first if using regtest:
+```bash
+# Set a fallback fee
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc settxfee 0.00001
+```
+
+```bash
+# 1. Get a new address on the AWS payment-decision node
+ADDR=$(docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest newaddress p2wkh | jq -r .address)
+echo "AWS Address: $ADDR"
+```
+
+```bash
+# 2. Send coins from bitcoind to the AWS node
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc sendtoaddress "$ADDR" 20
+```
+
+```bash
+# 3. Mine blocks to confirm the funds
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc generatetoaddress 6 $(docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getnewaddress)
+```
+
+```bash
+# 4. Check balance on AWS
+docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest walletbalance
+```
+
+```bash
+ADDR=$(docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest newaddress p2wkh | jq -r .address)
+echo "AWS Address: $ADDR"
+```
+
+Summary
+- AWS payment-decision-lnd now has 2,000,000,000 sats (20 BTC) confirmed.
+
+### Step 2: Connect Mac to AWS
+
+- Run this command on the Mac:
+
+```bash
+docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest connect 022c3c33f5974b37861859de0417bf8f95fba55dae3677053c2aa6f9aaa2032b67@13.218.193.158:9735
+```
+
+
+
+
+
 ### Open Channel Mac <--> AWS
 ```bash
 # Get the identity pubkey of the AWS node
@@ -289,6 +340,12 @@ docker compose exec -T agent-bitcoin-lnd lncli --network=regtest openchannel \
   --local_amt 5000000 \
   --push_amt 1000000
   ```
+
+### Recommended Architecture for Agent Swarm
+
+- AWS payment-decision-lnd → Central hub / routing node (manages channels, enforces fees, etc.)
+- Mac / other counterparty nodes → Leaf nodes that open channels to the AWS node
+- This is a classic hub-and-spoke model, which is ideal for your use case.
 
 ## Repository
 
