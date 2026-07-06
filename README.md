@@ -284,26 +284,15 @@ docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc settxfee
 # 1. Get a new address on the AWS payment-decision node
 ADDR=$(docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest newaddress p2wkh | jq -r .address)
 echo "AWS Address: $ADDR"
-```
 
-```bash
 # 2. Send coins from bitcoind to the AWS node
 docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc sendtoaddress "$ADDR" 20
-```
 
-```bash
 # 3. Mine blocks to confirm the funds
 docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc generatetoaddress 6 $(docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getnewaddress)
-```
 
-```bash
 # 4. Check balance on AWS
 docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest walletbalance
-```
-
-```bash
-ADDR=$(docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest newaddress p2wkh | jq -r .address)
-echo "AWS Address: $ADDR"
 ```
 
 Summary
@@ -314,7 +303,7 @@ Summary
 - Run this command on the Mac:
 
 ```bash
-docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest connect 022c3c33f5974b37861859de0417bf8f95fba55dae3677053c2aa6f9aaa2032b67@13.218.193.158:9735
+docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest connect 022c3c33f5974b37861859de0417bf8f95fba55dae3677053c2aa6f9aaa2032b67@54.227.203.21:9735
 ```
 
 
