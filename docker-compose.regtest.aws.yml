@@ -53,7 +53,6 @@ services:
       - lnd-data:/home/lnd/.lnd
     networks:
       - agent-net
-    # Remove the extra_hosts line completely
 
 networks:
   agent-net:

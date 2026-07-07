@@ -275,6 +275,7 @@ Here are instructions for managing Lightning channels.
 - Run these commands on the AWS instance:
   
 It may be necessary to run this first if using regtest:
+
 ```bash
 # Set a fallback fee
 docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc settxfee 0.00001
@@ -285,7 +286,7 @@ docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc settxfee
 ADDR=$(docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest newaddress p2wkh | jq -r .address)
 echo "AWS Address: $ADDR"
 
-# 2. Send coins from bitcoind to the AWS node
+# 2. Send coins from bitcoind to the AWSpayment-decision node
 docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc sendtoaddress "$ADDR" 20
 
 # 3. Mine blocks to confirm the funds
