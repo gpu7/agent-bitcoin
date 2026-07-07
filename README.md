@@ -302,6 +302,8 @@ Summary
 ### Step 2: Connect Mac to AWS
 
 - Run this command on the Mac:
+  
+- Note: You will have to update the AWS instance IP address every time you launch a new instance
 
 ```bash
 docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest connect 022c3c33f5974b37861859de0417bf8f95fba55dae3677053c2aa6f9aaa2032b67@54.227.203.21:9735
