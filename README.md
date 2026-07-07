@@ -490,6 +490,14 @@ uv run python tests/test_aws_integration.py --backend-url http://34.204.169.174:
 
 ---
 
+## Misc
+
+### Docker commands to follow log files
+```bash
+docker compose -f docker-compose.regtest.mac.yml logs -f agent-bitcoin-lnd
+docker compose -f docker-compose.regtest.aws.yml logs -f agent-payment-decision-lnd
+```
+
 ## Support
 
 Richard Casey
