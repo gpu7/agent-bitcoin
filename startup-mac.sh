@@ -12,9 +12,14 @@ docker compose -f $COMPOSE_FILE up -d
 echo "→ Waiting for bitcoind..."
 sleep 30
 
+# === Fix Bitcoin Core wallet (required in recent versions) ===
+echo "→ Creating Bitcoin Core wallet if needed..."
+docker compose -f $COMPOSE_FILE exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass createwallet "" 2>/dev/null || true
+docker compose -f $COMPOSE_FILE exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass loadwallet "" 2>/dev/null || true
+
 echo "→ Mining blocks to pre-warm LND..."
-ADDR=$(docker exec bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass getnewaddress)
-docker exec bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass generatetoaddress 300 $ADDR
+ADDR=$(docker compose -f $COMPOSE_FILE exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass getnewaddress)
+docker compose -f $COMPOSE_FILE exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass generatetoaddress 300 "$ADDR"
 
 echo "=== Creating/Unlocking Counterparty LND Wallet (Mac) ==="
 sleep 10
