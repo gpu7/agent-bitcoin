@@ -309,6 +309,16 @@ Summary
 docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest connect 022c3c33f5974b37861859de0417bf8f95fba55dae3677053c2aa6f9aaa2032b67@54.227.203.21:9735
 ```
 
+### Open Lightning channel from Mac to AWS
+```bash
+# Open a 5M sat channel (you can adjust the amount)
+docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest openchannel \
+    --node_key 039f2162629469491bf27e39d5f679d601662953b2db437db24e08c91b5d71b6de \
+    --local_amt 5000000 \
+    --push_amt 2000000
+```
+
 
 
 
