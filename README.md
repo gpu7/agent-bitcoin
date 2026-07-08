@@ -519,6 +519,8 @@ richardcaseyhpc@protonmail.com
 
 ## Temporary save of commands
 
+Work these into proper sections later.  Just saving these for now.
+
 On AWS
 
 # Start the full backend (bitcoind + LND + API)
@@ -560,6 +562,18 @@ Ensuring wallets were unlocked
 Connecting via public IP:9735
 Verifying with listpeers
 
+Open channel from Mac to AWS
+Run this on your Mac:
+
+docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest openchannel \
+    --node_key 039f2162629469491bf27e39d5f679d601662953b2db437db24e08c91b5d71b6de \
+    --local_amt 5000000 \
+    --push_amt 2000000
+
+Fund the Mac node
+
+On AWS (mine coins and send to Mac):
 
 
 
