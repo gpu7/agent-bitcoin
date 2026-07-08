@@ -517,3 +517,49 @@ richardcaseyhpc@protonmail.com
 
 
 
+## Temporary save of commands
+
+On AWS
+
+# Start the full backend (bitcoind + LND + API)
+./startup-aws.sh
+
+# Check LND status
+docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo
+
+# List peers
+docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest listpeers
+
+On Mac
+
+# Start Mac counterparty node
+./startup-mac.sh
+
+# Check LND status
+docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo
+
+# Connect to AWS node (using current IP)
+./connect-mac-to-aws.sh 54.87.36.22
+
+# List peers (to verify connection)
+docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest listpeers
+
+Diagnostics
+
+# Basic connectivity test
+nc -zv <AWS_IP> 9735
+
+# Restart LND on Mac
+docker compose -f docker-compose.regtest.mac.yml restart agent-bitcoin-lnd
+
+# Restart LND on AWS
+docker restart agent-payment-decision-lnd
+
+You reached this stage by:Starting both sides
+Ensuring wallets were unlocked
+Connecting via public IP:9735
+Verifying with listpeers
+
+
+
+
