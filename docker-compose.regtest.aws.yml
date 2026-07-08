@@ -3,14 +3,16 @@ services:
     image: ruimarinho/bitcoin-core:latest
     container_name: bitcoind
     ports:
-      - "18443:18443"
+      - "18443:18443"      # RPC (needed for Mac connection)
+      - "28332:28332"      # ZMQ rawblock (needed for Mac LND)
+      - "28333:28333"      # ZMQ rawtx (needed for Mac LND)
     command:
       - "bitcoind"
       - "-regtest"
       - "-server=1"
       - "-rpcuser=btc"
       - "-rpcpassword=btc"
-      - "-rpcallowip=0.0.0.0/0"
+      - "-rpcallowip=0.0.0.0/0"     # Allow Mac to connect (restrict to your Mac IP in production)
       - "-rpcbind=0.0.0.0"
       - "-rpcport=18443"
       - "-printtoconsole"
