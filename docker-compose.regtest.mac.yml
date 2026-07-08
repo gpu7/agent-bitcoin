@@ -1,52 +1,23 @@
 services:
-  bitcoind:
-    image: ruimarinho/bitcoin-core:latest
-    container_name: bitcoind
-    ports:
-      - "18443:18443"
-    command:
-      - "bitcoind"
-      - "-regtest"
-      - "-server=1"
-      - "-rpcuser=rpcuser"
-      - "-rpcpassword=rpcpass"
-      - "-rpcallowip=0.0.0.0/0"
-      - "-rpcbind=0.0.0.0"
-      - "-printtoconsole"
-      - "-zmqpubrawblock=tcp://0.0.0.0:28332"
-      - "-zmqpubrawtx=tcp://0.0.0.0:28333"
-    volumes:
-      - bitcoind-data:/home/bitcoin/.bitcoin
-    networks:
-      - agent-lightning-net
-    healthcheck:
-      test: ["CMD", "bitcoin-cli", "-regtest", "-rpcuser=rpcuser", "-rpcpassword=rpcpass", "getblockcount"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-
   agent-bitcoin-lnd:
-    image: lightninglabs/lnd:v0.17.5-beta
+    image: lightninglabs/lnd:v0.18.5-beta   # Matched to AWS version
     container_name: agent-bitcoin-lnd
-    depends_on:
-      bitcoind:
-        condition: service_healthy
     ports:
-      - "9736:9735"
-      - "10010:10009"
+      - "9736:9735"     # Lightning P2P
+      - "10010:10009"   # gRPC
     command:
       - "--bitcoin.regtest"
       - "--bitcoin.active"
       - "--bitcoin.node=bitcoind"
-      - "--bitcoind.rpcuser=rpcuser"
-      - "--bitcoind.rpcpass=rpcpass"
-      - "--bitcoind.rpchost=bitcoind:18443"
-      - "--bitcoind.zmqpubrawblock=tcp://bitcoind:28332"
-      - "--bitcoind.zmqpubrawtx=tcp://bitcoind:28333"
+      - "--bitcoind.rpcuser=btc"
+      - "--bitcoind.rpcpass=btc"
+      - "--bitcoind.rpchost=13.220.186.146:18443"          # ← CHANGE THIS
+      - "--bitcoind.zmqpubrawblock=tcp://13.220.186.146:28332"
+      - "--bitcoind.zmqpubrawtx=tcp://13.220.186.146:28333"
       - "--lnddir=/home/lnd/.lnd"
       - "--listen=0.0.0.0:9735"
       - "--rpclisten=0.0.0.0:10009"
+      - "--debuglevel=debug"
     volumes:
       - agent-bitcoin-lnd-data:/home/lnd/.lnd
     networks:
@@ -57,5 +28,4 @@ networks:
     driver: bridge
 
 volumes:
-  bitcoind-data:
   agent-bitcoin-lnd-data:
