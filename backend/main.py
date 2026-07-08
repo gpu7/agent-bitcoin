@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 import os
 import time
+from pydantic import BaseModel
 
 from agent_bitcoin.lightning import LNDClient
 
@@ -11,6 +12,14 @@ FEE_ADDRESS = os.getenv("FEE_ADDRESS")
 
 client = LNDClient()
 
+class InvoiceRequest(BaseModel):
+    memo: str = "Agent-Bitcoin Test"
+    amount_sats: int
+
+class PayRequest(BaseModel):
+    payment_request: str
+    fee_limit_sats: int = 500
+
 @app.get("/")
 async def root():
     return {"status": "running", "message": "Backend is up. LND may still be starting."}
@@ -18,7 +27,6 @@ async def root():
 @app.get("/balance")
 async def get_balance():
     try:
-        # Try a few times quickly
         for _ in range(5):
             try:
                 ln = client._run("channelbalance")
@@ -36,6 +44,41 @@ async def get_balance():
         return {"status": "starting", "message": "LND is still starting up. Please wait and try again."}
     except Exception as e:
         return {"error": str(e)}
+
+@app.post("/invoices")
+async def create_invoice(req: InvoiceRequest):
+    """Create a Lightning invoice on the AWS LND node"""
+    try:
+        result = client._run("addinvoice", "--memo", req.memo, "--amt", str(req.amount_sats))
+        return {
+            "payment_request": result.get("payment_request"),
+            "r_hash": result.get("r_hash"),
+            "amount_sats": req.amount_sats,
+            "memo": req.memo
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/pay")
+async def pay_invoice(req: PayRequest):
+    """Pay a Lightning invoice from the AWS LND node"""
+    try:
+        # Using sendpayment with reasonable defaults
+        result = client._run(
+            "sendpayment",
+            "--pay_req", req.payment_request,
+            "--fee_limit", str(req.fee_limit_sats),
+            "--json"
+        )
+        return {
+            "success": True,
+            "payment_hash": result.get("payment_hash"),
+            "amount": result.get("amount"),
+            "status": result.get("status"),
+            "raw_response": result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn

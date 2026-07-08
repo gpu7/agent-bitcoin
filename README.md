@@ -487,6 +487,8 @@ docker compose -f docker-compose.regtest.aws.yml up -d
 
 File: tests/test_aws_integration.py
 
+Run on mac:
+
 ```bash
 # Basic usage (localhost)
 uv run python tests/test_aws_integration.py
