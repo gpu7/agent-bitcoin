@@ -543,6 +543,14 @@ docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd lncl
 # Connect to AWS node (using current IP)
 ./connect-mac-to-aws.sh 54.87.36.22
 
+OR
+
+# USE THIS ONE
+# Connect to AWS node (directly)
+docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest connect \
+  039f2162629469491bf27e39d5f679d601662953b2db437db24e08c91b5d71b6de@13.220.186.146:9735
+
 # List peers (to verify connection)
 docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest listpeers
 
@@ -571,9 +579,58 @@ docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd \
     --local_amt 5000000 \
     --push_amt 2000000
 
-Fund the Mac node
+# Fund LND on Mac node
 
-On AWS (mine coins and send to Mac):
+Run on mac:
 
+# 1. Get a fresh address from LND
+LND_ADDR=$(docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest newaddress p2wkh | jq -r '.address')
+echo "LND address: $LND_ADDR"
 
+# Set fallback fee
+docker compose -f docker-compose.regtest.mac.yml exec bitcoind \
+  bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass settxfee 0.00001
 
+# 2. Send coins from Mac's bitcoind to LND's address
+docker compose -f docker-compose.regtest.mac.yml exec bitcoind \
+  bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass \
+  sendtoaddress "$LND_ADDR" 0.5
+
+# 3. Mine blocks to confirm the transaction
+ADDR=$(docker compose -f docker-compose.regtest.mac.yml exec bitcoind \
+  bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass getnewaddress "")
+
+docker compose -f docker-compose.regtest.mac.yml exec bitcoind \
+  bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass generatetoaddress 6 "$ADDR"
+
+# Now check balance on Mac
+docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest walletbalance
+
+# Open channel from Mac to AWS
+Run this on your Mac:
+
+docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest openchannel \
+    --node_key 039f2162629469491bf27e39d5f679d601662953b2db437db24e08c91b5d71b6de \
+    --local_amt 5000000 \
+    --push_amt 2000000
+
+# Confirm the channel
+# Mine blocks to confirm the funding transaction
+ADDR=$(docker compose -f docker-compose.regtest.mac.yml exec bitcoind \
+  bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass getnewaddress "")
+
+docker compose -f docker-compose.regtest.mac.yml exec bitcoind \
+  bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass generatetoaddress 6 "$ADDR"
+
+# Then check the channel status on Mac and AWS:
+
+Run on Mac:
+docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest listchannels
+
+Run on AWS:
+docker exec -it agent-payment-decision-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest listchannels
