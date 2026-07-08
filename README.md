@@ -636,3 +636,17 @@ docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
 Run on AWS:
 docker exec -it agent-payment-decision-lnd \
   lncli --lnddir=/home/lnd/.lnd --network=regtest listchannels
+
+# Test connectivity from Mac
+
+Run on mac:
+
+# 1. Test RPC connection to AWS bitcoind
+docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest getblockcount
+
+# 2. Full LND info
+docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo
+
+
