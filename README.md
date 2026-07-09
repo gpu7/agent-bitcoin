@@ -719,7 +719,17 @@ docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd \
 This cleared all stale state, gave both nodes fresh wallets and confirmed funds, and allowed the channel to open successfully.The key was full resets on both sides + fresh wallets + sufficient mining.You now have a working bidirectional Lightning channel between Mac (SDK) and AWS (backend). 
 
 
+# Restart backend on AWS
 
+# 1. Kill the old session (if any)
+tmux kill-session -t backend 2>/dev/null || true
 
+# 2. Start fresh backend session
+tmux new-session -d -s backend 'cd ~/agent-bitcoin && PYTHONPATH=. uv run python backend/main.py'
 
+# 3. (Optional) Check it's running
+tmux ls
 
+# 4. View live logs (optional)
+tmux attach -t backend
+# (Press Ctrl+B then D to detach)
