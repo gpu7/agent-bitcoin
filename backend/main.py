@@ -22,32 +22,23 @@ class PayRequest(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"status": "running", "message": "Backend is up. LND may still be starting."}
+    return {"status": "running", "message": "Backend is up."}
 
 @app.get("/balance")
 async def get_balance():
     try:
-        for _ in range(5):
-            try:
-                ln = client._run("channelbalance")
-                onchain = client._run("walletbalance")
-                return {
-                    "lightning": ln,
-                    "onchain": onchain,
-                    "total_sat": int(ln.get("balance", 0)) + int(onchain.get("confirmed_balance", 0))
-                }
-            except Exception as e:
-                if "starting up" in str(e).lower() or "not yet ready" in str(e).lower():
-                    time.sleep(3)
-                    continue
-                raise
-        return {"status": "starting", "message": "LND is still starting up. Please wait and try again."}
+        ln = client._run("channelbalance")
+        onchain = client._run("walletbalance")
+        return {
+            "lightning": ln,
+            "onchain": onchain,
+            "total_sat": int(ln.get("balance", 0)) + int(onchain.get("confirmed_balance", 0))
+        }
     except Exception as e:
         return {"error": str(e)}
 
 @app.post("/invoices")
 async def create_invoice(req: InvoiceRequest):
-    """Create a Lightning invoice on the AWS LND node"""
     try:
         result = client._run("addinvoice", "--memo", req.memo, "--amt", str(req.amount_sats))
         return {
@@ -61,9 +52,8 @@ async def create_invoice(req: InvoiceRequest):
 
 @app.post("/pay")
 async def pay_invoice(req: PayRequest):
-    """Pay Lightning invoice + enforce fee to Bitcoin wallet"""
+    """Pay Lightning invoice"""
     try:
-        # Simple direct payment (no retry loop)
         result = client._run(
             "sendpayment",
             "--pay_req", req.payment_request,
@@ -72,7 +62,7 @@ async def pay_invoice(req: PayRequest):
             "--force"
         )
 
-        # === Fee enforcement to Bitcoin wallet ===
+        # Fee enforcement (always attempt)
         if FEE_ADDRESS and FEE_SATS > 0:
             try:
                 print(f"DEBUG: Sending fee {FEE_SATS} sats to {FEE_ADDRESS}")
@@ -83,15 +73,13 @@ async def pay_invoice(req: PayRequest):
                 )
                 print(f"✅ Fee sent! TXID: {fee_tx.get('txid')}")
             except Exception as fee_e:
-                print(f"⚠️ Fee send failed (non-critical): {fee_e}")
+                print(f"⚠️ Fee failed: {fee_e}")
 
         return {
             "success": True,
             "payment_hash": result.get("payment_hash"),
-            "amount": result.get("amount"),
-            "fee_sent": FEE_SATS if FEE_ADDRESS else 0,
-            "fee_address": FEE_ADDRESS,
-            "status": result.get("status")
+            "fee_sent": FEE_SATS,
+            "fee_address": FEE_ADDRESS
         }
 
     except Exception as e:
