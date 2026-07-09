@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "=== Waiting for Mac agent-bitcoin-lnd to be ready ==="
 
-# === Check and unlock wallet if locked ===
+# === Check and unlock agent-bitcoin-lnd wallet if locked ===
 echo "→ Checking agent-bitcoin-lnd wallet status..."
 if docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
   lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null; then
@@ -12,9 +12,9 @@ else
       lncli --lnddir=/home/lnd/.lnd --network=regtest unlock
 fi
 
-# === Wait for RPC to be available ===
+# === Wait for agent-bitcoin-lnd RPC to be available ===
 for i in {1..90}; do
-    echo "Waiting for RPC... ($i/90)"
+    echo "Waiting for agent-bitcoin-lnd RPC... ($i/90)"
     if docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
       lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null; then
         echo "✅ agent-bitcoin-lnd RPC is ready!"
@@ -23,8 +23,8 @@ for i in {1..90}; do
     sleep 5
 done
 
-# === Wait for full chain + graph sync ===
-echo "→ Waiting for full sync (chain + graph)..."
+# === Wait for full agent-bitcoin-lnd chain + graph sync ===
+echo "→ Waiting for full agent-bitcoin-lnd chain + graph sync..."
 for i in {1..120}; do
     echo "Sync check... ($i/120)"
     STATUS=$(docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
