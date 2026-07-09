@@ -25,8 +25,8 @@ done
 
 # === Wait for full agent-bitcoin-lnd chain + graph sync ===
 echo "→ Waiting for full agent-bitcoin-lnd chain + graph sync..."
-for i in {1..120}; do
-    echo "Sync check... ($i/120)"
+for i in {1..50}; do
+    echo "Sync check... ($i/50)"
     STATUS=$(docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
       lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo 2>/dev/null || echo "{}")
     
