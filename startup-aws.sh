@@ -35,7 +35,7 @@ docker compose -f docker-compose.regtest.aws.yml restart bitcoind
 echo "→ Waiting for Bitcoin RPC to become ready..."
 for i in {1..25}; do
     if docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getblockcount &>/dev/null; then
-        echo "RPC is ready!"
+        echo "Bitcoin RPC is ready!"
         break
     fi
     echo "Waiting... ($i/25)"
@@ -54,7 +54,7 @@ docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc createwa
 docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc loadwallet "default" 2>/dev/null || true
 
 # Mine Bitcoin
-echo "→ Mining $BLOCKS blocks..."
+echo "→ Mining Bitcoin $BLOCKS blocks..."
 ADDR=$(docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getnewaddress "")
 docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc generatetoaddress $BLOCKS $ADDR
 
@@ -63,10 +63,10 @@ echo "→ Check final Bitcoin height..."
 docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getblockcount
 
 # === Start LND + Backend ===
-echo "→ Starting LND + all services..."
+echo "→ Starting agent-payment-decision-lnd + all services..."
 docker compose -f docker-compose.regtest.aws.yml up -d
 
-echo "→ Waiting for LND to start (RPC available)..."
+echo "→ Waiting for agent-payment-decision-lnd to start (RPC available)..."
 for i in {1..40}; do
     sleep 5
     if docker logs --tail 10 agent-payment-decision-lnd 2>&1 | grep -q "Waiting for wallet encryption password\|wallet locked"; then
@@ -76,20 +76,20 @@ for i in {1..40}; do
         echo "LND is already ready!"
         break
     fi
-    echo "Waiting for LND to start... ($i/40)"
+    echo "Waiting for agent-payment-decision-lnd to start... ($i/40)"
 done
 
 # Handle wallet: create or unlock
-echo "→ Checking wallet status..."
+echo "→ Checking agent-payment-decision-lnd wallet status..."
 if docker exec agent-payment-decision-lnd test -f /home/lnd/.lnd/data/chain/bitcoin/regtest/wallet.db 2>/dev/null; then
-    echo "→ Wallet exists. Unlocking interactively..."
+    echo "→ agent-payment-decision-lnd wallet exists. Unlocking interactively..."
     echo "   Run this in another terminal:"
     echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest unlock"
     echo ""
     echo "After unlocking successfully, press Enter here..."
     read -r
 else
-    echo "→ No wallet found. Creating new wallet interactively..."
+    echo "→ No agent-payment-decision-lnd wallet found. Creating new wallet interactively..."
     echo "   Run this in another terminal:"
     echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest create"
     echo ""
@@ -101,7 +101,7 @@ fi
 echo "→ Waiting for agent-payment-decision-lnd to be fully ready..."
 for i in {1..180}; do
     if docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null; then
-        echo "LND is fully ready!"
+        echo "agent-payment-decision-lnd is fully ready!"
         break
     fi
     echo "Waiting for agent-payment-decision-lnd ... ($i/180)"
@@ -111,8 +111,8 @@ done
 echo ""
 echo "✅ Services started."
 echo ""
-echo "LND Commands:"
-echo "   Unlock wallet:"
+echo "agent-payment-decision-lnd commands:"
+echo "   Unlock agent-payment-decision-lnd wallet:"
 echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd unlock"
 echo ""
 echo "Test API:"
