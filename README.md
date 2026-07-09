@@ -660,3 +660,62 @@ docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
   lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo
 
 
+# We had difficulty getting mac and aws to connect and open a channel.
+# Here are the commands that got it to work.
+
+Why it was failing for so long
+Both LND nodes had stale chain/wallet state ("Block height out of range" errors).
+Peer connections were unstable (dropped immediately).
+Graph sync stayed false because no channels existed.
+Wallet unlock and chain sync issues on AWS after resets.
+
+On aws:
+
+1. Reset LND completely:
+  
+```bash
+docker compose -f docker-compose.regtest.aws.yml down
+docker volume rm agent-bitcoin_lnd-data -f
+docker compose -f docker-compose.regtest.aws.yml up -d lnd
+```
+
+2. Create fresh wallet + unlock:
+
+```bash
+docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest create
+# (enter password, create new seed)
+docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest unlock
+```
+
+3. Mine a solid chain:
+```bash
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc generatetoaddress 100 "$(docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getnewaddress)"
+```
+
+On Mac:
+ 
+4. Get funding address and receive funds from AWS (you did this with the address ending in r4mc).
+
+5. Finally open the channel (using the new AWS pubkey after reset):
+```bash
+# Connect
+docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest connect \
+  <AWS_PUBKEY>@3.84.7.71:9735
+
+sleep 2
+
+# Open channel
+docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest openchannel \
+  --node_key <AWS_PUBKEY> \
+  --local_amt 500000 \
+  --push_amt 100000 \
+  --min_confs 0
+```
+
+6. Mine 6+ blocks on AWS to confirm the funding transaction.
+
+
+
+
