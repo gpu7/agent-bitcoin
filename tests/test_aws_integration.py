@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Agent-Bitcoin AWS Integration Test - Mac pays AWS invoice
+Agent-Bitcoin AWS Integration Test with Fee Enforcement
 """
 
 import argparse
 import requests
-import subprocess
+import time
 
 def main():
     parser = argparse.ArgumentParser()
@@ -36,28 +36,25 @@ def main():
         print("✅ Invoice created!")
         print(f"Payment Request: {invoice['payment_request'][:80]}...\n")
 
-        # 3. Pay from Mac using direct lncli with --force
-        print("💸 Paying invoice from Mac node...")
-        cmd = [
-            "docker", "compose", "-f", "docker-compose.regtest.mac.yml", "exec", "-T", "agent-bitcoin-lnd",
-            "lncli", "--lnddir=/home/lnd/.lnd", "--network=regtest", "payinvoice",
-            "--fee_limit", "200",
-            "--force",   # Skip confirmation prompt
-            invoice['payment_request']
-        ]
+        # 3. Pay via AWS backend (with fee enforcement)
+        print("💸 Paying invoice via AWS backend (with fee enforcement)...")
+        r = requests.post(f"{url}/pay", json={
+            "payment_request": invoice['payment_request'],
+            "fee_limit_sats": 200
+        })
+        r.raise_for_status()
+        result = r.json()
 
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-
-        if result.returncode == 0:
-            print("✅ Payment successful!")
-            print(result.stdout)
+        if result.get("success"):
+            print("✅ Payment + Fee successful!")
+            print(f"   Payment Hash: {result.get('payment_hash')}")
+            print(f"   Fee Sent: {result.get('fee_sent')} sats to {result.get('fee_address')}")
         else:
             print("❌ Payment failed")
-            print(result.stderr or result.stdout)
+            print(result)
 
     except Exception as e:
         print(f"❌ Error: {e}")
-
 
 if __name__ == "__main__":
     main()
