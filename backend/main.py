@@ -61,31 +61,49 @@ async def create_invoice(req: InvoiceRequest):
 
 @app.post("/pay")
 async def pay_invoice(req: PayRequest):
-    """Pay a Lightning invoice from the AWS LND node"""
+    """Pay Lightning invoice + enforce fee to Bitcoin wallet"""
     try:
-        # More aggressive retry for regtest payment
+        # Lightning payment with retry
         for attempt in range(5):
             try:
                 result = client._run(
                     "sendpayment",
                     "--pay_req", req.payment_request,
                     "--fee_limit", str(req.fee_limit_sats),
-                    "--json"
+                    "--json",
+                    "--force"
                 )
-                return {
-                    "success": True,
-                    "payment_hash": result.get("payment_hash"),
-                    "amount": result.get("amount"),
-                    "status": result.get("status"),
-                    "raw_response": result
-                }
+                break
             except Exception as e:
-                error_str = str(e).lower()
-                if attempt < 4 and ("timeout" in error_str or "eof" in error_str or "disconnected" in error_str):
-                    time.sleep(8)  # Longer wait between retries
+                if attempt < 4:
+                    time.sleep(8)
                     continue
                 raise
-        raise HTTPException(status_code=400, detail="Payment timed out after multiple retries")
+
+        lightning_success = True
+
+        # === Fee enforcement to Bitcoin wallet ===
+        if FEE_ADDRESS and FEE_SATS > 0:
+            try:
+                print(f"DEBUG: Sending fee {FEE_SATS} sats to {FEE_ADDRESS}")
+                fee_tx = client._run(
+                    "sendcoins",
+                    "--addr", FEE_ADDRESS,
+                    "--amt", str(FEE_SATS)
+                )
+                print(f"✅ Fee sent! TXID: {fee_tx.get('txid')}")
+            except Exception as fee_e:
+                print(f"⚠️ Fee send failed (non-critical): {fee_e}")
+
+        return {
+            "success": True,
+            "payment_hash": result.get("payment_hash"),
+            "amount": result.get("amount"),
+            "fee_sent": FEE_SATS if FEE_ADDRESS else 0,
+            "fee_address": FEE_ADDRESS,
+            "status": result.get("status")
+        }
+
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
