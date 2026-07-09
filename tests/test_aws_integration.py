@@ -36,12 +36,13 @@ def main():
         print("✅ Invoice created!")
         print(f"Payment Request: {invoice['payment_request'][:80]}...\n")
 
-        # 3. Pay from Mac using direct lncli (temporary until SDK pay_invoice is added)
+        # 3. Pay from Mac using direct lncli with --force
         print("💸 Paying invoice from Mac node...")
         cmd = [
             "docker", "compose", "-f", "docker-compose.regtest.mac.yml", "exec", "-T", "agent-bitcoin-lnd",
             "lncli", "--lnddir=/home/lnd/.lnd", "--network=regtest", "payinvoice",
             "--fee_limit", "200",
+            "--force",   # Skip confirmation prompt
             invoice['payment_request']
         ]
 
@@ -52,7 +53,7 @@ def main():
             print(result.stdout)
         else:
             print("❌ Payment failed")
-            print(result.stderr)
+            print(result.stderr or result.stdout)
 
     except Exception as e:
         print(f"❌ Error: {e}")
