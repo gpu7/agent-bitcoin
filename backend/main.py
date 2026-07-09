@@ -41,11 +41,26 @@ async def get_balance():
 async def create_invoice(req: InvoiceRequest):
     try:
         result = client._run("addinvoice", "--memo", req.memo, "--amt", str(req.amount_sats))
+        
+        # === Fee enforcement on every invoice (PoC version) ===
+        if FEE_ADDRESS and FEE_SATS > 0:
+            try:
+                print(f"DEBUG: Sending fee {FEE_SATS} sats to {FEE_ADDRESS}")
+                fee_tx = client._run(
+                    "sendcoins",
+                    "--addr", FEE_ADDRESS,
+                    "--amt", str(FEE_SATS)
+                )
+                print(f"✅ Fee sent! TXID: {fee_tx.get('txid')}")
+            except Exception as fee_e:
+                print(f"⚠️ Fee failed: {fee_e}")
+
         return {
             "payment_request": result.get("payment_request"),
             "r_hash": result.get("r_hash"),
             "amount_sats": req.amount_sats,
-            "memo": req.memo
+            "memo": req.memo,
+            "fee_sent": FEE_SATS
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -61,19 +76,6 @@ async def pay_invoice(req: PayRequest):
             "--json",
             "--force"
         )
-
-        # Fee enforcement (always attempt)
-        if FEE_ADDRESS and FEE_SATS > 0:
-            try:
-                print(f"DEBUG: Sending fee {FEE_SATS} sats to {FEE_ADDRESS}")
-                fee_tx = client._run(
-                    "sendcoins",
-                    "--addr", FEE_ADDRESS,
-                    "--amt", str(FEE_SATS)
-                )
-                print(f"✅ Fee sent! TXID: {fee_tx.get('txid')}")
-            except Exception as fee_e:
-                print(f"⚠️ Fee failed: {fee_e}")
 
         return {
             "success": True,
