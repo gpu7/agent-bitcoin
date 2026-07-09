@@ -534,6 +534,9 @@ docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --netwo
 # List peers
 docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest listpeers
 
+# get current bitcoin blockchain blockcount
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getblockcount
+
 On Mac
 
 # Start Mac counterparty node
