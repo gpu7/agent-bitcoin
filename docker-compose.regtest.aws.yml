@@ -51,6 +51,7 @@ services:
       - "--listen=0.0.0.0:9735"
       - "--rpclisten=0.0.0.0:10009"
       - "--debuglevel=debug"
+      - "--externalip=3.84.7.71"
     volumes:
       - lnd-data:/home/lnd/.lnd
     networks:

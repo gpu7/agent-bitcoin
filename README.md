@@ -551,8 +551,14 @@ docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd lncl
 
 OR
 
+On AWS:
+# get pubkey
+docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo | grep identity_pubkey
+
+On Mac:
 # USE THIS ONE
 # Connect to AWS node (directly)
+# use pubkey from previous command
 docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd \
   lncli --lnddir=/home/lnd/.lnd --network=regtest connect \
   039f2162629469491bf27e39d5f679d601662953b2db437db24e08c91b5d71b6de@13.220.186.146:9735
