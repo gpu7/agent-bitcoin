@@ -63,20 +63,28 @@ async def create_invoice(req: InvoiceRequest):
 async def pay_invoice(req: PayRequest):
     """Pay a Lightning invoice from the AWS LND node"""
     try:
-        # Using sendpayment with reasonable defaults
-        result = client._run(
-            "sendpayment",
-            "--pay_req", req.payment_request,
-            "--fee_limit", str(req.fee_limit_sats),
-            "--json"
-        )
-        return {
-            "success": True,
-            "payment_hash": result.get("payment_hash"),
-            "amount": result.get("amount"),
-            "status": result.get("status"),
-            "raw_response": result
-        }
+        # Retry with longer timeout tolerance for regtest
+        for attempt in range(3):
+            try:
+                result = client._run(
+                    "sendpayment",
+                    "--pay_req", req.payment_request,
+                    "--fee_limit", str(req.fee_limit_sats),
+                    "--json"
+                )
+                return {
+                    "success": True,
+                    "payment_hash": result.get("payment_hash"),
+                    "amount": result.get("amount"),
+                    "status": result.get("status"),
+                    "raw_response": result
+                }
+            except Exception as e:
+                if attempt < 2 and ("timeout" in str(e).lower() or "EOF" in str(e)):
+                    time.sleep(5)  # Wait before retry
+                    continue
+                raise
+        raise HTTPException(status_code=400, detail="Payment timed out after retries")
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
