@@ -542,6 +542,7 @@ On Mac
 # Check LND status
 docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo
 
+# check if Mac age
 # Connect to AWS node (using current IP)
 ./connect-mac-to-aws.sh 54.87.36.22
 

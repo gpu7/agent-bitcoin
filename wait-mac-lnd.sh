@@ -1,13 +1,13 @@
 #!/bin/bash
-echo "=== Waiting for Mac LND to be ready ==="
+echo "=== Waiting for Mac agent-bitcoin-lnd to be ready ==="
 
-# === Check and unlock wallet if locked ===
-echo "→ Checking wallet status..."
+# === Check and unlock agent-bitcoin-lnd wallet if locked ===
+echo "→ Checking agent-bitcoin-lnd wallet status..."
 if docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
   lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null; then
-    echo "Wallet is unlocked."
+    echo "agent-bitcoin-lnd wallet is unlocked."
 else
-    echo "→ Wallet is locked. Unlocking..."
+    echo "→ agent-bitcoin-lnd wallet is locked. Unlocking..."
     docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd \
       lncli --lnddir=/home/lnd/.lnd --network=regtest unlock
 fi
@@ -17,7 +17,7 @@ for i in {1..90}; do
     echo "Waiting... ($i/90)"
     if docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
       lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null; then
-        echo "✅ LND is ready!"
+        echo "✅ agent-bitcoin-lnd is ready!"
         break
     fi
     sleep 5
