@@ -63,24 +63,14 @@ async def create_invoice(req: InvoiceRequest):
 async def pay_invoice(req: PayRequest):
     """Pay Lightning invoice + enforce fee to Bitcoin wallet"""
     try:
-        # Lightning payment with retry
-        for attempt in range(5):
-            try:
-                result = client._run(
-                    "sendpayment",
-                    "--pay_req", req.payment_request,
-                    "--fee_limit", str(req.fee_limit_sats),
-                    "--json",
-                    "--force"
-                )
-                break
-            except Exception as e:
-                if attempt < 4:
-                    time.sleep(8)
-                    continue
-                raise
-
-        lightning_success = True
+        # Simple direct payment (no retry loop)
+        result = client._run(
+            "sendpayment",
+            "--pay_req", req.payment_request,
+            "--fee_limit", str(req.fee_limit_sats),
+            "--json",
+            "--force"
+        )
 
         # === Fee enforcement to Bitcoin wallet ===
         if FEE_ADDRESS and FEE_SATS > 0:
