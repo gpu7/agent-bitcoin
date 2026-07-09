@@ -5,10 +5,7 @@ Agent-Bitcoin AWS Integration Test - Mac pays AWS invoice
 
 import argparse
 import requests
-import time
-
-from agent_bitcoin import create_client
-
+import subprocess
 
 def main():
     parser = argparse.ArgumentParser()
@@ -39,22 +36,23 @@ def main():
         print("✅ Invoice created!")
         print(f"Payment Request: {invoice['payment_request'][:80]}...\n")
 
-        # 3. Pay from Mac using SDK client
+        # 3. Pay from Mac using direct lncli (temporary until SDK pay_invoice is added)
         print("💸 Paying invoice from Mac node...")
-        client = create_client()
+        cmd = [
+            "docker", "compose", "-f", "docker-compose.regtest.mac.yml", "exec", "-T", "agent-bitcoin-lnd",
+            "lncli", "--lnddir=/home/lnd/.lnd", "--network=regtest", "payinvoice",
+            "--fee_limit", "200",
+            invoice['payment_request']
+        ]
 
-        result = client.pay_invoice(
-            payment_request=invoice['payment_request']
-        )
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
 
-        if result.success:
+        if result.returncode == 0:
             print("✅ Payment successful!")
-            print(f"   Amount: {result.amount} sats")
-            print(f"   Payment Hash: {result.payment_hash}")
-            print(f"   Preimage: {result.preimage}")
+            print(result.stdout)
         else:
             print("❌ Payment failed")
-            print(f"   Status: {result.status}")
+            print(result.stderr)
 
     except Exception as e:
         print(f"❌ Error: {e}")
