@@ -716,6 +716,10 @@ docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd \
 
 6. Mine 6+ blocks on AWS to confirm the funding transaction.
 
+This cleared all stale state, gave both nodes fresh wallets and confirmed funds, and allowed the channel to open successfully.The key was full resets on both sides + fresh wallets + sufficient mining.You now have a working bidirectional Lightning channel between Mac (SDK) and AWS (backend). 
+
+
+
 
 
 
