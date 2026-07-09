@@ -8,7 +8,7 @@ fi
 
 echo "=== Agent-Bitcoin Startup AWS ==="
 
-BLOCKS=${1:-300}
+BLOCKS=${1:-50}
 
 cd ~/agent-bitcoin
 
