@@ -5,6 +5,7 @@ Agent-Bitcoin AWS Integration Test - Mac pays AWS invoice
 
 import argparse
 import requests
+import time
 
 from agent_bitcoin import create_client
 
@@ -40,11 +41,10 @@ def main():
 
         # 3. Pay from Mac using SDK client
         print("💸 Paying invoice from Mac node...")
-        client = create_client()  # Local Mac LND
+        client = create_client()
 
         result = client.pay_invoice(
             payment_request=invoice['payment_request']
-            # fee_limit_sats removed - use default in client
         )
 
         if result.success:
