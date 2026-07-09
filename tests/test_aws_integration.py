@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """
-Agent-Bitcoin AWS Integration Test - Full Workflow
+Agent-Bitcoin AWS Integration Test - Mac pays AWS invoice
 """
 
 import argparse
 import requests
 import time
+import subprocess
+from agent_bitcoin import create_client  # Use the SDK client
 
 
 def main():
@@ -19,18 +21,17 @@ def main():
     print(f"🚀 Testing Agent-Bitcoin AWS Integration at {url}\n")
 
     try:
-        # 1. Check balance
-        print("💰 Checking balance...")
+        # 1. Check balance (AWS)
+        print("💰 Checking AWS balance...")
         r = requests.get(f"{url}/balance")
         r.raise_for_status()
         data = r.json()
-        print(f"Lightning : {data['lightning']['balance']} sats")
-        print(f"On-chain  : {data['onchain']['total_balance']} sats\n")
+        print(f"AWS Lightning : {data['lightning']['balance']} sats\n")
 
-        # 2. Create invoice on AWS backend
-        print(f"📄 Creating invoice for {args.amount} sats...")
+        # 2. Create invoice on AWS
+        print(f"📄 Creating invoice for {args.amount} sats on AWS...")
         r = requests.post(f"{url}/invoices", json={
-            "memo": "SDK Integration Test",
+            "memo": "SDK Integration Test - Mac pays",
             "amount_sats": args.amount
         })
         r.raise_for_status()
@@ -38,28 +39,24 @@ def main():
         print("✅ Invoice created!")
         print(f"Payment Request: {invoice['payment_request'][:80]}...\n")
 
-        # 3. Pay the invoice (using SDK or direct call)
+        # 3. Pay from Mac using SDK-style direct call
         print("💸 Paying invoice from Mac node...")
-        # For now, assume backend has a /pay endpoint or use SDK later
-        r = requests.post(f"{url}/pay", json={
-            "payment_request": invoice['payment_request'],
-            "fee_limit_sats": 200
-        })
-        r.raise_for_status()
-        result = r.json()
+        client = create_client()  # Uses local Mac LND
 
-        if result.get("success"):
+        result = client.pay_invoice(
+            payment_request=invoice['payment_request'],
+            fee_limit_sats=200
+        )
+
+        if result.success:
             print("✅ Payment successful!")
-            print(f"Amount: {result.get('amount')} sats")
-            print(f"Payment Hash: {result.get('payment_hash')}")
+            print(f"   Amount: {result.amount} sats")
+            print(f"   Payment Hash: {result.payment_hash}")
+            print(f"   Preimage: {result.preimage}")
         else:
             print("❌ Payment failed")
-            print(result)
+            print(f"   Status: {result.status}")
 
-    except requests.exceptions.RequestException as e:
-        print(f"❌ API Error: {e}")
-        if hasattr(e.response, 'text'):
-            print(e.response.text)
     except Exception as e:
         print(f"❌ Error: {e}")
 
