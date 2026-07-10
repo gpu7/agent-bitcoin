@@ -35,7 +35,7 @@ def main():
         r.raise_for_status()
         invoice = r.json()
         print("✅ Invoice created!")
-        print(f"Payment Request: {invoice['payment_request'][:80]}...\n")
+        print(f"Payment Request: {invoice['payment_request']}")
 
         # 3. Pay from Mac node (not from AWS backend)
         print("💸 Paying invoice from Mac LND node...")
