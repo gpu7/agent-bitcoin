@@ -26,7 +26,7 @@ def main():
         data = r.json()
         print(f"AWS Lightning : {data['lightning']['balance']} sats\n")
 
-        # 2. Create invoice on AWS (this also triggers fee enforcement)
+        # 2. Create invoice on AWS
         print(f"📄 Creating invoice for {args.amount} sats on AWS...")
         r = requests.post(f"{url}/invoices", json={
             "memo": "SDK Integration Test - Mac pays",
@@ -35,7 +35,7 @@ def main():
         r.raise_for_status()
         invoice = r.json()
         print("✅ Invoice created!")
-        print(f"Payment Request: {invoice['payment_request']}")
+        print(f"Payment Request: {invoice['payment_request']}\n")
 
         # 3. Pay from Mac node (not from AWS backend)
         print("💸 Paying invoice from Mac LND node...")
@@ -56,6 +56,13 @@ def main():
             print("❌ Payment failed from Mac")
             print(result.stderr)
             return
+
+        # 4. Send fee to Bitcoin wallet (separate step)
+        print("💰 Sending fee to Bitcoin wallet...")
+        r = requests.post(f"{url}/send-fee")
+        r.raise_for_status()
+        fee_result = r.json()
+        print(f"✅ Fee sent! TXID: {fee_result.get('txid')}")
 
         print("\n✅ Full flow completed (Invoice + Payment + Fee enforcement)")
 
