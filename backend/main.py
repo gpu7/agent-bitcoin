@@ -20,6 +20,9 @@ class PayRequest(BaseModel):
     payment_request: str
     fee_limit_sats: int = 500
 
+class FeeRequest(BaseModel):
+    amount_sats: int = None  # optional override
+
 @app.get("/")
 async def root():
     return {"status": "running", "message": "Backend is up."}
@@ -42,25 +45,11 @@ async def create_invoice(req: InvoiceRequest):
     try:
         result = client._run("addinvoice", "--memo", req.memo, "--amt", str(req.amount_sats))
         
-        # === Fee enforcement on every invoice (PoC version) ===
-        if FEE_ADDRESS and FEE_SATS > 0:
-            try:
-                print(f"DEBUG: Sending fee {FEE_SATS} sats to {FEE_ADDRESS}")
-                fee_tx = client._run(
-                    "sendcoins",
-                    "--addr", FEE_ADDRESS,
-                    "--amt", str(FEE_SATS)
-                )
-                print(f"✅ Fee sent! TXID: {fee_tx.get('txid')}")
-            except Exception as fee_e:
-                print(f"⚠️ Fee failed: {fee_e}")
-
         return {
             "payment_request": result.get("payment_request"),
             "r_hash": result.get("r_hash"),
             "amount_sats": req.amount_sats,
-            "memo": req.memo,
-            "fee_sent": FEE_SATS
+            "memo": req.memo
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -90,10 +79,34 @@ async def pay_invoice(req: PayRequest):
             last_error = str(e)
             print(f"⚠️ sendpayment attempt {attempt + 1} failed: {last_error}")
             if attempt < 2:
-                time.sleep(5)  # Wait a bit before retrying
+                time.sleep(5)
 
-    # If all attempts failed
     raise HTTPException(status_code=400, detail=f"Payment failed after 3 attempts. Last error: {last_error}")
+
+@app.post("/send-fee")
+async def send_fee(req: FeeRequest = None):
+    """Dedicated endpoint to send fee to Bitcoin wallet"""
+    amount = req.amount_sats if req and req.amount_sats else FEE_SATS
+    if not FEE_ADDRESS or amount <= 0:
+        raise HTTPException(status_code=400, detail="Fee configuration missing")
+
+    try:
+        print(f"DEBUG: Sending fee {amount} sats to {FEE_ADDRESS}")
+        fee_tx = client._run(
+            "sendcoins",
+            "--addr", FEE_ADDRESS,
+            "--amt", str(amount)
+        )
+        print(f"✅ Fee sent! TXID: {fee_tx.get('txid')}")
+        return {
+            "success": True,
+            "txid": fee_tx.get("txid"),
+            "amount_sats": amount,
+            "address": FEE_ADDRESS
+        }
+    except Exception as e:
+        print(f"⚠️ Fee failed: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
