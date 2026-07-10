@@ -215,7 +215,7 @@ Note: the AWS backend url changes each time a new AWS agent-bitcoin instance is 
 - 1) On Mac: update docker-compose.regtest.aws.yml with current AWS instance IPv4 address 
 - 2) On AWS instance: ./startup-aws.sh
 - 3) On Mac: update docker-compose.regtest.mac.yml with current AWS instance IPv4 address
-- 4) On Mac: ./start-agent-bitcoin-infrastructure-mac.sh regtest <current-aws-instance-IPv4-address>
+- 4) On Mac: ./startup-mac.sh
 - 5) On Mac: uv run python tests/test_aws_integration.py --backend-url http://<current-aws-instance-IPv4-address>:8000
 
 ---
