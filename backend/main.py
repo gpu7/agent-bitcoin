@@ -67,25 +67,33 @@ async def create_invoice(req: InvoiceRequest):
 
 @app.post("/pay")
 async def pay_invoice(req: PayRequest):
-    """Pay Lightning invoice"""
-    try:
-        result = client._run(
-            "sendpayment",
-            "--pay_req", req.payment_request,
-            "--fee_limit", str(req.fee_limit_sats),
-            "--json",
-            "--force"
-        )
+    """Pay Lightning invoice from AWS node"""
+    last_error = None
 
-        return {
-            "success": True,
-            "payment_hash": result.get("payment_hash"),
-            "fee_sent": FEE_SATS,
-            "fee_address": FEE_ADDRESS
-        }
+    for attempt in range(3):  # Try up to 3 times
+        try:
+            result = client._run(
+                "sendpayment",
+                "--pay_req", req.payment_request,
+                "--fee_limit", str(req.fee_limit_sats),
+                "--json",
+                "--force"
+            )
+            return {
+                "success": True,
+                "payment_hash": result.get("payment_hash"),
+                "fee_sent": FEE_SATS,
+                "fee_address": FEE_ADDRESS,
+                "attempts": attempt + 1
+            }
+        except Exception as e:
+            last_error = str(e)
+            print(f"⚠️ sendpayment attempt {attempt + 1} failed: {last_error}")
+            if attempt < 2:
+                time.sleep(5)  # Wait a bit before retrying
 
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    # If all attempts failed
+    raise HTTPException(status_code=400, detail=f"Payment failed after 3 attempts. Last error: {last_error}")
 
 if __name__ == "__main__":
     import uvicorn
