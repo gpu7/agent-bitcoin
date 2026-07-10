@@ -7,19 +7,7 @@ COMPOSE_FILE="docker-compose.regtest.mac.yml"
 echo "=== Starting Mac Counterparty on $NETWORK ==="
 
 docker compose -f $COMPOSE_FILE down --remove-orphans 2>/dev/null || true
-docker compose -f $COMPOSE_FILE up -d
-
-echo "→ Waiting for AWS bitcoind..."
-sleep 30
-
-# === Fix Bitcoin Core wallet (required in recent versions) ===
-echo "→ Creating AWS Bitcoin Core wallet if needed..."
-docker compose -f $COMPOSE_FILE exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass createwallet "" 2>/dev/null || true
-docker compose -f $COMPOSE_FILE exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass loadwallet "" 2>/dev/null || true
-
-echo "→ Mining AWS bitcoin core blocks to pre-warm agent-bitcoin-lnd..."
-ADDR=$(docker compose -f $COMPOSE_FILE exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass getnewaddress)
-docker compose -f $COMPOSE_FILE exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass generatetoaddress 300 "$ADDR"
+docker compose -f $COMPOSE_FILE up -d agent-bitcoin-lnd
 
 echo "=== Creating/Unlocking counterparty agent-bitcoin-lnd wallet (Mac) ==="
 sleep 10
