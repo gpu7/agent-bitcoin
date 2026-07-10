@@ -212,9 +212,11 @@ The current workflow is shown here.  This is the test workflow on regtest.  It i
 
 Note: the AWS backend url changes each time a new AWS agent-bitcoin instance is launched.  Must modify #2 and #3 accordingly.
 
-- 1) On AWS instance: ./startup-aws.sh
-- 2) On Mac: ./start-agent-bitcoin-infrastructure-mac.sh regtest 13.218.193.158
-- 3) On Mac: uv run python tests/test_aws_integration.py --backend-url http://13.218.193.158:8000
+- 1) On Mac: update docker-compose.regtest.aws.yml with current AWS instance IPv4 address 
+- 2) On AWS instance: ./startup-aws.sh
+- 3) On Mac: update docker-compose.regtest.mac.yml with current AWS instance IPv4 address
+- 4) On Mac: ./start-agent-bitcoin-infrastructure-mac.sh regtest <current-aws-instance-IPv4-address>
+- 5) On Mac: uv run python tests/test_aws_integration.py --backend-url http://<current-aws-instance-IPv4-address>:8000
 
 ---
 
