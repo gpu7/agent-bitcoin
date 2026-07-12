@@ -4,6 +4,9 @@ echo "=== Agent-Bitcoin Mac Counterparty Setup (for AWS Backend) ==="
 NETWORK=${1:-regtest}
 COMPOSE_FILE="docker-compose.regtest.mac.yml"
 
+# === Get AWS IP from argument ===
+export AWS_IP=${2}
+
 echo "=== Starting Mac Counterparty on $NETWORK ==="
 
 docker compose -f $COMPOSE_FILE down --remove-orphans 2>/dev/null || true
@@ -24,7 +27,7 @@ echo ""
 echo "=== Mac Counterparty Ready for AWS Backend ==="
 echo ""
 echo "Test with:"
-echo "   uv run python tests/test_aws_integration.py --backend-url http://YOUR_AWS_IP:8000"
+echo "   uv run python tests/test_aws_integration.py --backend-url http://$AWS_IP:8000"
 echo ""
 echo "✅ Ready."
 docker compose -f $COMPOSE_FILE ps
