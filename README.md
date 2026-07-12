@@ -157,8 +157,13 @@ docker compose -f docker-compose.regtest.mac.yml logs --tail 15 agent-bitcoin-ln
 - Step #3. It can take a fairly long time to sync the Lightning node with the Bitcoin blockchain. If you see "synced_to_chain: false", run these commands to advance the chain and force LND to catch up. This is not guaranteed to work. You may have to simply wait some time for the nodes to sync.
 
 ```bash
+# On AWS: 
+
 # Mine more blocks
+mine more blocks
 docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc generatetoaddress 200 $(docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getnewaddress "")
+
+# On Mac: 
 
 # Restart LND
 docker restart agent-payment-decision-lnd
