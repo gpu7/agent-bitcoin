@@ -25,8 +25,8 @@ done
 
 # === Wait for full agent-bitcoin-lnd chain + graph sync ===
 echo "→ Waiting for full agent-bitcoin-lnd chain + graph sync..."
-for i in {1..200}; do
-    echo "Sync check... ($i/200)"
+for i in {1..50}; do
+    echo "Sync check... ($i/50)"
     STATUS=$(docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
       lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo 2>/dev/null || echo "{}")
 
@@ -50,3 +50,7 @@ echo ""
 echo "Final status:"
 docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
   lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo | grep -E "block_height|synced_to_chain|synced_to_graph"
+
+echo ""
+echo "If sync_to_chain is still false, mine additional bitcoin blocks on AWS and run wait-mac-lnd.sh again."
+echo "See README.md for more explanation."
