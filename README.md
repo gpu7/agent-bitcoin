@@ -152,6 +152,11 @@ docker compose -f docker-compose.regtest.mac.yml logs --tail 20 agent-bitcoin-ln
 
 - Step #3. On Mac:
 
+- Step #4. On Mac:
+
+- Step #5. On AWS:
+
+- Step #6. On Mac:
 
 
 ---
