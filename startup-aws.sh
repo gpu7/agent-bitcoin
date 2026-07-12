@@ -6,12 +6,12 @@ if [ -f .env ]; then
     export $(grep -v '^#' .env | xargs)
 fi
 
-# === Get arguments ===
-NETWORK=${1:-regtest}
+# Get arguments
+NETWORK=${1}
 AWS_IP=${2}
 export AWS_IP
 
-echo "=== Agent-Bitcoin Startup AWS (Network: $NETWORK, External IP: $AWS_IP) ==="
+echo "=== Agent-Bitcoin Startup AWS (Network: $NETWORK, AWS IP: $AWS_IP) ==="
 
 BLOCKS=${3:-50}
 
