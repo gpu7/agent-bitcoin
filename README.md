@@ -30,13 +30,6 @@ A lightweight Python SDK that enables AI agents to send and receive Bitcoin/Ligh
 - Complete full transactions
 
 ---
-## Project Status
-
-- Network: Currently optimized for regtest
-- Next: Moving to testnet after public feedback
-- Not yet: Mainnet (security review required)
-
----
 
 ## Installation
 
@@ -68,6 +61,98 @@ if result.success:
     print(f"✅ Paid {result.amount} sats")
     print(f"Preimage: {result.preimage}")
 ```
+
+---
+
+## Workflow
+
+The current workflow is shown here.  This is the test workflow on regtest.
+
+Note: the "current-aws-instance-IPv4-address" changes each time a new AWS agent-bitcoin instance is launched.
+
+- 1) On AWS: source ./startup-aws.sh regtest <current-aws-instance-IPv4-address>
+- 2) On Mac: source ./startup-mac.sh regtest <current-aws-instance-IPv4-address>
+- 3) On Mac: source ./wait-mac-lnd.sh
+- 4) On Mac: uv run python tests/test_aws_integration.py --backend-url http://<current-aws-instance-IPv4-address>:8000
+
+### Optional diagnostics
+Run these commands after each workflow step to determine if everything launched correctly.
+
+- Step #1. On AWS:
+  
+```bash
+echo "=== Post-Startup Diagnostics (AWS) ==="
+
+echo "1. Container Status:"
+docker ps
+
+echo -e "\n2. Bitcoind Height:"
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getblockcount
+
+echo -e "\n3. LND Status:"
+docker exec -it agent-payment-decision-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo | grep -E "identity_pubkey|block_height|synced_to_chain|synced_to_graph|uris"
+
+echo -e "\n4. Backend API Balance:"
+curl -s http://localhost:8000/balance | jq . 2>/dev/null || curl http://localhost:8000/balance
+
+echo -e "\n5. Recent LND Logs:"
+docker logs --tail 30 agent-payment-decision-lnd | tail -20
+```
+
+- Step #1. It can take a fairly long time to sync the Lightning node with the Bitcoin blockchain. If you see "synced_to_chain: false", run these commands to advance the chain and force LND to catch up. This is not guaranteed to work. You may have to simply wait some time for the nodes to sync.
+
+```bash
+# Mine more blocks
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc generatetoaddress 200 $(docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getnewaddress "")
+
+# Restart LND
+docker restart agent-payment-decision-lnd
+
+# unlock wallet
+docker exec -it agent-payment-decision-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest unlock
+
+# Monitor
+sleep 30
+docker logs --tail 30 agent-payment-decision-lnd | grep -E "synced|block|height|error"
+```
+
+- Step #2. On Mac:
+
+```bash
+echo "=== Post-Startup Diagnostics (Mac) ==="
+
+echo "1. Container Status:"
+docker compose -f docker-compose.regtest.mac.yml ps
+
+echo -e "\n2. Bitcoind Height (Mac):"
+docker compose -f docker-compose.regtest.mac.yml exec bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass getblockcount
+
+echo -e "\n3. agent-bitcoin-lnd Status:"
+docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo | grep -E "identity_pubkey|block_height|synced_to_chain|synced_to_graph|uris"
+
+echo -e "\n4. agent-bitcoin-1-lnd Status:"
+docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-1-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo | grep -E "identity_pubkey|block_height|synced_to_chain|synced_to_graph|uris"
+
+echo -e "\n5. Test Connectivity to AWS bitcoind (from both agents):"
+docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
+  curl -s -X POST http://98.93.77.245:18443 -H "Content-Type: application/json" --data '{"jsonrpc":"1.0","id":"test","method":"getblockcount"}' || echo "Failed from agent-bitcoin-lnd"
+
+docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-1-lnd \
+  curl -s -X POST http://98.93.77.245:18443 -H "Content-Type: application/json" --data '{"jsonrpc":"1.0","id":"test","method":"getblockcount"}' || echo "Failed from agent-bitcoin-1-lnd"
+
+echo -e "\n6. Recent Logs (agent-bitcoin-lnd):"
+docker compose -f docker-compose.regtest.mac.yml logs --tail 20 agent-bitcoin-lnd | tail -10
+```
+
+- Step #3. On Mac:
+
+
+
+---
 
 ## Transaction Fee Model
 
@@ -206,20 +291,6 @@ uv run python examples/agent_api_example.py
 
 ---
 
-## Workflow
-
-The current workflow is shown here.  This is the test workflow on regtest.  It is changing frequently during testing.
-
-Note: the AWS backend url changes each time a new AWS agent-bitcoin instance is launched.  Must modify #2 and #3 accordingly.
-
-- 1) On Mac: update docker-compose.regtest.aws.yml with current AWS instance IPv4 address 
-- 2) On AWS instance: ./startup-aws.sh
-- 3) On Mac: update docker-compose.regtest.mac.yml with current AWS instance IPv4 address
-- 4) On Mac: ./startup-mac.sh
-- 5) On Mac: uv run python tests/test_aws_integration.py --backend-url http://<current-aws-instance-IPv4-address>:8000
-
----
-
 ## Backend API
 
 The backend serves as the enforcement and payment routing layer for all Lightning operations. The backend/ provides a simple, secure HTTP API layer on top of your Lightning node. It is the recommended way for AI agents to interact with Bitcoin/Lightning.
@@ -321,10 +392,6 @@ docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd \
     --push_amt 2000000
 ```
 
-
-
-
-
 ### Open Channel Mac <--> AWS
 ```bash
 # Get the identity pubkey of the AWS node
@@ -361,57 +428,6 @@ PyPI: Coming soon
 ## License
 
 MIT License — see LICENSE file.
-
----
-
-## Contributing
-
-Thank you for considering contributing to Agent-Bitcoin!
-
-### Development Setup
-
-```bash
-git clone https://github.com/gpu7/agent-bitcoin.git
-cd agent-bitcoin
-uv sync
-```
-
-### Code Style
-
--Formatting: Black
--Linting: Ruff
--Type Checking: Optional (we use Pydantic)
-
-Run checks before submitting:
-
-```bash
-uv run ruff check .
-uv run black --check .
-```
-
-### Project build
-
-File: pyproject.toml
-
-```bash
-uv build
-```
-
-### Project rebuild
-
-File: pyproject.toml
-
-```bash
-# 1. Clean and rebuild
-rm -rf dist/ build/ *.egg-info
-uv build
-
-# 2. Check distribution
-ls -l dist/
-
-# 3. Validate the package (important before PyPI)
-uv run twine check dist/*
-```
 
 ---
 
@@ -542,7 +558,7 @@ docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getblock
 On Mac
 
 # Start Mac counterparty node
-./startup-mac.sh
+./startup-mac.sh regtest <current-aws-instance-IPv4-address>
 
 # Check LND status
 docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo
@@ -735,3 +751,114 @@ tmux ls
 # 4. View live logs (optional)
 tmux attach -t backend
 # (Press Ctrl+B then D to detach)
+
+# Project Outline for autonomous AI agent swarm
+
+Step-by-Step Implementation PlanPhase 1: Infrastructure Preparation (1–2 days)Duplicate the Mac counterparty setupCreate a second LND node on the Mac (or a second container).
+Recommended: Add agent-bitcoin-1-lnd service in docker-compose.regtest.mac.yml.
+Give it its own volume (agent-bitcoin-1-lnd-data) and different ports (e.g., 9737, 10011).
+
+Update startup/shutdown scriptsModify startup-mac.sh to start both agent-bitcoin-lnd and agent-bitcoin-1-lnd.
+Create shutdown-mac.sh that stops both cleanly.
+
+Connect the new nodeConnect agent-bitcoin-1-lnd to the AWS agent-payment-decision-lnd.
+Open a channel from AWS → agent-bitcoin-1-lnd with sufficient push amount (similar to what we did for the first node).
+
+Phase 2: Agent Abstraction Layer (2–3 days)Create a base Agent classIn a new folder agents/, create a clean Python class structure.
+BaseAgent class that handles:Connection to its own LND node
+Creating invoices on the AWS backend
+Paying invoices (from its own LND)
+Checking balances
+
+Implement two concrete agentsAgentBitcoin (existing logic)
+AgentBitcoin1 (new, almost identical but points to the second LND container)
+
+Centralize configurationUse environment variables or a config file so each agent knows:Its own LND container name / lnddir
+Backend URL
+Fee settings
+
+Phase 3: Swarm Coordination Logic (1–2 days)Create a simple Swarm OrchestratorNew script: swarm/sequential_swarm.py
+It should:Initialize both agents
+Run payments sequentially:python
+
+for agent in [agent_bitcoin, agent_bitcoin_1]:
+    invoice = agent.create_invoice(amount=5000)
+    success = agent.pay_invoice(invoice.payment_request)
+    fee_success = agent.send_fee()   # or call backend /send-fee
+
+Add verification stepAfter both payments:Check Lightning balances on AWS
+Check on-chain fee transactions on AWS bitcoind / LND
+Print a clean summary report
+
+Phase 4: Testing & Validation (1–2 days)Create a dedicated swarm testtests/test_two_agent_swarm.py
+Run the sequential payment flow multiple times
+Assert that:Both invoices were created
+Both payments succeeded
+Fees were sent to the Bitcoin wallet
+
+Add logging and observabilityLog every step with clear agent names ([agent-bitcoin] / [agent-bitcoin-1])
+Record TXIDs and payment hashes for traceability
+
+Phase 5: Documentation & Future-Proofing (Ongoing)Document the swarm architectureCreate a simple docs/swarm_architecture.md
+Explain roles, communication flow, and how to add new agents
+
+Prepare for scalingDesign the BaseAgent class so adding agent-bitcoin-2, agent-bitcoin-3, etc. is trivial
+Consider moving toward a message queue (Redis / RabbitMQ) or simple event bus later for true autonomy
+
+Recommended Order of WorkPriority
+Task
+Estimated Time
+Dependencies
+1
+Add agent-bitcoin-1-lnd container
+1 day
+None
+2
+Fund + connect new node
+½ day
+Task 1
+3
+Create BaseAgent + two agents
+2–3 days
+Task 2
+4
+Build sequential swarm script
+1–2 days
+Task 3
+5
+Add verification + test script
+1 day
+Task 4
+6
+Documentation
+½ day
+Task 5
+
+Refined Step-by-Step PlanPhase 1: Add the Second Agent Container on Mac (1 day)Update docker-compose.regtest.mac.yml  Add a new service agent-bitcoin-1-lnd (copy of agent-bitcoin-lnd but with different ports and volume)
+
+Update startup-mac.sh  Start both LND containers
+
+Update shutdown-mac.sh  Stop both cleanly
+
+Fund and connect the new node  Get pubkey of new agent  
+Open channel from AWS → new agent with push amount (5M sats)  
+Mine blocks to confirm
+
+Phase 2: Create Agent Abstraction (2 days)Create agents/base_agent.py  Common class with methods: create_invoice(), pay_invoice(), get_balance()
+
+Create agents/agent_bitcoin.py and agents/agent_bitcoin_1.py  Inherit from base, point to their respective LND containers
+
+Update .env or config to map agent names to container names
+
+Phase 3: Swarm Orchestrator (1–2 days)Create swarm/sequential_two_agent_swarm.py  Initialize both agents
+Run sequential payments
+Call backend /send-fee after each payment
+
+Create tests/test_two_agent_swarm.py  Run the swarm and verify:Both payments succeeded
+Fees were sent to Bitcoin wallet
+Final balances updated correctly
+
+Phase 4: Verification & Polish (1 day)Test the full swarm multiple times
+Add clear logging with agent names
+Document the current swarm setup
+
