@@ -31,4 +31,3 @@ echo "Test with:"
 echo "   uv run python tests/test_aws_integration.py --backend-url http://$AWS_IP:8000"
 echo ""
 echo "✅ Ready."
-docker compose -f $COMPOSE_FILE ps
