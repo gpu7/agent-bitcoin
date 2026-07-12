@@ -178,16 +178,17 @@ docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc generate
 
 # On Mac: 
 
-# Restart LND
-docker restart agent-payment-decision-lnd
+# Restart Mac LND
+docker compose -f docker-compose.regtest.mac.yml restart agent-bitcoin-lnd
 
-# unlock wallet
-docker exec -it agent-payment-decision-lnd \
+sleep 15
+
+# Unlock if needed
+docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd \
   lncli --lnddir=/home/lnd/.lnd --network=regtest unlock
 
 # Monitor
-sleep 30
-docker logs --tail 30 agent-payment-decision-lnd | grep -E "synced|block|height|error"
+source ./wait-mac-lnd.sh regtest
 ```
 
 - Step #4. On Mac:
