@@ -150,6 +150,27 @@ docker compose -f docker-compose.regtest.mac.yml logs --tail 20 agent-bitcoin-ln
 ```
 
 - Step #3. On Mac:
+- 
+```bash
+echo "=== Mac Post-Startup Diagnostics ==="
+
+echo "1. Containers:"
+docker compose -f docker-compose.regtest.mac.yml ps
+
+echo -e "\n2. Bitcoind Height (Mac):"
+docker compose -f docker-compose.regtest.mac.yml exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass getblockcount
+
+echo -e "\n3. Mac LND Status:"
+docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo | grep -E "identity_pubkey|block_height|synced_to_chain|synced_to_graph"
+
+echo -e "\n4. Connection to AWS LND:"
+docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest listpeers | grep -E "pub_key|address"
+
+echo -e "\n5. Recent Mac LND Logs:"
+docker compose -f docker-compose.regtest.mac.yml logs --tail 15 agent-bitcoin-lnd | tail -10
+```
 
 - Step #4. On Mac:
 
