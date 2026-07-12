@@ -174,7 +174,6 @@ docker compose -f docker-compose.regtest.mac.yml logs --tail 15 agent-bitcoin-ln
 # On AWS: 
 
 # Mine more blocks
-mine more blocks
 docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc generatetoaddress 200 $(docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getnewaddress "")
 
 # On Mac: 
