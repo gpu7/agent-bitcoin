@@ -83,26 +83,22 @@ Run these commands after each workflow step to determine if everything launched 
 - Step #1. On AWS:
   
 ```bash
-echo "=== Post-Startup Diagnostics (AWS) ==="
+echo "=== Light Post-Startup Diagnostics (AWS) ==="
 
-echo "1. Container Status:"
+echo "1. Containers:"
 docker ps
 
 echo -e "\n2. Bitcoind Height:"
 docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getblockcount
 
-echo -e "\n3. LND Status:"
-docker exec -it agent-payment-decision-lnd \
-  lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo | grep -E "identity_pubkey|block_height|synced_to_chain|synced_to_graph|uris"
+echo -e "\n3. LND Sync Status:"
+docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo | grep -E "block_height|synced_to_chain|synced_to_graph|identity_pubkey"
 
-echo -e "\n4. ZMQ Ports (should show 28332 and 28333):"
-docker exec bitcoind ss -tlnp | grep -E "28332|28333"
+echo -e "\n4. Backend API Balance:"
+curl -s http://localhost:8000/balance | jq . 2>/dev/null || curl -s http://localhost:8000/balance || echo "API not responding yet"
 
-echo -e "\n5. Backend API Balance:"
-curl -s http://localhost:8000/balance | jq . 2>/dev/null || curl http://localhost:8000/balance
-
-echo -e "\n6. Recent LND Logs:"
-docker logs --tail 30 agent-payment-decision-lnd | tail -20
+echo -e "\n5. Recent LND Logs:"
+docker logs --tail 20 agent-payment-decision-lnd | tail -15
 ```
 
 - Step #1. It can take a fairly long time to sync the Lightning node with the Bitcoin blockchain. If you see "synced_to_chain: false", run these commands to advance the chain and force LND to catch up. This is not guaranteed to work. You may have to simply wait some time for the nodes to sync.
