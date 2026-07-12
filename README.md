@@ -187,12 +187,15 @@ docker ps
 echo "→ Agent networks:"
 docker network ls | grep -E "agent|agent-lightning-net"
 
-echo "→ Volumes (should keep LND data):"
+echo "→ Backend processes:"
+ps aux | grep -E "uv run|backend/main.py" | grep -v grep
+
+echo "→ Volumes (should keep LND and bitcoind data):"
 docker volume ls | grep -E "agent-bitcoin|bitcoind"
 
 echo ""
 echo "✅ If no containers or agent networks appear above, shutdown is clean."
-echo "   (LND and bitcoind volumes are intentionally kept for faster restarts)"
+echo "   (Volumes are intentionally kept for faster restarts)"
 ```
 
 ---
