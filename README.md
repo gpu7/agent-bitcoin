@@ -72,7 +72,7 @@ Note: the "current-aws-instance-IPv4-address" changes each time a new AWS agent-
 
 - 1) On AWS: source ./startup-aws.sh regtest <current-aws-instance-IPv4-address>
 - 2) On Mac: source ./startup-mac.sh regtest <current-aws-instance-IPv4-address>
-- 3) On Mac: source ./wait-mac-lnd.sh
+- 3) On Mac: source ./wait-mac-lnd.sh regtest
 - 4) On Mac: uv run python tests/test_aws_integration.py --backend-url http://<current-aws-instance-IPv4-address>:8000
 - 5) On AWS: source ./shutdown-aws.sh
 - 6) On Mac: source ./shutdown-mac.sh
