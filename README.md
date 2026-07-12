@@ -156,6 +156,20 @@ docker compose -f docker-compose.regtest.mac.yml logs --tail 15 agent-bitcoin-ln
 
 - Step #3. It can take a fairly long time to sync the Lightning node with the Bitcoin blockchain. If you see "synced_to_chain: false", run these commands to advance the chain and force LND to catch up. This is not guaranteed to work. You may have to simply wait some time for the nodes to sync.
 
+- Explanation for why mining more blocks on AWS helps the Mac LND sync faster:
+  
+- Your setup is:
+
+  - AWS: Runs bitcoind (the Bitcoin blockchain) + agent-payment-decision-lnd
+  - Mac: Runs only agent-bitcoin-lnd (connects to AWS bitcoind via RPC + ZMQ)
+
+- When you mine blocks on AWS:
+  
+1) The AWS bitcoind adds new blocks to the blockchain.
+2) The Mac LND is configured to listen to AWS bitcoind for new blocks (via ZMQ notifications on ports 28332/28333) and to query it via RPC.
+3) When new blocks appear, the Mac LND gets notified and starts downloading and validating them.
+4) This advances the Mac LND’s block_height and eventually flips synced_to_chain from false to true.
+
 ```bash
 # On AWS: 
 
