@@ -7,7 +7,7 @@ if [ -f .env ]; then
 fi
 
 # === Get AWS IP from argument ===
-AWS_IP=${2}
+export AWS_IP=${2}
 
 echo "=== Agent-Bitcoin Startup AWS (Network: regtest, External IP: $AWS_IP) ==="
 
