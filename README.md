@@ -101,24 +101,6 @@ echo -e "\n5. Recent LND Logs:"
 docker logs --tail 20 agent-payment-decision-lnd | tail -15
 ```
 
-- Step #1. It can take a fairly long time to sync the Lightning node with the Bitcoin blockchain. If you see "synced_to_chain: false", run these commands to advance the chain and force LND to catch up. This is not guaranteed to work. You may have to simply wait some time for the nodes to sync.
-
-```bash
-# Mine more blocks
-docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc generatetoaddress 200 $(docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getnewaddress "")
-
-# Restart LND
-docker restart agent-payment-decision-lnd
-
-# unlock wallet
-docker exec -it agent-payment-decision-lnd \
-  lncli --lnddir=/home/lnd/.lnd --network=regtest unlock
-
-# Monitor
-sleep 30
-docker logs --tail 30 agent-payment-decision-lnd | grep -E "synced|block|height|error"
-```
-
 - Step #2. On Mac:
 
 ```bash
@@ -170,6 +152,24 @@ docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-lnd \
 
 echo -e "\n5. Recent Mac LND Logs:"
 docker compose -f docker-compose.regtest.mac.yml logs --tail 15 agent-bitcoin-lnd | tail -10
+```
+
+- Step #3. It can take a fairly long time to sync the Lightning node with the Bitcoin blockchain. If you see "synced_to_chain: false", run these commands to advance the chain and force LND to catch up. This is not guaranteed to work. You may have to simply wait some time for the nodes to sync.
+
+```bash
+# Mine more blocks
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc generatetoaddress 200 $(docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getnewaddress "")
+
+# Restart LND
+docker restart agent-payment-decision-lnd
+
+# unlock wallet
+docker exec -it agent-payment-decision-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest unlock
+
+# Monitor
+sleep 30
+docker logs --tail 30 agent-payment-decision-lnd | grep -E "synced|block|height|error"
 ```
 
 - Step #4. On Mac:
