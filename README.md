@@ -95,10 +95,13 @@ echo -e "\n3. LND Status:"
 docker exec -it agent-payment-decision-lnd \
   lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo | grep -E "identity_pubkey|block_height|synced_to_chain|synced_to_graph|uris"
 
-echo -e "\n4. Backend API Balance:"
+echo -e "\n4. ZMQ Ports (should show 28332 and 28333):"
+docker exec bitcoind ss -tlnp | grep -E "28332|28333"
+
+echo -e "\n5. Backend API Balance:"
 curl -s http://localhost:8000/balance | jq . 2>/dev/null || curl http://localhost:8000/balance
 
-echo -e "\n5. Recent LND Logs:"
+echo -e "\n6. Recent LND Logs:"
 docker logs --tail 30 agent-payment-decision-lnd | tail -20
 ```
 
