@@ -51,7 +51,7 @@ services:
       - "--listen=0.0.0.0:9735"
       - "--rpclisten=0.0.0.0:10009"
       - "--debuglevel=debug"
-      - "--externalip=54.91.201.125"
+      - "--externalip=${AWS_IP}"
     volumes:
       - lnd-data:/home/lnd/.lnd
     networks:
