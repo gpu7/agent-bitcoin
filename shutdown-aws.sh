@@ -8,6 +8,10 @@ pkill -f "python backend/main.py" || true
 echo "Stopping Docker containers..."
 docker compose -f docker-compose.regtest.aws.yml down --timeout 30 || true
 
+# Clean up default network if it exists
+echo "Remove network..."
+docker network rm agent-bitcoin_default 2>/dev/null || true
+
 echo "Waiting for services to stop..."
 sleep 5
 
