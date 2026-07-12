@@ -155,9 +155,45 @@ docker compose -f docker-compose.regtest.mac.yml logs --tail 20 agent-bitcoin-ln
 - Step #4. On Mac:
 
 - Step #5. On AWS:
+- 
+```bash
+echo "=== Agent-Bitcoin Shutdown Diagnostics ==="
+
+echo "→ Running containers:"
+docker ps
+
+echo "→ Agent networks:"
+docker network ls | grep -E "agent|agent-net"
+
+echo "→ Backend processes:"
+ps aux | grep -E "uv run|backend/main.py" | grep -v grep
+
+echo "→ Volumes (LND volume should remain):"
+docker volume ls | grep agent-bitcoin
+
+echo ""
+echo "✅ If no containers or agent networks appear above, shutdown is clean."
+echo "   (LND volume is intentionally kept for faster restarts)"
+```
 
 - Step #6. On Mac:
 
+```bash
+echo "=== Mac Shutdown Diagnostics ==="
+
+echo "→ Running containers:"
+docker ps
+
+echo "→ Agent networks:"
+docker network ls | grep -E "agent|agent-lightning-net"
+
+echo "→ Volumes (should keep LND data):"
+docker volume ls | grep -E "agent-bitcoin|bitcoind"
+
+echo ""
+echo "✅ If no containers or agent networks appear above, shutdown is clean."
+echo "   (LND and bitcoind volumes are intentionally kept for faster restarts)"
+```
 
 ---
 
