@@ -605,12 +605,21 @@ uv run python tests/test_aws_integration.py --backend-url http://34.204.169.174:
 
 ---
 
-## ZMQ connands
+## ZMQ (ZeroMQ) connands
+
+- ZeroMQ is a high-performance, lightweight messaging library that allows different programs (in this case, bitcoind and LND) to communicate efficiently.
+
+- In current setup, AWS bitcoind uses ZMQ to publish (send out) real-time notifications whenever
+  - 1) a new block is mined (rawblock)
+  - 2) a new transaction is seen (rawtx)
+
+- ZMQ is the fast notification system that lets LND know immediately when new blocks arrive on the AWS node.
+
+- Mac agent-bitcoin-lnd subscribes to those ZMQ feeds (on ports 28332 and 28333) so it can stay in sync with the Bitcoin blockchain without constantly polling.
 
 Here are commands related to ZMQ.
 
-- Check from Mac terminal whether agent-bitcoin-lnd is receiving ZMQ messages from AWS bitcoind.
-  - Look for lines like:
+- Check from Mac terminal whether agent-bitcoin-lnd is receiving ZMQ messages from AWS bitcoind. Look for lines like:
   - Started listening for bitcoind block notifications via ZMQ
   - New block epoch subscription
   - Received block or similar
