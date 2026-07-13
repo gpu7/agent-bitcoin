@@ -253,12 +253,11 @@ echo "   (Volumes are intentionally kept for faster restarts)"
 
 Here are commands related to ZMQ.
 
-- Check from Mac terminal whether agent-bitcoin-lnd is receiving ZMQ messages from AWS bitcoind. Look for lines like:
-  - Started listening for bitcoind block notifications via ZMQ
-  - New block epoch subscription
-  - Received block or similar
-
 ```bash
+# Check from Mac terminal whether agent-bitcoin-lnd is receiving ZMQ messages from AWS bitcoind. Look for lines like:
+  # Started listening for bitcoind block notifications via ZMQ
+  # New block epoch subscription
+  # Received block or similar
 docker compose -f docker-compose.regtest.mac.yml logs --tail 50 agent-bitcoin-lnd | grep -E "ZMQ|block|sync|new block"
 ```
 
