@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# this version does NOT perform an aggressive reset of the bitcoin blockchain.
+# this version performs an aggressive reset of the bitcoin blockchain.
 
 # Load .env if it exists
 if [ -f .env ]; then
@@ -19,12 +19,25 @@ BLOCKS=${3:-50}
 
 cd ~/agent-bitcoin
 
-# === Start Services (No Aggressive Reset) ===
+# === Clean Reset + Mine ===
 echo "→ Stopping services..."
 docker compose -f docker-compose.regtest.aws.yml down --remove-orphans
 
-echo "→ Starting bitcoind..."
+# Only clean Bitcoin data (LND volume is preserved for pre-warming / faster restarts)
+echo "→ Removing bitcoin-data volume completely..."
+docker volume rm agent-bitcoin_bitcoin-data -f 2>/dev/null || true
+
+echo "→ Starting fresh bitcoind..."
 docker compose -f docker-compose.regtest.aws.yml up -d --remove-orphans bitcoind
+
+echo "→ Waiting for initial start Bitcoin container..."
+sleep 40
+
+echo "→ Aggressive clean of all bitcoin data..."
+docker exec bitcoind rm -rf /home/bitcoin/.bitcoin/* 2>/dev/null || true
+
+echo "→ Restarting bitcoind..."
+docker compose -f docker-compose.regtest.aws.yml restart bitcoind
 
 echo "→ Waiting for Bitcoin RPC to become ready..."
 for i in {1..25}; do
@@ -126,4 +139,4 @@ echo ""
 echo "Useful commands:"
 echo "   curl http://localhost:8000/balance"
 echo "   tmux attach -t backend     # to see logs"
-echo "   ./shutdown-aws.sh          # clean stop"
+echo "   ./shutdown.sh              # clean stop"
