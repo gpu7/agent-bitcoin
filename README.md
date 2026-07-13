@@ -73,9 +73,12 @@ Note: the "current-aws-instance-IPv4-address" changes each time a new AWS agent-
 - 1) On AWS: source ./startup-aws.sh regtest <current-aws-instance-IPv4-address>
 - 2) On Mac: source ./startup-mac.sh regtest <current-aws-instance-IPv4-address>
 - 3) On Mac: source ./wait-mac-lnd.sh regtest
-- 4) On Mac: uv run python tests/test_aws_integration.py --backend-url http://<current-aws-instance-IPv4-address>:8000
-- 5) On AWS: source ./shutdown-aws.sh
-- 6) On Mac: source ./shutdown-mac.sh
+- 4) On Mac: Connect LND nodes Mac <-> AWS. See below.
+- 5) On Mac: Verify peer connection Mac <-> AWS. See below.
+- 6) On Mac: Open Lightning channel Mac <-> AWS. See below.
+- 7) On Mac: uv run python tests/test_aws_integration.py --backend-url http://<current-aws-instance-IPv4-address>:8000
+- 8) On AWS: source ./shutdown-aws.sh
+- 9) On Mac: source ./shutdown-mac.sh
 
 ### Optional diagnostics
 Run these commands after each workflow step to determine if everything launched correctly.
@@ -99,9 +102,6 @@ curl -s http://localhost:8000/balance | jq . 2>/dev/null || curl -s http://local
 
 echo -e "Recent LND Logs:"
 docker logs --tail 20 agent-payment-decision-lnd | tail -15
-
-echo -e "Show a live tail of the logs, updating in real time as Mac LND receives and processes blocks from AWS.
-docker compose -f docker-compose.regtest.mac.yml logs -f agent-bitcoin-lnd | grep -E "ZMQ|block|sync|new block|Filtering"
 ```
 
 - Step #2. On Mac:
@@ -132,6 +132,9 @@ docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-1-lnd \
 
 echo -e "Recent Logs (agent-bitcoin-lnd):"
 docker compose -f docker-compose.regtest.mac.yml logs --tail 20 agent-bitcoin-lnd | tail -10
+
+echo -e "Show a live tail of the logs, updating in real time as Mac LND receives and processes blocks from AWS."
+docker compose -f docker-compose.regtest.mac.yml logs -f agent-bitcoin-lnd | grep -E "ZMQ|block|sync|new block|Filtering"
 ```
 
 - Step #3. On Mac:
@@ -196,7 +199,34 @@ source ./wait-mac-lnd.sh regtest
 
 - Step #4. On Mac:
 
-- Step #5. On AWS:
+Use AWS agent-payment-decision-lnd pubkey.
+
+```bash
+docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest connect \
+  0258b1aefcaa9c03423647a1c17094f04616a4849696d1db7ec67943eae73ab0ec@<current-aws-instance-IPv4-address>:9735
+```
+
+- Step #5. On Mac:
+
+```bash
+docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest listpeers
+```
+
+- Step #6. On Mac:
+  
+Use AWS agent-payment-decision-lnd pubkey.
+
+```bash
+docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest openchannel \
+  --node_key 0258b1aefcaa9c03423647a1c17094f04616a4849696d1db7ec67943eae73ab0ec \
+  --local_amt 1000000 \
+  --push_amt 500000
+```
+
+- Step #7. On AWS:
 - 
 ```bash
 echo "=== Agent-Bitcoin Shutdown Diagnostics ==="
@@ -218,7 +248,7 @@ echo "✅ If no containers or agent networks appear above, shutdown is clean."
 echo "   (LND volume is intentionally kept for faster restarts)"
 ```
 
-- Step #6. On Mac:
+- Step #8. On Mac:
 
 ```bash
 echo "=== Mac Shutdown Diagnostics ==="
