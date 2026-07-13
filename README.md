@@ -625,6 +625,25 @@ docker compose -f docker-compose.regtest.aws.yml down
 docker compose -f docker-compose.regtest.aws.yml up -d
 ```
 
+### AWS monitoring data
+
+```bash
+# 1. Current instance type and specs
+echo "Instance type:"; curl -s http://169.254.169.254/latest/meta-data/instance-type
+
+# 2. CPU usage
+echo -e "\nCPU Usage:"; top -bn1 | head -n 20
+
+# 3. Memory usage
+echo -e "\nMemory Usage:"; free -h
+
+# 4. Disk I/O (important for bitcoind + LND)
+echo -e "\nDisk I/O:"; iostat -x 1 3 | tail -n 20
+
+# 5. Current running processes
+echo -e "\nTop processes:"; ps aux --sort=-%cpu | head -n 15
+```
+
 ---
 
 ## Tests
