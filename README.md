@@ -593,7 +593,7 @@ print('Balance check:', client.get_balance())
 ### Instance type
 
 - Currently using the AWS instance types:
-m5d.large
+t3.medium
 i4i.xlarge
 
 ### SSH
