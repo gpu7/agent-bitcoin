@@ -605,6 +605,41 @@ uv run python tests/test_aws_integration.py --backend-url http://34.204.169.174:
 
 ---
 
+## ZMQ connands
+
+Here are commands related to ZMQ.
+
+- Check from Mac terminal whether agent-bitcoin-lnd is receiving ZMQ messages from AWS bitcoind.
+  - Look for lines like:
+  - Started listening for bitcoind block notifications via ZMQ
+  - New block epoch subscription
+  - Received block or similar
+
+```bash
+docker compose -f docker-compose.regtest.mac.yml logs --tail 50 agent-bitcoin-lnd | grep -E "ZMQ|block|sync|new block"
+```
+
+- More detailed ZMQ status
+
+```bash
+# Check if LND is connected to ZMQ
+docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo | grep -E "block_height|synced_to_chain"
+
+# Watch live ZMQ activity
+docker compose -f docker-compose.regtest.mac.yml logs -f agent-bitcoin-lnd | grep -E "ZMQ|block|height"
+```
+
+- Verify ZMQ ports are open
+  - If ports 28332 and 28333 are listening, ZMQ is configured.
+
+```bash
+docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
+  ss -tlnp | grep -E "28332|28333"
+```
+
+---
+
 ## Misc
 
 ### Docker commands to follow log files
