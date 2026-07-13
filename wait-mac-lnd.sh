@@ -16,8 +16,8 @@ else
 fi
 
 # === Wait for agent-bitcoin-lnd RPC to be available ===
-for i in {1..90}; do
-    echo "Waiting for agent-bitcoin-lnd RPC... ($i/90)"
+for i in {1..50}; do
+    echo "Waiting for agent-bitcoin-lnd RPC... ($i/50)"
     if docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
       lncli --lnddir=/home/lnd/.lnd --network=$NETWORK getinfo &>/dev/null; then
         echo "✅ agent-bitcoin-lnd RPC is ready!"
