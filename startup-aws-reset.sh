@@ -13,13 +13,13 @@ NETWORK=${1}
 AWS_IP=${2}
 export AWS_IP
 
-echo "=== Agent-Bitcoin Startup AWS (Network: $NETWORK, AWS IP: $AWS_IP) ==="
+echo "=== Agent-Bitcoin Startup AWS RESET (Network: $NETWORK, AWS IP: $AWS_IP) ==="
 
-BLOCKS=${3:-50}
+BLOCKS=${3:-300}
 
 cd ~/agent-bitcoin
 
-# === Clean Reset + Mine ===
+# === Aggressive Reset + Mine ===
 echo "→ Stopping services..."
 docker compose -f docker-compose.regtest.aws.yml down --remove-orphans
 
@@ -139,4 +139,4 @@ echo ""
 echo "Useful commands:"
 echo "   curl http://localhost:8000/balance"
 echo "   tmux attach -t backend     # to see logs"
-echo "   ./shutdown.sh              # clean stop"
+echo "   ./shutdown-aws.sh          # clean stop"
