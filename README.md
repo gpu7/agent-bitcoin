@@ -5,6 +5,7 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Release](https://img.shields.io/github/v/release/gpu7/agent-bitcoin)](https://github.com/gpu7/agent-bitcoin/releases/latest)
 [![GitHub Repo](https://img.shields.io/badge/GitHub-gpu7/agent--bitcoin-black)](https://github.com/gpu7/agent-bitcoin)
+[![Code Coverage](https://codecov.io/gh/gpu7/agent-bitcoin/branch/main/graph/badge.svg)](https://codecov.io/gh/gpu7/agent-bitcoin)
 
 <br><br>
 **Lightning Bitcoin payments for autonomous AI Agents.**
@@ -85,7 +86,7 @@ Note: the "current-aws-instance-IPv4-address" changes each time a new AWS agent-
 Run these commands after each workflow step to determine if everything launched correctly.
 
 - Step #1. On AWS:
-  
+
 ```bash
 echo "=== Light Post-Startup Diagnostics (AWS) ==="
 
@@ -139,7 +140,7 @@ docker compose -f docker-compose.regtest.mac.yml logs -f agent-bitcoin-lnd | gre
 ```
 
 - Step #3. On Mac:
-- 
+-
 ```bash
 echo "=== Mac Post-Startup Diagnostics ==="
 
@@ -164,26 +165,26 @@ docker compose -f docker-compose.regtest.mac.yml logs --tail 15 agent-bitcoin-ln
 - Step #3. It can take a fairly long time to sync the Lightning node with the Bitcoin blockchain. If you see "synced_to_chain: false", run these commands to advance the chain and force LND to catch up. This is not guaranteed to work. You may have to simply wait some time for the nodes to sync.
 
 - Explanation for why mining more blocks on AWS helps the Mac LND sync faster:
-  
+
 - Your setup is:
 
   - AWS: Runs bitcoind (the Bitcoin blockchain) + agent-payment-decision-lnd
   - Mac: Runs only agent-bitcoin-lnd (connects to AWS bitcoind via RPC + ZMQ)
 
 - When you mine blocks on AWS:
-  
+
 1) The AWS bitcoind adds new blocks to the blockchain.
 2) The Mac LND is configured to listen to AWS bitcoind for new blocks (via ZMQ notifications on ports 28332/28333) and to query it via RPC.
 3) When new blocks appear, the Mac LND gets notified and starts downloading and validating them.
 4) This advances the Mac LND’s block_height and eventually flips synced_to_chain from false to true.
 
 ```bash
-# On AWS: 
+# On AWS:
 
 # Mine more blocks
 docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc generatetoaddress 200 $(docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getnewaddress "")
 
-# On Mac: 
+# On Mac:
 
 # Restart Mac LND
 docker compose -f docker-compose.regtest.mac.yml restart agent-bitcoin-lnd
@@ -216,7 +217,7 @@ docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
 ```
 
 - Step #6. On Mac:
-  
+
 Use AWS agent-payment-decision-lnd pubkey.
 
 ```bash
@@ -228,7 +229,7 @@ docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
 ```
 
 - Step #7. On AWS:
-- 
+-
 ```bash
 echo "=== Agent-Bitcoin Shutdown Diagnostics ==="
 
@@ -460,7 +461,7 @@ The backend serves as the enforcement and payment routing layer for all Lightnin
 ### Current State (June 2026)
 
 - Architecture: FastAPI backend + Docker-based LND nodes (regtest).
-  
+
 - Containers:agent-payment-decision-lnd (port 10009) — used by the backend agent-bitcoin-lnd (port 10010) — counterparty node for testing.
 
 - Key Endpoints:POST /invoices — Create Lightning invoices (used by AI agents). Built-in Lightning client using docker exec (reliable connection to LND).
@@ -471,7 +472,7 @@ The backend serves as the enforcement and payment routing layer for all Lightnin
 
 - Status: Fully functional for invoice creation and payment on regtest.
 
-AI agents interact only with the HTTP API — they do not need LND credentials or direct SDK calls to Lightning. 
+AI agents interact only with the HTTP API — they do not need LND credentials or direct SDK calls to Lightning.
 
 - Future enhancements planned: balance checks, outgoing payments, payment status, fee collection endpoint, and rate limiting.
 
@@ -508,7 +509,7 @@ Here are instructions for managing Lightning channels.
 ### Step 1: Fund the AWS node
 
 - Run these commands on the AWS instance:
-  
+
 It may be necessary to run this first if using regtest:
 
 ```bash
@@ -537,7 +538,7 @@ Summary
 ### Step 2: Connect Mac to AWS
 
 - Run this command on the Mac:
-  
+
 - Note: You will have to update the AWS instance IP address every time you launch a new instance
 
 ```bash
