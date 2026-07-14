@@ -1,6 +1,6 @@
 # Contributing to Agent-Bitcoin
 
-Thank you for considering contributing to Agent-Bitcoin!
+Thank you for considering contributing to Agent-Bitcoin!<br><br>
 
 ## Development Setup
 
