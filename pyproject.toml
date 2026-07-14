@@ -1,7 +1,7 @@
 [project]
 name = "agent-bitcoin"
-version = "0.1.0"
-description = "Lightning Network payments for autonomous AI agents"
+version = "0.2.0"
+description = "Lightning Bitcoin payments for autonomous AI Agents."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"

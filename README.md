@@ -708,6 +708,8 @@ docker compose -f docker-compose.regtest.mac.yml logs -f agent-bitcoin-lnd
 docker compose -f docker-compose.regtest.aws.yml logs -f agent-payment-decision-lnd
 ```
 
+---
+
 ## Support
 
 Richard Casey
