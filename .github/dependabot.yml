@@ -1,0 +1,17 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"        # For Python dependencies (pyproject.toml / uv)
+    directory: "/"                  # Root of the project
+    schedule:
+      interval: "weekly"            # Check every week (you can use "daily")
+    open-pull-requests-limit: 10    # Max open PRs at once
+    labels:
+      - "dependencies"
+      - "automated"
+    reviewers:
+      - "your-github-username"      # Optional: auto-assign reviews
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
