@@ -6,9 +6,10 @@
 [![GitHub Release](https://img.shields.io/github/v/release/gpu7/agent-bitcoin)](https://github.com/gpu7/agent-bitcoin/releases/latest)
 [![GitHub Repo](https://img.shields.io/badge/GitHub-gpu7/agent--bitcoin-black)](https://github.com/gpu7/agent-bitcoin)
 
+<br><br>
 **Lightning Bitcoin payments for autonomous AI Agents.**
 
-A lightweight Python SDK that enables AI agents to send and receive Bitcoin/Lightning payments trustlessly and programmatically.
+A lightweight Python SDK that enables AI agents to send and receive Lightning/Bitcoin payments trustlessly and programmatically.
 
 ---
 
@@ -609,9 +610,6 @@ uv tool install twine
 uv build
 twine upload --repository testpypi dist/*
 ```
-
-View at:
-https://test.pypi.org/project/agent-bitcoin/0.2.0/
 
 ---
 
