@@ -1,4 +1,4 @@
-# This file is a catchall for miscellaneous items. 
+# This file is a catchall for miscellaneous items.
 
 - The contents of this file may or may not work their way into some proper location later.<br><br>
 
@@ -151,7 +151,7 @@ Wallet unlock and chain sync issues on AWS after resets.
 On aws:
 
 1. Reset LND completely:
-  
+
 ```bash
 docker compose -f docker-compose.regtest.aws.yml down
 docker volume rm agent-bitcoin_lnd-data -f
@@ -172,7 +172,7 @@ docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc generate
 ```
 
 On Mac:
- 
+
 4. Get funding address and receive funds from AWS (you did this with the address ending in r4mc).
 
 5. Finally open the channel (using the new AWS pubkey after reset):
@@ -195,7 +195,7 @@ docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd \
 
 6. Mine 6+ blocks on AWS to confirm the funding transaction.
 
-This cleared all stale state, gave both nodes fresh wallets and confirmed funds, and allowed the channel to open successfully.The key was full resets on both sides + fresh wallets + sufficient mining.You now have a working bidirectional Lightning channel between Mac (SDK) and AWS (backend). 
+This cleared all stale state, gave both nodes fresh wallets and confirmed funds, and allowed the channel to open successfully.The key was full resets on both sides + fresh wallets + sufficient mining.You now have a working bidirectional Lightning channel between Mac (SDK) and AWS (backend).
 
 
 # Restart backend on AWS
@@ -301,8 +301,8 @@ Update startup-mac.sh  Start both LND containers
 
 Update shutdown-mac.sh  Stop both cleanly
 
-Fund and connect the new node  Get pubkey of new agent  
-Open channel from AWS → new agent with push amount (5M sats)  
+Fund and connect the new node  Get pubkey of new agent
+Open channel from AWS → new agent with push amount (5M sats)
 Mine blocks to confirm
 
 Phase 2: Create Agent Abstraction (2 days)Create agents/base_agent.py  Common class with methods: create_invoice(), pay_invoice(), get_balance()
@@ -323,3 +323,18 @@ Phase 4: Verification & Polish (1 day)Test the full swarm multiple times
 Add clear logging with agent names
 Document the current swarm setup
 
+# distribution and publishing
+
+## Test local build
+```bash
+# Clean previous builds
+rm -rf dist/ build/ *.egg-info
+
+# Build the package
+uv build
+
+# Test installation
+pip install dist/*.whl --force-reinstall
+
+python -c "from agent_bitcoin import create_client; print('Success! Version:', create_client.__module__)"
+```
