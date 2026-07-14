@@ -586,7 +586,7 @@ docker compose exec -T agent-bitcoin-lnd lncli --network=regtest openchannel \
 ## Repository
 
 GitHub: https://github.com/gpu7/agent-bitcoin
-TestPyPi: 
+TestPyPi: https://test.pypi.org/project/agent-bitcoin/0.2.0/
 PyPI: Coming soon
 
 ---
