@@ -1,6 +1,6 @@
 # Agent-Bitcoin
 
-[![Test PyPI](https://img.shields.io/badge/Test%20PyPI-0.1.0-blue)](https://test.pypi.org/project/agent-bitcoin/)
+[![Test PyPI](https://img.shields.io/badge/Test%20PyPI-0.2.0-blue)](https://test.pypi.org/project/agent-bitcoin/)
 [![Python](https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Release](https://img.shields.io/github/v/release/gpu7/agent-bitcoin)](https://github.com/gpu7/agent-bitcoin/releases/latest)
@@ -573,15 +573,20 @@ docker compose exec -T agent-bitcoin-lnd lncli --network=regtest openchannel \
   --push_amt 1000000
   ```
 
+---
+
 ### Recommended Architecture for Agent Swarm
 
 - AWS payment-decision-lnd → Central hub / routing node (manages channels, enforces fees, etc.)
 - Mac / other counterparty nodes → Leaf nodes that open channels to the AWS node
 - This is a classic hub-and-spoke model, which is ideal for your use case.
 
+---
+
 ## Repository
 
 GitHub: https://github.com/gpu7/agent-bitcoin
+TestPyPi: 
 PyPI: Coming soon
 
 ---
@@ -592,32 +597,21 @@ MIT License — see LICENSE file.
 
 ---
 
-## PyPi
+## Publish to TestPyPi
 
-### Publish to Test PyPi
-
-https://test.pypi.org/project/agent-bitcoin/
+- Update pyproject.toml as appropriate.
 
 ```bash
-# Install twine (if not already installed)
+# Build and upload to TestPyPI
+cd ~/agent-bitcoin
+rm -rf dist/ build/ *.egg-info/
 uv tool install twine
-
-# Upload to Test PyPI
-uv tool run twine upload --repository testpypi dist/*
+uv build
+twine upload --repository testpypi dist/*
 ```
 
-### Test Installing from Test PyPI
-
-```bash
-uv pip install --index-url https://test.pypi.org/simple/ agent-bitcoin==0.1.0
-
-uv run python -c "
-from agent_bitcoin import create_client
-client = create_client()
-print('✅ Successfully installed from Test PyPI!')
-print('Balance check:', client.get_balance())
-"
-```
+View at:
+https://test.pypi.org/project/agent-bitcoin/0.2.0/
 
 ---
 
