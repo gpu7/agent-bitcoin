@@ -1,7 +1,6 @@
 # This file is a catchall for miscellaneous items. 
 
-- The contents of this file may or may not work their way into some proper location later.
-
+- The contents of this file may or may not work their way into some proper location later.<br><br>
 
 On AWS
 
