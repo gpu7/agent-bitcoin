@@ -557,7 +557,7 @@ The backend serves as the enforcement and payment routing layer for all Lightnin
 | POST   | `/send-fee`                | Send collected fee on-chain to Bitcoin wallet | Requires `amount_sat` in body     |
 | GET    | `/invoices/{payment_hash}` | Check status of an invoice or payment         | Useful for polling                |
 | GET    | `/docs`                    | Swagger UI documentation                      | Interactive API explorer          |
-| GET    | `/openapi.json             | OpenAPI schema                                | For code generation               |
+| GET    | `/openapi.json`            | OpenAPI schema                                | For code generation               |
 
 ---
 
