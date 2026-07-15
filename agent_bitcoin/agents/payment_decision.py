@@ -2,8 +2,16 @@ from typing import Optional
 from langchain_xai import ChatXAI
 from langchain_core.messages import SystemMessage, HumanMessage
 
+from agent_bitcoin.prompts import (
+    PAYMENT_DECISION_SYSTEM_PROMPT,
+    PAYMENT_DECISION_DEFAULT_INSTRUCTIONS,
+    BITCOIN_LND_SYSTEM_PROMPT,
+)
+
 
 class PaymentDecisionAgent:
+    """Agent for deciding whether to pay Lightning invoices (conservative gatekeeper)."""
+
     def __init__(
         self, api_key: Optional[str] = None, model: str = "grok-4-1-fast-reasoning"
     ):
@@ -12,19 +20,8 @@ class PaymentDecisionAgent:
             api_key=api_key,
             temperature=0.1,
         )
-
-        # === EDITABLE PROMPT SECTION ===
-        self.system_prompt = """You are Agent-Payment-Decision, a secure and conservative financial gatekeeper for autonomous AI agents.
-
-Your job is to evaluate Lightning invoices and decide whether to pay them based on:
-- Risk level
-- Amount (conservative limits)
-- Strategic value
-- Available balance
-
-Always prioritize safety and long-term sustainability."""
-
-        self.default_instructions = "Be extremely cautious with large payments. Prefer smaller, frequent payments over large ones."
+        self.system_prompt = PAYMENT_DECISION_SYSTEM_PROMPT
+        self.default_instructions = PAYMENT_DECISION_DEFAULT_INSTRUCTIONS
 
     def decide_payment(self, invoice_data: dict, context: str = "") -> dict:
         prompt = f"""Invoice details:
@@ -52,6 +49,28 @@ Should we pay this invoice? Respond with clear reasoning and final decision (PAY
         }
 
 
+class BitcoinLNDAgent:
+    """Agent for the counterparty node (agent-bitcoin-lnd)."""
+
+    def __init__(
+        self, api_key: Optional[str] = None, model: str = "grok-4-1-fast-reasoning"
+    ):
+        self.llm = ChatXAI(
+            model=model,
+            api_key=api_key,
+            temperature=0.3,
+        )
+        self.system_prompt = BITCOIN_LND_SYSTEM_PROMPT
+
+    def create_invoice_prompt(self, amount_sats: int, memo: str) -> str:
+        return f"Create a Lightning invoice for {amount_sats} sats with memo: '{memo}'. Be professional and clear."
+
+
 def create_grok_payment_decision_agent(api_key: Optional[str] = None):
     """Create Grok-powered payment decision agent."""
     return PaymentDecisionAgent(api_key=api_key)
+
+
+def create_grok_bitcoin_lnd_agent(api_key: Optional[str] = None):
+    """Create Grok-powered agent for the counterparty LND node."""
+    return BitcoinLNDAgent(api_key=api_key)
