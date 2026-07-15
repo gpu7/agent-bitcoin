@@ -26,14 +26,6 @@ jobs:
           build-args: |
             TARGET=aws
 
-      - name: Build Mac image (if separate)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./Dockerfile
-          push: false
-          tags: agent-bitcoin:mactest
-
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
