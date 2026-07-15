@@ -91,8 +91,76 @@ if result.success:
 
 ## AI agent prompts
 
-Intelligent Payment Decision Agent
-Supports Ollama (local) and xAI Grok.
+- The Agent-Bitcoin SDK includes intelligent agents powered by Large Language Models (LLMs). These agents help make autonomous decisions around payments and Lightning operations.
+
+### Available agents
+
+| Agent                | Purpose                                                 | Default Moel | File                |
+|:---------------------|:--------------------------------------------------------|:-------------|:--------------------|
+| PaymentDecisionAgent | Decides whether to approve or reject Lightning payments | Grok         | payment_decision.py |
+| BitcoinLNDAgent      | Handles invoice creation and counterparty operations.   | Grok         | payment_decision.py |
+
+### How to Change the Prompts
+
+- The recommended way to customize prompts is through the centralized prompt file:
+
+```python
+# Edit this file to change prompts for all agents
+agent_bitcoin/prompts.py
+```
+
+### Example – Customizing the Payment Decision prompt:
+
+```python
+# In agent_bitcoin/prompts.py
+PAYMENT_DECISION_SYSTEM_PROMPT = """You are a cautious financial agent for autonomous AI systems.
+You should only approve payments that are:
+- Under 10,000 sats by default
+- Related to previously agreed work
+- From trusted agents
+
+Be conservative and explain your reasoning clearly."""
+```
+
+### Supported AI Models
+
+- 1) Grok (xAI) – RecommendedGrok models are used by default for intelligent decision-making.
+
+```python
+from agent_bitcoin.agents import create_grok_payment_decision_agent
+
+# Default (recommended)
+agent = create_grok_payment_decision_agent()
+
+# Or specify a different Grok model
+agent = create_grok_payment_decision_agent(model="grok-3")
+```
+
+- Available Grok models (as of now):
+  - grok-4-1-fast-reasoning (default in the SDK)
+  - grok-3
+  - grok-beta
+
+
+- 2) Ollama (Local Models)
+
+You can also use local models via Ollama for privacy or offline use:
+
+```python
+from langchain_ollama import ChatOllama
+from agent_bitcoin.agents import create_payment_decision_agent
+
+llm = ChatOllama(model="llama3.2", temperature=0.2)
+agent = create_payment_decision_agent(llm=llm)
+```
+
+- Popular Ollama models that work well:
+
+  - llama3.2
+  - llama3
+  - mistral
+  - phi3
+  - qwen2.5
 
 ---
 
