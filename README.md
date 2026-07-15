@@ -30,6 +30,32 @@ A lightweight Python SDK that enables AI agents to send and receive Lightning/Bi
 
 ---
 
+## Transaction Fee Model
+
+Agent-Bitcoin uses a **transparent fixed transaction fee** to support the intermediary infrastructure:
+
+### Fee Details
+- **Fixed Fee**: 1,000 sats per payment
+- **Minimum Payment Amount**: 2,000 sats
+- **How it works**:
+  1. When a payment of `X` sats is approved, **1,000 sats** is deducted as the transaction fee.
+  2. The remaining `X - 1000` sats are sent via Lightning to the recipient (Agent-Bitcoin).
+  3. The **1,000 sat fee** is then sent **on-chain** (via Bitcoin) to Agent-Bitcoin’s on-chain wallet.
+
+This model ensures sustainable operation of the payment routing infrastructure while remaining very low-cost for users.
+
+### Example (2,000 sats payment)
+- Original Amount: 2,000 sats
+- Transaction Fee: 1,000 sats (sent on-chain)
+- Net to Recipient: 1,000 sats (Lightning)
+
+You can monitor fee deposits using:
+```bash
+docker exec agent-bitcoin-lnd lncli --network=regtest walletbalance
+```
+
+---
+
 ## Installation
 
 ### From PyPi
@@ -313,30 +339,6 @@ docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
 ```
 
 ---
-
-## Transaction Fee Model
-
-Agent-Bitcoin uses a **transparent fixed transaction fee** to support the intermediary infrastructure:
-
-### Fee Details
-- **Fixed Fee**: 1,000 sats per payment
-- **Minimum Payment Amount**: 2,000 sats
-- **How it works**:
-  1. When a payment of `X` sats is approved, **1,000 sats** is deducted as the transaction fee.
-  2. The remaining `X - 1000` sats are sent via Lightning to the recipient (Agent-Bitcoin).
-  3. The **1,000 sat fee** is then sent **on-chain** (via Bitcoin) to Agent-Bitcoin’s on-chain wallet.
-
-This model ensures sustainable operation of the payment routing infrastructure while remaining very low-cost for users.
-
-### Example (2,000 sats payment)
-- Original Amount: 2,000 sats
-- Transaction Fee: 1,000 sats (sent on-chain)
-- Net to Recipient: 1,000 sats (Lightning)
-
-You can monitor fee deposits using:
-```bash
-docker exec agent-bitcoin-lnd lncli --network=regtest walletbalance
-```
 
 ## Examples
 
