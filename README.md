@@ -67,7 +67,7 @@ pip install agent-bitcoin
 ```bash
 git clone https://github.com/yourusername/agent-bitcoin.git
 cd agent-bitcoin
-uv sync          # or pip install -e .
+uv sync
 ```
 
 ## Quick Start
