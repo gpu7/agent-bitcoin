@@ -89,6 +89,10 @@ if result.success:
 
 ---
 
+## AI agent prompts
+
+---
+
 ## Workflow
 
 The current workflow is shown here.  This is the test workflow on regtest.
