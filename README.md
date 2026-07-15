@@ -251,8 +251,8 @@ docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
   --push_amt 500000
 ```
 
-- Step #7. On AWS:
--
+- Step #8. On AWS:
+
 ```bash
 echo "=== Agent-Bitcoin Shutdown Diagnostics ==="
 
@@ -273,7 +273,7 @@ echo "✅ If no containers or agent networks appear above, shutdown is clean."
 echo "   (LND volume is intentionally kept for faster restarts)"
 ```
 
-- Step #8. On Mac:
+- Step #9. On Mac:
 
 ```bash
 echo "=== Mac Shutdown Diagnostics ==="
