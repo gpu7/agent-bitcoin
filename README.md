@@ -666,7 +666,7 @@ uv run python tests/test_aws_integration.py --backend-url http://34.204.169.174:
 
 ---
 
-## Misc
+## Logs
 
 ### Docker commands to follow log files
 ```bash
