@@ -1,17 +1,15 @@
-"""
-Agent-Bitcoin Intelligent Agents
-"""
+# agent_bitcoin/agents/__init__.py
 
 from .payment_decision import (
     PaymentDecisionAgent,
-    create_payment_decision_agent,
+    BitcoinLNDAgent,
     create_grok_payment_decision_agent,
-    PaymentDecision,
+    create_grok_bitcoin_lnd_agent,
 )
 
 __all__ = [
     "PaymentDecisionAgent",
-    "create_payment_decision_agent",
+    "BitcoinLNDAgent",
     "create_grok_payment_decision_agent",
-    "PaymentDecision",
+    "create_grok_bitcoin_lnd_agent",
 ]
