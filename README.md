@@ -10,7 +10,7 @@
 <br><br>
 **Lightning Bitcoin payments for autonomous AI Agents.**
 
-A lightweight Python SDK that enables AI agents to send and receive Lightning/Bitcoin payments trustlessly and programmatically.
+A lightweight Python SDK that enables AI agents to send and receive Lightning/Bitcoin payments.
 
 ---
 
@@ -23,9 +23,6 @@ A lightweight Python SDK that enables AI agents to send and receive Lightning/Bi
 - Support for regtest, testnet, and mainnet
 - Built-in error handling and Pydantic models
 - Easy integration with LangChain, CrewAI, AutoGen, etc.
-
-### Autonomous AI-agent to AI-agent Lightning and Bitcoin transactions
-
 - Check Lightning and Bitcoin balances
 - Autononomously decide to create invoices
 - Trigger payments from counterparty agents
