@@ -6,15 +6,17 @@ Agent-Bitcoin AWS Integration Test with Fee Enforcement
 import argparse
 import requests
 import subprocess
-import time
+
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--backend-url", default="http://localhost:8000", help="AWS Backend URL")
+    parser.add_argument(
+        "--backend-url", default="http://localhost:8000", help="AWS Backend URL"
+    )
     parser.add_argument("--amount", type=int, default=5000, help="Amount in sats")
     args = parser.parse_args()
 
-    url = args.backend_url.rstrip('/')
+    url = args.backend_url.rstrip("/")
 
     print(f"🚀 Testing Agent-Bitcoin AWS Integration at {url}\n")
 
@@ -28,10 +30,13 @@ def main():
 
         # 2. Create invoice on AWS
         print(f"📄 Creating invoice for {args.amount} sats on AWS...")
-        r = requests.post(f"{url}/invoices", json={
-            "memo": "SDK Integration Test - Mac pays",
-            "amount_sats": args.amount
-        })
+        r = requests.post(
+            f"{url}/invoices",
+            json={
+                "memo": "SDK Integration Test - Mac pays",
+                "amount_sats": args.amount,
+            },
+        )
         r.raise_for_status()
         invoice = r.json()
         print("✅ Invoice created!")
@@ -40,15 +45,25 @@ def main():
         # 3. Pay from Mac node (not from AWS backend)
         print("💸 Paying invoice from Mac LND node...")
         pay_cmd = [
-            "docker", "compose", "-f", "docker-compose.regtest.mac.yml", "exec", "-T",
+            "docker",
+            "compose",
+            "-f",
+            "docker-compose.regtest.mac.yml",
+            "exec",
+            "-T",
             "agent-bitcoin-lnd",
-            "lncli", "--lnddir=/home/lnd/.lnd", "--network=regtest",
-            "payinvoice", "--fee_limit", "200", "--force",
-            invoice['payment_request']
+            "lncli",
+            "--lnddir=/home/lnd/.lnd",
+            "--network=regtest",
+            "payinvoice",
+            "--fee_limit",
+            "200",
+            "--force",
+            invoice["payment_request"],
         ]
-        
+
         result = subprocess.run(pay_cmd, capture_output=True, text=True)
-        
+
         if result.returncode == 0:
             print("✅ Payment successful from Mac!")
             print(result.stdout)
@@ -68,6 +83,7 @@ def main():
 
     except Exception as e:
         print(f"❌ Error: {e}")
+
 
 if __name__ == "__main__":
     main()

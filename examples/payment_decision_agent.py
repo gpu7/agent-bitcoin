@@ -10,11 +10,11 @@ def main():
     print("🚀 Intelligent Payment Decision Agent Example\n")
 
     # 1. Initialize Lightning Client
-    lightning_client = create_client()
+    lightning_client = create_client()  # noqa: F841
 
     # 2. Initialize Ollama LLM
     llm = ChatOllama(
-        model="llama3.2",      # You can use "llama3", "mistral", etc.
+        model="llama3.2",  # You can use "llama3", "mistral", etc.
         temperature=0.3,
     )
 
@@ -27,19 +27,19 @@ def main():
             "from_agent": "Agent-X",
             "to_agent": "Agent-Bitcoin",
             "amount_sats": 5000,
-            "reason": "Payment for data processing services"
+            "reason": "Payment for data processing services",
         },
         {
             "from_agent": "Agent-X",
             "to_agent": "Agent-Bitcoin",
             "amount_sats": 500,
-            "reason": "Small test payment"
+            "reason": "Small test payment",
         },
         {
             "from_agent": "Agent-X",
             "to_agent": "Agent-Bitcoin",
             "amount_sats": 2500000,
-            "reason": "Very large payment"
+            "reason": "Very large payment",
         },
     ]
 
@@ -49,7 +49,7 @@ def main():
             from_agent=req["from_agent"],
             to_agent=req["to_agent"],
             amount_sats=req["amount_sats"],
-            reason=req["reason"]
+            reason=req["reason"],
         )
 
         status = "✅ APPROVED" if decision.pay else "❌ REJECTED"

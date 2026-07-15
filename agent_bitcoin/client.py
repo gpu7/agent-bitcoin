@@ -1,13 +1,12 @@
 import os
-from typing import Optional
 from dotenv import load_dotenv
 
 from .lightning import LNDClient
 from .models import (
-    Invoice, 
-    PaymentResult, 
+    Invoice,
+    PaymentResult,
     OnChainSendResult,
-    LightningBalance, 
+    LightningBalance,
     ChannelBalance,
 )
 
@@ -16,13 +15,15 @@ load_dotenv()
 
 class AgentBitcoinClient:
     def __init__(self):
-        self.lnd = LNDClient()   # No arguments needed now
+        self.lnd = LNDClient()  # No arguments needed now
 
         self.fee_wallet_address = os.getenv("FEE_WALLET_ADDRESS")
         self.fee_amount_sats = int(os.getenv("FEE_AMOUNT_SATS", 1000))
         self.min_payment_sats = int(os.getenv("MIN_PAYMENT_SATS", 2000))
 
-    def create_invoice(self, memo: str, amount_sats: int, expiry_seconds: int = 3600) -> Invoice:
+    def create_invoice(
+        self, memo: str, amount_sats: int, expiry_seconds: int = 3600
+    ) -> Invoice:
         if amount_sats < self.min_payment_sats:
             raise ValueError(f"Minimum payment is {self.min_payment_sats} sats")
         return self.lnd.create_invoice(memo, amount_sats, expiry_seconds)

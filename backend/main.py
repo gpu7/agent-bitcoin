@@ -12,20 +12,25 @@ FEE_ADDRESS = os.getenv("FEE_ADDRESS")
 
 client = LNDClient()
 
+
 class InvoiceRequest(BaseModel):
     memo: str = "Agent-Bitcoin Test"
     amount_sats: int
+
 
 class PayRequest(BaseModel):
     payment_request: str
     fee_limit_sats: int = 500
 
+
 class FeeRequest(BaseModel):
     amount_sats: int = None  # optional override
+
 
 @app.get("/")
 async def root():
     return {"status": "running", "message": "Backend is up."}
+
 
 @app.get("/balance")
 async def get_balance():
@@ -35,24 +40,29 @@ async def get_balance():
         return {
             "lightning": ln,
             "onchain": onchain,
-            "total_sat": int(ln.get("balance", 0)) + int(onchain.get("confirmed_balance", 0))
+            "total_sat": int(ln.get("balance", 0))
+            + int(onchain.get("confirmed_balance", 0)),
         }
     except Exception as e:
         return {"error": str(e)}
 
+
 @app.post("/invoices")
 async def create_invoice(req: InvoiceRequest):
     try:
-        result = client._run("addinvoice", "--memo", req.memo, "--amt", str(req.amount_sats))
-        
+        result = client._run(
+            "addinvoice", "--memo", req.memo, "--amt", str(req.amount_sats)
+        )
+
         return {
             "payment_request": result.get("payment_request"),
             "r_hash": result.get("r_hash"),
             "amount_sats": req.amount_sats,
-            "memo": req.memo
+            "memo": req.memo,
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
 
 @app.post("/pay")
 async def pay_invoice(req: PayRequest):
@@ -63,17 +73,19 @@ async def pay_invoice(req: PayRequest):
         try:
             result = client._run(
                 "sendpayment",
-                "--pay_req", req.payment_request,
-                "--fee_limit", str(req.fee_limit_sats),
+                "--pay_req",
+                req.payment_request,
+                "--fee_limit",
+                str(req.fee_limit_sats),
                 "--json",
-                "--force"
+                "--force",
             )
             return {
                 "success": True,
                 "payment_hash": result.get("payment_hash"),
                 "fee_sent": FEE_SATS,
                 "fee_address": FEE_ADDRESS,
-                "attempts": attempt + 1
+                "attempts": attempt + 1,
             }
         except Exception as e:
             last_error = str(e)
@@ -81,7 +93,11 @@ async def pay_invoice(req: PayRequest):
             if attempt < 2:
                 time.sleep(5)
 
-    raise HTTPException(status_code=400, detail=f"Payment failed after 3 attempts. Last error: {last_error}")
+    raise HTTPException(
+        status_code=400,
+        detail=f"Payment failed after 3 attempts. Last error: {last_error}",
+    )
+
 
 @app.post("/send-fee")
 async def send_fee(req: FeeRequest = None):
@@ -92,22 +108,20 @@ async def send_fee(req: FeeRequest = None):
 
     try:
         print(f"DEBUG: Sending fee {amount} sats to {FEE_ADDRESS}")
-        fee_tx = client._run(
-            "sendcoins",
-            "--addr", FEE_ADDRESS,
-            "--amt", str(amount)
-        )
+        fee_tx = client._run("sendcoins", "--addr", FEE_ADDRESS, "--amt", str(amount))
         print(f"✅ Fee sent! TXID: {fee_tx.get('txid')}")
         return {
             "success": True,
             "txid": fee_tx.get("txid"),
             "amount_sats": amount,
-            "address": FEE_ADDRESS
+            "address": FEE_ADDRESS,
         }
     except Exception as e:
         print(f"⚠️ Fee failed: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

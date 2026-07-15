@@ -36,6 +36,7 @@ class ChannelBalance(BaseModel):
 
 class LightningConfig(BaseModel):
     """Configuration for connecting to LND"""
+
     host: str = "localhost"
     port: int = 10009
     tls_cert_path: Optional[Path] = None
@@ -51,7 +52,7 @@ class LightningConfig(BaseModel):
     def from_env(cls, env_file: str = ".env"):
         """Load configuration from .env file"""
         load_dotenv(env_file)
-        
+
         tls_path = os.getenv("LND_TLS_CERT_PATH")
         macaroon_path = os.getenv("LND_MACAROON_PATH")
 

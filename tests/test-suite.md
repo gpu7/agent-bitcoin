@@ -12,10 +12,10 @@
 
 ## ABT-001: Nominal Payment
 
-**Description**  
+**Description**
 Tests the complete workflow with a normal payment amount.
 
-**Test Objective**  
+**Test Objective**
 A swarm agent sends a valid payment request via webhook → Agent-Payment-Decision approves → full success path (Create Invoice → Pay Invoice → Parse Payment Result) → correct email report with proper `from` field and extracted amount.
 
 **Test Input**
@@ -63,10 +63,10 @@ curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
 
 ## ABT-002: Under Payment (< 1 sat)
 
-**Description**  
+**Description**
 Tests that the workflow correctly rejects a payment request with zero (or invalid) amount sent via the Webhook Trigger.
 
-**Test Objective**  
+**Test Objective**
 A swarm agent sends a payment request with amount = 0 → Agent-Payment-Decision rejects it → workflow takes the rejection path → email report clearly shows rejection with appropriate reason.
 
 **Test Input**
@@ -108,13 +108,13 @@ curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
 
 ## ABT-003: Over Payment (> 1,000,000 sats)
 
-**Description**  
+**Description**
 Tests that the workflow correctly rejects a payment request that exceeds the maximum allowed amount (1,000,000 sats).
 
-**Test Objective**  
+**Test Objective**
 User requests an oversize payment → No payment is attempted → Email report shows clear rejection with appropriate reason.
 
-**Test Input**  
+**Test Input**
 ```bash
 curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
   -H "Content-Type: application/json" \
