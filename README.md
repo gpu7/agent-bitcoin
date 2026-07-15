@@ -91,6 +91,9 @@ if result.success:
 
 ## AI agent prompts
 
+Intelligent Payment Decision Agent
+Supports Ollama (local) and xAI Grok.
+
 ---
 
 ## Workflow
