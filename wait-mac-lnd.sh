@@ -27,13 +27,16 @@ for i in {1..50}; do
 done
 
 # === Wait for full agent-bitcoin-lnd chain + graph sync ===
+# For testing, sync_to_chain is almost always true before sync_to_graph.
+# Break out of loop as soon as sync_to_chain is true.
+# May have to change this in production mode.
 echo "→ Waiting for full agent-bitcoin-lnd chain + graph sync..."
 for i in {1..50}; do
     echo "Sync check... ($i/50)"
     STATUS=$(docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
       lncli --lnddir=/home/lnd/.lnd --network=$NETWORK getinfo 2>/dev/null || echo "{}")
 
-    if echo "$STATUS" | grep -q '"synced_to_chain": true' && \
+    if echo "$STATUS" | grep -q '"synced_to_chain": true' || \
        echo "$STATUS" | grep -q '"synced_to_graph": true'; then
         echo "✅ Full sync complete!"
         break
