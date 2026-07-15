@@ -558,14 +558,6 @@ docker compose exec -T agent-bitcoin-lnd lncli --network=regtest openchannel \
 
 ---
 
-### Recommended Architecture for Agent Swarm
-
-- AWS payment-decision-lnd → Central hub / routing node (manages channels, enforces fees, etc.)
-- Mac / other counterparty nodes → Leaf nodes that open channels to the AWS node
-- This is a classic hub-and-spoke model, which is ideal for your use case.
-
----
-
 ## Repository
 
 GitHub: https://github.com/gpu7/agent-bitcoin
