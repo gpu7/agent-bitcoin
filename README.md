@@ -549,12 +549,15 @@ The backend serves as the enforcement and payment routing layer for all Lightnin
 
 ### Available endpoints
 
-| Method | Endpoint                 | Description                               | Notes                                 |
-|:-------|:-------------------------|:------------------------------------------|:--------------------------------------|
-| POST   | /invoices                | Create a Lightning invoice                | Requires memo and amount_sats         |
-| POST   | /payments                | Pay a Lightning invoice                   | Automatically collects 1,000 sats fee |
-| GET    | /balance                 | Get combined Lightning + on-chain balance |                                       |
-| GET    | /invoices/{payment_hash} | Check status of an invoice/payment        |                                       |
+| Method | Endpoint                   | Description                                   | Notes                             |
+|:-------|:---------------------------|:----------------------------------------------|:----------------------------------|
+| GET    | `/balance`                 | Get combined Lightning + on-chain balance     | Returns both balances in sats     |
+| POST   | `/invoices`                | Create a new Lightning invoice                | Requires `memo` and `amount_sats` |
+| POST   | `/payments`                | Pay a Lightning invoice                       | Expects `payment_request` in body |
+| POST   | `/send-fee`                | Send collected fee on-chain to Bitcoin wallet | Requires `amount_sat` in body     |
+| GET    | `/invoices/{payment_hash}` | Check status of an invoice or payment         | Useful for polling                |
+| GET    | `/docs`                    | Swagger UI documentation                      | Interactive API explorer          |
+| GET    | `/openapi.json             | OpenAPI schema                                | For code generation               |
 
 ---
 
