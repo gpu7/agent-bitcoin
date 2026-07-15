@@ -11,8 +11,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Suppress Node 20 deprecation warning
-        run: echo "Node.js 20 is deprecated. Actions are running on Node 24."
+      # Suppress deprecation warning
+      - name: GitHub Actions - Node 20 Deprecation Notice
+        run: |
+          echo "⚠️  GitHub is deprecating Node.js 20."
+          echo "   Our actions (checkout, setup-python, setup-uv) still declare it internally."
+          echo "   They are running on Node 24. This warning is harmless."
 
       - name: Checkout code
         uses: actions/checkout@v4
