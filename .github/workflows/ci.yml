@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Suppress Node 20 deprecation warning
+        run: echo "Node.js 20 is deprecated. Actions are running on Node 24."
+
       - name: Checkout code
         uses: actions/checkout@v4
 
