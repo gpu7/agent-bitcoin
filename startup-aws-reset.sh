@@ -23,6 +23,12 @@ cd ~/agent-bitcoin
 echo "→ Stopping services..."
 docker compose -f docker-compose.regtest.aws.yml down --remove-orphans
 
+# Start Loop regtest environment (shared bitcoind)
+echo "→ Starting Loop regtest environment..."
+cd ~/loop/regtest
+./regtest.sh start || true
+cd ~/agent-bitcoin
+
 # Only clean Bitcoin data (LND volume is preserved for pre-warming / faster restarts)
 echo "→ Removing bitcoin-data volume completely..."
 docker volume rm agent-bitcoin_bitcoin-data -f 2>/dev/null || true
