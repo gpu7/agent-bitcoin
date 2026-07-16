@@ -667,18 +667,43 @@ twine upload --repository testpypi dist/*
 
 ## Lightning Labs Loop service
 
-- Run Loop
-```bash
-# Run Loop in background
-nohup loopd \
-  --network=regtest \
-  --loopdir=~/.loop \
-  --lnd.macaroonpath=/home/ubuntu/.lnd/admin.macaroon \
-  --lnd.tlspath=/home/ubuntu/.lnd/tls.cert \
-  --debuglevel=info > ~/.loop/loopd.log 2>&1 &
+- Install, configure and run Loop in regtest.
 
-echo "Loop started in background. Check logs with:"
-tail -f ~/.loop/loopd.log
+```bash
+#!/bin/bash
+set -e
+
+echo "=== Setting up Loop on regtest (official environment) ==="
+
+# 1. Install docker-compose if needed
+echo "Installing docker-compose..."
+sudo apt update
+sudo apt install -y docker-compose
+
+# 2. Clone Loop repo
+echo "Cloning Loop repo..."
+cd ~
+git clone https://github.com/lightninglabs/loop.git || true
+cd loop/regtest
+
+# 3. Update docker-compose.yml to use working etcd image
+echo "Updating etcd image..."
+sed -i 's|bitnami/etcd:.*|quay.io/coreos/etcd:v3.5.18|' docker-compose.yml
+
+# 4. Clean up old conflicting containers
+echo "Cleaning up old containers..."
+cd ~/agent-bitcoin || true
+docker compose -f docker-compose.regtest.aws.yml down 2>/dev/null || true
+docker rm -f $(docker ps -aq) 2>/dev/null || true
+docker volume rm $(docker volume ls -q) 2>/dev/null || true
+
+# 5. Start the official regtest environment
+echo "Starting regtest environment..."
+cd ~/loop/regtest
+./regtest.sh start
+
+echo "✅ Loop regtest setup complete!"
+echo "Test with: loop --network=regtest getinfo"
 ```
 
 ---
