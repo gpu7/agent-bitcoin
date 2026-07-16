@@ -60,7 +60,7 @@ services:
 networks:
   agent-net:
     external: true   # Use the Loop regtest network
-
+    name: regtest_regtest
 volumes:
   bitcoin-data:
   lnd-data:
