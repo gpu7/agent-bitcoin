@@ -23,6 +23,12 @@ cd ~/agent-bitcoin
 echo "→ Stopping services..."
 docker compose -f docker-compose.regtest.aws.yml down --remove-orphans
 
+# Start Loop regtest environment (shared bitcoind)
+echo "→ Starting Loop regtest environment..."
+cd ~/loop/regtest
+./regtest.sh start || true
+cd ~/agent-bitcoin
+
 echo "→ Starting bitcoind..."
 docker compose -f docker-compose.regtest.aws.yml up -d --remove-orphans bitcoind
 
