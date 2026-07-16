@@ -665,6 +665,24 @@ twine upload --repository testpypi dist/*
 
 ---
 
+## Lightning Labs Loop service
+
+- Run Loop
+```bash
+# Run Loop in background
+nohup loopd \
+  --network=regtest \
+  --loopdir=~/.loop \
+  --lnd.macaroonpath=/home/ubuntu/.lnd/admin.macaroon \
+  --lnd.tlspath=/home/ubuntu/.lnd/tls.cert \
+  --debuglevel=info > ~/.loop/loopd.log 2>&1 &
+
+echo "Loop started in background. Check logs with:"
+tail -f ~/.loop/loopd.log
+```
+
+---
+
 ## AWS
 
 ### Instance type
