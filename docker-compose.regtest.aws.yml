@@ -12,7 +12,7 @@ services:
       - "-server=1"
       - "-rpcuser=btc"
       - "-rpcpassword=btc"
-      - "-rpcallowip=0.0.0.0/0"     # Allow Mac to connect (restrict to your Mac IP in production)
+      - "-rpcallowip=0.0.0.0/0"
       - "-rpcbind=0.0.0.0"
       - "-rpcport=18443"
       - "-printtoconsole"
@@ -59,7 +59,7 @@ services:
 
 networks:
   agent-net:
-    driver: bridge
+    external: true   # Use the Loop regtest network
 
 volumes:
   bitcoin-data:
