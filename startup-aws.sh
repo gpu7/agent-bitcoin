@@ -26,7 +26,7 @@ docker compose -f docker-compose.regtest.aws.yml down --remove-orphans
 # Start Loop regtest environment (shared bitcoind)
 echo "→ Starting Loop regtest environment..."
 cd ~/loop/regtest
-./regtest.sh start || true
+./regtest.sh start | cat
 cd ~/agent-bitcoin
 
 echo "→ Starting bitcoind..."
