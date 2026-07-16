@@ -74,3 +74,7 @@ def create_grok_payment_decision_agent(api_key: Optional[str] = None):
 def create_grok_bitcoin_lnd_agent(api_key: Optional[str] = None):
     """Create Grok-powered agent for the counterparty LND node."""
     return BitcoinLNDAgent(api_key=api_key)
+
+
+# Alias for backward compatibility with __init__.py
+create_payment_decision_agent = create_grok_payment_decision_agent
