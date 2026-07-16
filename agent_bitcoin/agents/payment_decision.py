@@ -8,6 +8,8 @@ from agent_bitcoin.prompts import (
     BITCOIN_LND_SYSTEM_PROMPT,
 )
 
+from enum import Enum
+
 
 class PaymentDecisionAgent:
     """Agent for deciding whether to pay Lightning invoices (conservative gatekeeper)."""
@@ -78,3 +80,9 @@ def create_grok_bitcoin_lnd_agent(api_key: Optional[str] = None):
 
 # Alias for backward compatibility with __init__.py
 create_payment_decision_agent = create_grok_payment_decision_agent
+
+
+# Simple enum for backward compatibility
+class PaymentDecision(Enum):
+    PAY = "PAY"
+    REJECT = "REJECT"
