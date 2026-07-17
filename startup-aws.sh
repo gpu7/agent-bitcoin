@@ -2,7 +2,7 @@
 set -e
 
 # set rpcauth here to avoid shell parsing issues
-RPCAUTH="lightning:8492220e715bbfdf5f165102bfd7ed4$88090545821ed5e9db614588c0afbad575ccc14681fb77f3cae6899bc419af67"
+RPCAUTH="lightning:8492220e715bbfdf5f165102bfd7ed4\$88090545821ed5e9db614588c0afbad575ccc14681fb77f3cae6899bc419af67"
 
 # this version does NOT perform an aggressive reset of the bitcoin blockchain.
 
