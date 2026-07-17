@@ -33,7 +33,7 @@ cd ~/agent-bitcoin
 
 echo "→ Waiting for Bitcoin RPC to become ready..."
 for i in {1..25}; do
-    if docker exec bitcoind bitcoin-cli -regtest -rpcauth=lightning:8492220e715bbfdf5f165102bfd7ed4$88090545821ed5e9db614588c0afbad575ccc14681fb77f3cae6899bc419af67 getblockcount &>/dev/null; then
+    if docker exec bitcoind bitcoin-cli -regtest -rpcauth='lightning:8492220e715bbfdf5f165102bfd7ed4$88090545821ed5e9db614588c0afbad575ccc14681fb77f3cae6899bc419af67' getblockcount &>/dev/null; then
         echo "Bitcoin RPC is ready!"
         break
     fi
@@ -43,23 +43,23 @@ done
 
 # Check Bitcoin height
 echo "→ Check current Bitcoin height..."
-docker exec bitcoind bitcoin-cli -regtest -rpcauth=lightning:8492220e715bbfdf5f165102bfd7ed4$88090545821ed5e9db614588c0afbad575ccc14681fb77f3cae6899bc419af67 getblockcount
+docker exec bitcoind bitcoin-cli -regtest -rpcauth='lightning:8492220e715bbfdf5f165102bfd7ed4$88090545821ed5e9db614588c0afbad575ccc14681fb77f3cae6899bc419af67' getblockcount
 
 # Create Bitcoin wallet if it doesn't exist
 echo "→ Checking/creating Bitcoin Core wallet..."
-docker exec bitcoind bitcoin-cli -regtest -rpcauth=lightning:8492220e715bbfdf5f165102bfd7ed4$88090545821ed5e9db614588c0afbad575ccc14681fb77f3cae6899bc419af67 createwallet "default" 2>/dev/null || true
+docker exec bitcoind bitcoin-cli -regtest -rpcauth='lightning:8492220e715bbfdf5f165102bfd7ed4$88090545821ed5e9db614588c0afbad575ccc14681fb77f3cae6899bc419af67' createwallet "default" 2>/dev/null || true
 
 # Load Bitcoin wallet
-docker exec bitcoind bitcoin-cli -regtest -rpcauth=lightning:8492220e715bbfdf5f165102bfd7ed4$88090545821ed5e9db614588c0afbad575ccc14681fb77f3cae6899bc419af67 loadwallet "default" 2>/dev/null || true
+docker exec bitcoind bitcoin-cli -regtest -rpcauth='lightning:8492220e715bbfdf5f165102bfd7ed4$88090545821ed5e9db614588c0afbad575ccc14681fb77f3cae6899bc419af67' loadwallet "default" 2>/dev/null || true
 
 # Mine Bitcoin
 echo "→ Mining Bitcoin $BLOCKS blocks..."
-ADDR=$(docker exec bitcoind bitcoin-cli -regtest -rpcauth=lightning:8492220e715bbfdf5f165102bfd7ed4$88090545821ed5e9db614588c0afbad575ccc14681fb77f3cae6899bc419af67 getnewaddress "")
-docker exec bitcoind bitcoin-cli -regtest -rpcauth=lightning:8492220e715bbfdf5f165102bfd7ed4$88090545821ed5e9db614588c0afbad575ccc14681fb77f3cae6899bc419af67 generatetoaddress $BLOCKS $ADDR
+ADDR=$(docker exec bitcoind bitcoin-cli -regtest -rpcauth='lightning:8492220e715bbfdf5f165102bfd7ed4$88090545821ed5e9db614588c0afbad575ccc14681fb77f3cae6899bc419af67' getnewaddress "")
+docker exec bitcoind bitcoin-cli -regtest -rpcauth='lightning:8492220e715bbfdf5f165102bfd7ed4$88090545821ed5e9db614588c0afbad575ccc14681fb77f3cae6899bc419af67' generatetoaddress $BLOCKS $ADDR
 
 # Check Bitcoin height
 echo "→ Check final Bitcoin height..."
-docker exec bitcoind bitcoin-cli -regtest -rpcauth=lightning:8492220e715bbfdf5f165102bfd7ed4$88090545821ed5e9db614588c0afbad575ccc14681fb77f3cae6899bc419af67 getblockcount
+docker exec bitcoind bitcoin-cli -regtest -rpcauth='lightning:8492220e715bbfdf5f165102bfd7ed4$88090545821ed5e9db614588c0afbad575ccc14681fb77f3cae6899bc419af67' getblockcount
 
 # === Start LND + Backend ===
 echo "→ Starting agent-payment-decision-lnd + all services..."
