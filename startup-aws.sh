@@ -33,7 +33,7 @@ cd ~/agent-bitcoin
 
 echo "→ Waiting for Bitcoin RPC to become ready..."
 for i in {1..25}; do
-    if docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getblockcount &>/dev/null; then
+    if docker exec bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass getblockcount &>/dev/null; then
         echo "Bitcoin RPC is ready!"
         break
     fi
@@ -43,23 +43,23 @@ done
 
 # Check Bitcoin height
 echo "→ Check current Bitcoin height..."
-docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getblockcount
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass getblockcount
 
 # Create Bitcoin wallet if it doesn't exist
 echo "→ Checking/creating Bitcoin Core wallet..."
-docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc createwallet "default" 2>/dev/null || true
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass createwallet "default" 2>/dev/null || true
 
 # Load Bitcoin wallet
-docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc loadwallet "default" 2>/dev/null || true
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass loadwallet "default" 2>/dev/null || true
 
 # Mine Bitcoin
 echo "→ Mining Bitcoin $BLOCKS blocks..."
-ADDR=$(docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getnewaddress "")
-docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc generatetoaddress $BLOCKS $ADDR
+ADDR=$(docker exec bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass getnewaddress "")
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass generatetoaddress $BLOCKS $ADDR
 
 # Check Bitcoin height
 echo "→ Check final Bitcoin height..."
-docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getblockcount
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass getblockcount
 
 # === Start LND + Backend ===
 echo "→ Starting agent-payment-decision-lnd + all services..."
