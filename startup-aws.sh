@@ -26,7 +26,7 @@ docker compose -f docker-compose.regtest.aws.yml down --remove-orphans
 # Start Loop regtest environment (shared bitcoind)
 echo "→ Starting Loop regtest environment..."
 cd ~/loop/regtest
-./regtest.sh start
+./regtest.sh start > regtest.log 2>&1 &
 cd ~/agent-bitcoin
 
 # Removed duplicate bitcoind start (Loop already handles it)
@@ -47,19 +47,19 @@ docker exec bitcoind bitcoin-cli -regtest getblockcount
 
 # Create Bitcoin wallet if it doesn't exist
 echo "→ Checking/creating Bitcoin Core wallet..."
-docker exec bitcoind bitcoin-cli -regtest createwallet "default" 2>/dev/null || true
+docker exec bitcoind bitcoin-cli -regtest -rpcwallet=default createwallet "default" 2>/dev/null || true
 
 # Load Bitcoin wallet
-docker exec bitcoind bitcoin-cli -regtest loadwallet "default" 2>/dev/null || true
+docker exec bitcoind bitcoin-cli -regtest -rpcwallet=default loadwallet "default" 2>/dev/null || true
 
 # Mine Bitcoin
 echo "→ Mining Bitcoin $BLOCKS blocks..."
-ADDR=$(docker exec bitcoind bitcoin-cli -regtest getnewaddress "")
-docker exec bitcoind bitcoin-cli -regtest generatetoaddress $BLOCKS $ADDR
+ADDR=$(docker exec bitcoind bitcoin-cli -regtest -rpcwallet=default getnewaddress "")
+docker exec bitcoind bitcoin-cli -regtest -rpcwallet=default generatetoaddress $BLOCKS $ADDR
 
 # Check Bitcoin height
 echo "→ Check final Bitcoin height..."
-docker exec bitcoind bitcoin-cli -regtest getblockcount
+docker exec bitcoind bitcoin-cli -regtest -rpcwallet=default getblockcount
 
 # === Start LND + Backend ===
 echo "→ Starting agent-payment-decision-lnd + all services..."
