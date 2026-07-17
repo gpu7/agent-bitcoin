@@ -29,8 +29,7 @@ cd ~/loop/regtest
 ./regtest.sh start > regtest.log 2>&1 &
 cd ~/agent-bitcoin
 
-echo "→ Starting bitcoind..."
-docker compose -f docker-compose.regtest.aws.yml up -d --remove-orphans bitcoind
+# Removed duplicate bitcoind start (Loop already handles it)
 
 echo "→ Waiting for Bitcoin RPC to become ready..."
 for i in {1..25}; do
