@@ -1,9 +1,6 @@
 #!/bin/bash
 set -e
 
-# set rpcauth here to avoid shell parsing issues
-RPCAUTH="lightning:8492220e715bbfdf5f165102bfd7ed4\$88090545821ed5e9db614588c0afbad575ccc14681fb77f3cae6899bc419af67"
-
 # this version does NOT perform an aggressive reset of the bitcoin blockchain.
 
 # Load .env if it exists
@@ -36,7 +33,7 @@ cd ~/agent-bitcoin
 
 echo "→ Waiting for Bitcoin RPC to become ready..."
 for i in {1..25}; do
-    if docker exec bitcoind bitcoin-cli -regtest -rpcauth=$RPCAUTH getblockcount &>/dev/null; then
+    if docker exec bitcoind bitcoin-cli -regtest getblockcount &>/dev/null; then
         echo "Bitcoin RPC is ready!"
         break
     fi
@@ -46,23 +43,23 @@ done
 
 # Check Bitcoin height
 echo "→ Check current Bitcoin height..."
-docker exec bitcoind bitcoin-cli -regtest -rpcauth=$RPCAUTH getblockcount
+docker exec bitcoind bitcoin-cli -regtest getblockcount
 
 # Create Bitcoin wallet if it doesn't exist
 echo "→ Checking/creating Bitcoin Core wallet..."
-docker exec bitcoind bitcoin-cli -regtest -rpcauth=$RPCAUTH createwallet "default" 2>/dev/null || true
+docker exec bitcoind bitcoin-cli -regtest createwallet "default" 2>/dev/null || true
 
 # Load Bitcoin wallet
-docker exec bitcoind bitcoin-cli -regtest -rpcauth=$RPCAUTH loadwallet "default" 2>/dev/null || true
+docker exec bitcoind bitcoin-cli -regtest loadwallet "default" 2>/dev/null || true
 
 # Mine Bitcoin
 echo "→ Mining Bitcoin $BLOCKS blocks..."
-ADDR=$(docker exec bitcoind bitcoin-cli -regtest -rpcauth=$RPCAUTH getnewaddress "")
-docker exec bitcoind bitcoin-cli -regtest -rpcauth=$RPCAUTH generatetoaddress $BLOCKS $ADDR
+ADDR=$(docker exec bitcoind bitcoin-cli -regtest getnewaddress "")
+docker exec bitcoind bitcoin-cli -regtest generatetoaddress $BLOCKS $ADDR
 
 # Check Bitcoin height
 echo "→ Check final Bitcoin height..."
-docker exec bitcoind bitcoin-cli -regtest -rpcauth=$RPCAUTH getblockcount
+docker exec bitcoind bitcoin-cli -regtest getblockcount
 
 # === Start LND + Backend ===
 echo "→ Starting agent-payment-decision-lnd + all services..."
