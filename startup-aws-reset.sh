@@ -33,17 +33,7 @@ cd ~/agent-bitcoin
 echo "→ Removing bitcoin-data volume completely..."
 docker volume rm agent-bitcoin_bitcoin-data -f 2>/dev/null || true
 
-echo "→ Starting fresh bitcoind..."
-docker compose -f docker-compose.regtest.aws.yml up -d --remove-orphans bitcoind
-
-echo "→ Waiting for initial start Bitcoin container..."
-sleep 40
-
-echo "→ Aggressive clean of all bitcoin data..."
-docker exec bitcoind rm -rf /home/bitcoin/.bitcoin/* 2>/dev/null || true
-
-echo "→ Restarting bitcoind..."
-docker compose -f docker-compose.regtest.aws.yml restart bitcoind
+# Removed duplicate bitcoind start (Loop already handles it)
 
 echo "→ Waiting for Bitcoin RPC to become ready..."
 for i in {1..25}; do
