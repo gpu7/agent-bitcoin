@@ -1,40 +1,8 @@
 services:
-  bitcoind:
-    image: ruimarinho/bitcoin-core:latest
-    container_name: bitcoind
-    ports:
-      - "18443:18443"      # RPC (needed for Mac connection)
-      - "28332:28332"      # ZMQ rawblock (needed for Mac LND)
-      - "28333:28333"      # ZMQ rawtx (needed for Mac LND)
-    command:
-      - "bitcoind"
-      - "-regtest"
-      - "-server=1"
-      - "-rpcuser=btc"
-      - "-rpcpassword=btc"
-      - "-rpcallowip=0.0.0.0/0"
-      - "-rpcbind=0.0.0.0"
-      - "-rpcport=18443"
-      - "-printtoconsole"
-      - "-zmqpubrawblock=tcp://0.0.0.0:28332"
-      - "-zmqpubrawtx=tcp://0.0.0.0:28333"
-    volumes:
-      - bitcoin-data:/home/bitcoin/.bitcoin
-    networks:
-      - agent-net
-    healthcheck:
-      test: ["CMD", "bitcoin-cli", "-regtest", "-rpcuser=btc", "-rpcpassword=btc", "getblockcount"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-
   lnd:
     image: lightninglabs/lnd:v0.18.5-beta
     container_name: agent-payment-decision-lnd
-    depends_on:
-      bitcoind:
-        condition: service_healthy
+    # No depends_on bitcoind anymore (Loop handles it)
     ports:
       - "9735:9735"
       - "10009:10009"
@@ -42,8 +10,8 @@ services:
       - "--bitcoin.regtest"
       - "--bitcoin.active"
       - "--bitcoin.node=bitcoind"
-      - "--bitcoind.rpcuser=btc"
-      - "--bitcoind.rpcpass=btc"
+      - "--bitcoind.rpcuser=rpcuser"          # ← Updated to Loop credentials
+      - "--bitcoind.rpcpass=rpcpass"
       - "--bitcoind.rpchost=bitcoind:18443"
       - "--bitcoind.zmqpubrawblock=tcp://bitcoind:28332"
       - "--bitcoind.zmqpubrawtx=tcp://bitcoind:28333"
@@ -59,8 +27,8 @@ services:
 
 networks:
   agent-net:
-    external: true   # Use the Loop regtest network
+    external: true
     name: regtest_regtest
+
 volumes:
-  bitcoin-data:
   lnd-data:
