@@ -20,8 +20,8 @@ for i in {1..50}; do
         echo "✅ Successfully connected to AWS node!"
         break
     fi
-    echo "Not ready yet. Retrying in 60 seconds..."
-    sleep 60
+    echo "Not ready yet. Retrying in 5 seconds..."
+    sleep 5
 done
 
 if [ $i -eq 50 ]; then
