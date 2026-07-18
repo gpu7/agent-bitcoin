@@ -183,7 +183,7 @@ Note: the "current-aws-instance-IPv4-address" changes each time a new AWS agent-
 ### Optional diagnostics
 Run these commands after each workflow step to determine if everything launched correctly.
 
-- Step #1. On AWS:
+- STEP #1. On AWS:
 
 ```bash
 echo "=== Light Post-Startup Diagnostics (AWS) ==="
@@ -204,7 +204,7 @@ echo -e "Recent LND Logs:"
 docker logs --tail 20 agent-payment-decision-lnd | tail -15
 ```
 
-- Step #2. On Mac:
+- STEP #2. On Mac:
 
 ```bash
 echo "=== Post-Startup Diagnostics (Mac) ==="
@@ -237,7 +237,7 @@ echo -e "Show a live tail of the logs, updating in real time as Mac LND receives
 docker compose -f docker-compose.regtest.mac.yml logs -f agent-bitcoin-lnd | grep -E "ZMQ|block|sync|new block|Filtering"
 ```
 
-- Step #3. On Mac:
+- STEP #3. On Mac:
 -
 ```bash
 echo "=== Mac Post-Startup Diagnostics ==="
@@ -260,7 +260,7 @@ echo -e "Recent Mac LND Logs:"
 docker compose -f docker-compose.regtest.mac.yml logs --tail 15 agent-bitcoin-lnd | tail -10
 ```
 
-- Step #3. It can take a fairly long time to sync the Lightning node with the Bitcoin blockchain. If you see "synced_to_chain: false", run these commands to advance the chain and force LND to catch up. This is not guaranteed to work. You may have to simply wait some time for the nodes to sync.
+- STEP #3. It can take a fairly long time to sync the Lightning node with the Bitcoin blockchain. If you see "synced_to_chain: false", run these commands to advance the chain and force LND to catch up. This is not guaranteed to work. You may have to simply wait some time for the nodes to sync.
 
 - Explanation for why mining more blocks on AWS helps the Mac LND sync faster:
 
@@ -297,7 +297,7 @@ docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd \
 source ./wait-mac-lnd.sh regtest
 ```
 
-- Step #4. On Mac:
+- STEP #4. On Mac:
 
 Use AWS agent-payment-decision-lnd pubkey.
 
@@ -307,14 +307,14 @@ docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-lnd \
   0258b1aefcaa9c03423647a1c17094f04616a4849696d1db7ec67943eae73ab0ec@<current-aws-instance-IPv4-address>:9735
 ```
 
-- Step #5. On Mac:
+- STEP #5. On Mac:
 
 ```bash
 docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
   lncli --lnddir=/home/lnd/.lnd --network=regtest listpeers
 ```
 
-- Step #6. On Mac:
+- STEP #6. On Mac:
 
 Use AWS agent-payment-decision-lnd pubkey.
 
@@ -326,7 +326,7 @@ docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
   --push_amt 500000
 ```
 
-- Step #8. On AWS:
+- STEP #8. On AWS:
 
 ```bash
 echo "=== Agent-Bitcoin Shutdown Diagnostics ==="
@@ -348,7 +348,7 @@ echo "✅ If no containers or agent networks appear above, shutdown is clean."
 echo "   (LND volume is intentionally kept for faster restarts)"
 ```
 
-- Step #9. On Mac:
+- STEP #9. On Mac:
 
 ```bash
 echo "=== Mac Shutdown Diagnostics ==="
