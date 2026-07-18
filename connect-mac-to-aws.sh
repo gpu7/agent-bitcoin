@@ -24,7 +24,5 @@ for i in {1..50}; do
     sleep 5
 done
 
-if [ $i -eq 50 ]; then
-    echo "❌ Failed to connect after 50 attempts."
-    exit 1
-fi
+echo "❌ Failed to connect after 50 attempts."
+# Do NOT exit here so the terminal stays open
