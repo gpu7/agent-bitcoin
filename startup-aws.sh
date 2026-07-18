@@ -98,12 +98,12 @@ fi
 
 # Final readiness wait
 echo "→ Waiting for agent-payment-decision-lnd to be fully ready..."
-for i in {1..180}; do
+for i in {1..50}; do
     if docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null; then
         echo "agent-payment-decision-lnd is fully ready!"
         break
     fi
-    echo "Waiting for agent-payment-decision-lnd ... ($i/180)"
+    echo "Waiting for agent-payment-decision-lnd ... ($i/50)"
     sleep 8
 done
 
