@@ -192,7 +192,7 @@ echo "1. Containers:"
 docker ps
 
 echo -e "Bitcoind Height:"
-docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getblockcount
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=lightning -rpcpassword=lightning getblockcount
 
 echo -e "LND Sync Status:"
 docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo | grep -E "block_height|synced_to_chain|synced_to_graph|identity_pubkey"
