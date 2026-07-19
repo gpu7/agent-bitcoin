@@ -202,6 +202,9 @@ curl -s http://localhost:8000/balance | jq . 2>/dev/null || curl -s http://local
 
 echo -e "Recent LND Logs:"
 docker logs --tail 20 agent-payment-decision-lnd | tail -15
+
+echo -e "Command to start agent-payment-decision-lnd"
+docker compose -f docker-compose.regtest.aws.yml up -d agent-payment-decision-lnd
 ```
 
 - STEP #2. On Mac:
