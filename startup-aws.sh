@@ -114,7 +114,7 @@ for i in {1..50}; do
         break
     fi
     echo "Waiting for agent-payment-decision-lnd ... ($i/50)"
-    sleep 8
+    sleep 5
 done
 
 echo ""
