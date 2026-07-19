@@ -86,14 +86,24 @@ if docker exec agent-payment-decision-lnd test -f /home/lnd/.lnd/data/chain/bitc
     echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest unlock"
     echo ""
     echo "After unlocking successfully, press Enter here..."
-    read -r
+    # This is the most robust version:
+    read -r -s -n 1 dummy
+    # Explanation:
+    #   -r   → raw mode
+    #   -s   → silent (doesn't echo what you type)
+    #   -n 1 → read only 1 character (so Enter alone is enough)
 else
     echo "→ No agent-payment-decision-lnd wallet found. Creating new wallet interactively..."
     echo "   Run this in another terminal:"
     echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest create"
     echo ""
     echo "After you see 'lnd successfully initialized!', press Enter here..."
-    read -r
+    # This is the most robust version:
+    read -r -s -n 1 dummy
+    # Explanation:
+    #   -r   → raw mode
+    #   -s   → silent (doesn't echo what you type)
+    #   -n 1 → read only 1 character (so Enter alone is enough)
 fi
 
 # Final readiness wait
