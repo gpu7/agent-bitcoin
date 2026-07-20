@@ -170,15 +170,15 @@ The current workflow is shown here.  This is the test workflow on regtest.
 
 Note: the "current-aws-instance-IPv4-address" changes each time a new AWS agent-bitcoin instance is launched.
 
-- 1) On AWS: source ./startup-aws.sh regtest <current-aws-instance-IPv4-address>
-- 2) On Mac: source ./startup-mac.sh regtest <current-aws-instance-IPv4-address>
-- 3) On Mac: source ./wait-mac-lnd.sh regtest
+- 1) On AWS: ./startup-aws.sh regtest <current-aws-instance-IPv4-address>
+- 2) On Mac: ./startup-mac.sh regtest <current-aws-instance-IPv4-address>
+- 3) On Mac: ./wait-mac-lnd.sh regtest
 - 4) On Mac: Connect LND nodes Mac <-> AWS. See below.
 - 5) On Mac: Verify peer connection Mac <-> AWS. See below.
 - 6) On Mac: Open Lightning channel Mac <-> AWS. See below.
 - 7) On Mac: uv run python tests/test_aws_integration.py --backend-url http://<current-aws-instance-IPv4-address>:8000
-- 8) On AWS: source ./shutdown-aws.sh
-- 9) On Mac: source ./shutdown-mac.sh
+- 8) On AWS: ./shutdown-aws.sh
+- 9) On Mac: ./shutdown-mac.sh
 
 ### Optional diagnostics
 Run these commands after each workflow step to determine if everything launched correctly.
@@ -297,7 +297,7 @@ docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd \
   lncli --lnddir=/home/lnd/.lnd --network=regtest unlock
 
 # Monitor
-source ./wait-mac-lnd.sh regtest
+./wait-mac-lnd.sh regtest
 ```
 
 - STEP #4. On Mac:
