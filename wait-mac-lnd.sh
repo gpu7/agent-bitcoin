@@ -49,7 +49,7 @@ for i in {1..50}; do
         echo "$STATUS" | grep -E "synced_to_chain|synced_to_graph|block_height"
     fi
 
-    sleep 8
+    sleep 5
 done
 
 # Show final status
