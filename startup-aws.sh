@@ -37,6 +37,12 @@ cd ~/loop/regtest
 ./regtest.sh start > /tmp/regtest.log 2>&1
 cd ~/agent-bitcoin
 
+echo "→ Services started. Mining extra blocks for maturity..."
+# Mine extra blocks so coins become spendable
+docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner generatetoaddress 120 $(docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner getnewaddress "")
+echo "→ Mining complete. Current block height:"
+docker exec bitcoind bitcoin-cli -regtest getblockcount
+
 # Wait for Bitcoin RPC
 echo "→ Waiting for Bitcoin RPC to become ready..."
 for i in {1..25}; do
