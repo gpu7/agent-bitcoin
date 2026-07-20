@@ -822,6 +822,17 @@ echo "✅ All wallets deleted. Fresh start ready."
 
 ---
 
+## Terminal screen management
+
+- Sometimes, the terminal is left in an unstable state.  These commands usually fix it.
+
+```bash
+stty echo
+stty sane
+```
+
+---
+
 ## Support
 
 Richard Casey
