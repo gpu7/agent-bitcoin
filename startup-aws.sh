@@ -32,9 +32,9 @@ echo "→ Stopping existing services..."
 docker compose -f docker-compose.regtest.aws.yml down --remove-orphans
 
 # === Start Loop regtest environment (starts bitcoind + loop services) ===
-echo "→ Starting Loop regtest environment..."
+echo "→ Starting Loop regtest environment (logs saved to /tmp/regtest.log)..."
 cd ~/loop/regtest
-./regtest.sh start
+./regtest.sh start > /tmp/regtest.log 2>&1
 cd ~/agent-bitcoin
 
 # Wait for Bitcoin RPC
