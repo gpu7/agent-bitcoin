@@ -826,10 +826,11 @@ echo "✅ All wallets deleted. Fresh start ready."
 
 - Sometimes, the terminal is left in an unstable state.  These commands usually fix it.
 
-```bash
-stty echo
-stty sane
-```
+| Command   | What it does                    | When to use                 |
+|:----------|:--------------------------------|:----------------------------|
+| stty echo | Turns typing visibility back on | When text is invisible      |
+| stty sane | Best all around fix             | When output looks broken    |
+| reset     | Full terminal reset             | When stty sane isn't enough |
 
 ---
 
