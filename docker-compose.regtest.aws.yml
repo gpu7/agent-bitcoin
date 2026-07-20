@@ -1,5 +1,5 @@
 services:
-  lnd:
+  agent-payment-decision-lnd:
     image: lightninglabs/lnd:v0.18.5-beta
     container_name: agent-payment-decision-lnd
     ports:
