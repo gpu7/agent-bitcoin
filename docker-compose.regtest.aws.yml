@@ -9,8 +9,8 @@ services:
       - "--bitcoin.regtest"
       - "--bitcoin.active"
       - "--bitcoin.node=bitcoind"
-      - "--bitcoind.rpcuser=rpcuser"          # ← Updated to Loop credentials
-      - "--bitcoind.rpcpass=rpcpass"
+      - "--bitcoind.rpcuser=lightning"
+      - "--bitcoind.rpcpass=lightning"
       - "--bitcoind.rpchost=bitcoind:18443"
       - "--bitcoind.zmqpubrawblock=tcp://bitcoind:28332"
       - "--bitcoind.zmqpubrawtx=tcp://bitcoind:28333"
