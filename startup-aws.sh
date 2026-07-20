@@ -31,16 +31,29 @@ cd ~/agent-bitcoin
 echo "→ Stopping existing services..."
 docker compose -f docker-compose.regtest.aws.yml down --remove-orphans
 
-# === Start Loop regtest environment (starts bitcoind + loop services) ===
+# === Start Loop regtest environment ===
 echo "→ Starting Loop regtest environment (logs saved to /tmp/regtest.log)..."
 cd ~/loop/regtest
 ./regtest.sh start > /tmp/regtest.log 2>&1
 cd ~/agent-bitcoin
 
-echo "→ Services started. Mining extra blocks for maturity..."
-# Mine extra blocks so coins become spendable
-docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner generatetoaddress 120 $(docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner getnewaddress "")
-echo "→ Mining complete. Current block height:"
+# === Bitcoin Core Wallet Management (FIXED ORDER + STRONGER CLEANUP) ===
+echo "→ Setting up Bitcoin Core wallet 'miner'..."
+
+# Strong cleanup
+docker exec bitcoind bitcoin-cli -regtest unloadwallet "miner" 2>/dev/null || true
+docker exec bitcoind rm -rf /home/bitcoin/.bitcoin/regtest/wallets/miner
+docker exec bitcoind mkdir -p /home/bitcoin/.bitcoin/regtest/wallets
+
+# Create fresh wallet
+docker exec bitcoind bitcoin-cli -regtest createwallet "miner"
+
+# Mine extra blocks for maturity (now safe because wallet exists)
+echo "→ Mining extra blocks for maturity..."
+docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner generatetoaddress 120 \
+  $(docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner getnewaddress "")
+
+echo "→ Current block height:"
 docker exec bitcoind bitcoin-cli -regtest getblockcount
 
 # Wait for Bitcoin RPC
@@ -54,21 +67,11 @@ for i in {1..25}; do
     sleep 10
 done
 
-# === Bitcoin Core Wallet Management ===
-echo "→ Setting up Bitcoin Core wallet 'miner'..."
-# Remove existing wallet if present
-docker exec bitcoind bitcoin-cli -regtest unloadwallet "miner" 2>/dev/null || true
-docker exec bitcoind rm -rf /home/bitcoin/.bitcoin/regtest/wallets/miner 2>/dev/null || true
-
-# Create fresh wallet
-docker exec bitcoind bitcoin-cli -regtest createwallet "miner" >/dev/null 2>&1
-
-# Mine bitcoin blocks
+# Mine the main $BLOCKS blocks
 echo "→ Mining Bitcoin $BLOCKS blocks..."
 ADDR=$(docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner getnewaddress "")
 docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner generatetoaddress $BLOCKS $ADDR
 
-# Get bitcoin block height
 echo "→ Current Bitcoin height:"
 docker exec bitcoind bitcoin-cli -regtest getblockcount
 
