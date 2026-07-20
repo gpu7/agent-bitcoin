@@ -2,7 +2,6 @@ services:
   lnd:
     image: lightninglabs/lnd:v0.18.5-beta
     container_name: agent-payment-decision-lnd
-    # No depends_on bitcoind anymore (Loop handles it)
     ports:
       - "9735:9735"
       - "10009:10009"
