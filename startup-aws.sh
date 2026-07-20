@@ -90,20 +90,21 @@ for i in {1..40}; do
     echo "Waiting for agent-payment-decision-lnd... ($i/40)"
 done
 
-# === LND Wallet Handling ===
+# === LND Wallet Handling (Improved) ===
 echo "→ Checking agent-payment-decision-lnd wallet status..."
+
 if docker exec agent-payment-decision-lnd test -f /home/lnd/.lnd/data/chain/bitcoin/regtest/wallet.db 2>/dev/null; then
-    echo "→ Wallet exists. Unlock it in another terminal:"
+    echo "→ Wallet exists. Please unlock it in another terminal:"
     echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest unlock"
     echo ""
-    echo "After unlocking, press Enter here..."
-    read -r -s -n 1 dummy
+    echo "After unlocking successfully, press Enter here to continue..."
+    read -r dummy          # <-- Changed from -s (silent) to normal read
 else
-    echo "→ No wallet found. Create one in another terminal:"
+    echo "→ No wallet found. Please create one in another terminal:"
     echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest create"
     echo ""
-    echo "After 'lnd successfully initialized!', press Enter here..."
-    read -r -s -n 1 dummy
+    echo "After you see 'lnd successfully initialized!', press Enter here..."
+    read -r dummy          # <-- Changed from -s (silent) to normal read
 fi
 
 # Final readiness check
