@@ -3,6 +3,7 @@ echo "=== Waiting for Mac agent-bitcoin-lnd to be ready ==="
 
 # Get arguments
 NETWORK=${1}
+export NETWORK
 
 # === Check and unlock agent-bitcoin-lnd wallet if locked ===
 echo "→ Checking agent-bitcoin-lnd wallet status..."
