@@ -171,6 +171,7 @@ The current workflow is shown here.  This is the test workflow on regtest.
 Note: the "current-aws-instance-IPv4-address" changes each time a new AWS agent-bitcoin instance is launched.
 
 - 1) On AWS: ./startup-aws.sh regtest <current-aws-instance-IPv4-address>
+- 2) On AWS: Fund LND node. See below.
 - 2) On Mac: ./startup-mac.sh regtest <current-aws-instance-IPv4-address>
 - 3) On Mac: ./wait-mac-lnd.sh regtest
 - 4) On Mac: Connect LND nodes Mac <-> AWS. See below.
@@ -205,6 +206,23 @@ docker logs --tail 20 agent-payment-decision-lnd | tail -15
 
 echo -e "Command to start agent-payment-decision-lnd"
 docker compose -f docker-compose.regtest.aws.yml up -d agent-payment-decision-lnd
+```
+
+- STEP #2. On AWS:
+
+```bash
+# Get new LND address
+ADDR=$(docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest newaddress p2wkh | jq -r '.address')
+echo "Funding address: $ADDR"
+
+# Send 5 BTC from miner wallet
+docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner sendtoaddress $ADDR 5
+
+# Mine blocks to confirm
+docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner generatetoaddress 6 $(docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner getnewaddress "")
+
+# Check balance
+curl -s http://localhost:8000/balance | jq .
 ```
 
 - STEP #2. On Mac:
