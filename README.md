@@ -803,6 +803,25 @@ docker compose -f docker-compose.regtest.aws.yml logs -f agent-payment-decision-
 
 ---
 
+## Bitcoin wallet management
+```bash
+echo "→ Deleting ALL Bitcoin wallets (clean slate)..."
+
+# Unload all wallets
+docker exec bitcoind bitcoin-cli -regtest listwallets | \
+  docker exec -i bitcoind xargs -I {} bitcoin-cli -regtest unloadwallet "{}" 2>/dev/null || true
+
+# Delete the entire wallets directory (nuclear but safe on regtest)
+docker exec bitcoind rm -rf /home/bitcoin/.bitcoin/regtest/wallets
+
+# Recreate the empty wallets directory
+docker exec bitcoind mkdir -p /home/bitcoin/.bitcoin/regtest/wallets
+
+echo "✅ All wallets deleted. Fresh start ready."
+```
+
+---
+
 ## Support
 
 Richard Casey
