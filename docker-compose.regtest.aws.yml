@@ -2,6 +2,8 @@ services:
   agent-payment-decision-lnd:
     image: lightninglabs/lnd:v0.18.5-beta
     container_name: agent-payment-decision-lnd
+    environment:
+      - AWS_IP=${AWS_IP}
     ports:
       - "9735:9735"
       - "10009:10009"
