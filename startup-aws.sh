@@ -90,21 +90,37 @@ for i in {1..40}; do
     echo "Waiting for agent-payment-decision-lnd... ($i/40)"
 done
 
-# === LND Wallet Handling (Improved) ===
+# === LND Wallet Handling (Improved - less brittle) ===
 echo "→ Checking agent-payment-decision-lnd wallet status..."
 
 if docker exec agent-payment-decision-lnd test -f /home/lnd/.lnd/data/chain/bitcoin/regtest/wallet.db 2>/dev/null; then
-    echo "→ Wallet exists. Please unlock it in another terminal:"
+    echo "→ Wallet exists. Unlock it in another terminal now:"
     echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest unlock"
     echo ""
-    echo "After unlocking successfully, press Enter here to continue..."
-    read -r dummy          # <-- Changed from -s (silent) to normal read
+    echo "Waiting for wallet to be unlocked..."
+
+    # Poll until LND is ready (much more reliable than manual 'read')
+    for i in {1..50}; do
+        if docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null 2>&1; then
+            echo "✅ LND wallet unlocked and ready!"
+            break
+        fi
+        echo "Waiting for unlock... ($i/50)"
+        sleep 5
+    done
 else
-    echo "→ No wallet found. Please create one in another terminal:"
+    echo "→ No wallet found. Create one in another terminal:"
     echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest create"
     echo ""
-    echo "After you see 'lnd successfully initialized!', press Enter here..."
-    read -r dummy          # <-- Changed from -s (silent) to normal read
+    echo "Waiting for wallet creation..."
+    for i in {1..50}; do
+        if docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null 2>&1; then
+            echo "✅ LND wallet created and ready!"
+            break
+        fi
+        echo "Waiting for wallet creation... ($i/50)"
+        sleep 5
+    done
 fi
 
 # Final readiness check
