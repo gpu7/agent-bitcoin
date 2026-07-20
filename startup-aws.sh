@@ -1,36 +1,43 @@
 #!/bin/bash
 set -e
 
-# this version does NOT perform an aggressive reset of the bitcoin blockchain.
+# =============================================
+# Agent-Bitcoin AWS Startup Script (Regtest)
+# This version does NOT perform aggressive blockchain reset
+# =============================================
 
 # Load .env if it exists
+echo "→ Load .env if it exists..."
 if [ -f .env ]; then
     export $(grep -v '^#' .env | xargs)
 fi
 
 # Get arguments
-NETWORK=${1}
+echo "→ Get arguments..."
+NETWORK=${1:-regtest}
 AWS_IP=${2}
+export NETWORK
 export AWS_IP
+
+echo "→ Set number of bitcoin blocks to mine..."
+BLOCKS=50
+export BLOCKS
 
 echo "=== Agent-Bitcoin Startup AWS (Network: $NETWORK, AWS IP: $AWS_IP) ==="
 
-BLOCKS=${3:-50}
-
 cd ~/agent-bitcoin
 
-# === Start Services (No Aggressive Reset) ===
-echo "→ Stopping services..."
+# === Stop existing services ===
+echo "→ Stopping existing services..."
 docker compose -f docker-compose.regtest.aws.yml down --remove-orphans
 
-# Start Loop regtest environment (shared bitcoind)
+# === Start Loop regtest environment (starts bitcoind + loop services) ===
 echo "→ Starting Loop regtest environment..."
 cd ~/loop/regtest
 ./regtest.sh start
 cd ~/agent-bitcoin
 
-# Removed duplicate bitcoind start (Loop already handles it)
-
+# Wait for Bitcoin RPC
 echo "→ Waiting for Bitcoin RPC to become ready..."
 for i in {1..25}; do
     if docker exec bitcoind bitcoin-cli -regtest getblockcount &>/dev/null; then
@@ -41,104 +48,80 @@ for i in {1..25}; do
     sleep 10
 done
 
-# Check Bitcoin height
-echo "→ Check current Bitcoin height..."
+# === Bitcoin Core Wallet Management ===
+echo "→ Setting up Bitcoin Core wallet 'miner'..."
+# Remove existing wallet if present
+docker exec bitcoind bitcoin-cli -regtest unloadwallet "miner" 2>/dev/null || true
+docker exec bitcoind rm -rf /home/bitcoin/.bitcoin/regtest/wallets/miner 2>/dev/null || true
+
+# Create fresh wallet
+docker exec bitcoind bitcoin-cli -regtest createwallet "miner" >/dev/null 2>&1
+
+# Mine bitcoin blocks
+echo "→ Mining Bitcoin $BLOCKS blocks..."
+ADDR=$(docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner getnewaddress "")
+docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner generatetoaddress $BLOCKS $ADDR
+
+# Get bitcoin block height
+echo "→ Current Bitcoin height:"
 docker exec bitcoind bitcoin-cli -regtest getblockcount
 
-# Create Bitcoin wallet if it doesn't exist
-echo "→ Checking/creating Bitcoin Core wallet..."
-docker exec bitcoind bitcoin-cli -regtest -rpcwallet=default createwallet "default" 2>/dev/null || true
-
-# Load Bitcoin wallet
-docker exec bitcoind bitcoin-cli -regtest -rpcwallet=default loadwallet "default" 2>/dev/null || true
-
-# Mine Bitcoin
-echo "→ Mining Bitcoin $BLOCKS blocks..."
-ADDR=$(docker exec bitcoind bitcoin-cli -regtest -rpcwallet=default getnewaddress "")
-docker exec bitcoind bitcoin-cli -regtest -rpcwallet=default generatetoaddress $BLOCKS $ADDR
-
-# Check Bitcoin height
-echo "→ Check final Bitcoin height..."
-docker exec bitcoind bitcoin-cli -regtest -rpcwallet=default getblockcount
-
-# === Start LND + Backend ===
+# === Start agent services ===
 echo "→ Starting agent-payment-decision-lnd + all services..."
 docker compose -f docker-compose.regtest.aws.yml up -d
 
-echo "→ Waiting for agent-payment-decision-lnd to start (RPC available)..."
+# Wait for LND to start
+echo "→ Waiting for agent-payment-decision-lnd to start..."
 for i in {1..40}; do
     sleep 5
-    if docker logs --tail 10 agent-payment-decision-lnd 2>&1 | grep -q "Waiting for wallet encryption password\|wallet locked"; then
-        break
-    fi
     if docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null 2>&1; then
-        echo "LND is already ready!"
+        echo "LND is ready!"
         break
     fi
-    echo "Waiting for agent-payment-decision-lnd to start... ($i/40)"
+    echo "Waiting for agent-payment-decision-lnd... ($i/40)"
 done
 
-# Handle wallet: create or unlock
+# === LND Wallet Handling ===
 echo "→ Checking agent-payment-decision-lnd wallet status..."
 if docker exec agent-payment-decision-lnd test -f /home/lnd/.lnd/data/chain/bitcoin/regtest/wallet.db 2>/dev/null; then
-    echo "→ agent-payment-decision-lnd wallet exists. Unlocking interactively..."
-    echo "   Run this in another terminal:"
+    echo "→ Wallet exists. Unlock it in another terminal:"
     echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest unlock"
     echo ""
-    echo "After unlocking successfully, press Enter here..."
-    # This is the most robust version:
+    echo "After unlocking, press Enter here..."
     read -r -s -n 1 dummy
-    # Explanation:
-    #   -r   → raw mode
-    #   -s   → silent (doesn't echo what you type)
-    #   -n 1 → read only 1 character (so Enter alone is enough)
 else
-    echo "→ No agent-payment-decision-lnd wallet found. Creating new wallet interactively..."
-    echo "   Run this in another terminal:"
+    echo "→ No wallet found. Create one in another terminal:"
     echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest create"
     echo ""
-    echo "After you see 'lnd successfully initialized!', press Enter here..."
-    # This is the most robust version:
+    echo "After 'lnd successfully initialized!', press Enter here..."
     read -r -s -n 1 dummy
-    # Explanation:
-    #   -r   → raw mode
-    #   -s   → silent (doesn't echo what you type)
-    #   -n 1 → read only 1 character (so Enter alone is enough)
 fi
 
-# Final readiness wait
+# Final readiness check
 echo "→ Waiting for agent-payment-decision-lnd to be fully ready..."
 for i in {1..50}; do
     if docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null; then
-        echo "agent-payment-decision-lnd is fully ready!"
+        echo "✅ agent-payment-decision-lnd is fully ready!"
         break
     fi
-    echo "Waiting for agent-payment-decision-lnd ... ($i/50)"
+    echo "Waiting... ($i/50)"
     sleep 5
 done
 
-echo ""
-echo "✅ Services started."
-echo ""
-echo "agent-payment-decision-lnd commands:"
-echo "   Unlock agent-payment-decision-lnd wallet:"
-echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd unlock"
-echo ""
-echo "Test API:"
-echo "   curl http://localhost:8000/balance"
-echo ""
-
-# Start backend API in tmux
-echo "Starting backend API in tmux (backend)..."
+# === Start Backend API in tmux ===
+echo "→ Starting backend API in tmux..."
 tmux kill-session -t backend 2>/dev/null || true
 tmux new-session -d -s backend 'cd ~/agent-bitcoin && PYTHONPATH=. uv run python backend/main.py'
 
-sleep 15
+sleep 10
 
+echo ""
 echo "✅ Full startup complete!"
 echo "   → Backend running at http://localhost:8000"
 echo ""
 echo "Useful commands:"
 echo "   curl http://localhost:8000/balance"
-echo "   tmux attach -t backend     # to see logs"
-echo "   ./shutdown-aws.sh          # clean stop"
+echo "   tmux attach -t backend          # view logs"
+echo "   docker exec -it bitcoind bitcoin-cli -regtest getblockcount"
+echo "   ./shutdown-aws.sh               # stop everything"
+echo ""
