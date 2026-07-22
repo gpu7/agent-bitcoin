@@ -90,7 +90,7 @@ for i in {1..50}; do
     echo "Waiting for agent-payment-decision-lnd... ($i/50)"
 done
 
-# === LND Wallet Handling (Improved - less brittle) ===
+# === LND Wallet Handling ===
 echo "→ Checking agent-payment-decision-lnd wallet status..."
 
 if docker exec agent-payment-decision-lnd test -f /home/lnd/.lnd/data/chain/bitcoin/regtest/wallet.db 2>/dev/null; then
@@ -123,7 +123,7 @@ else
     done
 fi
 
-# === Automatic Catch-up Mining (NEW) ===
+# === Automatic Catch-up Mining ===
 echo "→ Waiting for LND to sync to chain (automatic catch-up mining)..."
 for i in {1..20}; do
     STATUS=$(docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo 2>/dev/null || echo "{}")
@@ -139,6 +139,12 @@ for i in {1..20}; do
 
     sleep 5
 done
+
+# === Final Sync Check ===
+echo "=== Final Sync Check ==="
+echo "Bitcoin Core height:" && docker exec bitcoind bitcoin-cli -regtest getblockcount
+echo -e "\nLND Status:"
+docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo | grep -E "block_height|synced_to_chain|synced_to_graph"
 
 # Final readiness check
 echo "→ Waiting for agent-payment-decision-lnd to be fully ready..."
