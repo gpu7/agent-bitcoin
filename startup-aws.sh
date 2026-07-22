@@ -64,7 +64,7 @@ for i in {1..25}; do
         break
     fi
     echo "Waiting... ($i/25)"
-    sleep 10
+    sleep 5
 done
 
 # Mine the main $BLOCKS blocks
@@ -113,12 +113,12 @@ else
     echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest create"
     echo ""
     echo "Waiting for wallet creation..."
-    for i in {1..60}; do
+    for i in {1..50}; do
         if docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null 2>&1; then
             echo "✅ LND wallet created and ready!"
             break
         fi
-        echo "Waiting for wallet creation... ($i/60)"
+        echo "Waiting for wallet creation... ($i/50)"
         sleep 5
     done
 fi
@@ -137,7 +137,7 @@ for i in {1..20}; do
     docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner generatetoaddress 50 \
       $(docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner getnewaddress "") >/dev/null 2>&1
 
-    sleep 8
+    sleep 5
 done
 
 # Final readiness check
@@ -156,7 +156,7 @@ echo "→ Starting backend API in tmux..."
 tmux kill-session -t backend 2>/dev/null || true
 tmux new-session -d -s backend 'cd ~/agent-bitcoin && PYTHONPATH=. uv run python backend/main.py'
 
-sleep 10
+sleep 5
 
 echo ""
 echo "✅ Full startup complete!"
