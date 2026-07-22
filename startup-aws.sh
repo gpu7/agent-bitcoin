@@ -23,7 +23,7 @@ echo "→ Set number of bitcoin blocks to mine..."
 BLOCKS=50
 export BLOCKS
 
-echo "=== Agent-Bitcoin Startup AWS (Network: $NETWORK, AWS IP: $AWS_IP) ==="
+echo "=== Agent-Bitcoin Startup AWS (Network: $NETWORK, AWS_IP: $AWS_IP) ==="
 
 cd ~/agent-bitcoin
 
@@ -123,8 +123,8 @@ else
     done
 fi
 
-# === NEW: Catch-up mining until LND is synced to chain (persistent mode) ===
-echo "→ Waiting for LND to sync to chain (catch-up mining if needed)..."
+# === Automatic Catch-up Mining (NEW) ===
+echo "→ Waiting for LND to sync to chain (automatic catch-up mining)..."
 for i in {1..20}; do
     STATUS=$(docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo 2>/dev/null || echo "{}")
 
