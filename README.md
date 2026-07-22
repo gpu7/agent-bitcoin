@@ -187,9 +187,9 @@ Run these commands after each workflow step to determine if everything launched 
 - STEP #1. On AWS:
 
 ```bash
-echo "=== Light Post-Startup Diagnostics (AWS) ==="
+echo "=== Post-Startup Diagnostics (AWS) ==="
 
-echo "1. Containers:"
+echo "Containers:"
 docker ps
 
 echo -e "Bitcoind Height:"

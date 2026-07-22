@@ -40,7 +40,7 @@ cd ~/agent-bitcoin
 # === Bitcoin Core Wallet Management (FIXED ORDER + STRONGER CLEANUP) ===
 echo "→ Setting up Bitcoin Core wallet 'miner'..."
 
-# Strong cleanup
+# Strong cleanup (Bitcoin miner wallet only - LND data is now persistent)
 docker exec bitcoind bitcoin-cli -regtest unloadwallet "miner" 2>/dev/null || true
 docker exec bitcoind rm -rf /home/bitcoin/.bitcoin/regtest/wallets/miner
 docker exec bitcoind mkdir -p /home/bitcoin/.bitcoin/regtest/wallets
@@ -48,7 +48,7 @@ docker exec bitcoind mkdir -p /home/bitcoin/.bitcoin/regtest/wallets
 # Create fresh wallet
 docker exec bitcoind bitcoin-cli -regtest createwallet "miner"
 
-# Mine extra blocks for maturity (now safe because wallet exists)
+# Mine extra blocks for maturity
 echo "→ Mining extra blocks for maturity..."
 docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner generatetoaddress 120 \
   $(docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner getnewaddress "")
@@ -99,7 +99,7 @@ if docker exec agent-payment-decision-lnd test -f /home/lnd/.lnd/data/chain/bitc
     echo ""
     echo "Waiting for wallet to be unlocked..."
 
-    # Poll until LND is ready (much more reliable than manual 'read')
+    # Poll until LND is ready
     for i in {1..50}; do
         if docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null 2>&1; then
             echo "✅ LND wallet unlocked and ready!"
@@ -113,12 +113,12 @@ else
     echo "   docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest create"
     echo ""
     echo "Waiting for wallet creation..."
-    for i in {1..50}; do
+    for i in {1..60}; do
         if docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null 2>&1; then
             echo "✅ LND wallet created and ready!"
             break
         fi
-        echo "Waiting for wallet creation... ($i/50)"
+        echo "Waiting for wallet creation... ($i/60)"
         sleep 5
     done
 fi
