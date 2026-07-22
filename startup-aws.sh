@@ -123,6 +123,23 @@ else
     done
 fi
 
+# === NEW: Catch-up mining until LND is synced to chain (persistent mode) ===
+echo "→ Waiting for LND to sync to chain (catch-up mining if needed)..."
+for i in {1..20}; do
+    STATUS=$(docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo 2>/dev/null || echo "{}")
+
+    if echo "$STATUS" | grep -q '"synced_to_chain": true'; then
+        echo "✅ LND is synced to chain!"
+        break
+    fi
+
+    echo "LND not yet synced. Mining 50 more blocks... (attempt $i/20)"
+    docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner generatetoaddress 50 \
+      $(docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner getnewaddress "") >/dev/null 2>&1
+
+    sleep 8
+done
+
 # Final readiness check
 echo "→ Waiting for agent-payment-decision-lnd to be fully ready..."
 for i in {1..50}; do
