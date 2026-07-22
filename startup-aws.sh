@@ -81,13 +81,13 @@ docker compose -f docker-compose.regtest.aws.yml up -d
 
 # Wait for LND to start
 echo "→ Waiting for agent-payment-decision-lnd to start..."
-for i in {1..40}; do
+for i in {1..50}; do
     sleep 5
     if docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo &>/dev/null 2>&1; then
         echo "LND is ready!"
         break
     fi
-    echo "Waiting for agent-payment-decision-lnd... ($i/40)"
+    echo "Waiting for agent-payment-decision-lnd... ($i/50)"
 done
 
 # === LND Wallet Handling (Improved - less brittle) ===
