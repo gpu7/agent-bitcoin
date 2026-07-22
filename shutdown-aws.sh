@@ -21,5 +21,5 @@ docker network rm agent-bitcoin_default 2>/dev/null || true
 echo "Waiting for services to stop..."
 sleep 5
 
-echo "✅ Shutdown complete. Instance is safe to terminate."
-echo "You can now create an AMI or terminate the instance."
+echo "✅ Shutdown complete."
+echo "You can now create an AMI and then stop or terminate the instance."
