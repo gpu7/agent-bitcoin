@@ -325,6 +325,10 @@ echo "✅ All wallets deleted. Fresh start ready."
 
 ## Lightning Labs Loop service
 
+- We use Lightning Labs Loop for lightning channel management and funding.
+
+- The Loop github repo is: https://github.com/lightninglabs/loop
+
 - Install, configure and run Loop in regtest.
 
 ```bash

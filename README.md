@@ -5,7 +5,6 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Release](https://img.shields.io/github/v/release/gpu7/agent-bitcoin)](https://github.com/gpu7/agent-bitcoin/releases/latest)
 [![GitHub Repo](https://img.shields.io/badge/GitHub-gpu7/agent--bitcoin-black)](https://github.com/gpu7/agent-bitcoin)
-[![Code Coverage](https://codecov.io/gh/gpu7/agent-bitcoin/branch/main/graph/badge.svg)](https://codecov.io/gh/gpu7/agent-bitcoin)
 
 <br><br>
 **Lightning Bitcoin payments for autonomous AI Agents.**
@@ -312,9 +311,11 @@ The backend serves as the enforcement and payment routing layer for all Lightnin
 
 ## Repository
 
-GitHub: https://github.com/gpu7/agent-bitcoin
-TestPyPi: https://test.pypi.org/project/agent-bitcoin/0.2.0/
-PyPI: Coming soon
+- GitHub: https://github.com/gpu7/agent-bitcoin
+
+- TestPyPi: https://test.pypi.org/project/agent-bitcoin/0.2.0/
+
+- PyPI: Coming soon
 
 ---
 
