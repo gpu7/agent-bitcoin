@@ -1,50 +1,39 @@
 # Setup Guide
 
+Short pointers only. Full detail lives in the primary docs.
+
 ## Prerequisites
 
 - Python 3.10+
-- Docker + Docker Compose
 - `uv` (recommended) or `pip`
-- AWS account (for backend) or local machine for testing
+- For regtest: Docker + Docker Compose; AWS and/or Mac as in the operator guide
 
-## Installation
+## Install the SDK
 
-### From TestPyPI
+See **[SDK.md — Installation](../SDK.md#installation)** (TestPyPI or source with `uv sync`).
 
-```bash
-pip install -i https://test.pypi.org/simple/ agent-bitcoin==0.2.0
-```
+## Quick start (library)
 
-### From source
-```bash
-git clone https://github.com/gpu7/agent-bitcoin.git
-cd agent-bitcoin
-uv sync
-```
+See **[SDK.md — Quick start](../SDK.md#quick-start)** and **[README.md](../README.md)**.
 
-## Quick start
-```bash
+```python
 from agent_bitcoin import create_client
 
-client = create_client(backend_url="http://your-aws-ip:8000")
-
+client = create_client()
 invoice = client.create_invoice(memo="Test", amount_sats=5000)
 result = client.pay_invoice(invoice.payment_request)
 ```
 
-## Full Environment Setup (Regtest)
+This requires a working Lightning path (LND / backend). It does **not** take a `backend_url` argument on `create_client()` today.
 
-1)  AWS backend
-```bash
-# On AWS instance
-./startup-aws.sh
-```
+## Full regtest environment (AWS + Mac)
 
-2) Mac counterparty
-```bash
-# On Mac
-./startup-mac.sh
-```
+See **[backend.md](./backend.md)** for:
 
-3) Connect & open channel
-See Workflow (./workflow.md) for detailed steps.
+- `startup-aws.sh` / `startup-mac.sh` / `wait-mac-lnd.sh`
+- Funding, connect, channels, integration tests
+- Shutdown and volume-preserving ops
+
+## HTTP Backend API
+
+When `backend/main.py` is running (port 8000), agents can use the JSON API documented in **[SDK.md — HTTP Backend API](../SDK.md#http-backend-api)**.

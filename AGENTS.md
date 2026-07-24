@@ -37,7 +37,7 @@ Keep this file actionable. Prefer links to `README.md`, `docs/`, and `SECURITY.m
 | `tests/` | Unit/integration tests + `test-suite.md` workflow cases |
 | `docker-compose.regtest.aws.yml` / `docker-compose.regtest.mac.yml` | Node stacks |
 | `startup-*.sh` / `shutdown-*.sh` / `watch-lnd-sync.sh` | Ops scripts |
-| `docs/` | Architecture, setup, API, workflow |
+| `docs/` | Operator docs (`backend.md`); see also root `SDK.md` / `README.md` |
 
 ### Runtime agents (product, inside the SDK)
 
@@ -114,7 +114,7 @@ Pick the persona that matches the work. Use `general-purpose` for implementation
 
 - `backend/main.py` routes: `/`, `/balance`, `/invoices`, `/pay`, `/send-fee`.
 - Request/response shapes, retries (e.g. payment retries), env-based fee config.
-- Keep API agent-friendly and documented in `docs/api.md` when endpoints change.
+- Keep API agent-friendly and documented in `SDK.md` (HTTP Backend API) when endpoints change.
 
 ### 2.6 Testing Agent
 
@@ -122,7 +122,7 @@ Pick the persona that matches the work. Use `general-purpose` for implementation
 
 - `tests/test_client.py`, `tests/test_sdk.py`, `tests/test_aws_integration.py`.
 - Workflow cases in `tests/test-suite.md` (ABT-001, ABT-002, …).
-- Regtest integration smoke paths described in `README.md` workflow.
+- Regtest integration smoke paths described in `docs/backend.md`.
 
 **Capabilities**
 
@@ -319,7 +319,7 @@ uv run pytest tests/test_client.py tests/test_sdk.py -q
 ### Live regtest integration (optional, environment-dependent)
 
 ```bash
-# After AWS + Mac workflow is up (see README Workflow)
+# After AWS + Mac workflow is up (see docs/backend.md)
 uv run python tests/test_aws_integration.py --backend-url http://<aws-ip>:8000
 ```
 
@@ -339,7 +339,7 @@ Always consider:
 
 - Relevant tests pass (or new tests added).
 - No secrets in the diff.
-- README/docs updated if user-facing workflow or API changed.
+- README / SDK.md / docs/backend.md updated if user-facing workflow or API changed.
 - Examples still import public APIs that exist.
 
 ---
@@ -408,7 +408,7 @@ uv run python -c "from agent_bitcoin import create_client; print('ok')"
 ./wait-mac-lnd.sh regtest
 
 # Backend (typical)
-# uvicorn / docker per compose — see README Workflow
+# uvicorn / docker per compose — see docs/backend.md
 
 # Shutdown
 ./shutdown-aws.sh
