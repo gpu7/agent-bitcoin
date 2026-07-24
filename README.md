@@ -174,7 +174,7 @@ Note: the "current-aws-instance-IPv4-address" changes each time a new AWS agent-
 - 2) On AWS: Fund LND node. See below.
 - 3) On Mac: ./startup-mac.sh regtest <current-aws-instance-IPv4-address>
 - 4) On Mac: ./wait-mac-lnd.sh regtest
-- 5) On Mac: Connect LND nodes Mac <-> AWS. See below.
+- 5) On Mac: ./connect-mac-to-aws.sh <current-aws-instance-IPv4-address> <pubkey-from-aws-getinfo> See below.
 - 6) On Mac: Verify peer connection Mac <-> AWS. See below.
 - 7) On Mac: Open Lightning channel Mac <-> AWS. See below.
 - 8) On Mac: uv run python tests/test_aws_integration.py --backend-url http://<current-aws-instance-IPv4-address>:8000
