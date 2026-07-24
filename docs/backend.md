@@ -1,23 +1,64 @@
 # Backend Management
 
+Operator runbook for the AWS + Mac regtest stack (not the public SDK guide).
+SDK users: see [SDK.md](../SDK.md). Product overview: [README.md](../README.md).
+
+---
+
+## Current environment (operator)
+
+Canonical AWS host for day-to-day ops. **Stop/start keeps this IP** while the Elastic IP stays associated with the instance primary ENI.
+
+| Item | Value |
+|------|--------|
+| Region / AZ | `us-east-1` / `us-east-1a` |
+| Elastic IP (EIP) | **`3.90.159.146`** |
+| Use for | `startup-*.sh`, Mac LND bitcoind host, `connect-mac-to-aws.sh`, integration tests, SSH |
+
+```bash
+# Export for a shell session (optional)
+export AWS_EIP=3.90.159.146
+# alias used in examples below
+export AWS_IP="$AWS_EIP"
+```
+
+Example commands with the current EIP:
+
+```bash
+./startup-aws.sh regtest 3.90.159.146
+./startup-mac.sh regtest 3.90.159.146
+./connect-mac-to-aws.sh 3.90.159.146 <pubkey-from-aws-getinfo>
+uv run python tests/test_aws_integration.py --backend-url http://3.90.159.146:8000
+```
+
+Elsewhere in this doc, `<AWS_EIP>` means this address (update this section if the EIP ever changes).
+Do **not** put the EIP in README/SDK; keep it here for operators.
+
+After attaching or changing the EIP, restart AWS LND so `--externalip` matches:
+
+```bash
+./startup-aws.sh regtest 3.90.159.146
+# unlock wallet when prompted
+```
+
 ---
 
 ## Workflow
 
-The current workflow is shown here.  This is the test workflow on regtest.
+The current workflow is shown here. This is the test workflow on regtest.
 
-Note: the "current-aws-instance-IPv4-address" changes each time a new AWS agent-bitcoin instance is launched.
+Use **`<AWS_EIP>`** = current Elastic IP (see [Current environment](#current-environment-operator) above; today `3.90.159.146`).
 
-- 1) On AWS: ./startup-aws.sh regtest <current-aws-instance-IPv4-address>
+- 1) On AWS: `./startup-aws.sh regtest <AWS_EIP>`
 - 2) On AWS: Fund LND node. See below.
-- 3) On Mac: ./startup-mac.sh regtest <current-aws-instance-IPv4-address>
-- 4) On Mac: ./wait-mac-lnd.sh regtest
-- 5) On Mac: ./connect-mac-to-aws.sh <current-aws-instance-IPv4-address> <pubkey-from-aws-getinfo> See below.
+- 3) On Mac: `./startup-mac.sh regtest <AWS_EIP>`
+- 4) On Mac: `./wait-mac-lnd.sh regtest`
+- 5) On Mac: `./connect-mac-to-aws.sh <AWS_EIP> <pubkey-from-aws-getinfo>` See below.
 - 6) On Mac: Verify peer connection Mac <-> AWS. See below.
 - 7) On Mac: Open Lightning channel Mac <-> AWS. See below.
-- 8) On Mac: uv run python tests/test_aws_integration.py --backend-url http://<current-aws-instance-IPv4-address>:8000
-- 9) On AWS: ./shutdown-aws.sh
-- 10) On Mac: ./shutdown-mac.sh
+- 8) On Mac: `uv run python tests/test_aws_integration.py --backend-url http://<AWS_EIP>:8000`
+- 9) On AWS: `./shutdown-aws.sh`
+- 10) On Mac: `./shutdown-mac.sh`
 
 ### Optional diagnostics
 Run these commands after each workflow step to determine if everything launched correctly.
@@ -84,10 +125,10 @@ docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-1-lnd \
 
 echo -e "Test Connectivity to AWS bitcoind (from both agents):"
 docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
-  curl -s -X POST http://98.93.77.245:18443 -H "Content-Type: application/json" --data '{"jsonrpc":"1.0","id":"test","method":"getblockcount"}' || echo "Failed from agent-bitcoin-lnd"
+  curl -s -X POST http://3.90.159.146:18443 -H "Content-Type: application/json" --data '{"jsonrpc":"1.0","id":"test","method":"getblockcount"}' || echo "Failed from agent-bitcoin-lnd"
 
 docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-1-lnd \
-  curl -s -X POST http://98.93.77.245:18443 -H "Content-Type: application/json" --data '{"jsonrpc":"1.0","id":"test","method":"getblockcount"}' || echo "Failed from agent-bitcoin-1-lnd"
+  curl -s -X POST http://3.90.159.146:18443 -H "Content-Type: application/json" --data '{"jsonrpc":"1.0","id":"test","method":"getblockcount"}' || echo "Failed from agent-bitcoin-1-lnd"
 
 echo -e "Recent Logs (agent-bitcoin-lnd):"
 docker compose -f docker-compose.regtest.mac.yml logs --tail 20 agent-bitcoin-lnd | tail -10
@@ -163,7 +204,7 @@ Use AWS agent-payment-decision-lnd pubkey.
 ```bash
 docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-lnd \
   lncli --lnddir=/home/lnd/.lnd --network=regtest connect \
-  0258b1aefcaa9c03423647a1c17094f04616a4849696d1db7ec67943eae73ab0ec@<current-aws-instance-IPv4-address>:9735
+  <AWS_LND_PUBKEY>@<AWS_EIP>:9735
 ```
 
 - STEP #7. On Mac:
@@ -260,7 +301,7 @@ Here is the command to ssh into a running AWS instance.
 Note: the URL will change each time a new instance is started.
 
 ```bash
-ssh -i ~/.ssh/aws/agent-bitcoin-key.pem ubuntu@100.58.101.173
+ssh -i ~/.ssh/aws/agent-bitcoin-key.pem ubuntu@3.90.159.146
 ```
 
 ### Start backend in tmux
@@ -410,7 +451,9 @@ Summary
 - Note: You will have to update the AWS instance IP address every time you launch a new instance
 
 ```bash
-docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest connect 022c3c33f5974b37861859de0417bf8f95fba55dae3677053c2aa6f9aaa2032b67@54.227.203.21:9735
+# Prefer: ./connect-mac-to-aws.sh 3.90.159.146 <pubkey-from-aws-getinfo>
+docker exec agent-bitcoin-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest \
+  connect <AWS_LND_PUBKEY>@3.90.159.146:9735
 ```
 
 ### Open Lightning channel from Mac to AWS
@@ -434,7 +477,8 @@ docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --netwo
 # 1. Connect Mac node to AWS node
 #    Run these commands on Mac
 #    Note: change the pubkey based on the previous command
-docker compose exec -T agent-bitcoin-lnd lncli --network=regtest connect 022c3c33f5974b37861859de0417bf8f95fba55dae3677053c2aa6f9aaa2032b67@100.58.101.173:9735
+docker exec agent-bitcoin-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest \
+  connect <AWS_LND_PUBKEY>@3.90.159.146:9735
 
 # 2. Open channel from Mac to AWS
 docker compose exec -T agent-bitcoin-lnd lncli --network=regtest openchannel \
@@ -458,10 +502,10 @@ Run on mac:
 uv run python tests/test_aws_integration.py
 
 # With your AWS backend IP
-uv run python tests/test_aws_integration.py --backend-url http://34.204.169.174:8000
+uv run python tests/test_aws_integration.py --backend-url http://3.90.159.146:8000
 
 # Custom amount
-uv run python tests/test_aws_integration.py --backend-url http://34.204.169.174:8000 --amount 10000
+uv run python tests/test_aws_integration.py --backend-url http://3.90.159.146:8000 --amount 10000
 ```
 
 ---

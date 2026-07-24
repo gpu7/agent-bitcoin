@@ -38,6 +38,7 @@ Keep this file actionable. Prefer links to `README.md`, `docs/`, and `SECURITY.m
 | `docker-compose.regtest.aws.yml` / `docker-compose.regtest.mac.yml` | Node stacks |
 | `startup-*.sh` / `shutdown-*.sh` / `watch-lnd-sync.sh` | Ops scripts |
 | `docs/` | Operator docs (`backend.md`); see also root `SDK.md` / `README.md` |
+| Current AWS EIP | Canonical value in `docs/backend.md` → **Current environment** (do not hardcode elsewhere) |
 
 ### Runtime agents (product, inside the SDK)
 
