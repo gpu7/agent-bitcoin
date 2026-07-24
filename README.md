@@ -5,11 +5,11 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Release](https://img.shields.io/github/v/release/gpu7/agent-bitcoin)](https://github.com/gpu7/agent-bitcoin/releases/latest)
 [![GitHub Repo](https://img.shields.io/badge/GitHub-gpu7/agent--bitcoin-black)](https://github.com/gpu7/agent-bitcoin)
-<br>
+<br><br>
 ## Lightning Bitcoin payments for autonomous AI Agents.
 
 - A lightweight Python SDK that enables AI agents to send and receive Lightning/Bitcoin payments.
-<br>
+
 ---
 
 ## Features
