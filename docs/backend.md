@@ -2,6 +2,235 @@
 
 ---
 
+## Workflow
+
+The current workflow is shown here.  This is the test workflow on regtest.
+
+Note: the "current-aws-instance-IPv4-address" changes each time a new AWS agent-bitcoin instance is launched.
+
+- 1) On AWS: ./startup-aws.sh regtest <current-aws-instance-IPv4-address>
+- 2) On AWS: Fund LND node. See below.
+- 3) On Mac: ./startup-mac.sh regtest <current-aws-instance-IPv4-address>
+- 4) On Mac: ./wait-mac-lnd.sh regtest
+- 5) On Mac: ./connect-mac-to-aws.sh <current-aws-instance-IPv4-address> <pubkey-from-aws-getinfo> See below.
+- 6) On Mac: Verify peer connection Mac <-> AWS. See below.
+- 7) On Mac: Open Lightning channel Mac <-> AWS. See below.
+- 8) On Mac: uv run python tests/test_aws_integration.py --backend-url http://<current-aws-instance-IPv4-address>:8000
+- 9) On AWS: ./shutdown-aws.sh
+- 10) On Mac: ./shutdown-mac.sh
+
+### Optional diagnostics
+Run these commands after each workflow step to determine if everything launched correctly.
+
+- STEP #1. On AWS:
+
+```bash
+echo "=== Post-Startup Diagnostics (AWS) ==="
+
+echo "Containers:"
+docker ps
+
+echo -e "Bitcoind Height:"
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=lightning -rpcpassword=lightning getblockcount
+
+echo -e "LND Sync Status:"
+docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo | grep -E "block_height|synced_to_chain|synced_to_graph|identity_pubkey"
+
+echo -e "Backend API Balance:"
+curl -s http://localhost:8000/balance | jq . 2>/dev/null || curl -s http://localhost:8000/balance || echo "API not responding yet"
+
+echo -e "Recent LND Logs:"
+docker logs --tail 20 agent-payment-decision-lnd | tail -15
+
+echo -e "Command to start agent-payment-decision-lnd"
+docker compose -f docker-compose.regtest.aws.yml up -d agent-payment-decision-lnd
+```
+
+- STEP #2. On AWS:
+
+```bash
+# Get new LND address
+ADDR=$(docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest newaddress p2wkh | jq -r '.address')
+echo "Funding address: $ADDR"
+
+# Send 5 BTC from miner wallet
+docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner sendtoaddress $ADDR 5
+
+# Mine blocks to confirm
+docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner generatetoaddress 6 $(docker exec bitcoind bitcoin-cli -regtest -rpcwallet=miner getnewaddress "")
+
+# Check balance
+curl -s http://localhost:8000/balance | jq .
+```
+
+- STEP #3. On Mac:
+
+```bash
+echo "=== Post-Startup Diagnostics (Mac) ==="
+
+echo "1. Container Status:"
+docker compose -f docker-compose.regtest.mac.yml ps
+
+echo -e "Bitcoind Height (Mac):"
+docker compose -f docker-compose.regtest.mac.yml exec bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass getblockcount
+
+echo -e "agent-bitcoin-lnd Status:"
+docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo | grep -E "identity_pubkey|block_height|synced_to_chain|synced_to_graph|uris"
+
+echo -e "agent-bitcoin-1-lnd Status:"
+docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-1-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo | grep -E "identity_pubkey|block_height|synced_to_chain|synced_to_graph|uris"
+
+echo -e "Test Connectivity to AWS bitcoind (from both agents):"
+docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
+  curl -s -X POST http://98.93.77.245:18443 -H "Content-Type: application/json" --data '{"jsonrpc":"1.0","id":"test","method":"getblockcount"}' || echo "Failed from agent-bitcoin-lnd"
+
+docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-1-lnd \
+  curl -s -X POST http://98.93.77.245:18443 -H "Content-Type: application/json" --data '{"jsonrpc":"1.0","id":"test","method":"getblockcount"}' || echo "Failed from agent-bitcoin-1-lnd"
+
+echo -e "Recent Logs (agent-bitcoin-lnd):"
+docker compose -f docker-compose.regtest.mac.yml logs --tail 20 agent-bitcoin-lnd | tail -10
+
+echo -e "Show a live tail of the logs, updating in real time as Mac LND receives and processes blocks from AWS."
+docker compose -f docker-compose.regtest.mac.yml logs -f agent-bitcoin-lnd | grep -E "ZMQ|block|sync|new block|Filtering"
+```
+
+- STEP #4. On Mac:
+-
+```bash
+echo "=== Mac Post-Startup Diagnostics ==="
+
+echo "1. Containers:"
+docker compose -f docker-compose.regtest.mac.yml ps
+
+echo -e "Bitcoind Height (Mac):"
+docker compose -f docker-compose.regtest.mac.yml exec -T bitcoind bitcoin-cli -regtest -rpcuser=rpcuser -rpcpassword=rpcpass getblockcount
+
+echo -e "Mac LND Status:"
+docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo | grep -E "identity_pubkey|block_height|synced_to_chain|synced_to_graph"
+
+echo -e "Connection to AWS LND:"
+docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest listpeers | grep -E "pub_key|address"
+
+echo -e "Recent Mac LND Logs:"
+docker compose -f docker-compose.regtest.mac.yml logs --tail 15 agent-bitcoin-lnd | tail -10
+```
+
+- STEP #5. It can take a fairly long time to sync the Lightning node with the Bitcoin blockchain. If you see "synced_to_chain: false", run these commands to advance the chain and force LND to catch up. This is not guaranteed to work. You may have to simply wait some time for the nodes to sync.
+
+- Explanation for why mining more blocks on AWS helps the Mac LND sync faster:
+
+- Your setup is:
+
+  - AWS: Runs bitcoind (the Bitcoin blockchain) + agent-payment-decision-lnd
+  - Mac: Runs only agent-bitcoin-lnd (connects to AWS bitcoind via RPC + ZMQ)
+
+- When you mine blocks on AWS:
+
+1) The AWS bitcoind adds new blocks to the blockchain.
+2) The Mac LND is configured to listen to AWS bitcoind for new blocks (via ZMQ notifications on ports 28332/28333) and to query it via RPC.
+3) When new blocks appear, the Mac LND gets notified and starts downloading and validating them.
+4) This advances the Mac LND’s block_height and eventually flips synced_to_chain from false to true.
+
+```bash
+# On AWS:
+
+# Mine more blocks
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc generatetoaddress 200 $(docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getnewaddress "")
+
+# On Mac:
+
+# Restart Mac LND
+docker compose -f docker-compose.regtest.mac.yml restart agent-bitcoin-lnd
+
+sleep 15
+
+# Unlock if needed
+docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest unlock
+
+# Monitor
+./wait-mac-lnd.sh regtest
+```
+
+- STEP #6. On Mac:
+
+Use AWS agent-payment-decision-lnd pubkey.
+
+```bash
+docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest connect \
+  0258b1aefcaa9c03423647a1c17094f04616a4849696d1db7ec67943eae73ab0ec@<current-aws-instance-IPv4-address>:9735
+```
+
+- STEP #7. On Mac:
+
+```bash
+docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest listpeers
+```
+
+- STEP #8. On Mac:
+
+Use AWS agent-payment-decision-lnd pubkey.
+
+```bash
+docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest openchannel \
+  --node_key 0258b1aefcaa9c03423647a1c17094f04616a4849696d1db7ec67943eae73ab0ec \
+  --local_amt 1000000 \
+  --push_amt 500000
+```
+
+- STEP #9. On AWS:
+
+```bash
+echo "=== Agent-Bitcoin Shutdown Diagnostics ==="
+
+echo "→ Running containers:"
+docker ps
+
+echo "→ Agent networks:"
+docker network ls | grep -E "agent|agent-net"
+
+echo "→ Backend processes:"
+ps aux | grep -E "uv run|backend/main.py" | grep -v grep
+
+echo "→ Volumes (LND volume should remain):"
+docker volume ls | grep agent-bitcoin
+
+echo ""
+echo "✅ If no containers or agent networks appear above, shutdown is clean."
+echo "   (LND volume is intentionally kept for faster restarts)"
+```
+
+- STEP #10. On Mac:
+
+```bash
+echo "=== Mac Shutdown Diagnostics ==="
+
+echo "→ Running containers:"
+docker ps
+
+echo "→ Agent networks:"
+docker network ls | grep -E "agent|agent-lightning-net"
+
+echo "→ Backend processes:"
+ps aux | grep -E "uv run|backend/main.py" | grep -v grep
+
+echo "→ Volumes (should keep LND and bitcoind data):"
+docker volume ls | grep -E "agent-bitcoin|bitcoind"
+
+echo ""
+echo "✅ If no containers or agent networks appear above, shutdown is clean."
+echo "   (Volumes are intentionally kept for faster restarts)"
+```
+
+---
+
 ## Publish to TestPyPi
 
 - Update pyproject.toml as appropriate.
