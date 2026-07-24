@@ -1,0 +1,302 @@
+# Backend Management
+
+---
+
+## Publish to TestPyPi
+
+- Update pyproject.toml as appropriate.
+
+```bash
+# Build and upload to TestPyPI
+cd ~/agent-bitcoin
+rm -rf dist/ build/ *.egg-info/
+uv tool install twine
+uv build
+twine upload --repository testpypi dist/*
+```
+
+---
+
+## AWS
+
+### Instance type
+
+- Currently using the AWS instance types:
+t3.medium
+i4i.xlarge
+
+### SSH
+Here is the command to ssh into a running AWS instance.
+
+Note: the URL will change each time a new instance is started.
+
+```bash
+ssh -i ~/.ssh/aws/agent-bitcoin-key.pem ubuntu@100.58.101.173
+```
+
+### Start backend in tmux
+```bash
+tmux new-session -d -s backend "cd ~/agent-bitcoin && PYTHONPATH=. uv run python backend/main.py"
+```
+
+### Check if it's running
+```bash
+tmux ls
+curl http://localhost:8000/balance
+```
+
+### docker-compose.regtest.yml
+
+If you modify the file docker-compose.regtest.yml, immediately instantiate the changes by running these commands:
+
+```bash
+docker compose -f docker-compose.regtest.aws.yml down
+docker compose -f docker-compose.regtest.aws.yml up -d
+```
+
+### AWS monitoring data
+
+```bash
+# 1. Current instance type and specs
+echo "Instance type:"; curl -s http://169.254.169.254/latest/meta-data/instance-type
+
+# 2. CPU usage
+echo -e "\nCPU Usage:"; top -bn1 | head -n 20
+
+# 3. Memory usage
+echo -e "\nMemory Usage:"; free -h
+
+# 4. Disk I/O (important for bitcoind + LND)
+echo -e "\nDisk I/O:"; iostat -x 1 3 | tail -n 20
+
+# 5. Current running processes
+echo -e "\nTop processes:"; ps aux --sort=-%cpu | head -n 15
+```
+
+---
+
+## Bitcoin wallet management
+```bash
+echo "→ Deleting ALL Bitcoin wallets (clean slate)..."
+
+# Unload all wallets
+docker exec bitcoind bitcoin-cli -regtest listwallets | \
+  docker exec -i bitcoind xargs -I {} bitcoin-cli -regtest unloadwallet "{}" 2>/dev/null || true
+
+# Delete the entire wallets directory (nuclear but safe on regtest)
+docker exec bitcoind rm -rf /home/bitcoin/.bitcoin/regtest/wallets
+
+# Recreate the empty wallets directory
+docker exec bitcoind mkdir -p /home/bitcoin/.bitcoin/regtest/wallets
+
+echo "✅ All wallets deleted. Fresh start ready."
+```
+
+---
+
+## Lightning Labs Loop service
+
+- Install, configure and run Loop in regtest.
+
+```bash
+#!/bin/bash
+set -e
+
+echo "=== Setting up Loop on regtest (official environment) ==="
+
+# 1. Install docker-compose if needed
+echo "Installing docker-compose..."
+sudo apt update
+sudo apt install -y docker-compose
+
+# 2. Clone Loop repo
+echo "Cloning Loop repo..."
+cd ~
+git clone https://github.com/lightninglabs/loop.git || true
+cd loop/regtest
+
+# 3. Update docker-compose.yml to use working etcd image
+echo "Updating etcd image..."
+sed -i 's|bitnami/etcd:.*|quay.io/coreos/etcd:v3.5.18|' docker-compose.yml
+
+# 4. Clean up old conflicting containers
+echo "Cleaning up old containers..."
+cd ~/agent-bitcoin || true
+docker compose -f docker-compose.regtest.aws.yml down 2>/dev/null || true
+docker rm -f $(docker ps -aq) 2>/dev/null || true
+docker volume rm $(docker volume ls -q) 2>/dev/null || true
+
+# 5. Start the official regtest environment
+echo "Starting regtest environment..."
+cd ~/loop/regtest
+./regtest.sh start
+
+echo "✅ Loop regtest setup complete!"
+echo "Test with: loop --network=regtest getinfo"
+```
+
+---
+
+## Lightning channels
+
+Here are instructions for managing Lightning channels.
+
+### Step 1: Fund the AWS node
+
+- Run these commands on the AWS instance:
+
+It may be necessary to run this first if using regtest:
+
+```bash
+# Set a fallback fee
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc settxfee 0.00001
+```
+
+```bash
+# 1. Get a new address on the AWS payment-decision node
+ADDR=$(docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest newaddress p2wkh | jq -r .address)
+echo "AWS Address: $ADDR"
+
+# 2. Send coins from bitcoind to the AWSpayment-decision node
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc sendtoaddress "$ADDR" 20
+
+# 3. Mine blocks to confirm the funds
+docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc generatetoaddress 6 $(docker exec bitcoind bitcoin-cli -regtest -rpcuser=btc -rpcpassword=btc getnewaddress)
+
+# 4. Check balance on AWS
+docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest walletbalance
+```
+
+Summary
+- AWS payment-decision-lnd now has 2,000,000,000 sats (20 BTC) confirmed.
+
+### Step 2: Connect Mac to AWS
+
+- Run this command on the Mac:
+
+- Note: You will have to update the AWS instance IP address every time you launch a new instance
+
+```bash
+docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest connect 022c3c33f5974b37861859de0417bf8f95fba55dae3677053c2aa6f9aaa2032b67@54.227.203.21:9735
+```
+
+### Open Lightning channel from Mac to AWS
+```bash
+# Open a 5M sat channel (you can adjust the amount)
+docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest openchannel \
+    --node_key 039f2162629469491bf27e39d5f679d601662953b2db437db24e08c91b5d71b6de \
+    --local_amt 5000000 \
+    --push_amt 2000000
+```
+
+### Open Channel Mac <--> AWS
+```bash
+# Get the identity pubkey of the AWS node
+# Run this command on AWS node
+docker exec -it agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo
+```
+
+```bash
+# 1. Connect Mac node to AWS node
+#    Run these commands on Mac
+#    Note: change the pubkey based on the previous command
+docker compose exec -T agent-bitcoin-lnd lncli --network=regtest connect 022c3c33f5974b37861859de0417bf8f95fba55dae3677053c2aa6f9aaa2032b67@100.58.101.173:9735
+
+# 2. Open channel from Mac to AWS
+docker compose exec -T agent-bitcoin-lnd lncli --network=regtest openchannel \
+  --node_key 022c3c33f5974b37861859de0417bf8f95fba55dae3677053c2aa6f9aaa2032b67 \
+  --local_amt 5000000 \
+  --push_amt 1000000
+```
+
+---
+
+## Tests
+
+### Test integration of frontend SDK with backend AWS API
+
+File: tests/test_aws_integration.py
+
+Run on mac:
+
+```bash
+# Basic usage (localhost)
+uv run python tests/test_aws_integration.py
+
+# With your AWS backend IP
+uv run python tests/test_aws_integration.py --backend-url http://34.204.169.174:8000
+
+# Custom amount
+uv run python tests/test_aws_integration.py --backend-url http://34.204.169.174:8000 --amount 10000
+```
+
+---
+
+## Logs
+
+### Docker commands to follow log files
+```bash
+# On AWS:
+docker compose -f docker-compose.regtest.aws.yml logs -f agent-payment-decision-lnd
+
+# On Mac:
+docker compose -f docker-compose.regtest.mac.yml logs -f agent-bitcoin-lnd
+```
+
+---
+
+## ZMQ (ZeroMQ) connands
+
+- ZeroMQ is a high-performance, lightweight messaging library that allows different programs (in this case, bitcoind and LND) to communicate efficiently.
+
+- In current setup, AWS bitcoind uses ZMQ to publish (send out) real-time notifications whenever
+  - 1) a new block is mined (rawblock)
+  - 2) a new transaction is seen (rawtx)
+
+- ZMQ is the fast notification system that lets LND know immediately when new blocks arrive on the AWS node.
+
+- Mac agent-bitcoin-lnd subscribes to those ZMQ feeds (on ports 28332 and 28333) so it can stay in sync with the Bitcoin blockchain without constantly polling.
+
+Here are commands related to ZMQ.
+
+```bash
+# Check from Mac terminal whether agent-bitcoin-lnd is receiving ZMQ messages from AWS bitcoind. Look for lines like:
+  # Started listening for bitcoind block notifications via ZMQ
+  # New block epoch subscription
+  # Received block or similar
+docker compose -f docker-compose.regtest.mac.yml logs --tail 50 agent-bitcoin-lnd | grep -E "ZMQ|block|sync|new block"
+```
+
+- More detailed ZMQ status
+
+```bash
+# Check if LND is connected to ZMQ
+docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo | grep -E "block_height|synced_to_chain"
+
+# Watch live ZMQ activity
+docker compose -f docker-compose.regtest.mac.yml logs -f agent-bitcoin-lnd | grep -E "ZMQ|block|height"
+```
+
+- Verify ZMQ ports are open
+  - If ports 28332 and 28333 are listening, ZMQ is configured.
+
+```bash
+docker compose -f docker-compose.regtest.mac.yml exec agent-bitcoin-lnd \
+  ss -tlnp | grep -E "28332|28333"
+```
+
+---
+
+## Terminal screen management
+
+- Sometimes, the terminal is left in an unstable state.  These commands usually fix it.
+
+| Command   | What it does                    | When to use                 |
+|:----------|:--------------------------------|:----------------------------|
+| stty echo | Turns typing visibility back on | When text is invisible      |
+| stty sane | Best all around fix             | When output looks broken    |
+| reset     | Full terminal reset             | When stty sane isn't enough |
+
+---
