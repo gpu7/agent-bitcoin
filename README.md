@@ -327,8 +327,8 @@ MIT License — see LICENSE file.
 
 ## Support
 
-Richard Casey
-richardcaseyhpc@protonmail.com
-+1 970-980-5975
+- Richard Casey
+- richardcaseyhpc@protonmail.com
+- +1 970-980-5975
 
 ---
