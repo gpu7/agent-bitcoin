@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 
+from .constants import fee_amount_sats, max_payment_sats, min_payment_sats
 from .lightning import LNDClient
 from .models import (
     Invoice,
@@ -18,14 +19,23 @@ class AgentBitcoinClient:
         self.lnd = LNDClient()  # No arguments needed now
 
         self.fee_wallet_address = os.getenv("FEE_WALLET_ADDRESS")
-        self.fee_amount_sats = int(os.getenv("FEE_AMOUNT_SATS", 1000))
-        self.min_payment_sats = int(os.getenv("MIN_PAYMENT_SATS", 2000))
+        self.fee_amount_sats = fee_amount_sats()
+        # Also accept FEE_SATS as alias used by backend
+        if (
+            os.getenv("FEE_AMOUNT_SATS", "").strip() == ""
+            and os.getenv("FEE_SATS", "").strip()
+        ):
+            self.fee_amount_sats = int(os.getenv("FEE_SATS", "1000"))
+        self.min_payment_sats = min_payment_sats()
+        self.max_payment_sats = max_payment_sats()
 
     def create_invoice(
         self, memo: str, amount_sats: int, expiry_seconds: int = 3600
     ) -> Invoice:
         if amount_sats < self.min_payment_sats:
             raise ValueError(f"Minimum payment is {self.min_payment_sats} sats")
+        if amount_sats > self.max_payment_sats:
+            raise ValueError(f"Maximum payment is {self.max_payment_sats} sats")
         return self.lnd.create_invoice(memo, amount_sats, expiry_seconds)
 
     def pay_invoice(self, payment_request: str) -> PaymentResult:

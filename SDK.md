@@ -67,6 +67,9 @@ The Python client loads environment variables via `python-dotenv` (typically a `
 | `FEE_WALLET_ADDRESS` | (none) | On-chain address for `collect_transaction_fee()` |
 | `FEE_AMOUNT_SATS` | `1000` | Fee amount for `collect_transaction_fee()` |
 | `MIN_PAYMENT_SATS` | `2000` | Minimum `amount_sats` for `create_invoice()` |
+| `MAX_PAYMENT_SATS` | `1000000` | Shared max for invoices and agent pays |
+| `MAX_INVOICE_SATS` | same as max | Optional override for backend only |
+| `PAYMENT_DECISION_MAX_SATS` | same as max | Optional override for agent only |
 
 ### LND connection (models / env helpers)
 
@@ -223,7 +226,8 @@ from agent_bitcoin.agents.payment_decision import (
 | Rule | Default | Configurable via |
 |------|---------|------------------|
 | Fixed fee | **1,000 sats** | `FEE_AMOUNT_SATS` / backend `FEE_SATS` |
-| Minimum invoice amount | **2,000 sats** | `MIN_PAYMENT_SATS` |
+| Minimum invoice/payment amount | **2,000 sats** | `MIN_PAYMENT_SATS` |
+| Maximum invoice/payment amount | **1,000,000 sats** | `MAX_PAYMENT_SATS` (shared) |
 
 ### Semantics
 
@@ -297,7 +301,7 @@ The agent **never executes payments**. It only returns a decision. Callers must 
 | Env / constructor | Default | Effect |
 |-------------------|---------|--------|
 | `MIN_PAYMENT_SATS` / `min_sats` | 2000 | Reject below minimum |
-| `PAYMENT_DECISION_MAX_SATS` / `max_sats` | 100000 | Hard reject above max |
+| `PAYMENT_DECISION_MAX_SATS` / `max_sats` | **1000000** (shared default) | Hard reject above max |
 | `PAYMENT_DECISION_CONFIRM_ABOVE_SATS` / `confirm_above_sats` | unset | If set, amounts above return `CONFIRM_REQUIRED` (human must approve) |
 
 `decision` values: `PAY`, `REJECT`, `CONFIRM_REQUIRED`.
@@ -422,7 +426,7 @@ Generate (example): `openssl rand -hex 32` — store in a password manager and h
 | Env | Default | Applies to |
 |-----|---------|------------|
 | `MIN_PAYMENT_SATS` | 2000 | `POST /invoices` |
-| `MAX_INVOICE_SATS` | 1000000 | `POST /invoices` |
+| `MAX_INVOICE_SATS` / `MAX_PAYMENT_SATS` | 1000000 | `POST /invoices` |
 | `MAX_FEE_SEND_SATS` | 100000 | `POST /send-fee` |
 
 ### Why use it

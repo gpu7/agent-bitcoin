@@ -10,6 +10,10 @@ from typing import Any, Optional
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_xai import ChatXAI
 
+from agent_bitcoin.constants import (
+    min_payment_sats,
+    payment_decision_max_sats,
+)
 from agent_bitcoin.prompts import (
     BITCOIN_LND_SYSTEM_PROMPT,
     PAYMENT_DECISION_DEFAULT_INSTRUCTIONS,
@@ -17,13 +21,6 @@ from agent_bitcoin.prompts import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-def _env_int(name: str, default: int) -> int:
-    raw = os.getenv(name)
-    if raw is None or raw.strip() == "":
-        return default
-    return int(raw)
 
 
 class PaymentDecision(Enum):
@@ -56,14 +53,10 @@ class PaymentDecisionAgent:
         self.system_prompt = PAYMENT_DECISION_SYSTEM_PROMPT
         self.default_instructions = PAYMENT_DECISION_DEFAULT_INSTRUCTIONS
 
-        # Coded limits (env defaults; constructor overrides)
-        self.min_sats = (
-            min_sats if min_sats is not None else _env_int("MIN_PAYMENT_SATS", 2000)
-        )
+        # Coded limits (shared defaults; constructor / env overrides)
+        self.min_sats = min_sats if min_sats is not None else min_payment_sats()
         self.max_sats = (
-            max_sats
-            if max_sats is not None
-            else _env_int("PAYMENT_DECISION_MAX_SATS", 100_000)
+            max_sats if max_sats is not None else payment_decision_max_sats()
         )
         # Amounts above this require human confirmation (no automatic PAY)
         if confirm_above_sats is not None:

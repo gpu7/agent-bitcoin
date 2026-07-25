@@ -1,26 +1,30 @@
-import pytest
-from agent_bitcoin import create_client
+"""Basic client factory tests."""
+
+from unittest.mock import MagicMock, patch
+
+from agent_bitcoin import (
+    DEFAULT_FEE_AMOUNT_SATS,
+    DEFAULT_MAX_PAYMENT_SATS,
+    DEFAULT_MIN_PAYMENT_SATS,
+    create_client,
+)
 
 
-def test_client_can_be_created():
-    client = create_client()
-    assert client is not None
+def test_create_client(clear_payment_env):
+    with patch("agent_bitcoin.client.LNDClient") as mock_lnd:
+        mock_lnd.return_value = MagicMock()
+        client = create_client()
+        assert client is not None
+        assert client.min_payment_sats == DEFAULT_MIN_PAYMENT_SATS
+        assert client.max_payment_sats == DEFAULT_MAX_PAYMENT_SATS
+        assert client.fee_amount_sats == DEFAULT_FEE_AMOUNT_SATS
 
 
-def test_config_defaults():
-    client = create_client()
-    assert client.config.container_payment_decision == "agent-payment-decision-lnd"
-    assert client.config.container_bitcoin == "agent-bitcoin-lnd"
+def test_pay_invoice_requires_request(clear_payment_env):
+    with patch("agent_bitcoin.client.LNDClient") as mock_lnd:
+        mock_lnd.return_value = MagicMock()
+        client = create_client()
+        import pytest
 
-
-def test_create_invoice_validation():
-    client = create_client()
-    with pytest.raises(Exception):  # Should raise for invalid amount
-        client.create_invoice(memo="Test", amount_sats=0)
-
-
-@pytest.mark.skip(reason="Requires running Docker containers")
-def test_create_and_pay_invoice():
-    client = create_client()
-    invoice = client.create_invoice(memo="Test", amount_sats=3000)
-    assert invoice.payment_request.startswith("lnbcrt")
+        with pytest.raises(ValueError, match="Payment request"):
+            client.pay_invoice("")

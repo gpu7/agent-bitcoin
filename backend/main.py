@@ -24,6 +24,12 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from agent_bitcoin.constants import (
+    DEFAULT_FEE_AMOUNT_SATS,
+    max_fee_send_sats,
+    max_invoice_sats,
+    min_payment_sats,
+)
 from agent_bitcoin.lightning import LNDClient
 
 load_dotenv()
@@ -59,11 +65,11 @@ class AccessLogMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(AccessLogMiddleware)
 
-FEE_SATS = int(os.getenv("FEE_SATS", "1000"))
+FEE_SATS = int(os.getenv("FEE_SATS", str(DEFAULT_FEE_AMOUNT_SATS)))
 FEE_ADDRESS = os.getenv("FEE_ADDRESS")
-MIN_PAYMENT_SATS = int(os.getenv("MIN_PAYMENT_SATS", "2000"))
-MAX_INVOICE_SATS = int(os.getenv("MAX_INVOICE_SATS", "1000000"))
-MAX_FEE_SEND_SATS = int(os.getenv("MAX_FEE_SEND_SATS", "100000"))
+MIN_PAYMENT_SATS = min_payment_sats()
+MAX_INVOICE_SATS = max_invoice_sats()
+MAX_FEE_SEND_SATS = max_fee_send_sats()
 API_KEY = (os.getenv("AGENT_BITCOIN_API_KEY") or "").strip()
 
 client = LNDClient()

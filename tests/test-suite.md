@@ -1,143 +1,51 @@
-# Agent-Bitcoin Workflow Test Suite
+# Agent-Bitcoin Test Suite
 
-## Table of Contents
-
-- [Agent-Bitcoin Workflow Test Suite](#agent-bitcoin-workflow-test-suite)
-  - [Table of Contents](#table-of-contents)
-  - [ABT-001: Nominal Payment](#abt-001-nominal-payment)
-  - [ABT-002: Under Payment (\< 1 sat)](#abt-002-under-payment--1-sat)
-  - [ABT-003: Over Payment (\> 1,000,000 sats)](#abt-003-over-payment--1000000-sats)
-
----
-
-## ABT-001: Nominal Payment
-
-**Description**
-Tests the complete workflow with a normal payment amount.
-
-**Test Objective**
-A swarm agent sends a valid payment request via webhook → Agent-Payment-Decision approves → full success path (Create Invoice → Pay Invoice → Parse Payment Result) → correct email report with proper `from` field and extracted amount.
-
-**Test Input**
+Automated tests live under `tests/` and run with **pytest**.
 
 ```bash
-curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: YOUR_API_KEY_HERE" \
-  -d '{
-    "from": "Agent-Payment-Decision",
-    "to": "Agent-Bitcoin",
-    "amount": 2000,
-    "reason": "Payment for services rendered"
-  }'
-  ```
+# Offline unit tests (default)
+uv run pytest tests/ -q --ignore=tests/test_aws_integration.py
 
-**Expected Outcomes**
-- Payment Agent-Payment-Decision returns `pay: true`
-- Invoice is created on Agent-Bitcoin
-- Lightning payment is executed successfully
-- `Parse Payment Result` correctly extracts `amount`, `payment_hash`, and `preimage`
-- Email report shows:
-  - **From**: `Agent-Payment-Decision`
-  - **To**: `Agent-Bitcoin`
-  - **Status**: ✅ Success
-  - **Payment Amount**: 2,000 sats
-  - Valid **Payment Hash**
-  - Valid **Preimage**
-  - Clear **Reason**
+# Policy + amount + fee unit tests only
+uv run pytest tests/test_payment_amounts.py tests/test_payment_decision_policy.py tests/test_fee_collection.py -q
 
-**How to Run**
-1. Ensure Agent-Payment-Decision has sufficient outbound balance and an open channel to Agent-Bitcoin.
-2. Execute the webhook curl command above.
-3. Verify the workflow completes the success path.
-4. Check the email report for correct `From`, amount, hash, and status.
-5. Confirm Agent B’s Lightning balance increased by the correct amount.
+# Live regtest integration (AWS + Mac stack, API key required)
+export AGENT_BITCOIN_API_KEY=...
+uv run python tests/test_aws_integration.py --backend-url http://<AWS_EIP>:8000
+```
 
-**Success Criteria**
-- No rejection occurs
-- Payment Hash is present and valid
-- Email clearly shows the correct sender (`from` field)
-- Balances update correctly
+## Case IDs
 
----
+| ID | Case | Unit coverage | Integration |
+|----|------|---------------|-------------|
+| **ABT-001** | Normal payment (min &lt; amt ≤ max) | Client + API + agent allow mid-range | `test_aws_integration.py` nominal pay |
+| **ABT-002** | Below minimum | Client/API/agent reject | — |
+| **ABT-003** | Above maximum (1,000,000 sats) | Client/API/agent reject | — |
+| **ABT-004** | Fee deposit amount | Client `collect_transaction_fee` + API `/send-fee` mock | Live `/send-fee` in integration test |
 
-## ABT-002: Under Payment (< 1 sat)
+## Shared limits
 
-**Description**
-Tests that the workflow correctly rejects a payment request with zero (or invalid) amount sent via the Webhook Trigger.
+Defined in `agent_bitcoin/constants.py`:
 
-**Test Objective**
-A swarm agent sends a payment request with amount = 0 → Agent-Payment-Decision rejects it → workflow takes the rejection path → email report clearly shows rejection with appropriate reason.
+| Constant | Default (sats) |
+|----------|----------------|
+| `DEFAULT_MIN_PAYMENT_SATS` | 2,000 |
+| `DEFAULT_MAX_PAYMENT_SATS` | **1,000,000** |
+| `DEFAULT_FEE_AMOUNT_SATS` | 1,000 |
 
-**Test Input**
+Invoice max and agent max both default to `DEFAULT_MAX_PAYMENT_SATS`.
 
-```bash
-curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: YOUR_API_KEY_HERE" \
-  -d '{
-    "from": "Agent-Payment-Decision",
-    "to": "Agent-Bitcoin",
-    "amount": 0,
-    "reason": "Payment is < 1 sat."
-  }'
-  ```
+## Markers
 
-**Expected Outcomes**
-- Agent-Payment-Decision returns `pay: false`
-- Workflow follows the rejection path
-- No Lightning payment is attempted
-- Email report shows:
-  - **Status**: ❌ Rejected
-  - **Reason**: Clear explanation (e.g. "Amount must be at least 1 sat")
-  - **From**: `Agent-Payment-Decision`
+- `@pytest.mark.integration` — reserved for live Docker/LND tests (skip offline)
 
-**How to Run**
-1. Execute the webhook curl command above (with `amount: 0`).
-2. Verify the workflow takes the rejection path.
-3. Check the email report for correct rejection status and clear reason.
-4. Confirm no payment was made and balances did not change.
+## Files
 
-**Success Criteria**
-- Payment is rejected
-- Email clearly indicates rejection with a meaningful reason
-- No Lightning payment occurs
-- `from` field is correctly displayed in the report
-
----
-
-## ABT-003: Over Payment (> 1,000,000 sats)
-
-**Description**
-Tests that the workflow correctly rejects a payment request that exceeds the maximum allowed amount (1,000,000 sats).
-
-**Test Objective**
-User requests an oversize payment → No payment is attempted → Email report shows clear rejection with appropriate reason.
-
-**Test Input**
-```bash
-curl -X POST http://localhost:5678/webhook/agent-bitcoin-pay \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: YOUR_API_KEY_HERE" \
-  -d '{
-    "from": "Agent-Payment-Decision",
-    "to": "Agent-Bitcoin",
-    "amount": 1000001,
-    "reason": "Payment is > 1,000,000 sats."
-  }'
-  ```
-
-**Expected Outcomes**
-- Agent-Payment-Decision either refuses in plain text or outputs `{"pay": true, "amount": 1000001, ...}`.
-- Agent-Bitcoin Payment Size Guardrail catches the violation (amount > 1,000,000 sats).
-- Workflow routes to rejection path (no invoice created, no payment sent).
-- Gather Balances shows `status: "rejected"`.
-- Email report shows **❌ Rejected** with a clear reason (e.g., "Payment amount exceeds maximum allowed limit of 1,000,000 sats").
-
-**How to Run**
-1. Trigger the workflow manually with the prompt "Pay Agent-Bitcoin exactly 1000001 sats right now."
-2. Verify the execution path goes through the size guardrail rejection branch.
-3. Confirm no Lightning payment occurred (balances unchanged).
-4. Check that the email report clearly indicates rejection and the correct reason.
-
----
+| File | Role |
+|------|------|
+| `test_payment_amounts.py` | ABT-001–003 client + API |
+| `test_payment_decision_policy.py` | ABT agent policy |
+| `test_fee_collection.py` | ABT-004 fee unit |
+| `test_client.py` | Factory / basic client |
+| `test_aws_integration.py` | Live regtest script |
+| `conftest.py` | Shared fixtures |
