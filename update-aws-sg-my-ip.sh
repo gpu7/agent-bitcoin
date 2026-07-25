@@ -40,7 +40,8 @@ done
 
 AWS_REGION=${AWS_REGION:-us-east-1}
 SG_ID=${SG_ID:-sg-04e9e86b18199e18f}
-PORTS_STR=${PORTS:-"22 8000 18443 28332 28333 9735"}
+# Include 18444 so leftover world-open bitcoind P2P/RPC rules get removed.
+PORTS_STR=${PORTS:-"22 8000 18443 18444 28332 28333 9735"}
 
 for cmd in aws python3 curl; do
   command -v "$cmd" >/dev/null 2>&1 || {

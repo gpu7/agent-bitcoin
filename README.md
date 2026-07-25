@@ -104,7 +104,7 @@ For running the AWS + Mac regtest stack → **[docs/backend.md](docs/backend.md)
 Agent-Bitcoin is developed with security in mind:
 
 - **Secrets stay out of the repository** — API keys, wallet material, and host credentials are configured via environment and local ops practice, not committed source
-- **Least privilege** for network and node access as deployments mature
+- **Least privilege** for network and node access (admin/API/RPC not left open to the whole internet in operator deployments)
 - **Conservative defaults** for payment amounts and fees (see [SDK.md](SDK.md))
 - **Regtest-first** development; mainnet is never the implicit default
 

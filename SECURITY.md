@@ -55,7 +55,8 @@ Security fixes will be released as soon as possible and announced in the [CHANGE
 ### For operators and integrators
 
 - Configure secrets via environment variables or a secrets manager—not hard-coded source
-- Restrict administrative and RPC interfaces to trusted networks
+- Restrict administrative, API, and RPC/ZMQ interfaces to trusted networks (not `0.0.0.0/0`)
+- When operator IPs change, refresh firewall/security-group rules before relying on remote access
 - Run nodes with least-privilege principles
 - Keep host systems, Docker images, and dependencies updated
 - Prefer regtest (or testnet) until mainnet deployment is an explicit, reviewed decision
