@@ -1,57 +1,68 @@
+"""Example: call the Backend HTTP API with API key auth."""
+
+import os
+from typing import Dict, Optional
+
 import requests
-from typing import Dict
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class AgentBitcoinAPI:
-    """AI Agent-friendly wrapper for the Backend API (with automatic fee collection)"""
+    """AI agent-friendly wrapper for the Backend API."""
 
-    def __init__(self, base_url: str = "http://localhost:8000"):
-        self.base_url = base_url
+    def __init__(
+        self,
+        base_url: str = "http://localhost:8000",
+        api_key: Optional[str] = None,
+    ):
+        self.base_url = base_url.rstrip("/")
+        self.api_key = (api_key or os.getenv("AGENT_BITCOIN_API_KEY") or "").strip()
+        if not self.api_key:
+            raise RuntimeError(
+                "Set AGENT_BITCOIN_API_KEY in the environment or pass api_key="
+            )
+
+    def _headers(self) -> Dict[str, str]:
+        return {"X-API-Key": self.api_key}
 
     def create_invoice(self, memo: str, amount_sats: int) -> Dict:
-        """Create a Lightning invoice"""
         response = requests.post(
-            f"{self.base_url}/invoices", json={"memo": memo, "amount_sats": amount_sats}
+            f"{self.base_url}/invoices",
+            json={"memo": memo, "amount_sats": amount_sats},
+            headers=self._headers(),
+            timeout=60,
         )
         response.raise_for_status()
         return response.json()
 
     def get_balance(self) -> Dict:
-        """Get current Lightning + on-chain balance"""
-        response = requests.get(f"{self.base_url}/balance")
-        response.raise_for_status()
-        return response.json()
-
-    def pay_invoice(self, payment_request: str) -> Dict:
-        """Pay a Lightning invoice via backend.
-        This automatically triggers the 1,000 sat fee collection."""
-        response = requests.post(
-            f"{self.base_url}/payments", json={"payment_request": payment_request}
+        response = requests.get(
+            f"{self.base_url}/balance",
+            headers=self._headers(),
+            timeout=60,
         )
         response.raise_for_status()
         return response.json()
 
-    def check_invoice(self, payment_hash: str) -> Dict:
-        """Check status of an invoice"""
-        response = requests.get(f"{self.base_url}/invoices/{payment_hash}")
+    def pay_invoice(self, payment_request: str) -> Dict:
+        response = requests.post(
+            f"{self.base_url}/pay",
+            json={"payment_request": payment_request},
+            headers=self._headers(),
+            timeout=120,
+        )
         response.raise_for_status()
         return response.json()
 
 
-# ======================
-# Example Usage for AI Agent
-# ======================
-
 if __name__ == "__main__":
     api = AgentBitcoinAPI()
 
-    print("Current balance:", api.get_balance()["total_sat"], "sats\n")
+    print("Current balance:", api.get_balance().get("total_sat"), "sats\n")
 
-    # Create invoice
     invoice = api.create_invoice(memo="Payment for AI service", amount_sats=10000)
     print("Invoice created:")
-    print("Payment Request:", invoice["payment_request"][:80] + "...")
-    print("Payment Hash:", invoice["payment_hash"])
-
-    # Note: In autonomous agents, you would call api.pay_invoice(...)
-    # to trigger payment + fee collection
+    print("Payment Request:", (invoice.get("payment_request") or "")[:80] + "...")
+    print("r_hash:", invoice.get("r_hash"))

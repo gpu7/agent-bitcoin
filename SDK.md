@@ -383,23 +383,51 @@ The FastAPI app in `backend/main.py` is an HTTP layer over LND for agents that p
 - **Interactive docs:** `GET /docs`
 - **OpenAPI:** `GET /openapi.json`
 
+### Authentication (required)
+
+Protected routes require `AGENT_BITCOIN_API_KEY` on the server and one of:
+
+```http
+X-API-Key: <your-key>
+```
+
+```http
+Authorization: Bearer <your-key>
+```
+
+| Status | Meaning |
+|--------|---------|
+| `401` | Missing or wrong key |
+| `503` | Server has no `AGENT_BITCOIN_API_KEY` configured |
+
+Generate (example): `openssl rand -hex 32` — store in a password manager and host `.env`, never in git.
+
+### Amount limits (server-side)
+
+| Env | Default | Applies to |
+|-----|---------|------------|
+| `MIN_PAYMENT_SATS` | 2000 | `POST /invoices` |
+| `MAX_INVOICE_SATS` | 1000000 | `POST /invoices` |
+| `MAX_FEE_SEND_SATS` | 100000 | `POST /send-fee` |
+
 ### Why use it
 
 - Single control point for Lightning ops
 - Fee collection hooks (`FEE_SATS`, `FEE_ADDRESS`)
+- API key gate on balances and payments
 - Easy for any language / HTTP agent
 
 ### Endpoints (as implemented)
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/` | Health / status |
-| `GET` | `/balance` | Lightning channel balance + on-chain wallet balance |
-| `POST` | `/invoices` | Create invoice (`memo`, `amount_sats`) |
-| `POST` | `/pay` | Pay invoice (`payment_request`, optional `fee_limit_sats`) |
-| `POST` | `/send-fee` | On-chain fee send (`amount_sats` optional override) |
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/` | No | Liveness only |
+| `GET` | `/balance` | Yes | Lightning + on-chain balances |
+| `POST` | `/invoices` | Yes | Create invoice (`memo`, `amount_sats`) |
+| `POST` | `/pay` | Yes | Pay invoice (`payment_request`, optional `fee_limit_sats`) |
+| `POST` | `/send-fee` | Yes | On-chain fee send (`amount_sats` optional override) |
 
-> **Note:** Some older examples refer to `POST /payments`. The running backend route is **`POST /pay`**. Prefer `/pay` or align example code with `backend/main.py`.
+> **Note:** Use **`POST /pay`** (not `/payments`).
 
 ### Create invoice
 
@@ -453,13 +481,16 @@ Requires `FEE_ADDRESS` (and positive amount).
 ### Minimal HTTP example
 
 ```python
+import os
 import requests
 
 base = "http://localhost:8000"
+headers = {"X-API-Key": os.environ["AGENT_BITCOIN_API_KEY"]}
 
 r = requests.post(
     f"{base}/invoices",
     json={"memo": "agent job", "amount_sats": 5000},
+    headers=headers,
     timeout=60,
 )
 r.raise_for_status()
@@ -468,13 +499,14 @@ invoice = r.json()
 pay = requests.post(
     f"{base}/pay",
     json={"payment_request": invoice["payment_request"]},
+    headers=headers,
     timeout=120,
 )
 pay.raise_for_status()
 print(pay.json())
 ```
 
-See also [examples/agent_api_example.py](examples/agent_api_example.py) (verify paths match current backend).
+See also [examples/agent_api_example.py](examples/agent_api_example.py).
 
 ---
 

@@ -63,6 +63,7 @@ Security fixes will be released as soon as possible and announced in the [CHANGE
 - Harden backend hosts (SSH key-only, minimal exposure of control planes) in addition to application controls
 - Keep node stacks network-pinned (regtest compose/scripts must not silently target mainnet)
 - Treat node RPC credentials and macaroons as secrets; use strong unique material outside isolated regtest labs
+- Require authentication on payment and balance HTTP APIs; enforce server-side amount limits
 
 ### What we do not publish
 

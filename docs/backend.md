@@ -70,6 +70,30 @@ nc -zv 3.90.159.146 18443
 
 Do not commit personal IPs into the repo; the script stores the last IP under `~/.config/agent-bitcoin/last-sg-ip` locally only.
 
+### Backend API authentication
+
+The FastAPI backend (`backend/main.py`) protects `/balance`, `/invoices`, `/pay`, and `/send-fee` with an API key.
+
+1. Generate a key (on any trusted machine):
+   ```bash
+   openssl rand -hex 32
+   ```
+2. Store it in the password manager and in **AWS** `~/agent-bitcoin/.env` (mode `600`):
+   ```bash
+   AGENT_BITCOIN_API_KEY=<paste-key-here>
+   ```
+3. Restart the backend process (tmux session `backend` or however you run it) so it loads the new env.
+4. Call APIs with header `X-API-Key: <key>` (or `Authorization: Bearer <key>`).
+5. Integration test from Mac:
+   ```bash
+   export AGENT_BITCOIN_API_KEY='...'   # same key
+   uv run python tests/test_aws_integration.py --backend-url http://3.90.159.146:8000
+   ```
+
+If the key is missing on the server, protected routes return **503**. Wrong key → **401**.
+
+Do not commit the real key. `.env.example` only documents the variable name.
+
 ### Lightning / Bitcoin node policy (regtest)
 
 These rules reduce the chance of accidental real-network or high-risk misconfiguration:
