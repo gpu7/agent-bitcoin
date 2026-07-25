@@ -58,8 +58,9 @@ Security fixes will be released as soon as possible and announced in the [CHANGE
 - Restrict administrative, API, and RPC/ZMQ interfaces to trusted networks (not `0.0.0.0/0`)
 - When operator IPs change, refresh firewall/security-group rules before relying on remote access
 - Run nodes with least-privilege principles
-- Keep host systems, Docker images, and dependencies updated
+- Keep host systems, Docker images, and dependencies updated (automatic security updates where appropriate)
 - Prefer regtest (or testnet) until mainnet deployment is an explicit, reviewed decision
+- Harden backend hosts (SSH key-only, minimal exposure of control planes) in addition to application controls
 
 ### What we do not publish
 

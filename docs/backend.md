@@ -70,6 +70,17 @@ nc -zv 3.90.159.146 18443
 
 Do not commit personal IPs into the repo; the script stores the last IP under `~/.config/agent-bitcoin/last-sg-ip` locally only.
 
+### Host hardening (operator checklist)
+
+On the AWS Ubuntu host (high level — details stay private):
+
+- Keep the OS on a supported LTS release; apply security updates (`unattended-upgrades` recommended)
+- SSH: public-key authentication only; disable password logins
+- Rely on **security group least privilege** (Step 2) for published ports; do not re-open admin/RPC/API to `0.0.0.0/0`
+- Docker: do not expose the Docker socket on the network; limit who is in the `docker` group
+- Prefer encrypted EBS volumes for node data when creating new disks/AMIs
+- After package upgrades that restart Docker, confirm `agent-payment-decision-lnd`, `bitcoind`, and the backend API are up again
+
 ---
 
 ## Workflow
