@@ -41,6 +41,35 @@ After attaching or changing the EIP, restart AWS LND so `--externalip` matches:
 # unlock wallet when prompted
 ```
 
+### Admin / Mac IP and security group
+
+Inbound access (SSH, API, bitcoind RPC/ZMQ, LND P2P for regtest) should be limited to **your current public IP**, not the open internet.
+
+Your home/Mac IP can change. From the **Mac** (with AWS CLI credentials that can edit the instance security group):
+
+```bash
+# Preview
+./update-aws-sg-my-ip.sh --dry-run
+
+# Apply: detect public IP, allow it on the SG, remove old CIDRs on those ports
+./update-aws-sg-my-ip.sh
+```
+
+Defaults: region `us-east-1`, SG `sg-04e9e86b18199e18f`, ports `22 8000 18443 28332 28333 9735`.
+Override with `AWS_REGION`, `SG_ID`, `PORTS`, or `MY_IP` if needed.
+
+**Safe order:** new IP is authorized **before** old rules are revoked (reduces lockout risk).
+If you still get locked out: AWS Console → EC2 → Security Groups → temporarily allow your new IP on port 22.
+
+After any IP change, re-check from the Mac:
+
+```bash
+nc -zv 3.90.159.146 22
+nc -zv 3.90.159.146 18443
+```
+
+Do not commit personal IPs into the repo; the script stores the last IP under `~/.config/agent-bitcoin/last-sg-ip` locally only.
+
 ---
 
 ## Workflow
