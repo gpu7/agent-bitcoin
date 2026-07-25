@@ -126,6 +126,59 @@ On the AWS Ubuntu host (high level — details stay private):
 - Prefer encrypted EBS volumes for node data when creating new disks/AMIs
 - After package upgrades that restart Docker, confirm `agent-payment-decision-lnd`, `bitcoind`, and the backend API are up again
 
+### Operational security (process)
+
+#### Shutdown vs reset
+
+| Action | Use when | Effect |
+|--------|----------|--------|
+| `./shutdown-aws.sh` | Normal end of day / before AMI | Stops containers; **keeps** Docker volumes (chain + LND) |
+| `./shutdown-mac.sh` | End of Mac session | Stops Mac LND compose |
+| `startup-aws-reset.sh` or `docker compose … down --volumes` / Loop `regtest.sh stop` | **Only** intentional full wipe | Destroys chain/wallet data |
+
+Never use volume-wiping stop as the default. Prefer AMI snapshots at known-good milestones.
+
+#### Wallet unlock discipline
+
+- Unlock LND only when you need RPC (`lncli unlock` interactively).
+- Do not put wallet passwords in committed scripts, git, tickets, or chat.
+- Avoid `echo password | lncli` (lands in shell history). Prefer interactive unlock.
+- If a password or seed may have leaked, treat it as burned for any future real-funds use; create a new wallet when leaving pure regtest.
+
+#### Dependency and image updates
+
+- Host: keep `unattended-upgrades` enabled (security Step 3).
+- Project: periodically `git pull`, `uv sync`, and review Docker image tags (LND, bitcoind) when upgrading.
+- After Docker engine upgrades, re-check containers, unlock LND, and backend API health.
+
+#### Incident response (high level)
+
+If you suspect compromise (open API key, exposed SSH, stolen laptop, unexpected pays):
+
+1. **Contain** — stop the backend process; consider instance stop; tighten SG if needed.
+2. **Rotate** — new `AGENT_BITCOIN_API_KEY`; new SSH key if exposed; new wallet before any real funds.
+3. **Revoke** — invalidate exported macaroons; do not reuse leaked material.
+4. **Recover** — restore from a known-good AMI / volumes only if integrity is trusted; otherwise rebuild regtest stack.
+5. **Review** — check CloudTrail/AWS login history, `docker ps`, unexpected processes, API access patterns.
+6. **Document** privately (password manager note) what was rotated and when.
+
+Do not post incident details or secrets in public GitHub issues. Security reports: see [SECURITY.md](../SECURITY.md).
+
+#### Pre-session operator checklist
+
+1. `./update-aws-sg-my-ip.sh` if home IP may have changed
+2. Start AWS stack; unlock LND; confirm `synced_to_chain`
+3. Backend running with `AGENT_BITCOIN_API_KEY` set
+4. Mac: startup + wait + connect if needed
+5. Smoke: `curl` health + authenticated `/balance`
+
+#### End-of-session checklist
+
+1. Mac `./shutdown-mac.sh`
+2. AWS `./shutdown-aws.sh` (volume-preserving)
+3. Optional AMI
+4. EC2 stop (EIP retained if associated)
+
 ---
 
 ## Workflow

@@ -110,7 +110,7 @@ Agent-Bitcoin is developed with security in mind:
 - **Bounded autonomous payment decisions** — hard amount limits in code before any LLM approval
 - **Regtest-first** development; mainnet is never the implicit default
 
-Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)**. Do not open public issues for security reports.
+Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)** (scope, practices, disclosure). Do not open public issues for security reports.
 
 ---
 

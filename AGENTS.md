@@ -372,6 +372,8 @@ Always consider:
 - Payment Decision agent must remain **conservative**; do not “optimize” by auto-approving large amounts.
 - On-chain fee sends and Lightning pays are irreversible on real networks—gate them.
 - Report vulnerabilities per `SECURITY.md` (private email), not public issues with exploit detail.
+- Routine shutdown: volume-preserving scripts only; never default to `down --volumes` or Loop `regtest.sh stop`.
+- Incident: contain → rotate keys → revoke macaroons → recover from trusted AMI; details in `docs/backend.md` ops section.
 
 ### Infrastructure safety
 

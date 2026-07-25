@@ -1,5 +1,15 @@
 # Security Policy
 
+## Scope
+
+This project includes:
+
+- A **Python SDK** for Lightning invoice and payment helpers
+- An optional **HTTP backend** for agent-facing operations
+- **Regtest-oriented** operator tooling (AWS + local counterparty)
+
+**Default development network is regtest.** Testnet or mainnet use is an explicit operator decision, not the default path of stock scripts and compose files.
+
 ## Supported Versions
 
 | Version  | Supported          |
@@ -35,6 +45,7 @@ Please include the following information in your report:
 ### Responsible Disclosure
 
 We request that you:
+
 - Do not publicly disclose the vulnerability until we have had time to address it.
 - Give us reasonable time to fix the issue before publishing.
 
@@ -65,6 +76,14 @@ Security fixes will be released as soon as possible and announced in the [CHANGE
 - Treat node RPC credentials and macaroons as secrets; use strong unique material outside isolated regtest labs
 - Require authentication on payment and balance HTTP APIs; enforce server-side amount limits
 - Bound autonomous payment decisions with coded limits (not prompts alone); require human confirmation above thresholds where configured
+- Use volume-preserving shutdown for routine stops; treat volume wipes and full resets as deliberate, high-impact actions
+- Maintain a private inventory of secrets and rotation notes (password manager), not in git
+
+### Incident handling (summary)
+
+If credentials or a host may be compromised: contain access, rotate API keys and related secrets, stop or isolate affected systems, restore only from trusted backups, and report product vulnerabilities via the email above—not public issues.
+
+Operator runbooks: [docs/backend.md](docs/backend.md) (process detail without publishing exploit recipes).
 
 ### What we do not publish
 
