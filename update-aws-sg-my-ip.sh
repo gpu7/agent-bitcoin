@@ -43,6 +43,10 @@ SG_ID=${SG_ID:-sg-04e9e86b18199e18f}
 # Include 18444 so leftover world-open bitcoind P2P/RPC rules get removed.
 PORTS_STR=${PORTS:-"22 8000 18443 18444 28332 28333 9735"}
 
+# Prevent aws CLI from opening `less` and stopping on (END)
+export AWS_PAGER=""
+export AWS_CLI_AUTO_PROMPT=off
+
 for cmd in aws python3 curl; do
   command -v "$cmd" >/dev/null 2>&1 || {
     echo "Missing required command: $cmd" >&2
