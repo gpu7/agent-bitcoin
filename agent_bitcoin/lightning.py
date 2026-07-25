@@ -1,24 +1,42 @@
+import os
 import subprocess
 import json
 
-from .exceptions import LNDException
+from .exceptions import ConfigurationError, LNDException
 from .models import (
     Invoice,
     PaymentResult,
 )
 
+# Default and only supported network for the stock Docker regtest stack.
+# Mainnet requires an explicit, separate deployment decision — not a silent flag flip.
+_DEFAULT_NETWORK = "regtest"
+
+
+def _resolve_network() -> str:
+    network = os.getenv("LND_NETWORK", _DEFAULT_NETWORK).strip().lower()
+    if network == "mainnet" and os.getenv("AGENT_BITCOIN_ALLOW_MAINNET") != "1":
+        raise ConfigurationError(
+            "Refusing LND mainnet: set AGENT_BITCOIN_ALLOW_MAINNET=1 only for an "
+            "intentional mainnet deployment (not the default regtest stack)."
+        )
+    if network not in ("regtest", "testnet", "mainnet", "simnet"):
+        raise ConfigurationError(f"Unsupported LND_NETWORK={network!r}")
+    return network
+
 
 class LNDClient:
-    """LND client using lncli inside Docker container"""
+    """LND client using lncli inside Docker container (regtest by default)."""
 
     def __init__(self):
         self.container = (
             "agent-payment-decision-lnd"  # Default, can be overridden later
         )
         self.lnd_dir = "/home/lnd/.lnd"
+        self.network = _resolve_network()
 
     def _run(self, *args) -> dict:
-        """Run lncli with correct regtest settings"""
+        """Run lncli with the configured network (default: regtest)."""
         cmd = [
             "docker",
             "exec",
@@ -26,7 +44,7 @@ class LNDClient:
             self.container,
             "lncli",
             f"--lnddir={self.lnd_dir}",
-            "--network=regtest",
+            f"--network={self.network}",
             *args,
         ]
 

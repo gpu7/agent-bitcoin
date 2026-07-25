@@ -61,6 +61,8 @@ Security fixes will be released as soon as possible and announced in the [CHANGE
 - Keep host systems, Docker images, and dependencies updated (automatic security updates where appropriate)
 - Prefer regtest (or testnet) until mainnet deployment is an explicit, reviewed decision
 - Harden backend hosts (SSH key-only, minimal exposure of control planes) in addition to application controls
+- Keep node stacks network-pinned (regtest compose/scripts must not silently target mainnet)
+- Treat node RPC credentials and macaroons as secrets; use strong unique material outside isolated regtest labs
 
 ### What we do not publish
 

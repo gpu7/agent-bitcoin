@@ -1,11 +1,31 @@
 #!/bin/bash
+set -euo pipefail
+
 echo "=== Agent-Bitcoin Mac Setup (for AWS Backend) ==="
 
 # Get arguments
-NETWORK=${1}
-AWS_IP=${2}
+NETWORK=${1:-regtest}
+AWS_IP=${2:-}
 export NETWORK
 export AWS_IP
+
+# Security: Mac compose is bitcoin.regtest only
+case "$NETWORK" in
+  regtest) ;;
+  testnet|mainnet)
+    echo "ERROR: startup-mac.sh only supports regtest (got: $NETWORK)."
+    exit 1
+    ;;
+  *)
+    echo "ERROR: unknown network '$NETWORK' (only 'regtest' is allowed)."
+    exit 1
+    ;;
+esac
+
+if [ -z "$AWS_IP" ]; then
+  echo "Usage: $0 regtest <AWS_EIP>"
+  exit 1
+fi
 
 echo "=== Agent-Bitcoin Startup Mac (Network: $NETWORK, AWS IP: $AWS_IP) ==="
 

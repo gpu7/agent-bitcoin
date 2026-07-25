@@ -83,6 +83,11 @@ See also [.env.example](.env.example) for container/macaroon names used in regte
 
 **Note:** The current default `LNDClient` talks to LND primarily via `docker exec` + `lncli` on the payment-decision container (`agent-payment-decision-lnd`), for the project’s regtest layout. Operator setup for that stack is in [docs/backend.md](docs/backend.md).
 
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `LND_NETWORK` | `regtest` | Network passed to `lncli` |
+| `AGENT_BITCOIN_ALLOW_MAINNET` | unset | Must be `1` to allow `LND_NETWORK=mainnet` (safety latch) |
+
 ### LLM agents
 
 | Variable | Purpose |

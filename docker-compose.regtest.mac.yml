@@ -5,6 +5,7 @@ services:
     ports:
       - "9736:9735"     # Lightning P2P
       - "10010:10009"   # gRPC
+    # REGTEST ONLY. Points at AWS bitcoind; weak RPC creds are regtest-only.
     command:
       - "--bitcoin.regtest"
       - "--bitcoin.active"

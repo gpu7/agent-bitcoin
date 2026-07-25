@@ -70,6 +70,27 @@ nc -zv 3.90.159.146 18443
 
 Do not commit personal IPs into the repo; the script stores the last IP under `~/.config/agent-bitcoin/last-sg-ip` locally only.
 
+### Lightning / Bitcoin node policy (regtest)
+
+These rules reduce the chance of accidental real-network or high-risk misconfiguration:
+
+| Policy | Practice |
+|--------|----------|
+| **Network** | Stock scripts and compose files are **regtest only**. `startup-aws.sh` / `startup-mac.sh` **refuse** `testnet` and `mainnet`. |
+| **SDK LND client** | Defaults to `regtest`. `LND_NETWORK=mainnet` is refused unless `AGENT_BITCOIN_ALLOW_MAINNET=1` is set deliberately. |
+| **RPC credentials** | Compose uses simple bitcoind RPC user/pass for **isolated regtest only** — never reuse on public networks. |
+| **Wallet** | Unlock only when operating; store password/seed in a password manager; treat seeds shown in chat/logs as unfit for real funds. |
+| **Macaroons** | Keep inside Docker volumes; do not commit or publish admin macaroons. Prefer least-privilege macaroons if exporting for remote tools. |
+| **Published ports** | P2P/RPC/ZMQ/API gated by security group (Step 2). Do not open LND gRPC (`10009`) to the internet. |
+| **Mainnet** | Separate design, credentials, and hosts — not a flag flip on this stack. |
+
+Verify the live AWS node is still on regtest (after unlock):
+
+```bash
+docker exec agent-payment-decision-lnd lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo \
+  | grep -E '"chains"|testnet|regtest|block_height|synced_to_chain'
+```
+
 ### Host hardening (operator checklist)
 
 On the AWS Ubuntu host (high level — details stay private):

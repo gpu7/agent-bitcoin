@@ -5,6 +5,8 @@ services:
     ports:
       - "9735:9735"
       - "10009:10009"
+    # REGTEST ONLY. Weak bitcoind RPC creds are acceptable only on isolated regtest.
+    # Do not reuse this compose file or these credentials for testnet/mainnet.
     command:
       - "--bitcoin.regtest"
       - "--bitcoin.active"

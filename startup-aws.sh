@@ -19,6 +19,26 @@ AWS_IP=${2}
 export NETWORK
 export AWS_IP
 
+# Security: these compose files and scripts are regtest-only
+case "$NETWORK" in
+  regtest) ;;
+  testnet|mainnet)
+    echo "ERROR: startup-aws.sh only supports regtest (got: $NETWORK)."
+    echo "Refusing to start — prevents accidental non-regtest use of this stack."
+    exit 1
+    ;;
+  *)
+    echo "ERROR: unknown network '$NETWORK' (only 'regtest' is allowed)."
+    exit 1
+    ;;
+esac
+
+if [ -z "$AWS_IP" ]; then
+  echo "ERROR: AWS_IP (public EIP) is required."
+  echo "Usage: $0 regtest <AWS_EIP>"
+  exit 1
+fi
+
 echo "→ Set number of bitcoin blocks to mine..."
 BLOCKS=50
 export BLOCKS
