@@ -99,6 +99,19 @@ For running the AWS + Mac regtest stack → **[docs/backend.md](docs/backend.md)
 
 ---
 
+## Security
+
+Agent-Bitcoin is developed with security in mind:
+
+- **Secrets stay out of the repository** — API keys, wallet material, and host credentials are configured via environment and local ops practice, not committed source
+- **Least privilege** for network and node access as deployments mature
+- **Conservative defaults** for payment amounts and fees (see [SDK.md](SDK.md))
+- **Regtest-first** development; mainnet is never the implicit default
+
+Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)**. Do not open public issues for security reports.
+
+---
+
 ## Documentation
 
 | Link | Description |
@@ -107,7 +120,7 @@ For running the AWS + Mac regtest stack → **[docs/backend.md](docs/backend.md)
 | [docs/backend.md](docs/backend.md) | Regtest workflow, startup/shutdown, LND, channels |
 | [examples/](examples/) | Runnable sample scripts |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
-| [SECURITY.md](SECURITY.md) | Security policy |
+| [SECURITY.md](SECURITY.md) | Security policy and vulnerability reporting |
 
 ---
 

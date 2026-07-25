@@ -44,11 +44,25 @@ Security fixes will be released as soon as possible and announced in the [CHANGE
 
 ## Security Best Practices
 
+### For everyone
+
 - Always use the latest stable version
-- Never expose private keys, seed phrases, or RPC credentials
-- Use strong, unique passwords for wallets
+- Never expose private keys, seed phrases, macaroons, or RPC credentials
+- Never commit `.env` files, key material, or wallet backups to version control
+- Use strong, unique passwords for wallets and a password manager
+- Treat any secret that has appeared in chat, tickets, or logs as compromised for high-value use
+
+### For operators and integrators
+
+- Configure secrets via environment variables or a secrets manager—not hard-coded source
+- Restrict administrative and RPC interfaces to trusted networks
 - Run nodes with least-privilege principles
-- Keep Docker images and host systems updated
+- Keep host systems, Docker images, and dependencies updated
+- Prefer regtest (or testnet) until mainnet deployment is an explicit, reviewed decision
+
+### What we do not publish
+
+We document security posture at a high level. We do not publish operational secrets, private infrastructure details that enable abuse, or exploit write-ups in public docs.
 
 ---
 
