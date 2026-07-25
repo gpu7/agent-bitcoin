@@ -14,22 +14,50 @@ Security (Step 5):
 from __future__ import annotations
 
 import hmac
+import logging
 import os
 import time
 from typing import Optional
 
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel, Field
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from agent_bitcoin.lightning import LNDClient
 
 load_dotenv()
 
+logger = logging.getLogger("agent_bitcoin.backend")
+logging.basicConfig(
+    level=os.getenv("BACKEND_LOG_LEVEL", "INFO"),
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+)
+
 app = FastAPI(
     title="Agent-Bitcoin Backend API",
     description="Lightning helpers for agents. Protected routes require X-API-Key.",
 )
+
+
+class AccessLogMiddleware(BaseHTTPMiddleware):
+    """Log method/path/status only — never headers or bodies (may contain keys/BOLT11)."""
+
+    async def dispatch(self, request: Request, call_next):
+        start = time.time()
+        response = await call_next(request)
+        ms = int((time.time() - start) * 1000)
+        logger.info(
+            "http %s %s -> %s %sms",
+            request.method,
+            request.url.path,
+            response.status_code,
+            ms,
+        )
+        return response
+
+
+app.add_middleware(AccessLogMiddleware)
 
 FEE_SATS = int(os.getenv("FEE_SATS", "1000"))
 FEE_ADDRESS = os.getenv("FEE_ADDRESS")
@@ -82,6 +110,7 @@ async def require_api_key(
             ),
         )
     if not provided or not hmac.compare_digest(provided, API_KEY):
+        logger.warning("auth failed for protected route")
         raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
 
@@ -131,6 +160,7 @@ async def create_invoice(req: InvoiceRequest):
         result = client._run(
             "addinvoice", "--memo", req.memo, "--amt", str(req.amount_sats)
         )
+        logger.info("invoice created amount_sats=%s", req.amount_sats)
         return {
             "payment_request": result.get("payment_request"),
             "r_hash": result.get("r_hash"),
@@ -159,6 +189,11 @@ async def pay_invoice(req: PayRequest):
                 "--json",
                 "--force",
             )
+            logger.info(
+                "payment success attempt=%s payment_hash=%s",
+                attempt + 1,
+                result.get("payment_hash"),
+            )
             return {
                 "success": True,
                 "payment_hash": result.get("payment_hash"),
@@ -168,10 +203,11 @@ async def pay_invoice(req: PayRequest):
             }
         except Exception as e:
             last_error = str(e)
-            print(f"sendpayment attempt {attempt + 1} failed: {last_error}")
+            logger.warning("sendpayment attempt %s failed: %s", attempt + 1, last_error)
             if attempt < 2:
                 time.sleep(5)
 
+    logger.error("payment failed after 3 attempts")
     raise HTTPException(
         status_code=400,
         detail=f"Payment failed after 3 attempts. Last error: {last_error}",
@@ -191,9 +227,9 @@ async def send_fee(req: Optional[FeeRequest] = None):
         )
 
     try:
-        print(f"Sending fee {amount} sats to configured FEE_ADDRESS")
+        logger.info("fee send amount_sats=%s", amount)
         fee_tx = client._run("sendcoins", "--addr", FEE_ADDRESS, "--amt", str(amount))
-        print(f"Fee sent TXID: {fee_tx.get('txid')}")
+        logger.info("fee sent txid=%s", fee_tx.get("txid"))
         return {
             "success": True,
             "txid": fee_tx.get("txid"),
@@ -201,7 +237,7 @@ async def send_fee(req: Optional[FeeRequest] = None):
             "address": FEE_ADDRESS,
         }
     except Exception as e:
-        print(f"Fee failed: {e}")
+        logger.error("fee send failed: %s", e)
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 

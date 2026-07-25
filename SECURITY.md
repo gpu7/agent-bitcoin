@@ -83,6 +83,8 @@ Security fixes will be released as soon as possible and announced in the [CHANGE
 
 If credentials or a host may be compromised: contain access, rotate API keys and related secrets, stop or isolate affected systems, restore only from trusted backups, and report product vulnerabilities via the email above—not public issues.
 
+Operators should monitor host and node health (disk, containers, API liveness, LND sync) and review access logs for unexpected payment or auth activity.
+
 Operator runbooks: [docs/backend.md](docs/backend.md) (process detail without publishing exploit recipes).
 
 ### What we do not publish

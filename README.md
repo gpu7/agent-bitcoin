@@ -108,6 +108,7 @@ Agent-Bitcoin is developed with security in mind:
 - **Conservative defaults** for payment amounts and fees (see [SDK.md](SDK.md))
 - **Authenticated payment APIs** — backend balance/invoice/pay routes require an API key when deployed
 - **Bounded autonomous payment decisions** — hard amount limits in code before any LLM approval
+- **Operator health checks** — lightweight host/API/node monitoring for deployed backends
 - **Regtest-first** development; mainnet is never the implicit default
 
 Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)** (scope, practices, disclosure). Do not open public issues for security reports.
