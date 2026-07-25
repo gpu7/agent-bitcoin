@@ -179,6 +179,56 @@ Do not post incident details or secrets in public GitHub issues. Security report
 3. Optional AMI
 4. EC2 stop (EIP retained if associated)
 
+### Monitoring and health checks
+
+#### Manual / cron health script
+
+On the **AWS** host (after `git pull`):
+
+```bash
+cd ~/agent-bitcoin
+chmod +x check-aws-health.sh
+./check-aws-health.sh
+```
+
+What it checks (no secrets printed):
+
+- Root disk usage (fail if ≥ 90%)
+- Docker daemon
+- Required containers: `bitcoind`, `agent-payment-decision-lnd`
+- bitcoind block height
+- LND unlock/sync status (warn if locked; fail on hard errors)
+- Backend `GET /` liveness
+- Optional: `GET /balance` if `AGENT_BITCOIN_API_KEY` is set in the environment
+
+Exit code **0** = healthy (warnings allowed); **1** = unhealthy.
+
+Optional cron (every 15 minutes):
+
+```bash
+# crontab -e  (example — adjust paths)
+*/15 * * * * cd /home/ubuntu/agent-bitcoin && ./check-aws-health.sh >> /home/ubuntu/agent-bitcoin-health.log 2>&1
+```
+
+JSON: `./check-aws-health.sh --json`
+
+#### Backend access logs
+
+The API logs method, path, status, and latency only (not API keys or invoice bodies). Auth failures log at warning. Invoice/pay/fee log amounts and payment_hash/txid where useful—not full BOLT11.
+
+```bash
+tmux attach -t backend
+```
+
+#### What to watch for
+
+| Signal | Concern |
+|--------|---------|
+| Health script FAIL | Container down, disk full, backend dead |
+| LND always locked when you expect work | Restart without unlock |
+| Repeated auth failed in backend logs | Wrong key or probing |
+| Unexpected fee/payment log lines | Investigate; rotate keys if needed |
+
 ---
 
 ## Workflow
