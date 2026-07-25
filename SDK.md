@@ -290,12 +290,24 @@ Intelligent helpers live under `agent_bitcoin/agents/` and use prompts from `age
 
 ### Payment decision (Grok)
 
+The agent **never executes payments**. It only returns a decision. Callers must run `pay_invoice` (or not) after checking the result.
+
+**Coded policy runs first** (no LLM if blocked):
+
+| Env / constructor | Default | Effect |
+|-------------------|---------|--------|
+| `MIN_PAYMENT_SATS` / `min_sats` | 2000 | Reject below minimum |
+| `PAYMENT_DECISION_MAX_SATS` / `max_sats` | 100000 | Hard reject above max |
+| `PAYMENT_DECISION_CONFIRM_ABOVE_SATS` / `confirm_above_sats` | unset | If set, amounts above return `CONFIRM_REQUIRED` (human must approve) |
+
+`decision` values: `PAY`, `REJECT`, `CONFIRM_REQUIRED`.
+
 ```python
 from agent_bitcoin import create_grok_payment_decision_agent
 
 agent = create_grok_payment_decision_agent()  # uses XAI_API_KEY or api_key=
-# or:
-# agent = create_grok_payment_decision_agent(api_key="xai-...")
+# or with explicit policy:
+# agent = create_grok_payment_decision_agent(max_sats=50_000, confirm_above_sats=20_000)
 
 result = agent.decide_payment(
     {
@@ -305,9 +317,12 @@ result = agent.decide_payment(
     },
     context="Agreed work item #42",
 )
-# result["decision"] -> "PAY" or "REJECT"
-# result["reasoning"] -> model text
+# result["decision"] -> "PAY" | "REJECT" | "CONFIRM_REQUIRED"
+# result["blocked_by_policy"] -> True if hard policy applied
+# result["reasoning"] -> policy or model text
 ```
+
+Only auto-pay when `result["decision"] == "PAY"`. Treat `CONFIRM_REQUIRED` as a human gate.
 
 `create_payment_decision_agent` is an alias of `create_grok_payment_decision_agent`.
 
@@ -316,7 +331,7 @@ Custom model:
 ```python
 from agent_bitcoin.agents.payment_decision import PaymentDecisionAgent
 
-agent = PaymentDecisionAgent(model="grok-3", api_key=None)
+agent = PaymentDecisionAgent(model="grok-3", api_key=None, max_sats=50_000)
 ```
 
 ### Bitcoin LND agent (Grok)

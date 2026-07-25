@@ -64,6 +64,7 @@ Security fixes will be released as soon as possible and announced in the [CHANGE
 - Keep node stacks network-pinned (regtest compose/scripts must not silently target mainnet)
 - Treat node RPC credentials and macaroons as secrets; use strong unique material outside isolated regtest labs
 - Require authentication on payment and balance HTTP APIs; enforce server-side amount limits
+- Bound autonomous payment decisions with coded limits (not prompts alone); require human confirmation above thresholds where configured
 
 ### What we do not publish
 
