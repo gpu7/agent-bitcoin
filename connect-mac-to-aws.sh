@@ -1,14 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Connect Mac agent-bitcoin-lnd to AWS agent-payment-decision-lnd (Lightning P2P).
 #
 # Usage:
 #   ./connect-mac-to-aws.sh <AWS_IP> <AWS_LND_PUBKEY> [network]
-#
-# Example:
-#   # On AWS, get pubkey:
-#   #   docker exec agent-payment-decision-lnd lncli \
-#   #     --lnddir=/home/lnd/.lnd --network=regtest getinfo | grep identity_pubkey
-#   ./connect-mac-to-aws.sh 3.90.42.241 024024c3d664a14e961a1d6c577ed65eba67017aca3f21e6d499f2a807d18c3b70
 #
 # Requires AWS security group to allow TCP 9735 from this Mac.
 
@@ -18,11 +12,11 @@ echo "=== Trying to connect Mac LND to AWS LND ==="
 
 if [ -z "${1:-}" ] || [ -z "${2:-}" ]; then
   echo "Usage: $0 <AWS_IP> <AWS_LND_PUBKEY> [network]"
-  echo "Example: $0 3.90.42.241 02abc...def regtest"
+  echo "Example: $0 3.90.159.146 02abc...def regtest"
   echo ""
   echo "Get AWS pubkey on the instance:"
   echo "  docker exec agent-payment-decision-lnd lncli \\"
-  echo "    --lnddir=/home/lnd/.lnd --network=regtest getinfo | grep identity_pubkey"
+  echo "    --lnddir=/home/lnd/.lnd --network=regtest getinfo | jq -r .identity_pubkey"
   exit 1
 fi
 
@@ -40,22 +34,50 @@ echo "Network:  $NETWORK"
 echo "Target:   $TARGET"
 echo ""
 
-for i in $(seq 1 "$MAX_ATTEMPTS"); do
-  echo "Trying connect... (attempt $i/$MAX_ATTEMPTS)"
-  if docker exec "$CONTAINER" lncli \
+show_peers() {
+  echo ""
+  echo "Peers:"
+  docker exec "$CONTAINER" lncli \
     --lnddir="$LNDDIR" \
     --network="$NETWORK" \
-    connect "$TARGET"; then
-    echo ""
-    echo "✅ Successfully connected to AWS node!"
-    echo ""
-    echo "Peers:"
+    listpeers | grep -E 'pub_key|address|sync_type' || true
+}
+
+for i in $(seq 1 "$MAX_ATTEMPTS"); do
+  echo "Trying connect... (attempt $i/$MAX_ATTEMPTS)"
+  set +e
+  OUT=$(
     docker exec "$CONTAINER" lncli \
       --lnddir="$LNDDIR" \
       --network="$NETWORK" \
-      listpeers | grep -E 'pub_key|address|sync_type' || true
+      connect "$TARGET" 2>&1
+  )
+  RC=$?
+  set -e
+
+  if [[ $RC -eq 0 ]]; then
+    echo ""
+    echo "✅ Successfully connected to AWS node!"
+    show_peers
     exit 0
   fi
+
+  # Already connected is success (lncli exits non-zero)
+  if echo "$OUT" | grep -qi 'already connected'; then
+    echo ""
+    echo "✅ Already connected to AWS node!"
+    show_peers
+    exit 0
+  fi
+
+  # Transient: Mac LND still starting / graph catch-up
+  if echo "$OUT" | grep -qi 'still in the process of starting'; then
+    echo "Mac LND still starting. Retrying in ${SLEEP_SECS}s..."
+    sleep "$SLEEP_SECS"
+    continue
+  fi
+
+  echo "$OUT"
   echo "Not ready yet. Retrying in ${SLEEP_SECS}s..."
   sleep "$SLEEP_SECS"
 done
@@ -63,8 +85,9 @@ done
 echo ""
 echo "❌ Failed to connect after ${MAX_ATTEMPTS} attempts."
 echo "Check:"
-echo "  - AWS_IP is the current public IP"
-echo "  - Pubkey matches AWS getinfo identity_pubkey (wallet recreate changes it)"
-echo "  - Security group allows TCP 9735 from this Mac"
-echo "  - AWS LND is unlocked and listening (uris / getinfo)"
+echo "  - Mac LND state is SERVER_ACTIVE (not only RPC_ACTIVE)"
+echo "  - AWS_IP is the current public EIP"
+echo "  - Pubkey matches AWS getinfo identity_pubkey"
+echo "  - Security group allows TCP 9735 from this Mac (./update-aws-sg-my-ip.sh)"
+echo "  - AWS LND is unlocked and listening"
 exit 1
