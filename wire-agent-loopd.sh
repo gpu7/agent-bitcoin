@@ -6,6 +6,8 @@
 #
 # Prerequisites (AWS regtest):
 #   - agent-payment-decision-lnd up, unlocked, on network regtest_regtest
+#   - LND TLS SAN includes agent-payment-decision-lnd (--tlsextradomain in compose;
+#     regenerate tls.cert/tls.key if loopd reports x509 name mismatch)
 #   - Loop stack healthy: aperture + loopserver Up (see docs/loop-autoloop.md)
 #   - aperture TLS available on loopclient (or set APERTURE_TLS_SRC)
 #
