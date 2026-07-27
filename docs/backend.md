@@ -198,10 +198,38 @@ What it checks (no secrets printed):
 - Required containers: `bitcoind`, `agent-payment-decision-lnd`
 - bitcoind block height
 - LND unlock/sync status (warn if locked; fail on hard errors)
+- **Channel liquidity floors** (Phase 1): each **active** channel’s `local_balance` (outbound) and `remote_balance` (inbound) vs configurable minimums
 - Backend `GET /` liveness
 - Optional: `GET /balance` if `AGENT_BITCOIN_API_KEY` is set in the environment
 
 Exit code **0** = healthy (warnings allowed); **1** = unhealthy.
+
+#### Channel capacity floors (receive-heavy node)
+
+For a receive-heavy `agent-payment-decision-lnd`, **inbound** (`remote_balance`) is what lets you keep receiving. Prefer keeping good channels open and restoring inbound later (Phase 2 Autoloop), not closing channels when imbalanced.
+
+| Env | Default | Meaning |
+|-----|---------|---------|
+| `CHANNEL_MIN_LOCAL_SATS` | `5000` | Warn if outbound (local) below this |
+| `CHANNEL_MIN_REMOTE_SATS` | `5000` | Warn if inbound (remote) below this |
+| `CHANNEL_LIQUIDITY_STRICT` | `0` | Set `1` to **FAIL** (exit 1) on floor breaches |
+| `CHANNEL_MIN_ACTIVE` | `1` | Require ≥1 active channel (warn/fail if none) |
+
+Examples:
+
+```bash
+# Defaults (warn only)
+./check-aws-health.sh
+
+# Stricter inbound floor for receive-heavy operation
+CHANNEL_MIN_REMOTE_SATS=20000 CHANNEL_MIN_LOCAL_SATS=5000 ./check-aws-health.sh
+
+# Treat liquidity breaches as unhealthy (cron alerts)
+CHANNEL_LIQUIDITY_STRICT=1 ./check-aws-health.sh
+```
+
+Low **remote** → may fail to **receive** large invoices.
+Low **local** → may fail to **send/pay** (less critical for receive-heavy, still reported).
 
 Optional cron (every 15 minutes):
 
@@ -226,6 +254,9 @@ tmux attach -t backend
 |--------|---------|
 | Health script FAIL | Container down, disk full, backend dead |
 | LND always locked when you expect work | Restart without unlock |
+| Channel low inbound (remote) | Receive capacity low — rebalance/Loop Out later, don’t close good channels |
+| Channel low outbound (local) | Send capacity low |
+| Zero active channels | Open/reconnect peers before payments |
 | Repeated auth failed in backend logs | Wrong key or probing |
 | Unexpected fee/payment log lines | Investigate; rotate keys if needed |
 

@@ -9,6 +9,12 @@
 #   ./check-aws-health.sh --json
 #   AGENT_BITCOIN_API_KEY=... ./check-aws-health.sh   # also probes /balance
 #
+# Channel liquidity floors (Phase 1 — receive-heavy node monitoring):
+#   CHANNEL_MIN_LOCAL_SATS   default 5000   (outbound / can send)
+#   CHANNEL_MIN_REMOTE_SATS  default 5000   (inbound / can receive)
+#   CHANNEL_LIQUIDITY_STRICT=1  treat floor breaches as FAIL instead of WARN
+#   CHANNEL_MIN_ACTIVE=1        fail if zero active channels (default: warn)
+#
 # Does not print secrets. Does not unlock LND.
 
 set -euo pipefail
@@ -21,6 +27,10 @@ LND_CONTAINER=${LND_CONTAINER:-agent-payment-decision-lnd}
 BITCOIND_CONTAINER=${BITCOIND_CONTAINER:-bitcoind}
 DISK_WARN_PCT=${DISK_WARN_PCT:-90}
 REQUIRED_CONTAINERS=${REQUIRED_CONTAINERS:-"bitcoind agent-payment-decision-lnd"}
+CHANNEL_MIN_LOCAL_SATS=${CHANNEL_MIN_LOCAL_SATS:-5000}
+CHANNEL_MIN_REMOTE_SATS=${CHANNEL_MIN_REMOTE_SATS:-5000}
+CHANNEL_LIQUIDITY_STRICT=${CHANNEL_LIQUIDITY_STRICT:-0}
+CHANNEL_MIN_ACTIVE=${CHANNEL_MIN_ACTIVE:-1}
 
 FAIL=0
 WARN=0
@@ -83,6 +93,79 @@ if docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$LND_CONTAINER"; then
     fi
   else
     fail "LND getinfo unexpected: $(echo "$INFO" | head -1 | cut -c1-80)"
+  fi
+
+  # --- Channel liquidity floors (local = outbound, remote = inbound) ---
+  if echo "$INFO" | grep -qi 'wallet locked'; then
+    note "SKIP: channel liquidity (wallet locked)"
+  elif command -v python3 >/dev/null 2>&1; then
+    CHANS_JSON=$(
+      docker exec "$LND_CONTAINER" lncli --lnddir=/home/lnd/.lnd --network=regtest listchannels 2>/dev/null || echo ""
+    )
+    if [[ -z "$CHANS_JSON" ]]; then
+      warn "channel liquidity: listchannels failed"
+    else
+      # shellcheck disable=SC2016
+      LIQ_REPORT=$(
+        CHANNEL_MIN_LOCAL_SATS="$CHANNEL_MIN_LOCAL_SATS" \
+        CHANNEL_MIN_REMOTE_SATS="$CHANNEL_MIN_REMOTE_SATS" \
+        CHANNEL_LIQUIDITY_STRICT="$CHANNEL_LIQUIDITY_STRICT" \
+        CHANNEL_MIN_ACTIVE="$CHANNEL_MIN_ACTIVE" \
+        python3 -c '
+import json, os, sys
+
+raw = sys.stdin.read()
+try:
+    data = json.loads(raw)
+except json.JSONDecodeError:
+    print("ERROR|listchannels JSON parse failed")
+    sys.exit(0)
+
+chans = data.get("channels") or []
+min_local = int(os.environ.get("CHANNEL_MIN_LOCAL_SATS", "5000"))
+min_remote = int(os.environ.get("CHANNEL_MIN_REMOTE_SATS", "5000"))
+strict = os.environ.get("CHANNEL_LIQUIDITY_STRICT", "0") == "1"
+min_active = os.environ.get("CHANNEL_MIN_ACTIVE", "1") == "1"
+
+active = [c for c in chans if c.get("active")]
+level = "FAIL" if strict else "WARN"
+
+if not chans:
+    print("WARN|no channels (open or inactive)")
+elif min_active and not active:
+    print(f"{level}|zero active channels (total={len(chans)})")
+else:
+    print(f"OK|channels total={len(chans)} active={len(active)}")
+    for c in active:
+        local = int(c.get("local_balance") or 0)
+        remote = int(c.get("remote_balance") or 0)
+        cap = int(c.get("capacity") or 0)
+        peer = (c.get("remote_pubkey") or "")[:16]
+        cp = (c.get("channel_point") or "")[:20]
+        label = f"peer={peer}… chan={cp}… cap={cap}"
+        if local < min_local:
+            print(f"{level}|low outbound local={local} < {min_local} ({label})")
+        if remote < min_remote:
+            print(f"{level}|low inbound remote={remote} < {min_remote} ({label})")
+        if local >= min_local and remote >= min_remote:
+            print(f"OK|liquidity local={local} remote={remote} ({label})")
+' <<<"$CHANS_JSON"
+      )
+      while IFS= read -r line; do
+        [[ -z "$line" ]] && continue
+        kind=${line%%|*}
+        msg=${line#*|}
+        case "$kind" in
+          OK) ok "channel $msg" ;;
+          WARN) warn "channel $msg" ;;
+          FAIL) fail "channel $msg" ;;
+          ERROR) warn "channel $msg" ;;
+          *) note "channel $line" ;;
+        esac
+      done <<<"$LIQ_REPORT"
+    fi
+  else
+    note "SKIP: channel liquidity (python3 required)"
   fi
 fi
 
