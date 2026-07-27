@@ -63,8 +63,8 @@ These are **starting points**, not mainnet advice. Tune with `suggestswaps` befo
 | Parameter | Suggested lab value | Purpose |
 |-----------|---------------------|---------|
 | Autoloop | **off** until dry-run looks right | Safety |
-| Type | `out` (default) | Restore inbound |
-| Easy Autoloop | optional | Loop Out when **total local** &gt; `localbalancesat` |
+| Type | Loop **Out** (Easy Autoloop) | Restore inbound; rule-based type uses `setrule --type=out` (not `setparams`) |
+| Easy Autoloop | recommended first | Loop Out when **total local** &gt; `localbalancesat` |
 | `localbalancesat` (Easy) | e.g. `500000` | Cap aggregate outbound before Loop Out |
 | Incoming threshold (rules) | e.g. `40` (% capacity) | Min inbound share |
 | Outgoing threshold | e.g. `10` or `0` | Reserve some outbound |
@@ -76,10 +76,13 @@ These are **starting points**, not mainnet advice. Tune with `suggestswaps` befo
 
 Easy Autoloop (simple): when **total local channel balance** exceeds `localbalancesat`, dispatch **Loop Out**. Good first experiment for receive-heavy.
 
-Rule-based (more control):
+Rule-based (more control; **type** goes on `setrule`, not `setparams`):
 
 ```bash
-loop setrule <chan_id_or_peer> --incoming_threshold=40 --outgoing_threshold=10
+loop --network=regtest setrule <chan_id_or_peer> \
+  --type=out \
+  --incoming_threshold=40 \
+  --outgoing_threshold=10
 ```
 
 ---
