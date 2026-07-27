@@ -20,6 +20,8 @@ services:
       - "--listen=0.0.0.0:9735"
       - "--rpclisten=0.0.0.0:10009"
       - "--debuglevel=debug"
+      # SAN so loopd / other containers can dial agent-payment-decision-lnd:10009 over TLS
+      - "--tlsextradomain=agent-payment-decision-lnd"
       - "--externalip=${AWS_IP}"
     volumes:
       - lnd-data:/home/lnd/.lnd

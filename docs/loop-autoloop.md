@@ -101,6 +101,29 @@ What `wire-agent-loopd.sh` does:
 - Points `--server.host=aperture:11018` and seeds aperture TLS from `loopclient`.
 - Leaves **`loopclient`** unchanged (demo `lndclient`).
 
+### TLS SAN for Docker DNS (`tlsextradomain`)
+
+loopd dials **`agent-payment-decision-lnd:10009`**. LND’s TLS cert must include that name.
+`docker-compose.regtest.aws.yml` sets `--tlsextradomain=agent-payment-decision-lnd`.
+
+If you see:
+
+```text
+tls: failed to verify certificate: x509: certificate is valid for ..., not agent-payment-decision-lnd
+```
+
+regenerate LND TLS only (wallet volume kept):
+
+```bash
+export AWS_IP=<your-eip>   # required; empty externalip crashes LND after unlock
+docker compose -f docker-compose.regtest.aws.yml stop agent-payment-decision-lnd
+docker run --rm -v agent-bitcoin_lnd-data:/data alpine:3.20 \
+  rm -f /data/tls.cert /data/tls.key
+docker compose -f docker-compose.regtest.aws.yml up -d agent-payment-decision-lnd
+# unlock, then:
+./wire-agent-loopd.sh --recreate
+```
+
 Status / stop:
 
 ```bash
