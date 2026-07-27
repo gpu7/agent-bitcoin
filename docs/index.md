@@ -9,6 +9,7 @@
 | [README.md](../README.md) | Product overview (public hub) |
 | [SDK.md](../SDK.md) | SDK / app / agent developers |
 | [backend.md](./backend.md) | Operators: AWS + Mac regtest, LND, channels |
+| [loop-autoloop.md](./loop-autoloop.md) | Loop Autoloop Phase 2 (liquidity automation) |
 | [setup.md](./setup.md) | Short setup pointers |
 
 ## Also

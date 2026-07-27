@@ -259,6 +259,27 @@ tmux attach -t backend
 | Zero active channels | Open/reconnect peers before payments |
 | Repeated auth failed in backend logs | Wrong key or probing |
 | Unexpected fee/payment log lines | Investigate; rotate keys if needed |
+| loop getinfo failed | Loop/LND wiring — see [loop-autoloop.md](./loop-autoloop.md) |
+
+### Loop Autoloop (Phase 2)
+
+Liquidity automation is **infrastructure**, not part of payment agents.
+
+1. Keep monitoring with `./check-aws-health.sh` (Phase 1 floors).
+2. Read **[loop-autoloop.md](./loop-autoloop.md)**.
+3. Dry-run / configure Autoloop (default **disabled**):
+
+```bash
+# On AWS
+./configure-autoloop-regtest.sh
+# If loop CLI is only in Docker:
+LOOP_CLI='docker exec -i loopclient loop' ./configure-autoloop-regtest.sh --apply
+# Enable only after suggestswaps looks sane:
+# LOOP_CLI='docker exec -i loopclient loop' ./configure-autoloop-regtest.sh --apply --enable
+```
+
+4. Re-apply after Loop restarts (params often not persisted).
+5. Mainnet Autoloop is **out of scope** for this phase.
 
 ---
 
@@ -586,6 +607,7 @@ echo "✅ All wallets deleted. Fresh start ready."
 ## Lightning Labs Loop service
 
 - We use Lightning Labs Loop for lightning channel management and funding.
+- **Autoloop / liquidity automation (Phase 2):** see **[loop-autoloop.md](./loop-autoloop.md)** and `./configure-autoloop-regtest.sh`.
 
 - The Loop github repo is: https://github.com/lightninglabs/loop
 

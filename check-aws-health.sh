@@ -193,6 +193,21 @@ else
   note "SKIP: /balance (set AGENT_BITCOIN_API_KEY to probe auth)"
 fi
 
+# --- Loop (optional Phase 2) ---
+LOOP_CONTAINER=${LOOP_CONTAINER:-loopclient}
+if [[ "${CHECK_LOOP:-1}" == "1" ]]; then
+  if docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$LOOP_CONTAINER"; then
+    ok "container $LOOP_CONTAINER running"
+    if docker exec "$LOOP_CONTAINER" loop --network=regtest getinfo >/dev/null 2>&1; then
+      ok "loop getinfo (via $LOOP_CONTAINER)"
+    else
+      warn "loop getinfo failed (loopd/LND wiring? see docs/loop-autoloop.md)"
+    fi
+  else
+    note "SKIP: loop container $LOOP_CONTAINER not running"
+  fi
+fi
+
 # --- Report ---
 if [[ "$JSON" -eq 1 ]]; then
   python3 - <<PY
