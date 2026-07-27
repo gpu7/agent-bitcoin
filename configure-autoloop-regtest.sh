@@ -5,10 +5,14 @@
 # on regtest. Default is DRY-RUN. Does not enable Autoloop unless
 # --apply --enable.
 #
-# Usage (on AWS):
-#   LOOP_CLI='docker exec -i loopclient loop' ./configure-autoloop-regtest.sh
-#   LOOP_CLI='docker exec -i loopclient loop' ./configure-autoloop-regtest.sh --apply
-#   LOOP_CLI='docker exec -i loopclient loop' ./configure-autoloop-regtest.sh --apply --enable
+# Usage (on AWS) — prefer agent-loopd (Phase 2C) over demo loopclient:
+#   ./wire-agent-loopd.sh
+#   export LOOP_CLI='docker exec -i agent-loopd loop'
+#   ./configure-autoloop-regtest.sh --apply
+#   ./configure-autoloop-regtest.sh --status
+#   ./configure-autoloop-regtest.sh --apply --enable   # only when ready
+#
+# Demo loop only (lndclient — not agent channels):
 #   LOOP_CLI='docker exec -i loopclient loop' ./configure-autoloop-regtest.sh --status
 #
 # Env:
@@ -20,11 +24,13 @@
 #   AUTOLOOP_SWEEP_CONF          default 100
 #   AUTOLOOP_INFLIGHT            default 1
 #   AUTOLOOP_FEE_PPM             optional fee ppm cap
+#   REQUIRE_AGENT_LOOPD=1        fail if LOOP_CLI does not target agent-loopd
 #
 # Notes:
 # - setparams does NOT take --type; type is set via setrule (we use Easy Autoloop Out by default).
 # - Parameters may not persist across loopd restart; re-run after restarts.
-# - loopd must target agent-payment-decision-lnd for your real channels.
+# - For agent channels: ./wire-agent-loopd.sh then LOOP_CLI=...agent-loopd...
+# - Stock loopclient targets demo lndclient — not agent-payment-decision-lnd.
 # - See docs/loop-autoloop.md
 
 set -euo pipefail
@@ -51,7 +57,16 @@ for arg in "$@"; do
 done
 
 NETWORK=${NETWORK:-regtest}
-LOOP_CLI=${LOOP_CLI:-loop}
+# Prefer agent-loopd when present and LOOP_CLI unset
+if [[ -z "${LOOP_CLI:-}" ]]; then
+  if docker inspect -f '{{.State.Running}}' agent-loopd 2>/dev/null | grep -qx true; then
+    LOOP_CLI='docker exec -i agent-loopd loop'
+  elif command -v loop >/dev/null 2>&1; then
+    LOOP_CLI=loop
+  else
+    LOOP_CLI='docker exec -i loopclient loop'
+  fi
+fi
 LOCAL_BAL=${AUTOLOOP_LOCAL_BALANCE_SAT:-500000}
 BUDGET=${AUTOLOOP_BUDGET_SATS:-50000}
 BUDGET_REFRESH=${AUTOLOOP_BUDGET_REFRESH:-86400s}
@@ -59,6 +74,7 @@ EASY=${AUTOLOOP_EASY:-true}
 SWEEP_CONF=${AUTOLOOP_SWEEP_CONF:-100}
 INFLIGHT=${AUTOLOOP_INFLIGHT:-1}
 FEE_PPM=${AUTOLOOP_FEE_PPM:-}
+REQUIRE_AGENT_LOOPD=${REQUIRE_AGENT_LOOPD:-0}
 
 loop_cmd() {
   # shellcheck disable=SC2086
@@ -70,14 +86,30 @@ echo "LOOP_CLI=$LOOP_CLI  NETWORK=$NETWORK  APPLY=$APPLY  ENABLE=${ENABLE:-<unch
 echo "easy=$EASY localbalancesat=$LOCAL_BAL budget=$BUDGET refresh=$BUDGET_REFRESH"
 echo ""
 
+if [[ "$REQUIRE_AGENT_LOOPD" == "1" || "$REQUIRE_AGENT_LOOPD" == "true" ]]; then
+  if [[ "$LOOP_CLI" != *agent-loopd* ]]; then
+    echo "ERROR: REQUIRE_AGENT_LOOPD=1 but LOOP_CLI does not use agent-loopd:" >&2
+    echo "  LOOP_CLI=$LOOP_CLI" >&2
+    echo "  Run: ./wire-agent-loopd.sh && export LOOP_CLI='docker exec -i agent-loopd loop'" >&2
+    exit 1
+  fi
+fi
+
+if [[ "$LOOP_CLI" == *loopclient* ]]; then
+  echo "NOTE: LOOP_CLI uses stock loopclient (demo lndclient), not agent-payment-decision-lnd."
+  echo "      For agent channels: ./wire-agent-loopd.sh && export LOOP_CLI='docker exec -i agent-loopd loop'"
+  echo ""
+fi
+
 if ! loop_cmd getinfo >/tmp/loop-getinfo.$$ 2>&1; then
   echo "ERROR: cannot run: $LOOP_CLI --network=$NETWORK getinfo" >&2
   cat /tmp/loop-getinfo.$$ >&2 || true
   rm -f /tmp/loop-getinfo.$$
   echo "" >&2
   echo "Hints:" >&2
-  echo "  - Try: LOOP_CLI='docker exec -i loopclient loop' $0 ..." >&2
-  echo "  - Ensure loopd is pointed at agent-payment-decision-lnd if that is the node you manage." >&2
+  echo "  - Agent node: ./wire-agent-loopd.sh && LOOP_CLI='docker exec -i agent-loopd loop' $0 ..." >&2
+  echo "  - Demo only:  LOOP_CLI='docker exec -i loopclient loop' $0 ..." >&2
+  echo "  - Ensure loopserver/aperture are Up (terms must work)." >&2
   exit 1
 fi
 rm -f /tmp/loop-getinfo.$$
@@ -136,9 +168,11 @@ if [[ "$APPLY" -eq 0 ]]; then
   loop_cmd suggestswaps 2>&1 || echo "(suggestswaps failed — apply params first)"
   echo ""
   echo "Next steps:"
-  echo "  1) LOOP_CLI='docker exec -i loopclient loop' $0 --apply"
-  echo "  2) LOOP_CLI='docker exec -i loopclient loop' $0 --status"
-  echo "  3) LOOP_CLI='docker exec -i loopclient loop' $0 --apply --enable"
+  echo "  0) ./wire-agent-loopd.sh   # once, for agent-payment-decision-lnd"
+  echo "  1) export LOOP_CLI='docker exec -i agent-loopd loop'"
+  echo "  2) $0 --apply"
+  echo "  3) $0 --status"
+  echo "  4) $0 --apply --enable    # only when ready"
   echo "  See docs/loop-autoloop.md"
   exit 0
 fi
