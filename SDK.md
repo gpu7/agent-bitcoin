@@ -542,6 +542,7 @@ Runnable scripts under [examples/](examples/):
 | `full_intelligent_agent_grok.py` | Fuller autonomous flow (Grok) |
 | `payment_decision_agent.py` | Payment decision agent demo |
 | `agent_api_example.py` | HTTP wrapper around the backend API |
+| `nostr_agent_poc.py` | Phase A Nostr identity PoC (two agents, relay; **no LND**) |
 
 ### Basic
 
@@ -586,6 +587,19 @@ uv run python examples/payment_decision_agent.py
 ```bash
 # Backend must be running (see docs/backend.md)
 uv run python examples/agent_api_example.py
+```
+
+### Nostr agent identity (Phase A PoC)
+
+Additive identity/messaging only — does not use LND. See [docs/nostr-agent-identity.md](docs/nostr-agent-identity.md). Prefer **Python 3.12** for `pynostr`/`coincurve` wheels.
+
+```bash
+uv venv -p 3.12 .venv-nostr
+uv pip install --python .venv-nostr/bin/python -e '.[nostr]'
+export NOSTR_PASSPHRASE='choose-a-strong-passphrase'
+.venv-nostr/bin/python examples/nostr_agent_poc.py --offline
+# optional relay test:
+.venv-nostr/bin/python examples/nostr_agent_poc.py --relay wss://nos.lol
 ```
 
 ---

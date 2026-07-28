@@ -28,6 +28,7 @@ MANIFEST
 
 # Virtual environments
 .venv
+.venv-nostr
 venv/
 ENV/
 env/
@@ -74,6 +75,9 @@ config.local.yaml
 macaroons/
 secrets/
 credentials/
+
+# Nostr agent PoC key material (encrypted nsec + local pubs)
+.nostr-poc/
 
 # Docker
 .docker/

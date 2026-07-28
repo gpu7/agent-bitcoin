@@ -11,6 +11,7 @@
 | [backend.md](./backend.md) | Operators: AWS + Mac regtest, LND, channels |
 | [liquidity-automation.md](./liquidity-automation.md) | **Simple story:** channel health + Autoloop Phases 1–3 |
 | [loop-autoloop.md](./loop-autoloop.md) | Phase 2 deep dive: Loop Autoloop, agent-loopd, ops |
+| [nostr-agent-identity.md](./nostr-agent-identity.md) | ADR: Nostr identity for open agent swarms (Phase A PoC) |
 | [setup.md](./setup.md) | Short setup pointers |
 
 ## Also
