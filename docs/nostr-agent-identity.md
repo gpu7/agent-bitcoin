@@ -1,11 +1,12 @@
 # ADR: Nostr identity for agent swarms (Phase A)
 
-**Status:** Accepted for PoC (Phase A)
+**Status:** Accepted — Phase A complete; Phase B PoC available
 **Date:** 2026-07-28
 **Audience:** Operators and developers.
 **Agents / SDK payment path:** unchanged. Nostr is **additive** identity/transport, not a replacement for LND, Autoloop, or the FastAPI backend.
 
-**Related:** [liquidity-automation.md](./liquidity-automation.md) (separate track: channel health / Loop) · [SECURITY.md](../SECURITY.md) · example [examples/nostr_agent_poc.py](../examples/nostr_agent_poc.py)
+**Related:** [liquidity-automation.md](./liquidity-automation.md) · [SECURITY.md](../SECURITY.md)
+**Examples:** [nostr_agent_poc.py](../examples/nostr_agent_poc.py) (Phase A) · [nostr_phase_b_payment.py](../examples/nostr_phase_b_payment.py) (Phase B)
 
 ---
 
@@ -38,9 +39,9 @@ Gaps: no per-agent public identity, no decentralized discovery/messaging, multi-
 3. **Do not** fold Nostr into `PaymentDecisionAgent` execution. Decision remains a gatekeeper; payment stays on LND / future NWC after PAY.
 4. **Do not** replace operator LND peer scripts or Autoloop with Nostr.
 5. **Phase delivery:**
-   - **Phase A (this ADR + PoC):** keys, encrypted local storage, relay pub/sub, signed notes (and optional NIP-04 DMs). **No LND.**
-   - **Phase B (later):** coordinate invoice/pay between `agent-payment-decision-lnd` and `agent-bitcoin-lnd` using Nostr as the request channel; still use existing payment APIs.
-   - **Phase C (later):** harden key management (NIP-46 remote signer, then MPC if needed); prefer NIP-17 DMs over NIP-04; optional NIP-47 NWC.
+   - **Phase A:** keys, encrypted local storage, signed notes. **No LND.**
+   - **Phase B:** coordinate invoice/pay between dual LND nodes using **signed Nostr-style events** as the request channel; payments still via existing `LNDClient` / `lncli`.
+   - **Phase C (later):** harden key management (NIP-46 remote signer, then MPC if needed); prefer NIP-17 DMs; optional NIP-47 NWC.
 
 ---
 
@@ -53,6 +54,43 @@ Gaps: no per-agent public identity, no decentralized discovery/messaging, multi-
 | Connect to public or self-hosted relays | Changing FastAPI auth model |
 | Kind 0 profile + kind 1 coordination notes | Mainnet requirements |
 | Optional experimental NIP-04 DM | Production key custody |
+
+---
+
+## Phase B scope (in / out)
+
+| In | Out |
+|----|-----|
+| Signed `pay_request` / `invoice_offer` / `payment_result` messages | Replacing FastAPI or Autoloop |
+| **File bus** of signed events (reliable lab path) | Depending only on public relays |
+| `addinvoice` / `payinvoice` via existing Docker LND | Merging pay into `PaymentDecisionAgent` |
+| Dual-host: Mac `agent-bitcoin-lnd` pays → AWS `agent-payment-decision-lnd` receives | NWC / zaps |
+| Optional `--decide` before pay | Mainnet |
+
+### Phase B message flow
+
+```text
+Alice (payer agent, Nostr key)          Bob (invoice agent, Nostr key)
+        |                                         |
+        | 1. signed pay_request                   |
+        |---------------------------------------->|
+        |                                         | 2. LND addinvoice
+        | 3. signed invoice_offer (bolt11)        |
+        |<----------------------------------------|
+        | 4. optional PaymentDecisionAgent        |
+        | 5. LND payinvoice                       |
+        | 6. signed payment_result                |
+        |---------------------------------------->|
+```
+
+Default lab mapping (receive-heavy AWS agent):
+
+| Role | Nostr agent | LND container | Typical host |
+|------|-------------|---------------|--------------|
+| Payer | `alice` | `agent-bitcoin-lnd` | Mac |
+| Invoice | `bob` | `agent-payment-decision-lnd` | AWS |
+
+Coordination is a **bus directory** of signed event JSON files (`.nostr-poc/bus/`). Copy that directory between hosts (scp, USB, shared folder). Public relays remain optional and often filter new keys.
 
 ---
 
@@ -135,9 +173,53 @@ See `examples/nostr_agent_poc.py --help`. Encrypted keys default to `.nostr-poc/
 
 ---
 
+## How to run Phase B PoC
+
+Prerequisites: AWS + Mac stack up, wallets unlocked, **channel active**, Python 3.12 + `.[nostr]` on **both** hosts that run a role. Use the **same** `NOSTR_PASSPHRASE` and share the `.nostr-poc` tree (or at least `bus/` + both encrypted keys if each host signs).
+
+```bash
+uv venv -p 3.12 .venv-nostr
+uv pip install --python .venv-nostr/bin/python -e '.[nostr]'
+export NOSTR_PASSPHRASE='use-a-strong-passphrase'
+export NOSTR_POC_DIR=./.nostr-poc
+
+# --- Protocol dry-run (no LND; any single machine) ---
+.venv-nostr/bin/python examples/nostr_phase_b_payment.py --force-new-keys request --amount 5000
+.venv-nostr/bin/python examples/nostr_phase_b_payment.py --force-new-keys invoice --dry-run
+.venv-nostr/bin/python examples/nostr_phase_b_payment.py pay --dry-run
+.venv-nostr/bin/python examples/nostr_phase_b_payment.py status
+
+# --- Live dual-host (example amounts must be >= MIN_PAYMENT_SATS, default 2000) ---
+# Mac (payer has local outbound):
+.venv-nostr/bin/python examples/nostr_phase_b_payment.py request --amount 5000 --memo 'nostr-b'
+# scp -r .nostr-poc  ubuntu@AWS:~/agent-bitcoin/
+
+# AWS (agent receives):
+LND_INVOICE_CONTAINER=agent-payment-decision-lnd \
+  .venv-nostr/bin/python examples/nostr_phase_b_payment.py invoice
+# scp offer/result bus files back to Mac
+
+# Mac (pay):
+LND_PAYER_CONTAINER=agent-bitcoin-lnd \
+  .venv-nostr/bin/python examples/nostr_phase_b_payment.py pay
+# optional: add --decide
+```
+
+---
+
+## Success criteria (Phase B)
+
+- [x] Signed `pay_request` → `invoice_offer` → `payment_result` over file bus
+- [x] Dry-run path without LND
+- [ ] Live: invoice on one LND, pay on the other, channel settles
+- [x] Decision agent remains optional gate only (`--decide`)
+
+---
+
 ## Non-goals (explicit)
 
-- Replacing `AGENT_BITCOIN_API_KEY` HTTP auth in Phase A
-- Merging Nostr into `PaymentDecisionAgent.pay`
+- Replacing `AGENT_BITCOIN_API_KEY` HTTP auth
+- Merging Nostr into `PaymentDecisionAgent` payment execution
 - Mainnet Nostr + Lightning agent economies
 - Claiming NIP-04 DMs as production-grade privacy (prefer NIP-17 later)
+- Public-relay reliability as a Phase B requirement (file bus is the lab path)
