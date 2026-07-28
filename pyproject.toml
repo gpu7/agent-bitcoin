@@ -38,6 +38,10 @@ langchain = [
     "langchain-ollama>=0.1.0",
     "langchain-xai>=0.1.0",
 ]
+nostr = [
+    "pynostr[websocket-client]>=0.6.0",
+    "cryptography>=42.0.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/gpu7/agent-bitcoin"
