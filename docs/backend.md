@@ -3,6 +3,9 @@
 Operator runbook for the AWS + Mac regtest stack (not the public SDK guide).
 SDK users: see [SDK.md](../SDK.md). Product overview: [README.md](../README.md).
 
+**Liquidity / Autoloop roadmap (simple overview):** [liquidity-automation.md](./liquidity-automation.md)
+**Phase 2 Autoloop deep dive:** [loop-autoloop.md](./loop-autoloop.md)
+
 ---
 
 ## Current environment (operator)
@@ -206,6 +209,8 @@ Exit code **0** = healthy (warnings allowed); **1** = unhealthy.
 
 #### Channel capacity floors (receive-heavy node)
 
+**Phase 1** of liquidity automation: [liquidity-automation.md](./liquidity-automation.md).
+
 For a receive-heavy `agent-payment-decision-lnd`, **inbound** (`remote_balance`) is what lets you keep receiving. Prefer keeping good channels open and restoring inbound later (Phase 2 Autoloop), not closing channels when imbalanced.
 
 | Env | Default | Meaning |
@@ -265,21 +270,23 @@ tmux attach -t backend
 
 Liquidity automation is **infrastructure**, not part of payment agents.
 
+**Overview:** [liquidity-automation.md](./liquidity-automation.md)
+**Operator deep dive:** [loop-autoloop.md](./loop-autoloop.md)
+
 1. Keep monitoring with `./check-aws-health.sh` (Phase 1 floors).
-2. Read **[loop-autoloop.md](./loop-autoloop.md)**.
-3. Dry-run / configure Autoloop (default **disabled**):
+2. Wire Autoloop to the **agent** node (not demo `loopclient` / `lndclient`):
 
 ```bash
-# On AWS
-./configure-autoloop-regtest.sh
-# If loop CLI is only in Docker:
-LOOP_CLI='docker exec -i loopclient loop' ./configure-autoloop-regtest.sh --apply
-# Enable only after suggestswaps looks sane:
-# LOOP_CLI='docker exec -i loopclient loop' ./configure-autoloop-regtest.sh --apply --enable
+# On AWS — after Loop stack + agent LND are up
+./wire-agent-loopd.sh
+export LOOP_CLI='docker exec -i agent-loopd loop'
+./configure-autoloop-regtest.sh --apply
+# Enable only when ready on regtest:
+# ./configure-autoloop-regtest.sh --apply --enable
 ```
 
-4. Re-apply after Loop restarts (params often not persisted).
-5. Mainnet Autoloop is **out of scope** for this phase.
+3. Re-run `./wire-agent-loopd.sh` after cold starts; re-`--apply` (and `--enable` if desired) after loopd restarts if params reset.
+4. Mainnet Autoloop is **out of scope** for this phase.
 
 ---
 
@@ -607,7 +614,8 @@ echo "✅ All wallets deleted. Fresh start ready."
 ## Lightning Labs Loop service
 
 - We use Lightning Labs Loop for lightning channel management and funding.
-- **Autoloop / liquidity automation (Phase 2):** see **[loop-autoloop.md](./loop-autoloop.md)** and `./configure-autoloop-regtest.sh`.
+- **Liquidity automation (Phases 1–3 overview):** **[liquidity-automation.md](./liquidity-automation.md)**
+- **Autoloop / Phase 2 deep dive:** **[loop-autoloop.md](./loop-autoloop.md)**, `./wire-agent-loopd.sh`, `./configure-autoloop-regtest.sh`
 
 - The Loop github repo is: https://github.com/lightninglabs/loop
 
