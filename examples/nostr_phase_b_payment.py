@@ -281,12 +281,29 @@ def cmd_pay(args: argparse.Namespace) -> int:
     else:
         lnd = _lnd_client(args.payer_container)
         print(f"[pay] LND container={args.payer_container}")
-        result = lnd.pay_invoice(payment_request)
-        status = getattr(result, "status", None) or str(result)
-        payment_hash = getattr(result, "payment_hash", "") or offer.get(
-            "payment_hash", ""
-        )
-        print(f"[pay] LND result status={status} payment_hash={payment_hash}")
+        try:
+            result = lnd.pay_invoice(payment_request)
+            status = getattr(result, "status", None) or str(result)
+            payment_hash = getattr(result, "payment_hash", "") or offer.get(
+                "payment_hash", ""
+            )
+            print(
+                f"[pay] LND result success={getattr(result, 'success', None)} "
+                f"status={status} amount={getattr(result, 'amount', None)} "
+                f"payment_hash={payment_hash}"
+            )
+        except Exception as exc:
+            # Payment may have succeeded on-chain even if response parsing failed
+            print(f"[pay] LND pay raised: {exc}", file=sys.stderr)
+            print(
+                "[pay] Check whether funds already moved, e.g.:\n"
+                "  docker compose -f docker-compose.regtest.mac.yml exec -T "
+                "agent-bitcoin-lnd lncli --lnddir=/home/lnd/.lnd "
+                "--network=regtest listpayments | tail -40",
+                file=sys.stderr,
+            )
+            status = f"ERROR: {exc}"
+            payment_hash = offer.get("payment_hash", "")
 
     result_payload = {
         "type": "payment_result",

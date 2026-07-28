@@ -102,13 +102,44 @@ class LNDClient:
                 "--json",
                 "--force",  # Skip confirmation
             )
+            # lncli sendpayment JSON varies by version: value_sat / value_msat / value
+            amount = resp.get("value_sat")
+            if amount is None and resp.get("value_msat") is not None:
+                try:
+                    amount = int(resp["value_msat"]) // 1000
+                except (TypeError, ValueError):
+                    amount = 0
+            if amount is None and resp.get("value") is not None:
+                amount = resp.get("value")
+            if amount is None and resp.get("amount") is not None:
+                amount = resp.get("amount")
+            try:
+                amount_int = int(amount) if amount is not None else 0
+            except (TypeError, ValueError):
+                amount_int = 0
+
+            status = str(resp.get("status") or resp.get("payment_status") or "UNKNOWN")
+            success = status.upper() in {
+                "SUCCEEDED",
+                "SUCCESS",
+                "COMPLETE",
+                "COMPLETED",
+            }
+            # Some older outputs omit status on success and only return payment_hash
+            if (
+                not success
+                and resp.get("payment_hash")
+                and not resp.get("payment_error")
+            ):
+                success = True
+                if status == "UNKNOWN":
+                    status = "SUCCEEDED"
+
             return PaymentResult(
-                success=resp.get("status") == "SUCCEEDED" or True,
-                payment_hash=resp.get("payment_hash"),
-                amount=resp.get("amount"),
-                preimage=resp.get("preimage"),
-                status=resp.get("status"),
-                raw_response=resp,
+                success=success,
+                payment_hash=resp.get("payment_hash") or resp.get("payment_hash_str"),
+                amount=amount_int,
+                status=status,
             )
         except Exception as e:
             raise LNDException(f"Failed to pay invoice: {str(e)}")
