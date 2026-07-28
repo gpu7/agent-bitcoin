@@ -542,7 +542,9 @@ Runnable scripts under [examples/](examples/):
 | `full_intelligent_agent_grok.py` | Fuller autonomous flow (Grok) |
 | `payment_decision_agent.py` | Payment decision agent demo |
 | `agent_api_example.py` | HTTP wrapper around the backend API |
-| `nostr_agent_poc.py` | Phase A Nostr identity PoC (two agents, relay; **no LND**) |
+| `nostr_agent_poc.py` | Phase A Nostr identity PoC (two agents; **no LND**) |
+| `nostr_phase_b_payment.py` | Phase B Nostr pay request/offer + LND invoice/pay |
+| `nostr_common.py` | Shared helpers for Nostr examples (not public SDK) |
 
 ### Basic
 
@@ -600,6 +602,11 @@ export NOSTR_PASSPHRASE='choose-a-strong-passphrase'
 .venv-nostr/bin/python examples/nostr_agent_poc.py --offline
 # optional relay test:
 .venv-nostr/bin/python examples/nostr_agent_poc.py --relay wss://nos.lol
+
+# Phase B protocol dry-run (signed bus messages, no LND):
+.venv-nostr/bin/python examples/nostr_phase_b_payment.py --force-new-keys request --amount 5000
+.venv-nostr/bin/python examples/nostr_phase_b_payment.py --force-new-keys invoice --dry-run
+.venv-nostr/bin/python examples/nostr_phase_b_payment.py pay --dry-run
 ```
 
 ---
