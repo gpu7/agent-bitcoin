@@ -3,6 +3,7 @@
 **Audience:** Operators of the AWS regtest stack.
 **Agents / SDK:** do **not** call Loop or open/close channels. Payment agents stay on invoice/pay/decide only.
 
+**Simple roadmap (Phases 1–3):** [liquidity-automation.md](./liquidity-automation.md)
 **Related:** [backend.md](./backend.md) (health checks, channel floors), [SECURITY.md](../SECURITY.md).
 
 ---
@@ -240,6 +241,8 @@ $LOOP_CLI --network=regtest setparams --autoloop=false
 ---
 
 ## Phase 3 (later)
+
+High-level intent: [liquidity-automation.md — Phase 3](./liquidity-automation.md#phase-3--smarter-automation-and-production-later).
 
 - Faraday channel productivity
 - Optional Pool
