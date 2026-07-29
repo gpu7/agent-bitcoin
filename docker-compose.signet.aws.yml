@@ -34,8 +34,6 @@ services:
       - "--debuglevel=info"
       - "--tlsextradomain=agent-payment-decision-lnd-signet"
       - "--externalip=${AWS_IP}"
-      - "--accept-keysend"
-      - "--protocol.no-anchors=false"
     volumes:
       - lnd-signet-data:/home/lnd/.lnd
     networks:
