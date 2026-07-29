@@ -544,6 +544,8 @@ Runnable scripts under [examples/](examples/):
 | `agent_api_example.py` | HTTP wrapper around the backend API |
 | `nostr_agent_poc.py` | Phase A Nostr identity PoC (two agents; **no LND**) |
 | `nostr_phase_b_payment.py` | Phase B Nostr pay request/offer + LND invoice/pay |
+| `nostr_phase_c_signer.py` | Phase C local policy signer (agent never holds nsec) |
+| `nostr_phase_c_policy.json` | Default signer policy for Phase C |
 | `nostr_common.py` | Shared helpers for Nostr examples (not public SDK) |
 
 ### Basic
@@ -607,6 +609,9 @@ export NOSTR_PASSPHRASE='choose-a-strong-passphrase'
 .venv-nostr/bin/python examples/nostr_phase_b_payment.py --force-new-keys request --amount 5000
 .venv-nostr/bin/python examples/nostr_phase_b_payment.py --force-new-keys invoice --dry-run
 .venv-nostr/bin/python examples/nostr_phase_b_payment.py pay --dry-run
+
+# Phase C local policy signer (nsec only in signer process):
+.venv-nostr/bin/python examples/nostr_phase_c_signer.py demo --agent alice
 ```
 
 ---

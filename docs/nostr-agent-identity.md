@@ -1,12 +1,15 @@
 # ADR: Nostr identity for agent swarms (Phase A)
 
-**Status:** Accepted — Phase A complete; Phase B PoC available
-**Date:** 2026-07-28
+**Status:** Accepted — Phase A/B complete; Phase C hardening PoC available
+**Date:** 2026-07-29
 **Audience:** Operators and developers.
 **Agents / SDK payment path:** unchanged. Nostr is **additive** identity/transport, not a replacement for LND, Autoloop, or the FastAPI backend.
 
 **Related:** [liquidity-automation.md](./liquidity-automation.md) · [SECURITY.md](../SECURITY.md)
-**Examples:** [nostr_agent_poc.py](../examples/nostr_agent_poc.py) (Phase A) · [nostr_phase_b_payment.py](../examples/nostr_phase_b_payment.py) (Phase B)
+**Examples:**
+- [nostr_agent_poc.py](../examples/nostr_agent_poc.py) (Phase A)
+- [nostr_phase_b_payment.py](../examples/nostr_phase_b_payment.py) (Phase B)
+- [nostr_phase_c_signer.py](../examples/nostr_phase_c_signer.py) (Phase C local policy signer)
 
 ---
 
@@ -41,7 +44,7 @@ Gaps: no per-agent public identity, no decentralized discovery/messaging, multi-
 5. **Phase delivery:**
    - **Phase A:** keys, encrypted local storage, signed notes. **No LND.**
    - **Phase B:** coordinate invoice/pay between dual LND nodes using **signed Nostr-style events** as the request channel; payments still via existing `LNDClient` / `lncli`.
-   - **Phase C (later):** harden key management (NIP-46 remote signer, then MPC if needed); prefer NIP-17 DMs; optional NIP-47 NWC.
+   - **Phase C:** harden key custody — local **policy signer** (NIP-46-inspired); roadmap for full NIP-46 bunker, NIP-17 DMs, NIP-47 NWC, MPC.
 
 ---
 
@@ -98,8 +101,9 @@ Coordination is a **bus directory** of signed event JSON files (`.nostr-poc/bus/
 
 | Stage | Approach | Use when |
 |-------|----------|----------|
-| **PoC (now)** | Encrypted local file or secrets manager; load only for signing | Experiments, low value |
-| **Next** | NIP-46 remote signer (“bunker”); agent never holds raw `nsec` | Long-lived / higher trust |
+| **Phase A/B** | Encrypted local file; agent process may load nsec to sign | Lab / low value |
+| **Phase C PoC** | **Local policy signer** — only signer process loads nsec; agent uses Unix socket | Hardening step |
+| **Next** | Full NIP-46 bunker (possibly remote host / TEE) | Long-lived / higher trust |
 | **High value** | Threshold / MPC shares | Real economic agents |
 | **Swarms** | HD master seed offline; derive per-agent keys | Many agents under one operator |
 
@@ -211,8 +215,73 @@ LND_PAYER_CONTAINER=agent-bitcoin-lnd \
 
 - [x] Signed `pay_request` → `invoice_offer` → `payment_result` over file bus
 - [x] Dry-run path without LND
-- [ ] Live: invoice on one LND, pay on the other, channel settles
+- [x] Live: invoice on one LND, pay on the other, channel settles (regtest)
 - [x] Decision agent remains optional gate only (`--decide`)
+
+---
+
+## Phase C — hardening (key custody + policy)
+
+**Question:** How do we keep agent identities safe when agents run long-term and may control real value?
+
+### What Phase C delivers now (PoC)
+
+| In | Out (roadmap / later) |
+|----|------------------------|
+| Local **policy signer** process holds nsec | Full wire-compatible **NIP-46** bunker over Nostr |
+| Agent client signs via **Unix socket** only | **MPC** threshold signing |
+| Policy: allowed kinds, rate limit, required tags, payload `type` allow-list | **NIP-17** private DMs |
+| One-shot `demo` self-test | **NIP-47 NWC** wallet service next to LND |
+| Localhost / same-host only | Remote signer over network / TEE |
+
+Architecture:
+
+```text
+  Agent runtime (no nsec)
+        |  JSON-lines over Unix socket
+        v
+  Policy signer process
+        |  passphrase unlock once
+        v
+  Encrypted nsec on disk (.nostr-poc/*.enc.json)
+```
+
+### How to run Phase C PoC
+
+```bash
+uv venv -p 3.12 .venv-nostr
+uv pip install --python .venv-nostr/bin/python -e '.[nostr]'
+export NOSTR_PASSPHRASE='use-a-strong-passphrase'
+export NOSTR_POC_DIR=./.nostr-poc
+
+# One-shot: signer + client (client never loads nsec)
+.venv-nostr/bin/python examples/nostr_phase_c_signer.py demo --agent alice
+
+# Or two terminals:
+# T1 — holds the key
+.venv-nostr/bin/python examples/nostr_phase_c_signer.py serve --agent alice
+# T2 — agent-like client
+.venv-nostr/bin/python examples/nostr_phase_c_signer.py get-pubkey --agent alice
+.venv-nostr/bin/python examples/nostr_phase_c_signer.py sign --agent alice --type phase_c_demo
+.venv-nostr/bin/python examples/nostr_phase_c_signer.py deny-demo --agent alice
+```
+
+Policy file: [examples/nostr_phase_c_policy.json](../examples/nostr_phase_c_policy.json).
+
+### Phase C roadmap (not in this PoC)
+
+1. **NIP-46** — interoperable remote signer (“bunker”) instead of custom Unix protocol
+2. **NIP-17** — modern private DMs for inter-agent secrets (not NIP-04)
+3. **NIP-47 NWC** — limited Lightning permissions for agents (no full admin macaroon in agent process)
+4. **MPC / TEE** — for high-value autonomous keys
+5. Wire Phase B `pay`/`request` to call the signer instead of `load_or_create_agent` in the agent process
+
+### Success criteria (Phase C PoC)
+
+- [x] Signer process alone loads nsec
+- [x] Client obtains pubkey + signed event without nsec
+- [x] Policy can deny disallowed payload types
+- [ ] Full NIP-46 / NIP-17 / NWC (roadmap)
 
 ---
 
@@ -220,6 +289,7 @@ LND_PAYER_CONTAINER=agent-bitcoin-lnd \
 
 - Replacing `AGENT_BITCOIN_API_KEY` HTTP auth
 - Merging Nostr into `PaymentDecisionAgent` payment execution
-- Mainnet Nostr + Lightning agent economies
+- Mainnet Nostr + Lightning agent economies without further design
 - Claiming NIP-04 DMs as production-grade privacy (prefer NIP-17 later)
-- Public-relay reliability as a Phase B requirement (file bus is the lab path)
+- Public-relay reliability as a Phase B/C requirement (file bus + local signer are lab paths)
+- Claiming the Phase C Unix signer is a complete NIP-46 implementation

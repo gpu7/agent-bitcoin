@@ -1,0 +1,17 @@
+{
+  "description": "Phase C local policy signer defaults (NIP-46-inspired, localhost only)",
+  "allowed_kinds": [0, 1],
+  "max_signs_per_minute": 30,
+  "require_tag": ["client", "agent-bitcoin-phase-c"],
+  "allowed_payload_types": [
+    "pay_request",
+    "invoice_offer",
+    "payment_result",
+    "coord_note",
+    "phase_c_demo"
+  ],
+  "notes": [
+    "Agent runtime never loads nsec; only this signer process does.",
+    "Full NIP-46 bunker / NIP-17 / NIP-47 NWC are Phase C roadmap, not this PoC."
+  ]
+}
