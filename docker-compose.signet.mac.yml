@@ -1,35 +1,81 @@
 # Signet LND on Mac (counterparty to AWS agent-payment-decision-lnd-signet).
-# Neutrino — no full bitcoind. Separate volume from regtest.
+# Local bitcoind (signet) — not Neutrino. Public Neutrino peers were unreliable
+# on Docker Desktop; a full node is the supported dual-node path.
 #
 # Usage:
-#   docker compose -f docker-compose.signet.mac.yml up -d
-#   Or: ./startup-signet-mac.sh
+#   ./startup-signet-mac.sh
+#   # or: docker compose -f docker-compose.signet.mac.yml up -d
 #
-# If block_height stays 0 for 15–30+ min, see docs/signet.md "Mac Neutrino stuck".
-#
+# First bitcoind signet sync can take a while (GB-scale disk). Keep Mac awake.
 # Host ports avoid regtest Mac (9736/10010) and AWS signet (19735/20009).
+#
+# IMPORTANT: Do not switch an existing Neutrino LND wallet to bitcoind.
+# Wipe the LND volume once when migrating (see docs/signet.md).
 
 services:
+  bitcoind-signet:
+    image: bitcoin/bitcoin:28.0
+    container_name: agent-bitcoin-bitcoind-signet
+    restart: unless-stopped
+    # Signet P2P optional on host (debug / inbound). LND uses internal RPC/ZMQ only.
+    ports:
+      - "38332:38332"   # RPC (lab debug; not required for LND)
+      - "38333:38333"   # P2P
+    command:
+      - -printtoconsole
+      - -signet=1
+      - -server=1
+      - -txindex=1
+      - -dnsseed=1
+      - -listen=1
+      - -rpcallowip=0.0.0.0/0
+      - -rpcbind=0.0.0.0
+      - -rpcuser=lightning
+      - -rpcpassword=lightning
+      - -rpcport=38332
+      - -port=38333
+      - -zmqpubrawblock=tcp://0.0.0.0:28332
+      - -zmqpubrawtx=tcp://0.0.0.0:28333
+      - -dbcache=512
+    volumes:
+      - agent-bitcoin-bitcoind-signet-data:/home/bitcoin/.bitcoin
+    networks:
+      - agent-signet-net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "bitcoin-cli",
+          "-signet",
+          "-rpcuser=lightning",
+          "-rpcpassword=lightning",
+          "-rpcport=38332",
+          "getblockchaininfo",
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
+
   agent-bitcoin-lnd-signet:
     image: lightninglabs/lnd:v0.18.5-beta
     container_name: agent-bitcoin-lnd-signet
     restart: unless-stopped
-    # Help DNS seed resolution inside Docker Desktop
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
+    depends_on:
+      bitcoind-signet:
+        condition: service_healthy
     ports:
       - "29735:9735"
       - "30009:10009"
     command:
       - "--bitcoin.signet"
-      - "--bitcoin.node=neutrino"
-      # Force peers (stronger than addpeer). Update if they go stale.
-      - "--neutrino.connect=192.241.222.63:38333"
-      - "--neutrino.connect=45.79.76.218:38333"
-      - "--neutrino.connect=130.41.131.84:38333"
-      - "--neutrino.addpeer=192.241.222.63:38333"
-      - "--neutrino.addpeer=45.79.76.218:38333"
+      - "--bitcoin.active"
+      - "--bitcoin.node=bitcoind"
+      - "--bitcoind.rpcuser=lightning"
+      - "--bitcoind.rpcpass=lightning"
+      - "--bitcoind.rpchost=bitcoind-signet:38332"
+      - "--bitcoind.zmqpubrawblock=tcp://bitcoind-signet:28332"
+      - "--bitcoind.zmqpubrawtx=tcp://bitcoind-signet:28333"
       - "--lnddir=/home/lnd/.lnd"
       - "--listen=0.0.0.0:9735"
       - "--rpclisten=0.0.0.0:10009"
@@ -46,4 +92,5 @@ networks:
     driver: bridge
 
 volumes:
+  agent-bitcoin-bitcoind-signet-data:
   agent-bitcoin-lnd-signet-data:

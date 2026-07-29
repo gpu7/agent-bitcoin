@@ -26,29 +26,44 @@
 | Piece | Purpose |
 |-------|---------|
 | `docker-compose.signet.aws.yml` | Neutrino LND on AWS signet; volume `agent-bitcoin_lnd-signet-data` |
-| `docker-compose.signet.mac.yml` | Neutrino LND on Mac signet (dual-node peer) |
+| `docker-compose.signet.mac.yml` | **bitcoind + LND** on Mac signet (dual-node peer) |
 | `startup-signet-aws.sh` / `shutdown-signet-aws.sh` | AWS start/stop (keep volume) |
-| `startup-signet-mac.sh` / `shutdown-signet-mac.sh` | Mac start/stop (keep volume) |
+| `startup-signet-mac.sh` / `shutdown-signet-mac.sh` | Mac start/stop (keep volumes) |
 | `LND_NETWORK=signet` | SDK / `LNDClient` |
 | `LND_CONTAINER=...` | e.g. `agent-payment-decision-lnd-signet` |
 
 **Does not** replace or delete regtest compose/scripts. Do **not** reuse regtest wallet volumes for signet.
+
+### Neutrino vs bitcoind (chain backends)
+
+LND needs a **Bitcoin chain backend**. Two options:
+
+| | **Neutrino** (light client) | **bitcoind** (full node) |
+|--|----------------------------|---------------------------|
+| What it is | LND embeds [lightninglabs/neutrino](https://github.com/lightninglabs/neutrino): downloads headers + compact filters (BIP157) from other nodes | Bitcoin Core runs next to LND; LND talks RPC + ZMQ |
+| Disk | Small (headers/filters) | Larger (full signet chain, multi‑GB) |
+| Peers needed | Public nodes that serve **compact filters** (`peerblockfilters=1`) | Normal Bitcoin P2P (many signet peers) |
+| Reliability | Fragile if public CF peers are sparse/bad (common on Docker Desktop Mac) | Predictable: you control the node |
+| This repo | **AWS** signet (still Neutrino) | **Mac** signet (bitcoind after Neutrino failed) |
+
+**bitcoind-signet is the alternative to Neutrino** for the Mac counterparty: same LND, same Lightning wallet role, different way of learning the Bitcoin tip. You cannot switch an existing wallet between Neutrino and bitcoind — wipe the LND volume once when migrating (see Mac section).
 
 ---
 
 ## Topology (v1 recommendation)
 
 ```text
-AWS: agent-payment-decision-lnd-signet  (P2P host :19735)
+AWS: agent-payment-decision-lnd-signet  (Neutrino, P2P :19735)
         |
    Lightning channel (signet)
         |
-Mac: agent-bitcoin-lnd-signet           (P2P host :29735)
+Mac: bitcoind-signet ──RPC/ZMQ──► agent-bitcoin-lnd-signet  (P2P :29735)
 ```
 
 - **AWS host ports:** `19735` (P2P), `20009` (RPC) — avoid regtest `9735` / `10009`.
-- **Mac host ports:** `29735` (P2P), `30009` (RPC) — avoid regtest Mac `9736` / `10010`.
+- **Mac host ports:** `29735` (LN P2P), `30009` (LND gRPC), `38332`/`38333` (bitcoind RPC/P2P lab).
 - Prefer **Mac → AWS connect** (outbound from home network).
+- AWS and Mac LND only need to agree on the **same signet tip** for channels; backends can differ.
 
 ---
 
@@ -159,41 +174,52 @@ Run a second LND on the **Mac** on signet. You control both ends (like regtest).
 cd ~/agent-bitcoin
 git pull origin main
 chmod +x startup-signet-mac.sh shutdown-signet-mac.sh
+
+# One-time if you previously ran Neutrino Mac LND (backend switch unsupported):
+./shutdown-signet-mac.sh 2>/dev/null || true
+docker volume ls | grep -i lnd-signet   # find name, then:
+# docker volume rm <project>_agent-bitcoin-lnd-signet-data
+
 ./startup-signet-mac.sh
-# create/unlock wallet; save seed
+# create/unlock wallet; save seed (new wallet after wipe)
 
 export MAC_LND=agent-bitcoin-lnd-signet
-# Wait until synced (can take a while):
+export MAC_BTC=agent-bitcoin-bitcoind-signet
+
+# bitcoind first (source of truth for height):
+docker exec "$MAC_BTC" bitcoin-cli -signet -rpcuser=lightning -rpcpassword=lightning -rpcport=38332 \
+  getblockchaininfo | grep -E '"blocks"|"headers"|"initialblockdownload"'
+
+# LND tracks bitcoind after unlock:
 docker exec "$MAC_LND" lncli --lnddir=/home/lnd/.lnd --network=signet getinfo \
   | grep -E 'identity_pubkey|synced_to_chain|block_height'
 ```
 
-**Progress check:** `block_height` should **rise** (toward AWS tip, often 300k+).
-If height stays **0 for 15–30+ minutes**, you are stuck — see **Mac Neutrino stuck** below (do not wait hours).
+**Progress check:**
+
+1. **bitcoind** `blocks` should rise (toward ~300k+). First IBD can take a long time — keep Mac awake and Docker running.
+2. **LND** `block_height` should follow bitcoind once unlocked (not stay at 0 while bitcoind advances).
+3. When bitcoind `initialblockdownload` is false and LND `synced_to_chain` is true, connect to AWS.
 
 Mac does **not** need faucet funds if **AWS opens** the channel (AWS already has ~100k).
 
-### Mac Neutrino stuck at height 0
+### Mac bitcoind stuck / LND height 0
 
-Neutrino is LND’s light chain backend (no local bitcoind). It must reach Bitcoin **signet** peers that serve headers/filters.
-
-1. Confirm wallet unlocked and container **Up** (not Restarting).
-2. Check peers/logs:
+1. Confirm both containers **Up**: `docker ps --filter name=agent-bitcoin`
+2. bitcoind logs / peers:
    ```bash
-   docker logs --tail 80 agent-bitcoin-lnd-signet | grep -iE 'BTCN|CMGR|peer|unable|error'
-   docker exec agent-bitcoin-lnd-signet sh -c 'nc -vz -w 5 192.241.222.63 38333 || true'
+   docker logs --tail 50 agent-bitcoin-bitcoind-signet
+   docker exec agent-bitcoin-bitcoind-signet bitcoin-cli -signet \
+     -rpcuser=lightning -rpcpassword=lightning -rpcport=38332 getconnectioncount
+   docker exec agent-bitcoin-bitcoind-signet bitcoin-cli -signet \
+     -rpcuser=lightning -rpcpassword=lightning -rpcport=38332 getblockcount
    ```
-3. Pull latest compose (uses `neutrino.connect` + Docker DNS `8.8.8.8`) and recreate:
+3. LND should talk to `bitcoind-signet:38332` over the compose network:
    ```bash
-   cd ~/agent-bitcoin
-   git pull origin main
-   docker compose -f docker-compose.signet.mac.yml up -d --force-recreate
-   docker exec -it agent-bitcoin-lnd-signet \
-     lncli --lnddir=/home/lnd/.lnd --network=signet unlock
-   watch -n 15 'docker exec agent-bitcoin-lnd-signet lncli --lnddir=/home/lnd/.lnd --network=signet getinfo 2>/dev/null | grep block_height'
+   docker logs --tail 50 agent-bitcoin-lnd-signet | grep -iE 'BTCD|bitcoind|Waiting for chain|error'
    ```
-4. Keep the Mac **awake** (sleep freezes Docker networking).
-5. If height still **0** after another 20–30 minutes: park Mac signet (`./shutdown-signet-mac.sh`) and use **AWS-only** until bitcoind-signet backend is added (heavier fallback).
+4. Keep the Mac **awake** (sleep freezes Docker).
+5. If you migrated from Neutrino without wiping LND volume: wipe LND volume and recreate wallet (see above).
 
 ### Mac — get your peer identity (the URI pieces)
 
@@ -277,7 +303,8 @@ docker exec agent-payment-decision-lnd-signet lncli --lnddir=/home/lnd/.lnd --ne
 | Empty `--externalip` crash after unlock | Always pass EIP to `startup-signet-aws.sh` |
 | Port conflict with regtest | Use compose host ports 19735/20009 or stop regtest |
 | Wallet on wrong network | Separate volume `agent-bitcoin_lnd-signet-data` only |
-| Sync stuck | Check Neutrino peers in compose; logs; patience |
+| Sync stuck (Mac) | Check **bitcoind** `getblockcount` first; then LND; wipe LND volume if you switched from Neutrino |
+| Sync stuck (AWS Neutrino) | Check Neutrino peers in AWS compose; logs; patience |
 | No route / no channel | Open channel; wait confs; check peers |
 
 ---
