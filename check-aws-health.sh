@@ -25,6 +25,8 @@ JSON=0
 BACKEND_URL=${BACKEND_URL:-http://127.0.0.1:8000}
 LND_CONTAINER=${LND_CONTAINER:-agent-payment-decision-lnd}
 BITCOIND_CONTAINER=${BITCOIND_CONTAINER:-bitcoind}
+# lncli / bitcoin-cli network flag (regtest | signet | testnet | mainnet)
+LND_NETWORK=${LND_NETWORK:-regtest}
 DISK_WARN_PCT=${DISK_WARN_PCT:-90}
 REQUIRED_CONTAINERS=${REQUIRED_CONTAINERS:-"bitcoind agent-payment-decision-lnd"}
 CHANNEL_MIN_LOCAL_SATS=${CHANNEL_MIN_LOCAL_SATS:-5000}
@@ -69,18 +71,21 @@ for c in $REQUIRED_CONTAINERS; do
   fi
 done
 
-# --- bitcoind RPC ---
-if docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$BITCOIND_CONTAINER"; then
-  if H=$(docker exec "$BITCOIND_CONTAINER" bitcoin-cli -regtest getblockcount 2>/dev/null); then
+# --- bitcoind RPC (optional; Neutrino signet has no local bitcoind) ---
+if [[ "$BITCOIND_CONTAINER" != "none" && "$BITCOIND_CONTAINER" != "-" ]] \
+  && docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$BITCOIND_CONTAINER"; then
+  if H=$(docker exec "$BITCOIND_CONTAINER" bitcoin-cli -"$LND_NETWORK" getblockcount 2>/dev/null); then
     ok "bitcoind height=$H"
   else
     fail "bitcoind RPC getblockcount failed"
   fi
+elif [[ "$BITCOIND_CONTAINER" == "none" || "$BITCOIND_CONTAINER" == "-" ]]; then
+  note "SKIP: bitcoind (BITCOIND_CONTAINER=$BITCOIND_CONTAINER)"
 fi
 
 # --- LND ---
 if docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$LND_CONTAINER"; then
-  INFO=$(docker exec "$LND_CONTAINER" lncli --lnddir=/home/lnd/.lnd --network=regtest getinfo 2>&1 || true)
+  INFO=$(docker exec "$LND_CONTAINER" lncli --lnddir=/home/lnd/.lnd --network="$LND_NETWORK" getinfo 2>&1 || true)
   if echo "$INFO" | grep -qi 'wallet locked'; then
     warn "LND wallet locked (unlock when operating)"
   elif echo "$INFO" | grep -q 'synced_to_chain'; then
@@ -100,7 +105,7 @@ if docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$LND_CONTAINER"; then
     note "SKIP: channel liquidity (wallet locked)"
   elif command -v python3 >/dev/null 2>&1; then
     CHANS_JSON=$(
-      docker exec "$LND_CONTAINER" lncli --lnddir=/home/lnd/.lnd --network=regtest listchannels 2>/dev/null || echo ""
+      docker exec "$LND_CONTAINER" lncli --lnddir=/home/lnd/.lnd --network="$LND_NETWORK" listchannels 2>/dev/null || echo ""
     )
     if [[ -z "$CHANS_JSON" ]]; then
       warn "channel liquidity: listchannels failed"
@@ -198,10 +203,16 @@ LOOP_CONTAINER=${LOOP_CONTAINER:-loopclient}
 if [[ "${CHECK_LOOP:-1}" == "1" ]]; then
   if docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$LOOP_CONTAINER"; then
     ok "container $LOOP_CONTAINER running"
-    if docker exec "$LOOP_CONTAINER" loop --network=regtest getinfo >/dev/null 2>&1; then
-      ok "loop getinfo (via $LOOP_CONTAINER)"
+    # Loop Autoloop lab tools are regtest-oriented; only probe on regtest by default
+    LOOP_NET=${LOOP_NETWORK:-$LND_NETWORK}
+    if docker exec "$LOOP_CONTAINER" loop --network="$LOOP_NET" getinfo >/dev/null 2>&1; then
+      ok "loop getinfo (via $LOOP_CONTAINER network=$LOOP_NET)"
     else
-      warn "loop getinfo failed (loopd/LND wiring? see docs/loop-autoloop.md)"
+      if [[ "$LND_NETWORK" == "regtest" ]]; then
+        warn "loop getinfo failed (loopd/LND wiring? see docs/loop-autoloop.md)"
+      else
+        note "SKIP: loop getinfo (network=$LND_NETWORK; Autoloop lab is regtest-first)"
+      fi
     fi
   else
     note "SKIP: loop container $LOOP_CONTAINER not running"

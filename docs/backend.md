@@ -5,6 +5,7 @@ SDK users: see [SDK.md](../SDK.md). Product overview: [README.md](../README.md).
 
 **Liquidity / Autoloop roadmap (simple overview):** [liquidity-automation.md](./liquidity-automation.md)
 **Phase 2 Autoloop deep dive:** [loop-autoloop.md](./loop-autoloop.md)
+**Signet (public test network):** [signet.md](./signet.md) — separate compose/volumes from regtest
 
 ---
 

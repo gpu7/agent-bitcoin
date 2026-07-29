@@ -1,0 +1,50 @@
+# Signet LND for agent-bitcoin (AWS).
+# Separate from regtest: different container name, volume, and ports.
+#
+# Usage:
+#   export AWS_IP=<eip>
+#   docker compose -f docker-compose.signet.aws.yml up -d
+#
+# Or: ./startup-signet-aws.sh <AWS_EIP>
+#
+# Does NOT start Loop, local bitcoind, or regtest services.
+# Neutrino syncs public signet (first sync can take a long time).
+
+services:
+  agent-payment-decision-lnd-signet:
+    image: lightninglabs/lnd:v0.18.5-beta
+    container_name: agent-payment-decision-lnd-signet
+    restart: unless-stopped
+    ports:
+      # Host ports chosen to avoid clash with regtest (9735 / 10009)
+      - "19735:9735"
+      - "20009:10009"
+    command:
+      - "--bitcoin.signet"
+      - "--bitcoin.active"
+      - "--bitcoin.node=neutrino"
+      # Public signet Neutrino peers (LND / community defaults; update if stale)
+      - "--neutrino.addpeer=192.241.222.63:38333"
+      - "--neutrino.addpeer=45.79.76.218:38333"
+      - "--neutrino.addpeer=btcd-signet.cluster.signet.b10c.me:38333"
+      - "--lnddir=/home/lnd/.lnd"
+      - "--listen=0.0.0.0:9735"
+      - "--rpclisten=0.0.0.0:10009"
+      - "--restlisten=0.0.0.0:8080"
+      - "--debuglevel=info"
+      - "--tlsextradomain=agent-payment-decision-lnd-signet"
+      - "--externalip=${AWS_IP}"
+      - "--accept-keysend"
+      - "--protocol.no-anchors=false"
+    volumes:
+      - lnd-signet-data:/home/lnd/.lnd
+    networks:
+      - signet-net
+
+networks:
+  signet-net:
+    name: agent-bitcoin-signet
+
+volumes:
+  lnd-signet-data:
+    name: agent-bitcoin_lnd-signet-data
