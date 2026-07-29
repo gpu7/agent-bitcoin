@@ -8,9 +8,11 @@ from .models import (
     PaymentResult,
 )
 
-# Default and only supported network for the stock Docker regtest stack.
+# Default network for the stock Docker regtest stack.
 # Mainnet requires an explicit, separate deployment decision — not a silent flag flip.
+# Signet is supported via LND_NETWORK=signet (see docs/signet.md).
 _DEFAULT_NETWORK = "regtest"
+_SUPPORTED_NETWORKS = frozenset({"regtest", "signet", "testnet", "mainnet", "simnet"})
 
 
 def _resolve_network() -> str:
@@ -20,8 +22,11 @@ def _resolve_network() -> str:
             "Refusing LND mainnet: set AGENT_BITCOIN_ALLOW_MAINNET=1 only for an "
             "intentional mainnet deployment (not the default regtest stack)."
         )
-    if network not in ("regtest", "testnet", "mainnet", "simnet"):
-        raise ConfigurationError(f"Unsupported LND_NETWORK={network!r}")
+    if network not in _SUPPORTED_NETWORKS:
+        raise ConfigurationError(
+            f"Unsupported LND_NETWORK={network!r}; "
+            f"expected one of {sorted(_SUPPORTED_NETWORKS)}"
+        )
     return network
 
 
@@ -29,10 +34,14 @@ class LNDClient:
     """LND client using lncli inside Docker container (regtest by default)."""
 
     def __init__(self):
+        # Override with LND_CONTAINER env (e.g. agent-payment-decision-lnd-signet)
         self.container = (
-            "agent-payment-decision-lnd"  # Default, can be overridden later
+            os.getenv("LND_CONTAINER", "agent-payment-decision-lnd").strip()
+            or "agent-payment-decision-lnd"
         )
-        self.lnd_dir = "/home/lnd/.lnd"
+        self.lnd_dir = (
+            os.getenv("LND_DIR", "/home/lnd/.lnd").strip() or "/home/lnd/.lnd"
+        )
         self.network = _resolve_network()
 
     def _run(self, *args) -> dict:

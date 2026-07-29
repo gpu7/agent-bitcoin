@@ -9,6 +9,7 @@
 | [README.md](../README.md) | Product overview (public hub) |
 | [SDK.md](../SDK.md) | SDK / app / agent developers |
 | [backend.md](./backend.md) | Operators: AWS + Mac regtest, LND, channels |
+| [signet.md](./signet.md) | Operators: run agent-bitcoin on Bitcoin **signet** |
 | [liquidity-automation.md](./liquidity-automation.md) | **Simple story:** channel health + Autoloop Phases 1–3 |
 | [loop-autoloop.md](./loop-autoloop.md) | Phase 2 deep dive: Loop Autoloop, agent-loopd, ops |
 | [nostr-agent-identity.md](./nostr-agent-identity.md) | ADR: Nostr agent identity Phases A–C (keys, pay coord, policy signer) |
@@ -26,6 +27,7 @@
 1. Install and use the library → [SDK.md](../SDK.md)
 2. Run the regtest stack → [backend.md](./backend.md)
 3. Channel health and Autoloop (operators) → [liquidity-automation.md](./liquidity-automation.md)
+4. Signet (after regtest) → [signet.md](./signet.md)
 
 ## Repository
 
