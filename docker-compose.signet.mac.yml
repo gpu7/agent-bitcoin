@@ -1,0 +1,40 @@
+# Signet LND on Mac (counterparty to AWS agent-payment-decision-lnd-signet).
+# Neutrino — no AWS bitcoind. Separate volume from regtest.
+#
+# Usage:
+#   docker compose -f docker-compose.signet.mac.yml up -d
+#   Or: ./startup-signet-mac.sh
+#
+# Host ports avoid regtest Mac (9736/10010) and leave room for AWS signet (19735/20009).
+
+services:
+  agent-bitcoin-lnd-signet:
+    image: lightninglabs/lnd:v0.18.5-beta
+    container_name: agent-bitcoin-lnd-signet
+    restart: unless-stopped
+    ports:
+      - "29735:9735"
+      - "30009:10009"
+    command:
+      - "--bitcoin.signet"
+      - "--bitcoin.active"
+      - "--bitcoin.node=neutrino"
+      - "--neutrino.addpeer=192.241.222.63:38333"
+      - "--neutrino.addpeer=45.79.76.218:38333"
+      - "--lnddir=/home/lnd/.lnd"
+      - "--listen=0.0.0.0:9735"
+      - "--rpclisten=0.0.0.0:10009"
+      - "--restlisten=0.0.0.0:8080"
+      - "--debuglevel=info"
+      - "--tlsextradomain=agent-bitcoin-lnd-signet"
+    volumes:
+      - agent-bitcoin-lnd-signet-data:/home/lnd/.lnd
+    networks:
+      - agent-signet-net
+
+networks:
+  agent-signet-net:
+    driver: bridge
+
+volumes:
+  agent-bitcoin-lnd-signet-data:

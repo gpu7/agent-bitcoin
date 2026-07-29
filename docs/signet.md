@@ -25,11 +25,12 @@
 
 | Piece | Purpose |
 |-------|---------|
-| `docker-compose.signet.aws.yml` | Neutrino LND on signet; volume `agent-bitcoin_lnd-signet-data` |
-| `startup-signet-aws.sh` | Start + create/unlock wallet |
-| `shutdown-signet-aws.sh` | Stop **without** deleting signet volume |
+| `docker-compose.signet.aws.yml` | Neutrino LND on AWS signet; volume `agent-bitcoin_lnd-signet-data` |
+| `docker-compose.signet.mac.yml` | Neutrino LND on Mac signet (dual-node peer) |
+| `startup-signet-aws.sh` / `shutdown-signet-aws.sh` | AWS start/stop (keep volume) |
+| `startup-signet-mac.sh` / `shutdown-signet-mac.sh` | Mac start/stop (keep volume) |
 | `LND_NETWORK=signet` | SDK / `LNDClient` |
-| `LND_CONTAINER=...` | Point at `agent-payment-decision-lnd-signet` |
+| `LND_CONTAINER=...` | e.g. `agent-payment-decision-lnd-signet` |
 
 **Does not** replace or delete regtest compose/scripts. Do **not** reuse regtest wallet volumes for signet.
 
@@ -38,13 +39,16 @@
 ## Topology (v1 recommendation)
 
 ```text
-AWS: agent-payment-decision-lnd-signet (Neutrino)
+AWS: agent-payment-decision-lnd-signet  (P2P host :19735)
         |
-   public signet LN peer (or later: Mac signet LND)
+   Lightning channel (signet)
+        |
+Mac: agent-bitcoin-lnd-signet           (P2P host :29735)
 ```
 
-- **Host ports:** `19735` (P2P), `20009` (RPC) so regtest can keep `9735` / `10009` if both run.
-- **Same AWS instance is fine** if you stop regtest *or* accept dual stacks with different ports.
+- **AWS host ports:** `19735` (P2P), `20009` (RPC) — avoid regtest `9735` / `10009`.
+- **Mac host ports:** `29735` (P2P), `30009` (RPC) — avoid regtest Mac `9736` / `10010`.
+- Prefer **Mac → AWS connect** (outbound from home network).
 
 ---
 
@@ -140,11 +144,100 @@ CHECK_LOOP=0 \
 
 ---
 
+## Option 1: dual-node (Mac + AWS) — recommended peer URI source
+
+Run a second LND on the **Mac** on signet. You control both ends (like regtest).
+
+| Role | Container | Host P2P port |
+|------|-----------|---------------|
+| Agent (AWS) | `agent-payment-decision-lnd-signet` | **19735** |
+| Counterparty (Mac) | `agent-bitcoin-lnd-signet` | **29735** |
+
+### Mac — start + sync
+
+```bash
+cd ~/agent-bitcoin
+git pull origin main
+chmod +x startup-signet-mac.sh shutdown-signet-mac.sh
+./startup-signet-mac.sh
+# create/unlock wallet; save seed
+
+export MAC_LND=agent-bitcoin-lnd-signet
+# Wait until synced (can take a while):
+docker exec "$MAC_LND" lncli --lnddir=/home/lnd/.lnd --network=signet getinfo \
+  | grep -E 'identity_pubkey|synced_to_chain|block_height'
+```
+
+Mac does **not** need faucet funds if **AWS opens** the channel (AWS already has ~100k).
+
+### Mac — get your peer identity (the URI pieces)
+
+```bash
+docker exec "$MAC_LND" lncli --lnddir=/home/lnd/.lnd --network=signet getinfo \
+  | grep identity_pubkey
+# Save as MAC_PUB=02...
+```
+
+You usually **do not** need Mac’s public IP: Mac will **connect out** to AWS (like regtest).
+
+### Mac — connect to AWS (outbound)
+
+```bash
+AWS_EIP=3.90.159.146
+AWS_PUB=02102808588d8aece7e27af6eb5843810d04ffd88975136e3045e0ed4d45efebea
+# Use YOUR current AWS signet pubkey if different:
+# docker exec agent-payment-decision-lnd-signet lncli ... getinfo | grep identity
+
+docker exec "$MAC_LND" lncli --lnddir=/home/lnd/.lnd --network=signet \
+  connect ${AWS_PUB}@${AWS_EIP}:19735
+
+docker exec "$MAC_LND" lncli --lnddir=/home/lnd/.lnd --network=signet listpeers
+```
+
+AWS security group must allow **inbound TCP 19735** from your Mac’s public IP (or temporarily broader for lab).
+
+### AWS — confirm peer + open channel
+
+```bash
+export LND_CONTAINER=agent-payment-decision-lnd-signet
+
+docker exec "$LND_CONTAINER" lncli --lnddir=/home/lnd/.lnd --network=signet listpeers
+
+# MAC_PUB from Mac getinfo (hex only, no @host)
+MAC_PUB=<paste-mac-identity-pubkey>
+
+docker exec "$LND_CONTAINER" lncli --lnddir=/home/lnd/.lnd --network=signet \
+  openchannel --node_key="$MAC_PUB" --local_amt=50000
+
+# Wait for signet confirmations (hours possible):
+docker exec "$LND_CONTAINER" lncli --lnddir=/home/lnd/.lnd --network=signet pendingchannels
+docker exec "$LND_CONTAINER" lncli --lnddir=/home/lnd/.lnd --network=signet listchannels
+```
+
+When `active: true`, AWS has **outbound**; Mac has **inbound**. First easy payment: **AWS pays a Mac invoice**.
+
+```bash
+# Mac — invoice
+docker exec agent-bitcoin-lnd-signet lncli --lnddir=/home/lnd/.lnd --network=signet \
+  addinvoice --amt=2000 --memo='signet-dual'
+
+# AWS — pay (paste bolt11)
+docker exec agent-payment-decision-lnd-signet lncli --lnddir=/home/lnd/.lnd --network=signet \
+  payinvoice --force '<bolt11>'
+```
+
+### Stop Mac signet
+
+```bash
+./shutdown-signet-mac.sh
+```
+
+---
+
 ## Later (not v1)
 
 | Item | Notes |
 |------|--------|
-| Mac dual-node on signet | New compose + channel AWS↔Mac |
 | Nostr Phase B on signet | Same scripts; `LND_NETWORK=signet` + container names |
 | Loop Autoloop | Research public Loop/signet; keep regtest tools for now |
 | Mainnet | Separate design, `AGENT_BITCOIN_ALLOW_MAINNET=1`, never implicit |
