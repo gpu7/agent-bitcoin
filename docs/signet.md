@@ -168,7 +168,32 @@ docker exec "$MAC_LND" lncli --lnddir=/home/lnd/.lnd --network=signet getinfo \
   | grep -E 'identity_pubkey|synced_to_chain|block_height'
 ```
 
+**Progress check:** `block_height` should **rise** (toward AWS tip, often 300k+).
+If height stays **0 for 15–30+ minutes**, you are stuck — see **Mac Neutrino stuck** below (do not wait hours).
+
 Mac does **not** need faucet funds if **AWS opens** the channel (AWS already has ~100k).
+
+### Mac Neutrino stuck at height 0
+
+Neutrino is LND’s light chain backend (no local bitcoind). It must reach Bitcoin **signet** peers that serve headers/filters.
+
+1. Confirm wallet unlocked and container **Up** (not Restarting).
+2. Check peers/logs:
+   ```bash
+   docker logs --tail 80 agent-bitcoin-lnd-signet | grep -iE 'BTCN|CMGR|peer|unable|error'
+   docker exec agent-bitcoin-lnd-signet sh -c 'nc -vz -w 5 192.241.222.63 38333 || true'
+   ```
+3. Pull latest compose (uses `neutrino.connect` + Docker DNS `8.8.8.8`) and recreate:
+   ```bash
+   cd ~/agent-bitcoin
+   git pull origin main
+   docker compose -f docker-compose.signet.mac.yml up -d --force-recreate
+   docker exec -it agent-bitcoin-lnd-signet \
+     lncli --lnddir=/home/lnd/.lnd --network=signet unlock
+   watch -n 15 'docker exec agent-bitcoin-lnd-signet lncli --lnddir=/home/lnd/.lnd --network=signet getinfo 2>/dev/null | grep block_height'
+   ```
+4. Keep the Mac **awake** (sleep freezes Docker networking).
+5. If height still **0** after another 20–30 minutes: park Mac signet (`./shutdown-signet-mac.sh`) and use **AWS-only** until bitcoind-signet backend is added (heavier fallback).
 
 ### Mac — get your peer identity (the URI pieces)
 
