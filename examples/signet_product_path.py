@@ -24,6 +24,13 @@ import argparse
 import os
 import subprocess
 import sys
+from pathlib import Path
+
+# Allow `uv run python examples/...` even if the project is not installed editable
+# (e.g. older checkouts missing [build-system] in pyproject.toml).
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 
 def _require_signet() -> None:
