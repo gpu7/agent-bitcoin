@@ -6,6 +6,9 @@ from .exceptions import ConfigurationError, LNDException
 from .models import (
     Invoice,
     PaymentResult,
+    OnChainSendResult,
+    LightningBalance,
+    ChannelBalance,
 )
 
 # Default network for the stock Docker regtest stack.
@@ -152,6 +155,65 @@ class LNDClient:
             )
         except Exception as e:
             raise LNDException(f"Failed to pay invoice: {str(e)}")
+
+    def get_balance(self) -> LightningBalance:
+        """On-chain wallet balances from lncli walletbalance."""
+        try:
+            resp = self._run("walletbalance")
+            return LightningBalance(
+                total_balance=str(resp.get("total_balance", "0")),
+                confirmed_balance=str(resp.get("confirmed_balance", "0")),
+                unconfirmed_balance=str(resp.get("unconfirmed_balance", "0")),
+            )
+        except Exception as e:
+            raise LNDException(f"Failed to get wallet balance: {str(e)}") from e
+
+    def get_channel_balance(self) -> ChannelBalance:
+        """Aggregate channel local/remote balances from lncli channelbalance."""
+        try:
+            resp = self._run("channelbalance")
+            # lncli may return nested { "sat": "..." } or flat ints/strings
+            local = resp.get("local_balance", 0)
+            remote = resp.get("remote_balance", 0)
+            if isinstance(local, dict):
+                local = local.get("sat", local.get("msat", 0))
+            if isinstance(remote, dict):
+                remote = remote.get("sat", remote.get("msat", 0))
+            # Prefer top-level balance when local_balance missing
+            if local in (0, "0", None) and resp.get("balance") is not None:
+                try:
+                    local = int(resp.get("balance", 0))
+                except (TypeError, ValueError):
+                    local = 0
+            try:
+                local_i = int(local) if local is not None else 0
+            except (TypeError, ValueError):
+                local_i = 0
+            try:
+                remote_i = int(remote) if remote is not None else 0
+            except (TypeError, ValueError):
+                remote_i = 0
+            # If msat slipped through (very large), convert
+            if local_i > 10**12:
+                local_i //= 1000
+            if remote_i > 10**12:
+                remote_i //= 1000
+            return ChannelBalance(local_balance=local_i, remote_balance=remote_i)
+        except Exception as e:
+            raise LNDException(f"Failed to get channel balance: {str(e)}") from e
+
+    def send_coins(self, address: str, amount_sats: int) -> OnChainSendResult:
+        """On-chain send (fee wallet / operator)."""
+        try:
+            resp = self._run(
+                "sendcoins",
+                f"--addr={address}",
+                f"--amt={amount_sats}",
+            )
+            txid = resp.get("txid") or resp.get("raw_output") or ""
+            return OnChainSendResult(txid=str(txid), success=bool(txid))
+        except Exception as e:
+            raise LNDException(f"Failed to send coins: {str(e)}") from e
 
 
 __all__ = ["LNDClient"]
