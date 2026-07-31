@@ -50,6 +50,10 @@ Documentation = "https://github.com/gpu7/agent-bitcoin/blob/main/README.md"
 Issues = "https://github.com/gpu7/agent-bitcoin/issues"
 Changelog = "https://github.com/gpu7/agent-bitcoin/blob/main/CHANGELOG.md"
 
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
 [dependency-groups]
 dev = [
     "pytest>=8.0",
