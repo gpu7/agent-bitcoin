@@ -109,12 +109,23 @@ def cmd_create(args: argparse.Namespace) -> int:
     return 0
 
 
+def _normalize_bolt11(raw: str) -> str:
+    """Strip whitespace/newlines from pasted BOLT11 (terminal wrap often inserts them)."""
+    return "".join(raw.split())
+
+
 def cmd_pay(args: argparse.Namespace) -> int:
     _require_signet()
     container = _require_container()
-    bolt11 = (args.bolt11 or os.getenv("BOLT11") or "").strip()
+    bolt11 = _normalize_bolt11(args.bolt11 or os.getenv("BOLT11") or "")
     if not bolt11:
         print("ERROR: pass --bolt11 or set BOLT11.", file=sys.stderr)
+        sys.exit(1)
+    if not bolt11.startswith("ln"):
+        print(
+            f"ERROR: bolt11 does not look like an invoice (prefix={bolt11[:8]!r}).",
+            file=sys.stderr,
+        )
         sys.exit(1)
     from agent_bitcoin import create_client
 
