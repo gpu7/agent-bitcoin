@@ -193,6 +193,9 @@ docker exec "$MAC_BTC" bitcoin-cli -signet -rpcuser=lightning -rpcpassword=light
 # LND tracks bitcoind after unlock:
 docker exec "$MAC_LND" lncli --lnddir=/home/lnd/.lnd --network=signet getinfo \
   | grep -E 'identity_pubkey|synced_to_chain|block_height'
+
+# Or poll until ready (auto-detects signet container — no network arg):
+# ./wait-mac-lnd.sh
 ```
 
 **Progress check:**

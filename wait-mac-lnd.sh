@@ -1,32 +1,94 @@
 #!/bin/bash
-# Wait for Mac agent-bitcoin-lnd to unlock and sync to the AWS bitcoind tip.
+# Wait for Mac LND to unlock and reach synced_to_chain=true.
 #
-# Usage:
-#   ./wait-mac-lnd.sh [network]
+# Usage (network usually auto-detected — no arg needed):
+#   ./wait-mac-lnd.sh
+#
+# Optional override (only if both stacks exist / ambiguous):
 #   ./wait-mac-lnd.sh regtest
+#   ./wait-mac-lnd.sh signet
+#   LND_NETWORK=signet ./wait-mac-lnd.sh
 #
 # Optional env:
-#   SYNC_MAX_ATTEMPTS  Max poll iterations for chain sync (default: 120 ≈ 10 min at 5s)
-#   SYNC_SLEEP_SECS    Seconds between polls (default: 5)
-#   AWS_IP             Optional; silences compose warnings if set (not required for wait)
+#   LND_NETWORK         Force network: regtest | signet (same as first arg)
+#   SYNC_MAX_ATTEMPTS   Max poll iterations for chain sync (default: 120 ≈ 10 min at 5s)
+#   SYNC_SLEEP_SECS     Seconds between polls (default: 5)
+#   RPC_MAX_ATTEMPTS    Max poll iterations for RPC (default: 30)
+#   AWS_IP              Optional; only relevant for regtest compose warnings (not required)
 #
 # Progress each poll: block_height, synced flags, tip age, recent LNWL log lines.
-# Does NOT need AWS_IP for correctness — the container already has bitcoind host baked in.
+# Detection: prefers a *running* container (agent-bitcoin-lnd-signet vs agent-bitcoin-lnd).
 
 set -euo pipefail
 
-echo "=== Waiting for Mac agent-bitcoin-lnd to be ready ==="
-
-NETWORK=${1:-regtest}
-export NETWORK
-
-COMPOSE_FILE="docker-compose.regtest.mac.yml"
-CONTAINER="agent-bitcoin-lnd"
 LNDDIR="/home/lnd/.lnd"
-
 SYNC_MAX_ATTEMPTS=${SYNC_MAX_ATTEMPTS:-120}
 SYNC_SLEEP_SECS=${SYNC_SLEEP_SECS:-5}
 RPC_MAX_ATTEMPTS=${RPC_MAX_ATTEMPTS:-30}
+
+container_running() {
+  docker inspect -f '{{.State.Running}}' "$1" 2>/dev/null | grep -qx true
+}
+
+resolve_stack() {
+  # Sets NETWORK, CONTAINER, COMPOSE_FILE, STACK_LABEL
+  local requested="${1:-${LND_NETWORK:-}}"
+
+  if [[ -n "$requested" ]]; then
+    case "$requested" in
+      regtest|signet) ;;
+      *)
+        echo "ERROR: network must be regtest or signet (got: $requested)"
+        exit 1
+        ;;
+    esac
+    NETWORK="$requested"
+  else
+    local signet_up=0 regtest_up=0
+    container_running agent-bitcoin-lnd-signet && signet_up=1
+    container_running agent-bitcoin-lnd && regtest_up=1
+
+    if [[ "$signet_up" -eq 1 && "$regtest_up" -eq 1 ]]; then
+      echo "ERROR: both Mac LND stacks are running:"
+      echo "  - agent-bitcoin-lnd (regtest)"
+      echo "  - agent-bitcoin-lnd-signet (signet)"
+      echo "Set one explicitly:  LND_NETWORK=signet ./wait-mac-lnd.sh"
+      echo "                 or:  ./wait-mac-lnd.sh regtest"
+      exit 1
+    fi
+    if [[ "$signet_up" -eq 1 ]]; then
+      NETWORK=signet
+    elif [[ "$regtest_up" -eq 1 ]]; then
+      NETWORK=regtest
+    else
+      echo "ERROR: no Mac LND container is running."
+      echo "  Start regtest:  ./startup-mac.sh"
+      echo "  Start signet:   ./startup-signet-mac.sh"
+      echo "  Or force:       ./wait-mac-lnd.sh signet   # after start"
+      exit 1
+    fi
+  fi
+
+  case "$NETWORK" in
+    signet)
+      CONTAINER="agent-bitcoin-lnd-signet"
+      COMPOSE_FILE="docker-compose.signet.mac.yml"
+      STACK_LABEL="Mac signet LND (local bitcoind)"
+      ;;
+    regtest)
+      CONTAINER="agent-bitcoin-lnd"
+      COMPOSE_FILE="docker-compose.regtest.mac.yml"
+      STACK_LABEL="Mac regtest LND (AWS bitcoind tip)"
+      ;;
+  esac
+  export NETWORK
+}
+
+resolve_stack "${1:-}"
+
+echo "=== Waiting for ${STACK_LABEL} to be ready ==="
+echo "   network=${NETWORK}  container=${CONTAINER}"
+echo ""
 
 lncli_cmd() {
   # Prefer docker exec to avoid AWS_IP compose interpolation warnings on every call.
@@ -61,22 +123,22 @@ tip_age_secs() {
   echo $((now - ts))
 }
 
-# === Check and unlock agent-bitcoin-lnd wallet if locked ===
-echo "→ Checking agent-bitcoin-lnd wallet status..."
+# === Check and unlock wallet if locked ===
+echo "→ Checking ${CONTAINER} wallet status..."
 if lncli_cmd getinfo &>/dev/null; then
-  echo "agent-bitcoin-lnd wallet is unlocked."
+  echo "Wallet is unlocked."
 else
-  echo "→ agent-bitcoin-lnd wallet is locked. Unlocking..."
+  echo "→ Wallet is locked. Unlocking..."
   docker exec -it "$CONTAINER" lncli --lnddir="$LNDDIR" --network="$NETWORK" unlock
 fi
 
-# === Wait for agent-bitcoin-lnd RPC to be available ===
-echo "→ Waiting for agent-bitcoin-lnd RPC..."
+# === Wait for RPC ===
+echo "→ Waiting for ${CONTAINER} RPC..."
 RPC_READY=0
 for i in $(seq 1 "$RPC_MAX_ATTEMPTS"); do
   echo "  RPC check ($i/$RPC_MAX_ATTEMPTS)..."
   if lncli_cmd getinfo &>/dev/null; then
-    echo "✅ agent-bitcoin-lnd RPC is ready!"
+    echo "✅ RPC is ready!"
     RPC_READY=1
     break
   fi
@@ -90,8 +152,7 @@ if [[ "$RPC_READY" -ne 1 ]]; then
 fi
 
 # === Wait for chain sync (not graph — graph needs peers) ===
-# tall regtest tips need a long wallet rescan; 50×5s (~4 min) is often too short.
-echo "→ Waiting for agent-bitcoin-lnd chain sync (synced_to_chain=true)..."
+echo "→ Waiting for chain sync (synced_to_chain=true)..."
 echo "   Polling every ${SYNC_SLEEP_SECS}s, up to ${SYNC_MAX_ATTEMPTS} attempts" \
   "($((SYNC_MAX_ATTEMPTS * SYNC_SLEEP_SECS / 60)) min max)."
 echo "   synced_to_graph is ignored here (stays false until peers/channels exist)."
@@ -121,7 +182,7 @@ for i in $(seq 1 "$SYNC_MAX_ATTEMPTS"); do
   # Progress breadcrumbs from LND wallet logs (rescan / errors)
   if (( i == 1 || i % 6 == 0 )); then
     LOG_SNIP=$(docker logs --tail 30 "$CONTAINER" 2>&1 \
-      | grep -iE 'Finished rescan|Birthday|Unable to synchronize|out of range|is synced=' \
+      | grep -iE 'Finished rescan|Birthday|Unable to synchronize|out of range|is synced=|Waiting for chain' \
       | tail -3 || true)
     if [[ -n "$LOG_SNIP" ]]; then
       echo "    recent logs:"
@@ -146,19 +207,29 @@ echo "LND state: $(lncli_cmd state 2>/dev/null || echo 'n/a')"
 
 if [[ "$SYNCED" -ne 1 ]]; then
   echo ""
-  echo "❌ Timed out waiting for synced_to_chain=true."
+  echo "❌ Timed out waiting for synced_to_chain=true (network=${NETWORK})."
   echo "Hints:"
-  echo "  - Confirm Mac LND points at current AWS IP:"
-  echo "      docker inspect ${CONTAINER} --format '{{json .Config.Cmd}}' | jq ."
-  echo "  - Confirm tip advances when you mine on AWS (height should rise here)."
-  echo "  - If height matches AWS but flag stays false, wait longer or restart LND + unlock:"
-  echo "      docker compose -f ${COMPOSE_FILE} restart ${CONTAINER}"
-  echo "  - Re-run with a longer budget, e.g.:"
-  echo "      SYNC_MAX_ATTEMPTS=180 ./wait-mac-lnd.sh ${NETWORK}"
-  echo "  - Only mine on AWS if tip_age is large (stale tip) or height is behind AWS."
+  if [[ "$NETWORK" == "regtest" ]]; then
+    echo "  - Confirm Mac LND points at current AWS bitcoind IP:"
+    echo "      docker inspect ${CONTAINER} --format '{{json .Config.Cmd}}'"
+    echo "  - Mine on AWS only if tip is stale / height behind AWS."
+  else
+    echo "  - Confirm local bitcoind is synced first:"
+    echo "      docker exec agent-bitcoin-bitcoind-signet bitcoin-cli -signet \\"
+    echo "        -rpcuser=lightning -rpcpassword=lightning -rpcport=38332 getblockcount"
+    echo "  - LND follows bitcoind; if bitcoind is still in IBD, wait longer."
+  fi
+  echo "  - Restart LND + unlock:"
+  echo "      docker compose -f ${COMPOSE_FILE} restart"
+  echo "  - Longer budget:"
+  echo "      SYNC_MAX_ATTEMPTS=180 ./wait-mac-lnd.sh"
   exit 1
 fi
 
 echo ""
 echo "Note: synced_to_graph may still be false until you connect peers / open channels."
-echo "Ready for connect + channel open (and Mac funding if wallet balance is 0)."
+if [[ "$NETWORK" == "signet" ]]; then
+  echo "Ready for connect to AWS signet (see docs/signet.md)."
+else
+  echo "Ready for connect + channel open (and Mac funding if wallet balance is 0)."
+fi

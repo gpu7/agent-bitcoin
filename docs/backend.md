@@ -300,7 +300,7 @@ Use **`<AWS_EIP>`** = current Elastic IP (see [Current environment](#current-env
 - 1) On AWS: `./startup-aws.sh regtest <AWS_EIP>`
 - 2) On AWS: Fund LND node. See below.
 - 3) On Mac: `./startup-mac.sh regtest <AWS_EIP>`
-- 4) On Mac: `./wait-mac-lnd.sh regtest`
+- 4) On Mac: `./wait-mac-lnd.sh` (auto-detects regtest/signet)
 - 5) On Mac: `./connect-mac-to-aws.sh <AWS_EIP> <pubkey-from-aws-getinfo>` See below.
 - 6) On Mac: Verify peer connection Mac <-> AWS. See below.
 - 7) On Mac: Open Lightning channel Mac <-> AWS. See below.
@@ -442,7 +442,7 @@ docker compose -f docker-compose.regtest.mac.yml exec -it agent-bitcoin-lnd \
   lncli --lnddir=/home/lnd/.lnd --network=regtest unlock
 
 # Monitor
-./wait-mac-lnd.sh regtest
+./wait-mac-lnd.sh
 ```
 
 - STEP #6. On Mac:
