@@ -14,8 +14,12 @@
 # Env:
 #   AWS_REGION  default: us-east-1
 #   SG_ID       default: sg-04e9e86b18199e18f
-#   PORTS       default: 22 8000 18443 28332 28333 9735
+#   PORTS       default: 22 8000 18443 18444 28332 28333 9735 19735
+#               (9735 = regtest LND P2P, 19735 = signet LND P2P on AWS)
 #   MY_IP       default: auto-detect via checkip.amazonaws.com
+#
+# Run this first on the Mac each day (or after ISP IP change) before
+# Mac→AWS connect / openchannel. Home IPv4 often changes overnight.
 #
 # Requires: aws CLI, credentials with ec2:Authorize/Revoke/Describe on the SG, python3, curl
 
@@ -28,7 +32,7 @@ for arg in "$@"; do
     --dry-run) DRY_RUN=1 ;;
     --keep-world-p2p) KEEP_WORLD_P2P=1 ;;
     -h|--help)
-      sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'
+      sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'
       exit 0
       ;;
     *)
@@ -41,7 +45,8 @@ done
 AWS_REGION=${AWS_REGION:-us-east-1}
 SG_ID=${SG_ID:-sg-04e9e86b18199e18f}
 # Include 18444 so leftover world-open bitcoind P2P/RPC rules get removed.
-PORTS_STR=${PORTS:-"22 8000 18443 18444 28332 28333 9735"}
+# 19735 = AWS signet LND host port (docker-compose.signet.aws.yml).
+PORTS_STR=${PORTS:-"22 8000 18443 18444 28332 28333 9735 19735"}
 
 # Prevent aws CLI from opening `less` and stopping on (END)
 export AWS_PAGER=""
@@ -125,7 +130,8 @@ for port in sorted(ports):
     for c in sorted(cidrs):
         if c == my_cidr:
             continue
-        if keep_world and port == 9735 and c == "0.0.0.0/0":
+        # Optional: leave world-open LN P2P (regtest 9735 or signet 19735)
+        if keep_world and port in (9735, 19735) and c == "0.0.0.0/0":
             continue
         to_revoke.append({"port": port, "cidr": c})
 
@@ -160,7 +166,8 @@ desc_for_port() {
     18443) echo "bitcoind RPC Mac" ;;
     28332) echo "ZMQ blocks Mac" ;;
     28333) echo "ZMQ txs Mac" ;;
-    9735) echo "LND P2P Mac" ;;
+    9735) echo "LND P2P regtest Mac" ;;
+    19735) echo "LND P2P signet Mac" ;;
     *) echo "agent-bitcoin admin/Mac" ;;
   esac
 }
