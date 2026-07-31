@@ -99,12 +99,18 @@ def cmd_create(args: argparse.Namespace) -> int:
     print(f"amount_sats={args.amount}")
     print(f"r_hash={inv.r_hash}")
     print(f"payment_request={inv.payment_request}")
+    out = Path(args.out) if args.out else Path("/tmp/signet-bolt11.txt")
+    out.write_text(inv.payment_request + "\n", encoding="utf-8")
+    print(f"wrote={out}")
     print("")
-    print("Next (on the peer with outbound liquidity — usually AWS):")
-    print("  LND_NETWORK=signet LND_CONTAINER=agent-payment-decision-lnd-signet \\")
+    print("Next (AWS payer) — prefer file so the terminal cannot wrap the bolt11:")
+    print("  # copy file to AWS, e.g.:")
+    print(f"  #   scp {out} ubuntu@<AWS_EIP>:/tmp/signet-bolt11.txt")
     print(
-        f"    uv run python examples/signet_product_path.py pay "
-        f"--bolt11 '{inv.payment_request}'"
+        "  export LND_NETWORK=signet LND_CONTAINER=agent-payment-decision-lnd-signet LND_DIR=/home/lnd/.lnd"
+    )
+    print(
+        "  uv run python examples/signet_product_path.py pay --file /tmp/signet-bolt11.txt"
     )
     return 0
 
@@ -114,12 +120,29 @@ def _normalize_bolt11(raw: str) -> str:
     return "".join(raw.split())
 
 
+def _load_bolt11(args: argparse.Namespace) -> str:
+    if getattr(args, "file", None):
+        path = Path(args.file)
+        if not path.is_file():
+            print(f"ERROR: bolt11 file not found: {path}", file=sys.stderr)
+            sys.exit(1)
+        return _normalize_bolt11(path.read_text(encoding="utf-8"))
+    if args.bolt11 == "-" or (
+        not args.bolt11 and not os.getenv("BOLT11") and not sys.stdin.isatty()
+    ):
+        return _normalize_bolt11(sys.stdin.read())
+    return _normalize_bolt11(args.bolt11 or os.getenv("BOLT11") or "")
+
+
 def cmd_pay(args: argparse.Namespace) -> int:
     _require_signet()
     container = _require_container()
-    bolt11 = _normalize_bolt11(args.bolt11 or os.getenv("BOLT11") or "")
+    bolt11 = _load_bolt11(args)
     if not bolt11:
-        print("ERROR: pass --bolt11 or set BOLT11.", file=sys.stderr)
+        print(
+            "ERROR: pass --file PATH, --bolt11 STR, BOLT11 env, or pipe stdin.",
+            file=sys.stderr,
+        )
         sys.exit(1)
     if not bolt11.startswith("ln"):
         print(
@@ -162,10 +185,24 @@ def main() -> int:
     p_create.add_argument("--memo", default="signet-sdk-product")
     p_create.add_argument("--amount", type=int, default=2000)
     p_create.add_argument("--expiry", type=int, default=3600)
+    p_create.add_argument(
+        "--out",
+        default="/tmp/signet-bolt11.txt",
+        help="Write payment_request to this file (default: /tmp/signet-bolt11.txt)",
+    )
     p_create.set_defaults(func=cmd_create)
 
     p_pay = sub.add_parser("pay", help="Pay bolt11 via SDK")
-    p_pay.add_argument("--bolt11", default="", help="BOLT11 or set BOLT11 env")
+    p_pay.add_argument(
+        "--bolt11",
+        default="",
+        help="BOLT11 string, or '-' to read stdin; also BOLT11 env",
+    )
+    p_pay.add_argument(
+        "--file",
+        default="",
+        help="Read BOLT11 from file (preferred; survives terminal wrap)",
+    )
     p_pay.set_defaults(func=cmd_pay)
 
     p_bal = sub.add_parser("balance", help="Channel balance via SDK")
