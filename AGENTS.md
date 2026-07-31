@@ -408,7 +408,8 @@ uv run python -c "from agent_bitcoin import create_client; print('ok')"
 
 # Mac counterparty
 ./startup-mac.sh regtest <aws-public-ipv4>
-./wait-mac-lnd.sh regtest
+./wait-mac-lnd.sh
+# (auto-detects regtest vs signet from the running Mac LND container)
 
 # Backend (typical)
 # uvicorn / docker per compose — see docs/backend.md
