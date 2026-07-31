@@ -105,18 +105,18 @@ docker exec "$LND_CONTAINER" lncli --lnddir=/home/lnd/.lnd --network=signet newa
 docker exec "$LND_CONTAINER" lncli --lnddir=/home/lnd/.lnd --network=signet walletbalance
 ```
 
-### 5) Backend / SDK
+### 5) Backend / SDK (see **Product path** below after channel is up)
+
+Env for AWS agent LND:
 
 ```bash
 export LND_NETWORK=signet
 export LND_CONTAINER=agent-payment-decision-lnd-signet
-export AGENT_BITCOIN_API_KEY=...   # from .env
-
-# Start backend as usual (tmux / uvicorn) with those env vars in the process environment
-curl -s http://127.0.0.1:8000/
-# Create invoice via API or:
-# LND_NETWORK=signet LND_CONTAINER=... uv run python -c "from agent_bitcoin import create_client; print(create_client().create_invoice('signet', 2000))"
+export LND_DIR=/home/lnd/.lnd
+export AGENT_BITCOIN_API_KEY=...   # from .env for HTTP API
 ```
+
+Full dual-node create/pay without typing `lncli` is documented in **Product path: SDK/API**.
 
 ### 6) Open a channel (operator)
 
@@ -233,6 +233,104 @@ docker exec "$MAC_LND" lncli --lnddir=/home/lnd/.lnd --network=signet getinfo \
 ```
 
 You usually **do not** need Mac’s public IP: Mac will **connect out** to AWS (like regtest).
+
+## Product path: SDK/API
+
+Goal: create and pay signet invoices through **agent-bitcoin** (SDK and/or HTTP API), not by typing `lncli addinvoice` / `payinvoice`. Requires an **active dual-node channel** (above).
+
+### Who runs where
+
+The SDK uses **local** `docker exec`. Run each step on the host that has that container:
+
+| Role | Host | `LND_CONTAINER` |
+|------|------|-----------------|
+| Mac LND (often **receiver**) | Mac | `agent-bitcoin-lnd-signet` |
+| AWS LND (often **payer** — has channel outbound) | AWS | `agent-payment-decision-lnd-signet` |
+
+Primary success direction (AWS holds most liquidity): **Mac creates → AWS pays**.
+
+### Prerequisites
+
+- Daily Mac: `./update-aws-sg-my-ip.sh` then connect if needed
+- AWS: unlock LND if locked
+- Both: `synced_to_chain` and `listchannels` → `"active": true`
+- Amount ≥ `MIN_PAYMENT_SATS` (default **2000**)
+
+Record balances before/after:
+
+```bash
+# each host with its container
+export LND_NETWORK=signet LND_DIR=/home/lnd/.lnd
+export LND_CONTAINER=...   # Mac or AWS name
+uv run python examples/signet_product_path.py balance
+```
+
+### A) SDK create (Mac)
+
+```bash
+cd ~/agent-bitcoin   # repo root
+export LND_NETWORK=signet
+export LND_CONTAINER=agent-bitcoin-lnd-signet
+export LND_DIR=/home/lnd/.lnd
+
+uv run python examples/signet_product_path.py create --amount 2000 --memo 'signet-sdk-product'
+# copy payment_request=lntbs...
+```
+
+### B) SDK pay (AWS)
+
+```bash
+cd ~/agent-bitcoin
+export LND_NETWORK=signet
+export LND_CONTAINER=agent-payment-decision-lnd-signet
+export LND_DIR=/home/lnd/.lnd
+export BOLT11='lntbs...'   # from Mac create
+
+uv run python examples/signet_product_path.py pay --bolt11 "$BOLT11"
+uv run python examples/signet_product_path.py balance
+```
+
+**Pass:** `success=True`; Mac local balance up ~2000; AWS local down ~2000.
+
+### C) HTTP API pay (AWS)
+
+Set env **before** starting uvicorn (`LNDClient` is created at import):
+
+```bash
+export LND_NETWORK=signet
+export LND_CONTAINER=agent-payment-decision-lnd-signet
+export LND_DIR=/home/lnd/.lnd
+export AGENT_BITCOIN_API_KEY=...   # same as .env
+
+uv run uvicorn backend.main:app --host 127.0.0.1 --port 8000
+```
+
+```bash
+curl -s http://127.0.0.1:8000/
+curl -s -X POST http://127.0.0.1:8000/pay \
+  -H "X-API-Key: $AGENT_BITCOIN_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d "{\"payment_request\":\"$BOLT11\",\"fee_limit_sats\":500}"
+```
+
+Create via API (invoice lands on **AWS** LND):
+
+```bash
+curl -s -X POST http://127.0.0.1:8000/invoices \
+  -H "X-API-Key: $AGENT_BITCOIN_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"memo":"signet-api","amount_sats":2000}'
+# Mac may pay only if it has enough local balance (often ~2000 after first hop)
+```
+
+### Success checklist
+
+- [ ] Invoice created via SDK or `POST /invoices` (no hand-typed `lncli addinvoice`)
+- [ ] Payment via SDK or `POST /pay` (no hand-typed `lncli payinvoice`)
+- [ ] Channel balances moved
+- [ ] Optional: reverse hop (AWS invoice → Mac pay) if Mac has local sats
+
+---
 
 ### Daily restart order (Mac)
 

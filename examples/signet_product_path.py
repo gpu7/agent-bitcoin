@@ -1,0 +1,161 @@
+#!/usr/bin/env python3
+"""
+Signet product-path smoke: create or pay invoices via the SDK (no lncli typing).
+
+Must run on the host that can `docker exec` the target LND container.
+
+Typical dual-node flow (AWS has most channel liquidity):
+  Mac:  LND_CONTAINER=agent-bitcoin-lnd-signet  create
+  AWS:  LND_CONTAINER=agent-payment-decision-lnd-signet  pay --bolt11 'lntbs...'
+
+Usage:
+  export LND_NETWORK=signet
+  export LND_CONTAINER=agent-bitcoin-lnd-signet   # or AWS signet container
+  export LND_DIR=/home/lnd/.lnd
+
+  uv run python examples/signet_product_path.py create [--memo TEXT] [--amount 2000]
+  uv run python examples/signet_product_path.py pay --bolt11 'lntbs...'
+  uv run python examples/signet_product_path.py balance
+"""
+
+from __future__ import annotations
+
+import argparse
+import os
+import subprocess
+import sys
+
+
+def _require_signet() -> None:
+    network = os.getenv("LND_NETWORK", "").strip().lower()
+    if network != "signet":
+        print(
+            "ERROR: set LND_NETWORK=signet (refusing other networks for this smoke).",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    if os.getenv("AGENT_BITCOIN_ALLOW_MAINNET") == "1" and network == "mainnet":
+        print("ERROR: mainnet not allowed for this example.", file=sys.stderr)
+        sys.exit(1)
+
+
+def _require_container() -> str:
+    container = (os.getenv("LND_CONTAINER") or "").strip()
+    if not container:
+        print(
+            "ERROR: set LND_CONTAINER "
+            "(e.g. agent-bitcoin-lnd-signet or agent-payment-decision-lnd-signet).",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    try:
+        r = subprocess.run(
+            [
+                "docker",
+                "inspect",
+                "-f",
+                "{{.State.Running}}",
+                container,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=15,
+            check=False,
+        )
+    except FileNotFoundError:
+        print("ERROR: docker not found on this host.", file=sys.stderr)
+        sys.exit(1)
+    if r.returncode != 0 or r.stdout.strip() != "true":
+        print(
+            f"ERROR: container {container!r} is not running on this host.\n"
+            "  SDK uses local docker exec — run create on Mac for Mac LND, "
+            "pay on AWS for AWS LND.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return container
+
+
+def cmd_create(args: argparse.Namespace) -> int:
+    _require_signet()
+    container = _require_container()
+    from agent_bitcoin import create_client
+
+    client = create_client()
+    inv = client.create_invoice(
+        memo=args.memo,
+        amount_sats=args.amount,
+        expiry_seconds=args.expiry,
+    )
+    print(f"container={container}")
+    print(f"network={os.environ.get('LND_NETWORK')}")
+    print(f"amount_sats={args.amount}")
+    print(f"r_hash={inv.r_hash}")
+    print(f"payment_request={inv.payment_request}")
+    print("")
+    print("Next (on the peer with outbound liquidity — usually AWS):")
+    print("  LND_NETWORK=signet LND_CONTAINER=agent-payment-decision-lnd-signet \\")
+    print(
+        f"    uv run python examples/signet_product_path.py pay "
+        f"--bolt11 '{inv.payment_request}'"
+    )
+    return 0
+
+
+def cmd_pay(args: argparse.Namespace) -> int:
+    _require_signet()
+    container = _require_container()
+    bolt11 = (args.bolt11 or os.getenv("BOLT11") or "").strip()
+    if not bolt11:
+        print("ERROR: pass --bolt11 or set BOLT11.", file=sys.stderr)
+        sys.exit(1)
+    from agent_bitcoin import create_client
+
+    client = create_client()
+    result = client.pay_invoice(bolt11)
+    print(f"container={container}")
+    print(f"success={result.success}")
+    print(f"status={result.status}")
+    print(f"payment_hash={result.payment_hash}")
+    print(f"amount={result.amount}")
+    return 0 if result.success else 1
+
+
+def cmd_balance(_args: argparse.Namespace) -> int:
+    _require_signet()
+    container = _require_container()
+    from agent_bitcoin import create_client
+
+    client = create_client()
+    ch = client.get_channel_balance()
+    print(f"container={container}")
+    print(f"local_balance={ch.local_balance}")
+    print(f"remote_balance={ch.remote_balance}")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Signet product-path smoke (SDK create/pay/balance)."
+    )
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
+    p_create = sub.add_parser("create", help="Create invoice via SDK")
+    p_create.add_argument("--memo", default="signet-sdk-product")
+    p_create.add_argument("--amount", type=int, default=2000)
+    p_create.add_argument("--expiry", type=int, default=3600)
+    p_create.set_defaults(func=cmd_create)
+
+    p_pay = sub.add_parser("pay", help="Pay bolt11 via SDK")
+    p_pay.add_argument("--bolt11", default="", help="BOLT11 or set BOLT11 env")
+    p_pay.set_defaults(func=cmd_pay)
+
+    p_bal = sub.add_parser("balance", help="Channel balance via SDK")
+    p_bal.set_defaults(func=cmd_balance)
+
+    args = parser.parse_args()
+    return int(args.func(args))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
