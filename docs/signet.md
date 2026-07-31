@@ -234,6 +234,19 @@ docker exec "$MAC_LND" lncli --lnddir=/home/lnd/.lnd --network=signet getinfo \
 
 You usually **do not** need Mac’s public IP: Mac will **connect out** to AWS (like regtest).
 
+### Daily restart order (Mac)
+
+Home public IP often changes overnight. **Do this first** before connect:
+
+```bash
+./update-aws-sg-my-ip.sh          # allows your current IP on SG (incl. 19735 signet P2P)
+# optional: ./update-aws-sg-my-ip.sh --dry-run
+```
+
+Then start/wait Mac stack, then connect (below). Skip the SG step only if you know your IP is unchanged and `nc -vz $AWS_EIP 19735` already succeeds.
+
+Does **not** affect: Mac bitcoind sync, local LND unlock, or channel funds on-chain. Only **inbound** AWS ports from the Mac (SSH, API, regtest/signet LND P2P, etc.).
+
 ### Mac — connect to AWS (outbound)
 
 ```bash
@@ -248,7 +261,7 @@ docker exec "$MAC_LND" lncli --lnddir=/home/lnd/.lnd --network=signet \
 docker exec "$MAC_LND" lncli --lnddir=/home/lnd/.lnd --network=signet listpeers
 ```
 
-AWS security group must allow **inbound TCP 19735** from your Mac’s public IP (or temporarily broader for lab).
+AWS security group must allow **inbound TCP 19735** from your Mac’s public IP — kept current by `./update-aws-sg-my-ip.sh`.
 
 ### AWS — confirm peer + open channel
 

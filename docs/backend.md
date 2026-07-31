@@ -59,8 +59,12 @@ Your home/Mac IP can change. From the **Mac** (with AWS CLI credentials that can
 ./update-aws-sg-my-ip.sh
 ```
 
-Defaults: region `us-east-1`, SG `sg-04e9e86b18199e18f`, ports `22 8000 18443 18444 28332 28333 9735`.
+Defaults: region `us-east-1`, SG `sg-04e9e86b18199e18f`, ports
+`22 8000 18443 18444 28332 28333 9735 19735`
+(`9735` regtest LND P2P, `19735` signet LND P2P on AWS).
 Override with `AWS_REGION`, `SG_ID`, `PORTS`, or `MY_IP` if needed.
+
+**Daily:** run `./update-aws-sg-my-ip.sh` on the Mac first when resuming (home IP often changes).
 
 **Safe order:** new IP is authorized **before** old rules are revoked (reduces lockout risk).
 If you still get locked out: AWS Console → EC2 → Security Groups → temporarily allow your new IP on port 22.
