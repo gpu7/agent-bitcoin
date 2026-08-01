@@ -68,13 +68,13 @@ def container_running(name: str) -> bool:
 
 
 def make_lnd_client(container: str, network: str, lnd_dir: str | None = None):
-    """Build LNDClient with explicit container/network (env for constructor)."""
+    """Build LND client with explicit container/network (docker transport)."""
+    os.environ["LND_TRANSPORT"] = "docker"
     os.environ["LND_CONTAINER"] = container
     os.environ["LND_NETWORK"] = network
     os.environ["LND_DIR"] = (
         lnd_dir or os.getenv("LND_DIR") or "/home/lnd/.lnd"
     ).strip() or "/home/lnd/.lnd"
-    # Fresh client each time so env is read
-    from agent_bitcoin.lightning import LNDClient
+    from agent_bitcoin.lightning import create_lnd_client
 
-    return LNDClient()
+    return create_lnd_client()

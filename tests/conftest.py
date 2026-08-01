@@ -40,6 +40,12 @@ def clear_payment_env(monkeypatch):
         "MAX_FEE_SEND_SATS",
         "AGENT_BITCOIN_API_KEY",
         "LND_NETWORK",
+        "LND_TRANSPORT",
+        "LND_TLS_CERT_PATH",
+        "LND_CERT_PATH",
+        "LND_MACAROON_PATH",
+        "LND_GRPC_HOST",
+        "LND_GRPC_PORT",
         "AGENT_BITCOIN_ALLOW_MAINNET",
     ):
         monkeypatch.delenv(key, raising=False)

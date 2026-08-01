@@ -83,10 +83,10 @@ def api_client(clear_payment_env, monkeypatch):
     backend_main.MIN_PAYMENT_SATS = DEFAULT_MIN_PAYMENT_SATS
     backend_main.MAX_INVOICE_SATS = DEFAULT_MAX_PAYMENT_SATS
     backend_main.client = MagicMock()
-    backend_main.client._run.return_value = {
-        "payment_request": "lnbcrt1test",
-        "r_hash": "rr",
-    }
+    backend_main.client.create_invoice.return_value = MagicMock(
+        payment_request="lnbcrt1test",
+        r_hash="rr",
+    )
     return TestClient(backend_main.app), backend_main
 
 
@@ -100,7 +100,7 @@ def test_abt001_api_normal_invoice(api_client, payment_limits):
     )
     assert r.status_code == 200
     assert r.json()["amount_sats"] == mid
-    backend_main.client._run.assert_called()
+    backend_main.client.create_invoice.assert_called()
 
 
 def test_abt002_api_below_minimum(api_client, payment_limits):
@@ -112,7 +112,7 @@ def test_abt002_api_below_minimum(api_client, payment_limits):
     )
     assert r.status_code == 400
     assert "amount_sats" in r.json()["detail"].lower() or "2000" in r.json()["detail"]
-    backend_main.client._run.assert_not_called()
+    backend_main.client.create_invoice.assert_not_called()
 
 
 def test_abt003_api_above_maximum(api_client, payment_limits):
@@ -123,7 +123,7 @@ def test_abt003_api_above_maximum(api_client, payment_limits):
         headers={"X-API-Key": "test-key-for-unit-tests"},
     )
     assert r.status_code == 400
-    backend_main.client._run.assert_not_called()
+    backend_main.client.create_invoice.assert_not_called()
 
 
 def test_api_requires_key(api_client):

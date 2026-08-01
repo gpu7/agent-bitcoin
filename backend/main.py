@@ -147,13 +147,22 @@ async def root():
 @app.get("/balance", dependencies=[Depends(require_api_key)])
 async def get_balance():
     try:
-        ln = client._run("channelbalance")
-        onchain = client._run("walletbalance")
+        ch = client.get_channel_balance()
+        onchain = client.get_balance()
+        ln = {
+            "balance": str(ch.local_balance),
+            "local_balance": {"sat": str(ch.local_balance)},
+            "remote_balance": {"sat": str(ch.remote_balance)},
+        }
+        onchain_dict = {
+            "total_balance": onchain.total_balance,
+            "confirmed_balance": onchain.confirmed_balance,
+            "unconfirmed_balance": onchain.unconfirmed_balance,
+        }
         return {
             "lightning": ln,
-            "onchain": onchain,
-            "total_sat": int(ln.get("balance", 0))
-            + int(onchain.get("confirmed_balance", 0)),
+            "onchain": onchain_dict,
+            "total_sat": int(ch.local_balance) + int(onchain.confirmed_balance or 0),
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
@@ -163,13 +172,11 @@ async def get_balance():
 async def create_invoice(req: InvoiceRequest):
     _validate_invoice_amount(req.amount_sats)
     try:
-        result = client._run(
-            "addinvoice", "--memo", req.memo, "--amt", str(req.amount_sats)
-        )
+        inv = client.create_invoice(req.memo, req.amount_sats)
         logger.info("invoice created amount_sats=%s", req.amount_sats)
         return {
-            "payment_request": result.get("payment_request"),
-            "r_hash": result.get("r_hash"),
+            "payment_request": inv.payment_request,
+            "r_hash": inv.r_hash,
             "amount_sats": req.amount_sats,
             "memo": req.memo,
         }
@@ -186,23 +193,20 @@ async def pay_invoice(req: PayRequest):
     last_error = None
     for attempt in range(3):
         try:
-            result = client._run(
-                "sendpayment",
-                "--pay_req",
-                req.payment_request,
-                "--fee_limit",
-                str(req.fee_limit_sats),
-                "--json",
-                "--force",
+            result = client.pay_invoice(
+                req.payment_request.strip(),
+                fee_limit_sats=req.fee_limit_sats,
             )
+            if not result.success:
+                raise RuntimeError(result.status or "payment failed")
             logger.info(
                 "payment success attempt=%s payment_hash=%s",
                 attempt + 1,
-                result.get("payment_hash"),
+                result.payment_hash,
             )
             return {
                 "success": True,
-                "payment_hash": result.get("payment_hash"),
+                "payment_hash": result.payment_hash,
                 "fee_sent": FEE_SATS,
                 "fee_address": FEE_ADDRESS,
                 "attempts": attempt + 1,
@@ -234,11 +238,11 @@ async def send_fee(req: Optional[FeeRequest] = None):
 
     try:
         logger.info("fee send amount_sats=%s", amount)
-        fee_tx = client._run("sendcoins", "--addr", FEE_ADDRESS, "--amt", str(amount))
-        logger.info("fee sent txid=%s", fee_tx.get("txid"))
+        fee_tx = client.send_coins(FEE_ADDRESS, amount)
+        logger.info("fee sent txid=%s", fee_tx.txid)
         return {
             "success": True,
-            "txid": fee_tx.get("txid"),
+            "txid": fee_tx.txid,
             "amount_sats": amount,
             "address": FEE_ADDRESS,
         }

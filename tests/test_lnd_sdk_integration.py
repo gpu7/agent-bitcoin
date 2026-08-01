@@ -49,7 +49,7 @@ def local_agent_or_peer(stack):
 
 def test_getinfo_network_and_unlocked(stack, local_agent_or_peer):
     client = make_lnd_client(local_agent_or_peer, stack.network)
-    info = client._run("getinfo")
+    info = client.get_info()
     assert info.get("identity_pubkey"), info
     # chains[0].network may be 'bitcoin' with chains; lncli uses --network flag
     assert info.get("synced_to_chain") is True, (
@@ -104,7 +104,7 @@ def test_dual_node_sdk_pay_when_both_local(stack, payment_limits):
     payer = make_lnd_client(pay, stack.network)
 
     # Channel should be active on payer for outbound
-    chans = payer._run("listchannels")
+    chans = payer.list_channels()
     channels = chans.get("channels") or []
     active = [c for c in channels if c.get("active")]
     if not active:

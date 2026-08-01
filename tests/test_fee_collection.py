@@ -60,7 +60,7 @@ def test_abt004_api_send_fee_amount(clear_payment_env, monkeypatch):
     backend_main.FEE_SATS = DEFAULT_FEE_AMOUNT_SATS
     backend_main.MAX_FEE_SEND_SATS = 100_000
     backend_main.client = MagicMock()
-    backend_main.client._run.return_value = {"txid": "fee-txid-1"}
+    backend_main.client.send_coins.return_value = MagicMock(txid="fee-txid-1")
 
     client = TestClient(backend_main.app)
     r = client.post(
@@ -72,7 +72,7 @@ def test_abt004_api_send_fee_amount(clear_payment_env, monkeypatch):
     assert body["success"] is True
     assert body["amount_sats"] == DEFAULT_FEE_AMOUNT_SATS
     assert body["txid"] == "fee-txid-1"
-    # lncli sendcoins --addr ... --amt 1000
-    call_args = backend_main.client._run.call_args[0]
-    assert "sendcoins" in call_args
-    assert str(DEFAULT_FEE_AMOUNT_SATS) in call_args
+    backend_main.client.send_coins.assert_called_once_with(
+        "bcrt1qfeeexampleaddress000000000000000",
+        DEFAULT_FEE_AMOUNT_SATS,
+    )
