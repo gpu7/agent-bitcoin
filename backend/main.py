@@ -24,13 +24,14 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from agent_bitcoin.client import AgentBitcoinClient
 from agent_bitcoin.constants import (
     DEFAULT_FEE_AMOUNT_SATS,
+    fee_send_allowed,
     max_fee_send_sats,
     max_invoice_sats,
     min_payment_sats,
 )
-from agent_bitcoin.lightning import LNDClient
 
 load_dotenv()
 
@@ -66,13 +67,14 @@ class AccessLogMiddleware(BaseHTTPMiddleware):
 app.add_middleware(AccessLogMiddleware)
 
 FEE_SATS = int(os.getenv("FEE_SATS", str(DEFAULT_FEE_AMOUNT_SATS)))
-FEE_ADDRESS = os.getenv("FEE_ADDRESS")
+FEE_ADDRESS = os.getenv("FEE_ADDRESS") or os.getenv("FEE_WALLET_ADDRESS")
 MIN_PAYMENT_SATS = min_payment_sats()
 MAX_INVOICE_SATS = max_invoice_sats()
 MAX_FEE_SEND_SATS = max_fee_send_sats()
 API_KEY = (os.getenv("AGENT_BITCOIN_API_KEY") or "").strip()
 
-client = LNDClient()
+# AgentBitcoinClient enforces min/max, daily spend, mainnet autopay, fee kill-switch
+client = AgentBitcoinClient()
 
 
 class InvoiceRequest(BaseModel):
@@ -180,13 +182,15 @@ async def create_invoice(req: InvoiceRequest):
             "amount_sats": req.amount_sats,
             "memo": req.memo,
         }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @app.post("/pay", dependencies=[Depends(require_api_key)])
 async def pay_invoice(req: PayRequest):
-    """Pay Lightning invoice from AWS node."""
+    """Pay Lightning invoice (policy: limits, daily cap, mainnet autopay flag)."""
     if not req.payment_request or not req.payment_request.strip():
         raise HTTPException(status_code=400, detail="payment_request is required")
 
@@ -207,10 +211,13 @@ async def pay_invoice(req: PayRequest):
             return {
                 "success": True,
                 "payment_hash": result.payment_hash,
-                "fee_sent": FEE_SATS,
-                "fee_address": FEE_ADDRESS,
+                "fee_sent": FEE_SATS if fee_send_allowed() else 0,
+                "fee_address": FEE_ADDRESS if fee_send_allowed() else None,
                 "attempts": attempt + 1,
             }
+        except (ValueError, RuntimeError) as e:
+            # Policy rejections — do not retry
+            raise HTTPException(status_code=400, detail=str(e)) from e
         except Exception as e:
             last_error = str(e)
             logger.warning("sendpayment attempt %s failed: %s", attempt + 1, last_error)
@@ -226,7 +233,15 @@ async def pay_invoice(req: PayRequest):
 
 @app.post("/send-fee", dependencies=[Depends(require_api_key)])
 async def send_fee(req: Optional[FeeRequest] = None):
-    """On-chain fee send to configured fee address."""
+    """On-chain fee send to configured fee address (disabled on mainnet pilot)."""
+    if not fee_send_allowed():
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "On-chain fee sends disabled on mainnet unless "
+                "AGENT_BITCOIN_ALLOW_MAINNET_FEE=1 (see docs/mainnet-pilot.md)."
+            ),
+        )
     amount = req.amount_sats if req and req.amount_sats is not None else FEE_SATS
     if not FEE_ADDRESS or amount <= 0:
         raise HTTPException(status_code=400, detail="Fee configuration missing")
@@ -238,7 +253,15 @@ async def send_fee(req: Optional[FeeRequest] = None):
 
     try:
         logger.info("fee send amount_sats=%s", amount)
-        fee_tx = client.send_coins(FEE_ADDRESS, amount)
+        # Prefer client fee path (also checks FEE_WALLET_ADDRESS on collect)
+        if (
+            hasattr(client, "fee_wallet_address")
+            and client.fee_wallet_address
+            and amount == client.fee_amount_sats
+        ):
+            fee_tx = client.collect_transaction_fee()
+        else:
+            fee_tx = client.send_onchain(FEE_ADDRESS, amount)
         logger.info("fee sent txid=%s", fee_tx.txid)
         return {
             "success": True,

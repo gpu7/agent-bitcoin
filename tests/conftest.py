@@ -47,6 +47,10 @@ def clear_payment_env(monkeypatch):
         "LND_GRPC_HOST",
         "LND_GRPC_PORT",
         "AGENT_BITCOIN_ALLOW_MAINNET",
+        "AGENT_BITCOIN_ALLOW_AUTOPAY",
+        "AGENT_BITCOIN_ALLOW_MAINNET_FEE",
+        "AGENT_BITCOIN_SPEND_LEDGER",
+        "MAX_DAILY_PAYMENT_SATS",
     ):
         monkeypatch.delenv(key, raising=False)
     # Avoid real LND docker during client construction where possible

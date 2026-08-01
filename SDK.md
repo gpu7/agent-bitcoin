@@ -67,7 +67,12 @@ The Python client loads environment variables via `python-dotenv` (typically a `
 | `FEE_WALLET_ADDRESS` | (none) | On-chain address for `collect_transaction_fee()` |
 | `FEE_AMOUNT_SATS` | `1000` | Fee amount for `collect_transaction_fee()` |
 | `MIN_PAYMENT_SATS` | `2000` | Minimum `amount_sats` for `create_invoice()` |
-| `MAX_PAYMENT_SATS` | `1000000` | Shared max for invoices and agent pays |
+| `MAX_PAYMENT_SATS` | `1000000` (lab) / `50000` (mainnet default) | Shared max for invoices and pays |
+| `MAX_DAILY_PAYMENT_SATS` | `0` lab (off) / `100000` mainnet | UTC daily spend cap; ledger file |
+| `AGENT_BITCOIN_ALLOW_AUTOPAY` | on in lab; **off on mainnet** | Mainnet requires `=1` to pay |
+| `AGENT_BITCOIN_ALLOW_MAINNET_FEE` | n/a lab; **off on mainnet** | Must be `=1` for on-chain fee sends |
+| `AGENT_BITCOIN_SPEND_LEDGER` | `~/.config/agent-bitcoin/spend-ledger.json` | Daily spend tracking path |
+| `LND_TRANSPORT` | `docker` | Or `grpc` — see [docs/lnd-client.md](docs/lnd-client.md) |
 | `MAX_INVOICE_SATS` | same as max | Optional override for backend only |
 | `PAYMENT_DECISION_MAX_SATS` | same as max | Optional override for agent only |
 
