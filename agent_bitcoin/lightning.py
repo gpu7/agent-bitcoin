@@ -69,6 +69,25 @@ class LNDClient:
 
             if result.returncode != 0:
                 error_msg = result.stderr.strip() or result.stdout.strip()
+                # sendpayment often exits non-zero but prints JSON with failure_reason
+                if result.stdout.strip():
+                    try:
+                        payload = json.loads(result.stdout)
+                        if isinstance(payload, dict) and (
+                            payload.get("failure_reason")
+                            or payload.get("payment_error")
+                            or payload.get("status")
+                        ):
+                            reason = (
+                                payload.get("failure_reason")
+                                or payload.get("payment_error")
+                                or payload.get("status")
+                            )
+                            raise LNDException(
+                                f"lncli failed: {reason}\n{result.stdout.strip()}"
+                            )
+                    except json.JSONDecodeError:
+                        pass
                 raise LNDException(f"lncli failed:\n{error_msg}")
 
             if result.stdout.strip():
@@ -79,6 +98,8 @@ class LNDClient:
             return {}
         except subprocess.TimeoutExpired:
             raise LNDException("lncli command timed out")
+        except LNDException:
+            raise
         except Exception as e:
             raise LNDException(f"lncli execution failed: {str(e)}")
 
