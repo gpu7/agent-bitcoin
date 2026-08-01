@@ -105,6 +105,8 @@ The AWS node (`agent-payment-decision-lnd`) is **receive-heavy**: it needs **inb
 | 2 — Agent Autoloop (wire + configure + enable path) | **Complete** on regtest |
 | 3 — Smarter + production | **Future** |
 
+**Dual-node manual liquidity (signet / mainnet pilot topology B):** see [liquidity-topology-b.md](./liquidity-topology-b.md) (mainnet readiness Phase 5). Autoloop remains regtest-lab only for this project’s default guides.
+
 Exact AMI / release tags change over time; treat this table as the **capability** status, not a version number.
 
 ---

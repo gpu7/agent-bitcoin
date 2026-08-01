@@ -14,6 +14,7 @@
 | [lnd-client.md](./lnd-client.md) | **Phase 1:** LND transports (`docker` vs `grpc`) |
 | [lnd-backup-restore.md](./lnd-backup-restore.md) | **Phase 3:** SCB export, volume backup, restore drill |
 | [daily-ops-signet.md](./daily-ops-signet.md) | **Phase 4:** daily start/stop + `check-signet-health.sh` |
+| [liquidity-topology-b.md](./liquidity-topology-b.md) | **Phase 5:** dual-node channel open / rebalance / close SOP |
 | [liquidity-automation.md](./liquidity-automation.md) | **Simple story:** channel health + Autoloop Phases 1–3 |
 | [loop-autoloop.md](./loop-autoloop.md) | Phase 2 deep dive: Loop Autoloop, agent-loopd, ops |
 | [nostr-agent-identity.md](./nostr-agent-identity.md) | ADR: Nostr agent identity Phases A–C (keys, pay coord, policy signer) |
