@@ -3,7 +3,7 @@
 **Audience:** Operators moving from private **regtest** to public **signet**.
 **Agents / SDK:** still do **not** open channels or run Loop. Payment agents stay invoice / pay / decide.
 
-**Related:** [backend.md](./backend.md) (regtest ops) · [liquidity-automation.md](./liquidity-automation.md) · [SECURITY.md](../SECURITY.md)
+**Related:** [backend.md](./backend.md) (regtest ops) · [liquidity-automation.md](./liquidity-automation.md) · [mainnet-pilot.md](./mainnet-pilot.md) (readiness scope only) · [SECURITY.md](../SECURITY.md)
 
 ---
 
