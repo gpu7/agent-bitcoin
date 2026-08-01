@@ -1,6 +1,6 @@
 # Mainnet pilot scope (Phase 0)
 
-**Status:** Phase 0 — scope only. **No mainnet go-live.**
+**Status:** Phases 0–1 complete. Next: Phase 2 (limits + kill switches). **No mainnet go-live.**
 **Date:** 2026-08-01
 **Audience:** Operator (you) and implementers of readiness Phases 1–8.
 
@@ -69,7 +69,7 @@ These are **pilot ceilings**, not product marketing defaults. Code in Phase 2 sh
 | Autoloop / Loop on mainnet | **Disabled** | Not in pilot |
 | Autonomous agent `pay_invoice` | **Disabled** by default | Human attends every pay |
 
-Revise this table in a follow-up commit if you want different numbers; treat Phase 8 as blocked until you explicitly accept these (or an update).
+**Operator accepted these draft limits (2026-08-01).** Phase 2 will enforce them in code.
 
 ---
 
@@ -129,8 +129,8 @@ Do **not** block mainnet readiness on:
 
 | Phase | Name | Status |
 |-------|------|--------|
-| **0** | This document — scope | **In progress / complete when operator accepts** |
-| 1 | gRPC + macaroon LND client (lab docker-exec kept) | Not started |
+| **0** | This document — scope | **Complete** (topology B + limits accepted) |
+| **1** | gRPC + macaroon LND client (lab docker-exec kept) | **Complete** — see [lnd-client.md](./lnd-client.md) |
 | 2 | Limits + kill switches in code | Not started |
 | 3 | Backup / restore drill (signet) | Not started |
 | 4 | Health / daily ops automation | Not started |
@@ -146,12 +146,10 @@ Do **not** block mainnet readiness on:
 Check when you agree this scope is correct:
 
 - [x] Topology **B** (Mac ↔ AWS dual-node)
-- [ ] Draft numeric limits accepted or revised in this file
+- [x] Draft numeric limits accepted
 - [x] Fee path **disabled** on mainnet for pilot
 - [x] Non-goals list accepted
-- [ ] Ready to start **Phase 1** (gRPC client)
-
-Edit this section when limits are finalized.
+- [x] Phase 1 started (gRPC client + [lnd-client.md](./lnd-client.md))
 
 ---
 
