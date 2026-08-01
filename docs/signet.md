@@ -332,6 +332,15 @@ curl -s -X POST http://127.0.0.1:8000/invoices \
 
 ---
 
+### Daily ops and health
+
+Full checklist: **[daily-ops-signet.md](./daily-ops-signet.md)**.
+
+```bash
+./check-signet-health.sh --role mac   # on Mac
+./check-signet-health.sh --role aws   # on AWS
+```
+
 ### Daily restart order (Mac)
 
 Home public IP often changes overnight. **Do this first** before connect:
