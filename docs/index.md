@@ -10,6 +10,7 @@
 | [SDK.md](../SDK.md) | SDK / app / agent developers |
 | [backend.md](./backend.md) | Operators: AWS + Mac regtest, LND, channels |
 | [signet.md](./signet.md) | Operators: run agent-bitcoin on Bitcoin **signet** |
+| [mainnet-pilot.md](./mainnet-pilot.md) | **Phase 0:** mainnet pilot scope (topology B) — not go-live |
 | [liquidity-automation.md](./liquidity-automation.md) | **Simple story:** channel health + Autoloop Phases 1–3 |
 | [loop-autoloop.md](./loop-autoloop.md) | Phase 2 deep dive: Loop Autoloop, agent-loopd, ops |
 | [nostr-agent-identity.md](./nostr-agent-identity.md) | ADR: Nostr agent identity Phases A–C (keys, pay coord, policy signer) |
@@ -28,6 +29,7 @@
 2. Run the regtest stack → [backend.md](./backend.md)
 3. Channel health and Autoloop (operators) → [liquidity-automation.md](./liquidity-automation.md)
 4. Signet (after regtest) → [signet.md](./signet.md)
+5. Mainnet readiness scope (later) → [mainnet-pilot.md](./mainnet-pilot.md)
 
 ## Repository
 
