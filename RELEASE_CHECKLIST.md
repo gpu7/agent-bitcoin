@@ -11,6 +11,7 @@ Use this before every release.
 - [ ] Run linters: `uv run ruff check .` and `uv run black --check .`
 - [ ] Build package: `uv build`
 - [ ] Test installation from local build: `pip install dist/*.whl`
+- [ ] LND backup: recent `./export-lnd-backup.sh` + `./verify-lnd-backup.sh` on operator nodes (see [docs/lnd-backup-restore.md](docs/lnd-backup-restore.md)); note last restore-drill date
 
 ## Release
 

@@ -1,6 +1,6 @@
 # Mainnet pilot scope (Phase 0)
 
-**Status:** Phases 0–2 complete. Next: Phase 3 (backup/restore). **No mainnet go-live.**
+**Status:** Phases 0–3 complete (export/restore runbook). Operator should still run export+verify once on each host. **No mainnet go-live.**
 **Date:** 2026-08-01
 **Audience:** Operator (you) and implementers of readiness Phases 1–8.
 
@@ -132,7 +132,7 @@ Do **not** block mainnet readiness on:
 | **0** | This document — scope | **Complete** (topology B + limits accepted) |
 | **1** | gRPC + macaroon LND client (lab docker-exec kept) | **Complete** — see [lnd-client.md](./lnd-client.md) |
 | **2** | Limits + kill switches in code | **Complete** — see below |
-| 3 | Backup / restore drill (signet) | Not started |
+| **3** | Backup / restore | **Complete** (runbook + scripts) — see [lnd-backup-restore.md](./lnd-backup-restore.md) |
 | 4 | Health / daily ops automation | Not started |
 | 5 | Liquidity SOP for topology B | Not started (lab practice exists) |
 | 6 | Security hardening | Not started |
@@ -173,6 +173,23 @@ Enforced in `agent_bitcoin.constants`, `AgentBitcoinClient`, and the FastAPI bac
 - Spend ledger: local file; back up with host backups if you rely on daily caps across restarts
 
 Signet/regtest SDK product path does **not** need `ALLOW_AUTOPAY` (lab default allows pay).
+
+---
+
+## Phase 3 — backup / restore
+
+| Piece | Location |
+|-------|----------|
+| Export SCB (+ optional volume tarball) | `./export-lnd-backup.sh` |
+| Verify backup dir | `./verify-lnd-backup.sh <dir>` |
+| Full runbook + drill checklist | [lnd-backup-restore.md](./lnd-backup-restore.md) |
+| Pilot RPO / RTO | ≤ 24h / ≤ 4h (see runbook) |
+
+**Operator checklist (do once per host):**
+
+- [ ] Mac: export + verify
+- [ ] AWS: export + verify
+- [ ] Restore drill completed or date scheduled: __________
 
 ---
 
