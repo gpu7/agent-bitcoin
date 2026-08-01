@@ -1,7 +1,7 @@
 """
 Agent-Bitcoin Backend API
 
-Security (Step 5):
+Security:
   Mutating and sensitive routes require header:
     X-API-Key: <AGENT_BITCOIN_API_KEY>
   or:
@@ -9,6 +9,9 @@ Security (Step 5):
 
   Set AGENT_BITCOIN_API_KEY in the environment (e.g. .env). If unset,
   protected routes return 503 so the API cannot run open by accident.
+
+  Bind: BACKEND_HOST (default 127.0.0.1) — do not expose publicly without TLS.
+  Soft rate limit: BACKEND_RATE_LIMIT_PER_MIN (default 60; 0 = off).
 """
 
 from __future__ import annotations
@@ -17,12 +20,14 @@ import hmac
 import logging
 import os
 import time
-from typing import Optional
+from collections import defaultdict, deque
+from typing import Deque, Dict, Optional
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 
 from agent_bitcoin.client import AgentBitcoinClient
 from agent_bitcoin.constants import (
@@ -46,6 +51,13 @@ app = FastAPI(
     description="Lightning helpers for agents. Protected routes require X-API-Key.",
 )
 
+BACKEND_HOST = (os.getenv("BACKEND_HOST") or "127.0.0.1").strip() or "127.0.0.1"
+BACKEND_PORT = int(os.getenv("BACKEND_PORT") or "8000")
+BACKEND_RATE_LIMIT_PER_MIN = int(os.getenv("BACKEND_RATE_LIMIT_PER_MIN") or "60")
+
+_RATE_LIMITED_PATHS = frozenset({"/pay", "/invoices", "/send-fee", "/balance"})
+_rate_buckets: Dict[str, Deque[float]] = defaultdict(deque)
+
 
 class AccessLogMiddleware(BaseHTTPMiddleware):
     """Log method/path/status only — never headers or bodies (may contain keys/BOLT11)."""
@@ -64,6 +76,42 @@ class AccessLogMiddleware(BaseHTTPMiddleware):
         return response
 
 
+class RateLimitMiddleware(BaseHTTPMiddleware):
+    """Simple per-client sliding window on sensitive paths (in-memory; single process)."""
+
+    async def dispatch(self, request: Request, call_next):
+        limit = BACKEND_RATE_LIMIT_PER_MIN
+        path = request.url.path.rstrip("/") or "/"
+        # normalize /balance etc
+        check_path = path if path.startswith("/") else f"/{path}"
+        if (
+            limit > 0
+            and request.method in ("GET", "POST")
+            and (
+                check_path in _RATE_LIMITED_PATHS
+                or any(check_path.startswith(p) for p in _RATE_LIMITED_PATHS)
+            )
+        ):
+            client = request.client.host if request.client else "unknown"
+            key = f"{client}:{check_path}"
+            now = time.time()
+            window = 60.0
+            bucket = _rate_buckets[key]
+            while bucket and bucket[0] <= now - window:
+                bucket.popleft()
+            if len(bucket) >= limit:
+                logger.warning(
+                    "rate limit exceeded client=%s path=%s", client, check_path
+                )
+                return JSONResponse(
+                    status_code=429,
+                    content={"detail": "Rate limit exceeded; try again later."},
+                )
+            bucket.append(now)
+        return await call_next(request)
+
+
+app.add_middleware(RateLimitMiddleware)
 app.add_middleware(AccessLogMiddleware)
 
 FEE_SATS = int(os.getenv("FEE_SATS", str(DEFAULT_FEE_AMOUNT_SATS)))
@@ -282,4 +330,9 @@ if __name__ == "__main__":
             "WARNING: AGENT_BITCOIN_API_KEY is not set. "
             "Protected routes will return 503 until it is configured."
         )
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    if BACKEND_HOST in ("0.0.0.0", "::"):
+        print(
+            "WARNING: BACKEND_HOST listens on all interfaces. "
+            "Prefer 127.0.0.1 + SSH tunnel/TLS proxy for production."
+        )
+    uvicorn.run(app, host=BACKEND_HOST, port=BACKEND_PORT)

@@ -75,6 +75,13 @@ config.local.yaml
 macaroons/
 secrets/
 credentials/
+# LND exports and SCB backups (never commit)
+lnd-backups/
+.lnd-export/
+**/channel.backup
+**/channel-all.backup
+# Daily spend ledger (local)
+**/spend-ledger.json
 
 # Nostr agent PoC key material (encrypted nsec + local pubs)
 .nostr-poc/

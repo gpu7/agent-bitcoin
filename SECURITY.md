@@ -87,6 +87,17 @@ Operators should monitor host and node health (disk, containers, API liveness, L
 
 Operator runbooks: [docs/backend.md](docs/backend.md) (process detail without publishing exploit recipes).
 
+### Mainnet readiness (operators)
+
+Mainnet is **not** the default. Before any real-funds pilot:
+
+- Follow pilot scope and limits: [docs/mainnet-pilot.md](docs/mainnet-pilot.md)
+- Complete hardening checklist: [docs/security-hardening.md](docs/security-hardening.md)
+- Use gRPC with least-privilege macaroons where possible: [docs/lnd-client.md](docs/lnd-client.md)
+- Keep backups offline and tested: [docs/lnd-backup-restore.md](docs/lnd-backup-restore.md)
+
+Stock regtest/signet compose may use lab-only credentials. **Never reuse those on mainnet.**
+
 ### What we do not publish
 
 We document security posture at a high level. We do not publish operational secrets, private infrastructure details that enable abuse, or exploit write-ups in public docs.
