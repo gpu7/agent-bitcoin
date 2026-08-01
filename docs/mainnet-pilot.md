@@ -1,6 +1,6 @@
 # Mainnet pilot scope (Phase 0)
 
-**Status:** Phases 0–3 complete (export/restore runbook). Operator should still run export+verify once on each host. **No mainnet go-live.**
+**Status:** Phases 0–4 complete (health + daily ops). **No mainnet go-live.**
 **Date:** 2026-08-01
 **Audience:** Operator (you) and implementers of readiness Phases 1–8.
 
@@ -132,8 +132,8 @@ Do **not** block mainnet readiness on:
 | **0** | This document — scope | **Complete** (topology B + limits accepted) |
 | **1** | gRPC + macaroon LND client (lab docker-exec kept) | **Complete** — see [lnd-client.md](./lnd-client.md) |
 | **2** | Limits + kill switches in code | **Complete** — see below |
-| **3** | Backup / restore | **Complete** (runbook + scripts) — see [lnd-backup-restore.md](./lnd-backup-restore.md) |
-| 4 | Health / daily ops automation | Not started |
+| **3** | Backup / restore | **Complete** — [lnd-backup-restore.md](./lnd-backup-restore.md) |
+| **4** | Health / daily ops | **Complete** — [daily-ops-signet.md](./daily-ops-signet.md), `./check-signet-health.sh` |
 | 5 | Liquidity SOP for topology B | Not started (lab practice exists) |
 | 6 | Security hardening | Not started |
 | 7 | Signet dress rehearsal “as if mainnet” | Not started |
