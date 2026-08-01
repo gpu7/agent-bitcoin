@@ -2,7 +2,7 @@
 ABT-004 — transaction fee deposit to fee wallet (unit / mock).
 
 Live on-chain confirmation remains an integration concern
-(test_aws_integration.py / regtest).
+(test_aws_integration.py / regtest or signet with --skip-fee as needed).
 """
 
 from unittest.mock import MagicMock, patch
