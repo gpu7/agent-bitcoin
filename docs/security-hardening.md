@@ -1,0 +1,139 @@
+# Security hardening (Phase 6 — mainnet readiness)
+
+**Audience:** Operator.
+**Related:** [SECURITY.md](../SECURITY.md) · [mainnet-pilot.md](./mainnet-pilot.md) · [lnd-client.md](./lnd-client.md) · [daily-ops-signet.md](./daily-ops-signet.md)
+
+**Goal:** Close lab habits that would be fatal with real funds. This is a checklist and policy doc — not a penetration test.
+
+---
+
+## Secrets inventory (keep offline)
+
+Maintain this list in a **password manager**, not git.
+
+| Secret | Where used | Rotate when |
+|--------|------------|-------------|
+| LND wallet password(s) | Mac + AWS unlock | Suspected leak; operator change |
+| LND seed / cipher seed | Recovery | Never store in chat/AMI public |
+| `AGENT_BITCOIN_API_KEY` | Backend HTTP | Leak, staff change, before mainnet pilot |
+| AWS SSH key | Instance access | Compromise / key loss |
+| AWS API keys (if any) | SG script, console | Quarterly or on leak |
+| bitcoind RPC password | Compose (lab often weak) | **Must be unique strong** on mainnet |
+| Exported macaroons | gRPC clients | After export to wrong host; prefer short-lived |
+| AMI snapshots | AWS | Treat as containing encrypted wallet; **private only** |
+| Spend ledger path | Daily caps | Low sensitivity; still private host |
+
+**Rotation (API key example):**
+
+```bash
+openssl rand -hex 32   # new key
+# set AGENT_BITCOIN_API_KEY on server; restart uvicorn
+# revoke old key by not deploying it; update clients
+```
+
+---
+
+## Network exposure (must-pass)
+
+| Port / service | Lab OK? | Mainnet pilot |
+|----------------|---------|-----------------|
+| SSH 22 | Your IP /32 | Your IP /32 only |
+| LND P2P (19735 signet / 9735 mainnet) | Peers you need | Peers you need; not world unless intentional |
+| LND gRPC 10009 / host map 20009 / 30009 | Localhost or private | **Never** `0.0.0.0/0` |
+| Backend 8000 | Localhost or private + key | **127.0.0.1** or private NIC + TLS reverse proxy |
+| bitcoind RPC/ZMQ | Trusted only | Strong password; not public |
+
+`./update-aws-sg-my-ip.sh` refreshes admin/Mac ports for your current IP. It must **not** open gRPC to the world. Review SG after changes:
+
+```bash
+aws ec2 describe-security-groups --group-ids "$SG_ID" --query 'SecurityGroups[0].IpPermissions'
+```
+
+---
+
+## Lab vs mainnet credentials
+
+| Item | Lab (regtest/signet) | Mainnet |
+|------|----------------------|---------|
+| bitcoind RPC user/pass | Often `lightning`/`lightning` | **Unique strong**; never reuse lab |
+| Compose files | May document lab defaults | Separate compose/env; no committed secrets |
+| Wallet seed | Lab disposable risk | New seed; offline backup |
+| AMI | Private; still treat as wallet host | Private; encrypt; access-controlled |
+
+Signet compose may keep lab RPC passwords for convenience. **Mainnet must not copy those values.**
+
+---
+
+## Backend bind and rate limit
+
+Defaults (after Phase 6 code):
+
+| Env | Default | Meaning |
+|-----|---------|---------|
+| `BACKEND_HOST` | `127.0.0.1` | Do not listen on all interfaces by default |
+| `BACKEND_PORT` | `8000` | |
+| `BACKEND_RATE_LIMIT_PER_MIN` | `60` | Per-client soft limit on mutating routes (`0` = off) |
+
+```bash
+export BACKEND_HOST=127.0.0.1
+export BACKEND_PORT=8000
+export AGENT_BITCOIN_API_KEY=...
+# LND_* as needed
+uv run uvicorn backend.main:app --host "$BACKEND_HOST" --port "$BACKEND_PORT"
+```
+
+For remote access: SSH tunnel or reverse proxy with TLS — not open `0.0.0.0:8000` on a public EIP.
+
+---
+
+## Macaroon / gRPC hygiene
+
+- Export under `~/.lnd-export/…` with `chmod 600`
+- Prefer **invoice** macaroon for receive-only agents (later)
+- Admin macaroon = full control; never email or commit
+- gitignore already blocks `*.macaroon`, `*.cert` patterns; also avoid `lnd-backups/` in git
+
+---
+
+## Git and local paths
+
+Ensure these never land in commits:
+
+- `.env`, seeds, macaroons, `~/lnd-backups/`, `~/.lnd-export/`
+- Accidental scp artifacts (`ubuntu@…` files)
+
+```bash
+git status   # clean of secrets before every push
+```
+
+---
+
+## Operator checklist (Phase 6 exit)
+
+- [ ] Secrets inventory exists offline (password manager)
+- [ ] API key rotated at least once if it was ever shared in chat
+- [ ] SG reviewed: no world-open gRPC; Mac IP current for P2P/admin
+- [ ] Backend will use `BACKEND_HOST=127.0.0.1` (or private) for pilot
+- [ ] Understand mainnet ≠ lab passwords
+- [ ] AMI remains private
+- [ ] Read [SECURITY.md](../SECURITY.md) reporting path
+
+---
+
+## Incident quick path
+
+1. Contain (stop backend, revoke SG, stop LND if needed)
+2. Rotate API keys, SSH, and consider wallet password change
+3. Revoke exported macaroons (bake new; delete old files)
+4. Restore only from trusted backup ([lnd-backup-restore.md](./lnd-backup-restore.md))
+5. Report product vulns privately (SECURITY.md email)
+
+---
+
+## Phase 6 deliverables
+
+- [x] This hardening checklist
+- [x] SECURITY.md mainnet readiness pointer
+- [x] Backend default localhost + optional rate limit
+- [x] gitignore backup/export paths
+- [ ] Operator completes checklist above before Phase 8
