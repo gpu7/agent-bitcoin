@@ -195,6 +195,9 @@ class DockerLNDClient:
     def list_channels(self) -> dict:
         return self._run("listchannels")
 
+    def decode_pay_req(self, payment_request: str) -> dict:
+        return self._run("decodepayreq", payment_request)
+
     def create_invoice(
         self, memo: str, amount_sats: int, expiry_seconds: int = 3600
     ) -> Invoice:
@@ -324,6 +327,12 @@ class GrpcLNDClient:
         except Exception as e:
             raise LNDException(f"list_channels failed: {e}") from e
 
+    def decode_pay_req(self, payment_request: str) -> dict:
+        try:
+            return self._msg_to_dict(self._raw.decode_pay_req(payment_request))
+        except Exception as e:
+            raise LNDException(f"decode_pay_req failed: {e}") from e
+
     def create_invoice(
         self, memo: str, amount_sats: int, expiry_seconds: int = 3600
     ) -> Invoice:
@@ -441,6 +450,8 @@ class GrpcLNDClient:
                 "confirmed_balance": b.confirmed_balance,
                 "unconfirmed_balance": b.unconfirmed_balance,
             }
+        if cmd == "decodepayreq" and len(args) >= 2:
+            return self.decode_pay_req(args[1])
         raise LNDException(
             f"grpc transport does not support _run({cmd!r}); "
             "use create_invoice/pay_invoice/get_* methods or LND_TRANSPORT=docker"

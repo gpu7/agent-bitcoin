@@ -1,6 +1,6 @@
 # Mainnet pilot scope (Phase 0)
 
-**Status:** Phases 0–1 complete. Next: Phase 2 (limits + kill switches). **No mainnet go-live.**
+**Status:** Phases 0–2 complete. Next: Phase 3 (backup/restore). **No mainnet go-live.**
 **Date:** 2026-08-01
 **Audience:** Operator (you) and implementers of readiness Phases 1–8.
 
@@ -131,7 +131,7 @@ Do **not** block mainnet readiness on:
 |-------|------|--------|
 | **0** | This document — scope | **Complete** (topology B + limits accepted) |
 | **1** | gRPC + macaroon LND client (lab docker-exec kept) | **Complete** — see [lnd-client.md](./lnd-client.md) |
-| 2 | Limits + kill switches in code | Not started |
+| **2** | Limits + kill switches in code | **Complete** — see below |
 | 3 | Backup / restore drill (signet) | Not started |
 | 4 | Health / daily ops automation | Not started |
 | 5 | Liquidity SOP for topology B | Not started (lab practice exists) |
@@ -150,6 +150,29 @@ Check when you agree this scope is correct:
 - [x] Fee path **disabled** on mainnet for pilot
 - [x] Non-goals list accepted
 - [x] Phase 1 started (gRPC client + [lnd-client.md](./lnd-client.md))
+
+---
+
+## Phase 2 — limits and kill switches (implemented)
+
+Enforced in `agent_bitcoin.constants`, `AgentBitcoinClient`, and the FastAPI backend.
+
+| Control | Env | Lab default | Mainnet default |
+|---------|-----|-------------|-----------------|
+| Single pay max | `MAX_PAYMENT_SATS` | 1_000_000 | **50_000** |
+| Daily pay sum (UTC) | `MAX_DAILY_PAYMENT_SATS` | 0 (off) | **100_000** |
+| Allow Lightning pay | `AGENT_BITCOIN_ALLOW_AUTOPAY` | on (set `0` to kill) | **off** (need `=1`) |
+| Allow on-chain fee send | `AGENT_BITCOIN_ALLOW_MAINNET_FEE` | on | **off** (need `=1`) |
+| Mainnet network | `AGENT_BITCOIN_ALLOW_MAINNET` | n/a | **must be `1`** |
+| Spend ledger file | `AGENT_BITCOIN_SPEND_LEDGER` | `~/.config/agent-bitcoin/spend-ledger.json` | same |
+
+**Custody (operator):**
+
+- Wallet password and seed: offline password manager / paper — never in git or public AMI
+- Macaroons/certs: export only under restricted dirs (`chmod 600`); prefer invoice-only macaroon for receive-only processes later
+- Spend ledger: local file; back up with host backups if you rely on daily caps across restarts
+
+Signet/regtest SDK product path does **not** need `ALLOW_AUTOPAY` (lab default allows pay).
 
 ---
 
