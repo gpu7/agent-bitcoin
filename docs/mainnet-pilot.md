@@ -1,6 +1,6 @@
 # Mainnet pilot scope (Phase 0)
 
-**Status:** Phases 0–6 complete (security hardening). **No mainnet go-live.**
+**Status:** Phases 0–7 runbook complete. Operator runs dress rehearsal checklist. **No mainnet go-live until Phase 8 decision.**
 **Date:** 2026-08-01
 **Audience:** Operator (you) and implementers of readiness Phases 1–8.
 
@@ -136,7 +136,7 @@ Do **not** block mainnet readiness on:
 | **4** | Health / daily ops | **Complete** — [daily-ops-signet.md](./daily-ops-signet.md), `./check-signet-health.sh` |
 | **5** | Liquidity SOP for topology B | **Complete** — [liquidity-topology-b.md](./liquidity-topology-b.md) |
 | **6** | Security hardening | **Complete** — [security-hardening.md](./security-hardening.md) |
-| 7 | Signet dress rehearsal “as if mainnet” | Not started |
+| **7** | Signet dress rehearsal | **Runbook complete** — [signet-dress-rehearsal.md](./signet-dress-rehearsal.md) |
 | 8 | Mainnet pilot go-live | **Explicit separate decision** |
 
 ---
