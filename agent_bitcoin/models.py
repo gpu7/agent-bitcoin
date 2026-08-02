@@ -11,6 +11,44 @@ class Invoice(BaseModel):
     payment_hash: str
 
 
+class InvoiceQuote(BaseModel):
+    """
+    Explicit quote package from the payee to the payer (independent agents).
+
+    BOLT11 only carries the Lightning amount to the payee. Platform/transaction
+    fee is disclosed here so the payer can budget total cost without shared env.
+    """
+
+    payment_request: str
+    amount_sats: int
+    platform_fee_sats: int
+    # Alias name for the same fee (docs / product language)
+    transaction_fee_sats: int
+    total_cost_sats: int
+    # How the platform fee is collected (not part of BOLT11)
+    collection: str = "onchain_separate"
+    memo: str = ""
+    r_hash: str = ""
+    payment_hash: str = ""
+    # Network hint only (informational)
+    network: str = ""
+
+
+class PayerDecisionInputs(BaseModel):
+    """Structured inputs for a payer agent (and PaymentDecisionAgent)."""
+
+    payment_request: str
+    amount_sats: int
+    platform_fee_sats: int
+    transaction_fee_sats: int
+    total_cost_sats: int
+    routing_fee_limit_sats: int
+    quote_valid: bool
+    validation_error: Optional[str] = None
+    memo: str = ""
+    destination: str = ""
+
+
 class PaymentResult(BaseModel):
     success: bool
     payment_hash: Optional[str] = None

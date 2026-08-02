@@ -83,10 +83,22 @@ def api_client(clear_payment_env, monkeypatch):
     backend_main.MIN_PAYMENT_SATS = DEFAULT_MIN_PAYMENT_SATS
     backend_main.MAX_INVOICE_SATS = DEFAULT_MAX_PAYMENT_SATS
     backend_main.client = MagicMock()
-    backend_main.client.create_invoice.return_value = MagicMock(
-        payment_request="lnbcrt1test",
-        r_hash="rr",
-    )
+    from agent_bitcoin.models import InvoiceQuote
+
+    def _quote(memo, amount_sats, expiry_seconds=3600, platform_fee_sats=None):
+        fee = 1000 if platform_fee_sats is None else platform_fee_sats
+        return InvoiceQuote(
+            payment_request="lnbcrt1test",
+            amount_sats=amount_sats,
+            platform_fee_sats=fee,
+            transaction_fee_sats=fee,
+            total_cost_sats=amount_sats + fee,
+            memo=memo,
+            r_hash="rr",
+            payment_hash="rr",
+        )
+
+    backend_main.client.create_invoice_quote.side_effect = _quote
     return TestClient(backend_main.app), backend_main
 
 
@@ -99,8 +111,11 @@ def test_abt001_api_normal_invoice(api_client, payment_limits):
         headers={"X-API-Key": "test-key-for-unit-tests"},
     )
     assert r.status_code == 200
-    assert r.json()["amount_sats"] == mid
-    backend_main.client.create_invoice.assert_called()
+    body = r.json()
+    assert body["amount_sats"] == mid
+    assert body["platform_fee_sats"] == 1000
+    assert body["total_cost_sats"] == mid + 1000
+    backend_main.client.create_invoice_quote.assert_called()
 
 
 def test_abt002_api_below_minimum(api_client, payment_limits):
@@ -112,7 +127,7 @@ def test_abt002_api_below_minimum(api_client, payment_limits):
     )
     assert r.status_code == 400
     assert "amount_sats" in r.json()["detail"].lower() or "2000" in r.json()["detail"]
-    backend_main.client.create_invoice.assert_not_called()
+    backend_main.client.create_invoice_quote.assert_not_called()
 
 
 def test_abt003_api_above_maximum(api_client, payment_limits):
@@ -123,7 +138,7 @@ def test_abt003_api_above_maximum(api_client, payment_limits):
         headers={"X-API-Key": "test-key-for-unit-tests"},
     )
     assert r.status_code == 400
-    backend_main.client.create_invoice.assert_not_called()
+    backend_main.client.create_invoice_quote.assert_not_called()
 
 
 def test_api_requires_key(api_client):

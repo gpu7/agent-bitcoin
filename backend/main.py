@@ -220,16 +220,20 @@ async def get_balance():
 
 @app.post("/invoices", dependencies=[Depends(require_api_key)])
 async def create_invoice(req: InvoiceRequest):
+    """
+    Payee: create invoice + explicit quote package for independent payers.
+
+    Returns BOLT11 plus platform/transaction fee and total_cost_sats.
+    """
     _validate_invoice_amount(req.amount_sats)
     try:
-        inv = client.create_invoice(req.memo, req.amount_sats)
-        logger.info("invoice created amount_sats=%s", req.amount_sats)
-        return {
-            "payment_request": inv.payment_request,
-            "r_hash": inv.r_hash,
-            "amount_sats": req.amount_sats,
-            "memo": req.memo,
-        }
+        quote = client.create_invoice_quote(req.memo, req.amount_sats)
+        logger.info(
+            "invoice quote created amount_sats=%s platform_fee_sats=%s",
+            quote.amount_sats,
+            quote.platform_fee_sats,
+        )
+        return quote.model_dump()
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:

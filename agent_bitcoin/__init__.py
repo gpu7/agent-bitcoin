@@ -14,7 +14,7 @@ from .constants import (
     DEFAULT_MAX_PAYMENT_SATS,
     DEFAULT_MIN_PAYMENT_SATS,
 )
-from .models import LightningConfig
+from .models import LightningConfig, Invoice, InvoiceQuote, PayerDecisionInputs
 
 # Exceptions
 from .exceptions import (
@@ -39,6 +39,9 @@ __all__ = [
     # Core
     "AgentBitcoinClient",
     "LightningConfig",
+    "Invoice",
+    "InvoiceQuote",
+    "PayerDecisionInputs",
     "create_client",
     "DEFAULT_MIN_PAYMENT_SATS",
     "DEFAULT_MAX_PAYMENT_SATS",
