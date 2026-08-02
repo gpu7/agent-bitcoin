@@ -1,7 +1,7 @@
 # ADR: Nostr identity for agent swarms (Phase A)
 
-**Status:** Accepted — Phase A/B complete; Phase C hardening PoC available
-**Date:** 2026-07-29
+**Status:** Accepted — Phase A/B complete (regtest + **signet** live); Phase C hardening PoC available
+**Date:** 2026-07-29 (signet Phase B exercised 2026-08-02)
 **Audience:** Operators and developers.
 **Agents / SDK payment path:** unchanged. Nostr is **additive** identity/transport, not a replacement for LND, Autoloop, or the FastAPI backend.
 
@@ -67,8 +67,17 @@ Gaps: no per-agent public identity, no decentralized discovery/messaging, multi-
 | Signed `pay_request` / `invoice_offer` / `payment_result` messages | Replacing FastAPI or Autoloop |
 | **File bus** of signed events (reliable lab path) | Depending only on public relays |
 | `addinvoice` / `payinvoice` via existing Docker LND | Merging pay into `PaymentDecisionAgent` |
-| Dual-host: Mac `agent-bitcoin-lnd` pays → AWS `agent-payment-decision-lnd` receives | NWC / zaps |
+| Dual-host: Mac payer LND pays → AWS invoice LND receives (regtest or signet) | NWC / zaps |
 | Optional `--decide` before pay | Mainnet |
+
+Default container names differ by network (override via env):
+
+| Network | Payer container (Mac) | Invoice container (AWS) |
+|---------|----------------------|-------------------------|
+| regtest | `agent-bitcoin-lnd` | `agent-payment-decision-lnd` |
+| signet | `agent-bitcoin-lnd-signet` | `agent-payment-decision-lnd-signet` |
+
+Set `LND_NETWORK=signet` (or `regtest`) so `LNDClient` / `lncli` use the right chain. See [signet.md](./signet.md) for the full signet dual-host runbook.
 
 ### Phase B message flow
 
@@ -86,10 +95,10 @@ Alice (payer agent, Nostr key)          Bob (invoice agent, Nostr key)
         |---------------------------------------->|
 ```
 
-Default lab mapping (receive-heavy AWS agent):
+Default lab mapping (receive-heavy AWS agent; **regtest** names shown — use `*-signet` + `LND_NETWORK=signet` on signet):
 
-| Role | Nostr agent | LND container | Typical host |
-|------|-------------|---------------|--------------|
+| Role | Nostr agent | LND container (regtest) | Typical host |
+|------|-------------|-------------------------|--------------|
 | Payer | `alice` | `agent-bitcoin-lnd` | Mac |
 | Invoice | `bob` | `agent-payment-decision-lnd` | AWS |
 
@@ -139,7 +148,7 @@ This project’s stated swarm goals imply **Nostr (or equivalent crypto identity
 
 - New optional dependency / example path (`pynostr`); core SDK remains LND-focused.
 - Operators may run or choose relays; reliability and spam resistance are operational concerns.
-- Phase B will bind Nostr coordination to existing dual-LND regtest (AWS + Mac) without redesigning LND topology.
+- Phase B binds Nostr coordination to existing dual-LND (AWS + Mac) on **regtest or signet** without redesigning LND topology.
 - Public relays see kind 1 content; do not put secrets or full production BOLT11s in public notes during experiments.
 
 ---
@@ -215,8 +224,11 @@ LND_PAYER_CONTAINER=agent-bitcoin-lnd \
 
 - [x] Signed `pay_request` → `invoice_offer` → `payment_result` over file bus
 - [x] Dry-run path without LND
-- [x] Live: invoice on one LND, pay on the other, channel settles (regtest)
+- [x] Live: invoice on one LND, pay on the other, channel settles (**regtest**)
+- [x] Live: same protocol on **signet** dual-node (Mac pay → AWS invoice; 2026-08-02, 2000 sats)
 - [x] Decision agent remains optional gate only (`--decide`)
+
+Signet operator steps: [signet.md — Nostr Phase B on signet](./signet.md#nostr-phase-b-on-signet-same-as-regtest).
 
 ---
 

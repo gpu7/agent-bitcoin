@@ -85,6 +85,7 @@ lnd-backups/
 
 # Nostr agent PoC key material (encrypted nsec + local pubs)
 .nostr-poc/
+.nostr-poc-signet/
 
 # Docker
 .docker/
