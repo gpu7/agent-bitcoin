@@ -156,7 +156,11 @@ client = create_client()  # -> AgentBitcoinClient
 | Method | Returns | Description |
 |--------|---------|-------------|
 | `create_invoice(memo, amount_sats, expiry_seconds=3600)` | `Invoice` | Creates a Lightning invoice. Raises `ValueError` if `amount_sats < min_payment_sats`. |
+| `create_invoice_quote(memo, amount_sats, …)` | `InvoiceQuote` | **Payee:** BOLT11 + explicit platform/transaction fee + `total_cost_sats` for independent payers. |
+| `validate_invoice_quote(quote)` | `InvoiceQuote` | **Payer:** checks total and BOLT11 amount match. |
+| `build_payer_decision_inputs(quote, routing_fee_limit_sats=200)` | `PayerDecisionInputs` | Decision/budget fields; `quote_valid` flag. |
 | `pay_invoice(payment_request)` | `PaymentResult` | Pays a BOLT11 invoice. Raises `ValueError` if request is empty. |
+| `pay_invoice_quote(quote, …)` | `PaymentResult` | Validate quote, budget `total_cost_sats`, pay LN amount (optional fee collect). |
 | `send_onchain(address, amount_sats)` | `OnChainSendResult` | On-chain send. |
 | `collect_transaction_fee()` | `OnChainSendResult` | Sends `FEE_AMOUNT_SATS` to `FEE_WALLET_ADDRESS`. Raises `RuntimeError` if address unset. |
 | `get_balance()` | `LightningBalance` | On-chain wallet balances (string fields from LND). |
@@ -253,6 +257,25 @@ from agent_bitcoin.agents.payment_decision import (
 - `create_invoice` enforces the minimum at the client.
 - Fee collection is **not** always automatic inside `pay_invoice`; use `collect_transaction_fee()` or the backend `/send-fee` path (and your own orchestration) depending on architecture.
 - HTTP agents often call the **Backend API** so fee policy is enforced in one place.
+
+### Explicit quote (independent payee / payer agents)
+
+For agents that do **not** share env/config, the **payee** should send an **invoice quote package**, not a bare BOLT11:
+
+```python
+# Payee
+quote = client.create_invoice_quote(memo="service", amount_sats=2000)
+# quote.payment_request, amount_sats, platform_fee_sats / transaction_fee_sats,
+# total_cost_sats, collection="onchain_separate"
+
+# Payer
+inputs = client.build_payer_decision_inputs(quote, routing_fee_limit_sats=200)
+# inputs.amount_sats, platform_fee_sats, total_cost_sats, routing_fee_limit_sats, quote_valid
+if inputs.quote_valid:
+    result = client.pay_invoice_quote(quote, routing_fee_limit_sats=200)
+```
+
+`POST /invoices` returns the same quote fields. BOLT11 amount is only the Lightning amount to the payee; platform fee is disclosed in the package for budgeting.
 
 ---
 
