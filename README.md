@@ -14,48 +14,57 @@ A lightweight Python SDK that enables AI agents to send and receive Lightning/Bi
 
 | Doc | Who it's for |
 |-----|----------------|
-| **[SDK.md](SDK.md)** | App & agent developers (install, API, fees, LLM agents, HTTP API, examples) |
-| **[docs/backend.md](docs/backend.md)** | Operators (AWS/Mac regtest, LND, channels, diagnostics) |
+| **[SDK.md](SDK.md)** | App & agent developers (install, API, fees, quotes, LLM agents, HTTP API) |
+| **[docs/backend.md](docs/backend.md)** | Operators: AWS/Mac **regtest** dual-node lab |
+| **[docs/signet.md](docs/signet.md)** | Operators: dual-node **signet** (current pre-mainnet lab) |
+| **[docs/mainnet-pilot.md](docs/mainnet-pilot.md)** | Mainnet **readiness** scope only — not go-live |
 
 ---
 
 ## Features
 
-- Simple, agent-friendly API
-- Create and pay Lightning invoices
-- Built-in 1,000 sat transaction fee model
-- Support for regtest, testnet, and mainnet
+- Simple, agent-friendly API (`create_client`)
+- Create and pay Lightning invoices (**payee** creates, **payer** pays)
+- **Explicit invoice quotes** for independent agents (`create_invoice_quote` / `pay_invoice_quote`) — BOLT11 amount plus disclosed platform/transaction fee
+- Fixed **platform fee** (transaction fee) model — separate from Lightning **routing** fees
+- LND transports: **docker** `lncli` (lab default) or **gRPC** + macaroon ([docs/lnd-client.md](docs/lnd-client.md))
+- Networks: **regtest** (default), **signet**, testnet; **mainnet** only with explicit latch
 - Pydantic models and structured errors
-- Easy integration with LangChain, CrewAI, AutoGen, and similar frameworks
+- Optional LLM **payment decision** agent (PAY / REJECT / CONFIRM — never executes pays)
 - Balance checks (Lightning and on-chain)
-- Optional LLM agents for payment decisions and counterparty flows
+- Operator tooling: dual-node health, SCB backup, daily ops ([docs/index.md](docs/index.md))
 
 ---
 
-## Transaction fee model
+## Roles: payee and payer
 
-Agent-Bitcoin uses a **transparent fixed fee** to support intermediary infrastructure:
+| Role | Does |
+|------|------|
+| **Payee** | Creates the invoice (and quote); receives the **invoice amount** over Lightning |
+| **Payer** | Validates quote / budget; pays the BOLT11 amount (plus optional routing fee limit) |
 
-| Rule | Value |
+Either physical node (AWS agent LND or Mac counterparty LND) can act as payee or payer depending on who creates the invoice.
+
+---
+
+## Transaction fee (platform fee)
+
+Agent-Bitcoin’s **transaction fee** is a fixed **platform fee** (default **1,000 sats**), **not** a Lightning routing fee.
+
+| Rule | Default |
 |------|--------|
-| Fixed fee | **1,000 sats** per payment |
-| Minimum payment | **2,000 sats** |
+| Platform / transaction fee | **1,000 sats** (`FEE_AMOUNT_SATS`) |
+| Minimum Lightning invoice amount | **2,000 sats** (`MIN_PAYMENT_SATS`) |
 
-**How it works**
+**How it works (when fee collection is used)**
 
-1. For an approved payment of `X` sats, **1,000 sats** is the transaction fee.
-2. **`X − 1000` sats** go to the recipient over Lightning.
-3. The **1,000 sat fee** is sent **on-chain** to the configured fee wallet.
+1. Payee issues an **invoice quote**: Lightning amount `X` plus disclosed `platform_fee_sats` / `total_cost_sats`.
+2. Payer pays **`X` over Lightning** to the payee (full BOLT11 amount).
+3. Platform fee is collected **separately on-chain** to `FEE_WALLET_ADDRESS` when you call fee collection (not automatic inside every `pay_invoice`).
 
-**Example (2,000 sats)**
+For independent agents, prefer **`create_invoice_quote`** so the payer learns the fee without shared env. Details: **[SDK.md](SDK.md#transaction-fees-and-limits)** and the explicit-quote section.
 
-| | Sats |
-|--|------|
-| Original amount | 2,000 |
-| Fee (on-chain) | 1,000 |
-| Net to recipient (Lightning) | 1,000 |
-
-Full implementer rules, client usage, and edge cases: **[SDK.md](SDK.md#transaction-fees-and-limits)**.
+Mainnet pilot: fee collection stays **off** unless explicitly allowed — see [docs/mainnet-pilot.md](docs/mainnet-pilot.md).
 
 ---
 
@@ -86,16 +95,24 @@ from agent_bitcoin import create_client
 
 client = create_client()
 
-invoice = client.create_invoice(memo="Test payment", amount_sats=5000)
-result = client.pay_invoice(invoice.payment_request)
+# Payee: invoice + explicit quote for independent payers
+quote = client.create_invoice_quote(memo="Test payment", amount_sats=2000)
+# quote.payment_request, amount_sats, platform_fee_sats, total_cost_sats
 
-if result.success:
-    print(f"Paid {result.amount} sats")
+# Payer: validate / decision inputs, then pay Lightning amount
+inputs = client.build_payer_decision_inputs(quote, routing_fee_limit_sats=200)
+if inputs.quote_valid:
+    result = client.pay_invoice_quote(quote, routing_fee_limit_sats=200)
+    if result.success:
+        print(f"Paid {result.amount} sats (LN); total_cost was {quote.total_cost_sats}")
 ```
 
-This assumes a configured Lightning backend (local or remote).
-For the full client API, agents, HTTP API, and examples → **[SDK.md](SDK.md)**.
-For running the AWS + Mac regtest stack → **[docs/backend.md](docs/backend.md)**.
+Bare `create_invoice` / `pay_invoice` remain available for simple lab flows.
+
+Configure LND via env (`LND_NETWORK`, `LND_TRANSPORT=docker|grpc`, container or gRPC cert/macaroon).
+Full API → **[SDK.md](SDK.md)**.
+Regtest operators → **[docs/backend.md](docs/backend.md)**.
+Signet operators → **[docs/signet.md](docs/signet.md)**.
 
 ---
 
@@ -108,10 +125,11 @@ Agent-Bitcoin is developed with security in mind:
 - **Conservative defaults** for payment amounts and fees (see [SDK.md](SDK.md))
 - **Authenticated payment APIs** — backend balance/invoice/pay routes require an API key when deployed
 - **Bounded autonomous payment decisions** — hard amount limits in code before any LLM approval
-- **Operator health checks** — lightweight host/API/node monitoring for deployed backends
-- **Regtest-first** development; mainnet is never the implicit default
+- **Mainnet kill switches** — e.g. `AGENT_BITCOIN_ALLOW_MAINNET`, `AGENT_BITCOIN_ALLOW_AUTOPAY`, daily spend caps
+- **Operator health checks** — dual-node signet health, backups ([docs/daily-ops-signet.md](docs/daily-ops-signet.md), [docs/security-hardening.md](docs/security-hardening.md))
+- **Regtest / signet first**; mainnet is never the implicit default and is not a completed go-live path
 
-Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)** (scope, practices, disclosure). Do not open public issues for security reports.
+Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)**. Do not open public issues for security reports.
 
 ---
 
@@ -119,9 +137,12 @@ Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)** (scope, 
 
 | Link | Description |
 |------|-------------|
-| [SDK.md](SDK.md) | Python SDK, LLM agents, Backend HTTP API, examples |
-| [docs/backend.md](docs/backend.md) | Regtest workflow, startup/shutdown, LND, channels |
-| [examples/](examples/) | Runnable sample scripts |
+| [SDK.md](SDK.md) | Python SDK, quotes, fees, LLM agents, Backend HTTP API |
+| [docs/index.md](docs/index.md) | Full docs index (signet, mainnet readiness, backup, health, liquidity) |
+| [docs/backend.md](docs/backend.md) | Regtest dual-node workflow |
+| [docs/signet.md](docs/signet.md) | Signet dual-node lab |
+| [docs/mainnet-pilot.md](docs/mainnet-pilot.md) | Mainnet pilot scope (readiness; not go-live) |
+| [examples/](examples/) | Runnable sample scripts (incl. signet product path) |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 | [SECURITY.md](SECURITY.md) | Security policy and vulnerability reporting |
 
