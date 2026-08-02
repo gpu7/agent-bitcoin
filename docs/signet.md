@@ -408,13 +408,82 @@ docker exec agent-payment-decision-lnd-signet lncli --lnddir=/home/lnd/.lnd --ne
 
 ---
 
+## Nostr Phase B on signet (same as regtest)
+
+**Status (2026-08-02):** Live dual-host exercised — signed bus coordination + **2000 sat** Lightning pay settled on the signet channel (Mac payer → AWS invoice).
+
+Same scripts and protocol as regtest Phase B ([nostr-agent-identity.md](./nostr-agent-identity.md)); only network + container names change. File bus remains the lab coordination path (public relays optional).
+
+### Prerequisites
+
+- Mac + AWS signet stacks up, wallets unlocked, **peer connected**, **channel active**
+- Python 3.12 + `.[nostr]` on both hosts that sign (`uv venv -p 3.12 .venv-nostr`)
+- Shared `NOSTR_PASSPHRASE` and shared bus/keys (rsync/scp `.nostr-poc-signet/`)
+- Payer has enough **local** channel balance (amount ≥ `MIN_PAYMENT_SATS`, default 2000)
+
+### Env (signet containers)
+
+```bash
+export LND_NETWORK=signet
+export LND_PAYER_CONTAINER=agent-bitcoin-lnd-signet          # Mac
+export LND_INVOICE_CONTAINER=agent-payment-decision-lnd-signet  # AWS
+export NOSTR_PASSPHRASE='use-a-strong-passphrase'
+export NOSTR_POC_DIR=./.nostr-poc-signet   # gitignored; keep separate from regtest .nostr-poc
+```
+
+### Live dual-host (small amount)
+
+```bash
+# --- Mac (payer): request ---
+.venv-nostr/bin/python examples/nostr_phase_b_payment.py \
+  --dir "$NOSTR_POC_DIR" --passphrase "$NOSTR_PASSPHRASE" \
+  request --amount 2000 --memo 'nostr-signet-b'
+
+# Sync keys + bus to AWS (first run needs full tree; later bus is enough if keys already there)
+rsync -az -e "ssh -i ~/.ssh/aws/agent-bitcoin-key.pem -o IdentitiesOnly=yes" \
+  "$NOSTR_POC_DIR"/ ubuntu@${AWS_IP}:~/agent-bitcoin/.nostr-poc-signet/
+
+# --- AWS (invoice / receive) ---
+ssh -i ~/.ssh/aws/agent-bitcoin-key.pem -o IdentitiesOnly=yes ubuntu@${AWS_IP} \
+  "cd ~/agent-bitcoin && export LND_NETWORK=signet \
+   LND_INVOICE_CONTAINER=agent-payment-decision-lnd-signet && \
+   .venv-nostr/bin/python examples/nostr_phase_b_payment.py \
+     --dir ./.nostr-poc-signet --passphrase '$NOSTR_PASSPHRASE' invoice"
+
+# Offer bus file back to Mac
+rsync -az -e "ssh -i ~/.ssh/aws/agent-bitcoin-key.pem -o IdentitiesOnly=yes" \
+  ubuntu@${AWS_IP}:~/agent-bitcoin/.nostr-poc-signet/bus/ "$NOSTR_POC_DIR/bus/"
+
+# --- Mac (pay) ---
+.venv-nostr/bin/python examples/nostr_phase_b_payment.py \
+  --dir "$NOSTR_POC_DIR" --passphrase "$NOSTR_PASSPHRASE" pay
+
+.venv-nostr/bin/python examples/nostr_phase_b_payment.py \
+  --dir "$NOSTR_POC_DIR" --passphrase "$NOSTR_PASSPHRASE" status
+```
+
+### Proven exercise (lab note)
+
+| Field | Value |
+|-------|--------|
+| Date | 2026-08-02 |
+| Amount | 2000 sats |
+| Direction | Mac `agent-bitcoin-lnd-signet` → AWS `agent-payment-decision-lnd-signet` |
+| Payment hash | `738acaa3319fbf094273960cf1263fcee0bd63291023332efa1715b55cb2c740` |
+| LND status | `SUCCEEDED` (fee 0 on direct channel) |
+| Coordination | signed `pay_request` / `invoice_offer` / `payment_result` file bus |
+
+Dry-run (no LND) still works on any host with the same scripts.
+
+---
+
 ## Later (not v1)
 
 | Item | Notes |
 |------|--------|
-| Nostr Phase B on signet | Same scripts; `LND_NETWORK=signet` + container names |
 | Loop Autoloop | Research public Loop/signet; keep regtest tools for now |
 | Mainnet | Separate design, `AGENT_BITCOIN_ALLOW_MAINNET=1`, never implicit |
+| Nostr NWC / NIP-46 over relays | Roadmap in [nostr-agent-identity.md](./nostr-agent-identity.md) Phase C+ |
 
 ---
 
