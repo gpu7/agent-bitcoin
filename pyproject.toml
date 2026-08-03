@@ -51,7 +51,7 @@ Issues = "https://github.com/gpu7/agent-bitcoin/issues"
 Changelog = "https://github.com/gpu7/agent-bitcoin/blob/main/CHANGELOG.md"
 
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=83.0.0"]
 build-backend = "setuptools.build_meta"
 
 [dependency-groups]
