@@ -101,10 +101,47 @@ Ensure these never land in commits:
 
 - `.env`, seeds, macaroons, `~/lnd-backups/`, `~/.lnd-export/`
 - Accidental scp artifacts (`ubuntu@…` files)
+- AWS access keys, wallet passwords, Nostr `nsec` / weak passphrase material
 
 ```bash
 git status   # clean of secrets before every push
 ```
+
+### `git-secrets` (required operator tooling)
+
+Use [git-secrets](https://github.com/awslabs/git-secrets) so commits and history are scanned for common credential patterns (especially AWS keys). Install once per developer machine that touches this repo; re-scan before mainnet prep or any backup that might include a clone of the tree.
+
+**Install (macOS):**
+
+```bash
+brew install git-secrets
+cd /path/to/agent-bitcoin   # repo root
+```
+
+**Hooks (recommended — blocks matching secrets at commit time):**
+
+```bash
+git secrets --install
+git secrets --register-aws   # common AWS key patterns
+```
+
+`--install` wires pre-commit / commit-msg / prepare-commit-msg hooks for **this clone**. Run it again after a fresh clone. Hooks are local; they are not committed for other developers unless you document the install (this section).
+
+**Scan working tree / staged files:**
+
+```bash
+git secrets --scan
+```
+
+**Scan entire history** (do this before a public mirror, AMI bake that includes `.git`, or long-lived backup of the repo):
+
+```bash
+git secrets --scan-history
+```
+
+**If a scan fails:** treat the hit as a real secret until proven otherwise. Do **not** “fix” by rewriting history casually on a shared branch without a rotation plan. Rotate the credential first, then scrub history only with an explicit operator decision (and force-push policy). Lab false positives (documented dummy keys in examples) can be allowlisted carefully with `git secrets --add --allowed …` — prefer fixing the example over broad allowlists.
+
+Optional: add project-specific patterns for LND/macaroon-looking blobs if you find gaps; AWS register covers the most common cloud leak class.
 
 ---
 
@@ -117,6 +154,9 @@ git status   # clean of secrets before every push
 - [ ] Understand mainnet ≠ lab passwords
 - [ ] AMI remains private
 - [ ] Read [SECURITY.md](../SECURITY.md) reporting path
+- [ ] `git-secrets` installed; hooks installed; `git secrets --register-aws` done
+- [ ] `git secrets --scan` clean on working tree
+- [ ] `git secrets --scan-history` run at least once (and before mainnet / full repo backup)
 
 ---
 
@@ -136,4 +176,5 @@ git status   # clean of secrets before every push
 - [x] SECURITY.md mainnet readiness pointer
 - [x] Backend default localhost + optional rate limit
 - [x] gitignore backup/export paths
+- [x] `git-secrets` install / scan / history-scan documented (operator tooling)
 - [ ] Operator completes checklist above before Phase 8
