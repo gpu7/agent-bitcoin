@@ -1,12 +1,12 @@
 # Mainnet pilot scope (Phase 0)
 
-**Status:** Phases 0–7 runbook complete. Operator runs dress rehearsal checklist. **No mainnet go-live until Phase 8 decision.**
-**Date:** 2026-08-01
+**Status:** Phases 0–7 complete (operator). Step 4 mainnet infra design + compose scaffolding ready. **No mainnet go-live / funding until Phase 8 decision.**
+**Date:** 2026-08-01 (infra design 2026-08-03)
 **Audience:** Operator (you) and implementers of readiness Phases 1–8.
 
 This document freezes what a **minimal, defensible mainnet pilot** means for agent-bitcoin. Engineering readiness work (gRPC client, limits, backups, security) targets this scope. It does **not** authorize funding a mainnet wallet or autonomous payments.
 
-**Related:** [signet.md](./signet.md) (current lab) · [SECURITY.md](../SECURITY.md) · [liquidity-automation.md](./liquidity-automation.md) · mainnet readiness plan (session)
+**Related:** [signet.md](./signet.md) (current lab) · [mainnet-infra.md](./mainnet-infra.md) (Step 4 compose/ports/volumes) · [SECURITY.md](../SECURITY.md) · [liquidity-automation.md](./liquidity-automation.md)
 
 ---
 
@@ -105,10 +105,11 @@ Regtest/signet lab fee demos may continue unchanged.
 
 | Host | Expectation |
 |------|-------------|
-| AWS LND | Prefer **bitcoind** (or equivalent full/neutrino policy you accept); lab Neutrino on signet is not a free pass for mainnet without review |
-| Mac LND | Prefer **local bitcoind** (same lesson as signet Neutrino failure on Docker Desktop) |
+| AWS LND | **bitcoind** (pruned pilot default) — see [mainnet-infra.md](./mainnet-infra.md) |
+| Mac LND | **local bitcoind** (same lesson as signet Neutrino failure on Docker Desktop) |
 
-Exact compose files are Phase 1–6 engineering; Phase 0 only requires: **do not reuse signet/regtest wallets or volumes on mainnet.**
+Compose scaffolding: `docker-compose.mainnet.{aws,mac}.yml` + `startup-mainnet-*.sh`.
+**Do not reuse signet/regtest wallets or volumes on mainnet.**
 
 ---
 
@@ -136,8 +137,10 @@ Do **not** block mainnet readiness on:
 | **4** | Health / daily ops | **Complete** — [daily-ops-signet.md](./daily-ops-signet.md), `./check-signet-health.sh` |
 | **5** | Liquidity SOP for topology B | **Complete** — [liquidity-topology-b.md](./liquidity-topology-b.md) |
 | **6** | Security hardening | **Complete** — [security-hardening.md](./security-hardening.md) |
-| **7** | Signet dress rehearsal | **Runbook complete** — [signet-dress-rehearsal.md](./signet-dress-rehearsal.md) |
-| 8 | Mainnet pilot go-live | **Explicit separate decision** |
+| **7** | Signet dress rehearsal | **Complete** (operator PASS 2026-08-03) — [signet-dress-rehearsal.md](./signet-dress-rehearsal.md) |
+| 8 | Mainnet pilot go-live | **Explicit separate decision** — requires [mainnet-infra.md](./mainnet-infra.md) |
+
+**Operator path to Phase 8 (session):** dress rehearsal → restore drill → security attestations → **infra design** ([mainnet-infra.md](./mainnet-infra.md), complete) → go/no-go.
 
 ---
 
