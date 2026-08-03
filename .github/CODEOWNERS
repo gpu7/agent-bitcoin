@@ -1,0 +1,11 @@
+# Default owner (solo maintainer). This file documents ownership and can
+# auto-request reviews; it is NOT enforced as a required review until a
+# second human reviewer exists and branch rules are updated.
+* @gpu7
+
+# Higher-sensitivity paths
+/.github/ @gpu7
+/docker-compose*.yml @gpu7
+/docs/security-hardening.md @gpu7
+/docs/mainnet-*.md @gpu7
+/SECURITY.md @gpu7

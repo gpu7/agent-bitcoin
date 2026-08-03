@@ -221,6 +221,119 @@ gitleaks git --redact -v
 
 ---
 
+## GitHub repository security (Free tier, public repo)
+
+**Goal:** Block silent direct pushes to `main` (Coldcard-style gap) without requiring a second human reviewer. Solo maintainer + automated agents (e.g. Grok) keep the **PR → CI green → merge** workflow.
+
+**Already in repo:** `SECURITY.md`, CI (`lint-and-test`), Dependabot config, `.github/CODEOWNERS`.
+
+### Solo-friendly policy (do this)
+
+| Control | Setting | Why |
+|---------|---------|-----|
+| Require pull request before merging | **On** | No direct `git push` to `main` as normal path |
+| Required approving reviews | **0** | Solo; no second maintainer; agents can merge after CI |
+| Require review from Code Owners | **Off** | CODEOWNERS is documentation only until a second reviewer exists |
+| Require status checks | **On** → `lint-and-test` | Blocks broken merges |
+| Block force pushes | **On** | Protect history |
+| Restrict deletions of `main` | **On** | Safety |
+| Allow admin bypass of rules | **Off** if possible | Stops accidental force-push; **merging a PR as admin still works** |
+
+**Do not enable (for now):** required approvals ≥ 1, required CODEOWNERS review — those need a second human and would block solo/Grok merges.
+
+### Step-by-step (GitHub UI) — operator does once
+
+#### 1) Code security toggles (~10 min)
+
+1. Open https://github.com/gpu7/agent-bitcoin/settings/security_analysis
+   (or **Settings → Code security**).
+2. Enable (where shown):
+   - Dependency graph
+   - Dependabot alerts
+   - Dependabot security updates
+   - Secret scanning
+   - Push protection
+   - Private vulnerability reporting
+3. Leave paid-only options alone.
+
+#### 2) Pull request defaults (~2 min)
+
+1. **Settings → General → Pull Requests**
+2. Enable **Automatically delete head branches**
+3. Keep squash and/or merge commits as you prefer (squash is fine)
+
+#### 3) Branch ruleset on `main` (~15 min)
+
+1. **Settings → Rules → Rulesets → New ruleset → New branch ruleset**
+2. Name: `protect-main`
+3. Enforcement status: **Active**
+4. Target branches: **Include default branch** (or `main`)
+5. Rules:
+   - **Restrict deletions** — On
+   - **Block force pushes** — On
+   - **Require a pull request before merging** — On
+     - Required approvals: **0**
+     - Dismiss stale pull request approvals when new commits are pushed: On (optional)
+     - Require conversation resolution before merging: On (optional)
+     - **Do not** require review from Code Owners
+   - **Require status checks to pass** — On
+     - Add check: **`lint-and-test`** (from workflow *CI - Lint & Test*)
+     - Require branches to be up to date before merging: On (if offered)
+6. Bypass list: leave **empty** (solo still merges via PR; empty bypass means no free force-push).
+   If you ever get stuck, temporarily add yourself as bypasser, fix, remove.
+7. **Create** / save ruleset.
+
+Classic alternative: **Settings → Branches → Add branch protection rule** with the same options on `main`.
+
+#### 4) Verify (~10 min)
+
+```bash
+# From a clone — should FAIL once ruleset is active (no direct push to main)
+git checkout main && git pull
+git commit --allow-empty -m "test: direct push should fail"
+git push origin main
+# expect: rejected by ruleset / protected branch
+
+# Clean up local empty commit
+git reset --hard origin/main
+```
+
+Then confirm PR path still works:
+
+```bash
+git checkout -b chore/verify-branch-protection
+git commit --allow-empty -m "test: PR path"
+git push -u origin HEAD
+gh pr create --title "test: verify branch protection" --body "Temp PR; merge after CI green, then ok to close if empty."
+# Wait for lint-and-test green → Merge (no approval needed) → delete branch
+```
+
+#### 5) Account hygiene (not repo settings)
+
+- Enable **2FA** on the `gpu7` GitHub account
+- Prefer fine-grained PATs; revoke unused classic tokens
+
+### If settings become burdensome
+
+Back off in this order (keep earlier items if possible):
+
+1. Turn off “require conversation resolution”
+2. Turn off “require branch up to date”
+3. Allow admin bypass for emergencies only
+4. Last resort: disable ruleset (returns to unprotected `main` — avoid if you can)
+
+Never disable secret scanning / push protection just for convenience.
+
+### Agent / Grok workflow after protection
+
+1. Branch → commit → push branch
+2. `gh pr create`
+3. Wait for **`lint-and-test`** green
+4. `gh pr merge` (merge or squash) — **no second reviewer**
+5. Do **not** `git push origin main` directly
+
+---
+
 ## Operator checklist (Phase 6 exit)
 
 - [ ] Secrets inventory exists offline (password manager)
@@ -235,6 +348,9 @@ gitleaks git --redact -v
 - [ ] `git secrets --scan-history` run at least once (and before mainnet / full repo backup)
 - [ ] TruffleHog installed; `trufflehog git file:///…/agent-bitcoin --results=verified,unknown` run at least once (and before mainnet / full repo backup)
 - [ ] Gitleaks installed; `gitleaks git -v` (and optional JSON report) run at least once (and before mainnet / full repo backup)
+- [ ] GitHub: secret scanning + push protection + Dependabot alerts enabled
+- [ ] GitHub: `protect-main` ruleset active (PR + `lint-and-test`, **0** required approvals)
+- [ ] Verified: direct push to `main` rejected; PR merge still works solo
 
 ---
 
