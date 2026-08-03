@@ -15,10 +15,8 @@ services:
     image: bitcoin/bitcoin:28.0
     container_name: agent-bitcoin-bitcoind-mainnet
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:8332:8332"
-      # Optional mainnet P2P for bitcoind; omit if you prefer outbound-only
-      - "8333:8333"
+    # No host ports: LND reaches bitcoind on the compose network only.
+    # (Host 8332/8333 often already used by a local Bitcoin Core.)
     command:
       - -printtoconsole
       - -server=1

@@ -15,9 +15,8 @@ services:
     image: bitcoin/bitcoin:28.0
     container_name: agent-payment-decision-bitcoind-mainnet
     restart: unless-stopped
-    # Optional local debug only — never open 8332 in SG
-    ports:
-      - "127.0.0.1:8332:8332"
+    # No host ports: LND reaches bitcoind on the compose network only.
+    # Debug: docker exec … bitcoin-cli (never open RPC in SG).
     command:
       - -printtoconsole
       - -server=1

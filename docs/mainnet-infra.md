@@ -54,8 +54,8 @@ Mac:  bitcoind (mainnet, pruned OK for pilot)
 |---------|----------|----------|---------|
 | LND P2P | **9735** | **39735** → 9735 | AWS: Mac IP /32 (and any intentional peer). Not world unless you accept inbound. |
 | LND gRPC | **127.0.0.1:10009** | **127.0.0.1:40009** | **Never** public SG |
-| bitcoind RPC | **127.0.0.1:8332** (optional debug) | **127.0.0.1:8332** | **Never** public |
-| bitcoind P2P | 8333 (optional) | 8333 (optional) | Optional; not required for dual-node LN |
+| bitcoind RPC | **not published** (docker exec only) | **not published** (docker exec only) | **Never** public |
+| bitcoind P2P | not published (outbound OK) | not published | Optional later; not required for dual-node LN |
 
 Signet may keep using 19735/20009 and 29735/30009 — **stop signet LND** before binding mainnet **9735** on AWS if both would conflict.
 
