@@ -11,6 +11,7 @@
 | [backend.md](./backend.md) | Operators: AWS + Mac regtest, LND, channels |
 | [signet.md](./signet.md) | Operators: run agent-bitcoin on Bitcoin **signet** |
 | [mainnet-pilot.md](./mainnet-pilot.md) | **Phase 0:** mainnet pilot scope (topology B) — not go-live |
+| [mainnet-infra.md](./mainnet-infra.md) | **Step 4:** mainnet compose, ports, SG, volumes (pre–Phase 8) |
 | [lnd-client.md](./lnd-client.md) | **Phase 1:** LND transports (`docker` vs `grpc`) |
 | [lnd-backup-restore.md](./lnd-backup-restore.md) | **Phase 3:** SCB export, volume backup, restore drill |
 | [daily-ops-signet.md](./daily-ops-signet.md) | **Phase 4:** daily start/stop + `check-signet-health.sh` |

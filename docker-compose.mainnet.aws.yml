@@ -1,0 +1,93 @@
+# Mainnet dual-node — AWS agent (bitcoind + LND).
+# Topology B pilot. NEW volumes only — do not reuse signet/regtest data.
+#
+# Prerequisites:
+#   export AWS_IP=<eip>
+#   export MAINNET_BITCOIND_RPCUSER='…unique…'
+#   export MAINNET_BITCOIND_RPCPASS='…unique strong…'
+#   ./startup-mainnet-aws.sh "$AWS_IP"
+#
+# gRPC bound to 127.0.0.1 on host only. P2P 9735 — restrict via security group.
+# Does NOT fund wallets or open channels. See docs/mainnet-infra.md.
+
+services:
+  bitcoind-mainnet:
+    image: bitcoin/bitcoin:28.0
+    container_name: agent-payment-decision-bitcoind-mainnet
+    restart: unless-stopped
+    # Optional local debug only — never open 8332 in SG
+    ports:
+      - "127.0.0.1:8332:8332"
+    command:
+      - -printtoconsole
+      - -server=1
+      - -listen=1
+      - -dnsseed=1
+      - -prune=550
+      - -rpcallowip=0.0.0.0/0
+      - -rpcbind=0.0.0.0
+      - -rpcuser=${MAINNET_BITCOIND_RPCUSER:?set MAINNET_BITCOIND_RPCUSER}
+      - -rpcpassword=${MAINNET_BITCOIND_RPCPASS:?set MAINNET_BITCOIND_RPCPASS}
+      - -rpcport=8332
+      - -port=8333
+      - -zmqpubrawblock=tcp://0.0.0.0:28332
+      - -zmqpubrawtx=tcp://0.0.0.0:28333
+      - -dbcache=1024
+    volumes:
+      - bitcoind-mainnet-data:/home/bitcoin/.bitcoin
+    networks:
+      - mainnet-net
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "bitcoin-cli -rpcuser=$$MAINNET_BITCOIND_RPCUSER -rpcpassword=$$MAINNET_BITCOIND_RPCPASS -rpcport=8332 getblockchaininfo || exit 1",
+        ]
+      interval: 30s
+      timeout: 15s
+      retries: 60
+      start_period: 120s
+    environment:
+      MAINNET_BITCOIND_RPCUSER: ${MAINNET_BITCOIND_RPCUSER:?set MAINNET_BITCOIND_RPCUSER}
+      MAINNET_BITCOIND_RPCPASS: ${MAINNET_BITCOIND_RPCPASS:?set MAINNET_BITCOIND_RPCPASS}
+
+  agent-payment-decision-lnd-mainnet:
+    image: lightninglabs/lnd:v0.18.5-beta
+    container_name: agent-payment-decision-lnd-mainnet
+    restart: unless-stopped
+    depends_on:
+      bitcoind-mainnet:
+        condition: service_healthy
+    ports:
+      - "9735:9735"
+      - "127.0.0.1:10009:10009"
+    command:
+      - "--bitcoin.mainnet"
+      - "--bitcoin.active"
+      - "--bitcoin.node=bitcoind"
+      - "--bitcoind.rpcuser=${MAINNET_BITCOIND_RPCUSER:?set MAINNET_BITCOIND_RPCUSER}"
+      - "--bitcoind.rpcpass=${MAINNET_BITCOIND_RPCPASS:?set MAINNET_BITCOIND_RPCPASS}"
+      - "--bitcoind.rpchost=bitcoind-mainnet:8332"
+      - "--bitcoind.zmqpubrawblock=tcp://bitcoind-mainnet:28332"
+      - "--bitcoind.zmqpubrawtx=tcp://bitcoind-mainnet:28333"
+      - "--lnddir=/home/lnd/.lnd"
+      - "--listen=0.0.0.0:9735"
+      - "--rpclisten=0.0.0.0:10009"
+      - "--restlisten=127.0.0.1:8080"
+      - "--debuglevel=info"
+      - "--tlsextradomain=agent-payment-decision-lnd-mainnet"
+      - "--externalip=${AWS_IP:?set AWS_IP}"
+    volumes:
+      - lnd-mainnet-data:/home/lnd/.lnd
+    networks:
+      - mainnet-net
+
+networks:
+  mainnet-net:
+    name: agent-bitcoin-mainnet
+
+volumes:
+  bitcoind-mainnet-data:
+    name: agent-bitcoin_bitcoind-mainnet-data
+  lnd-mainnet-data:
+    name: agent-bitcoin_lnd-mainnet-data
