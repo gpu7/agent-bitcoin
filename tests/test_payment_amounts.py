@@ -15,7 +15,6 @@ from agent_bitcoin.constants import (
     DEFAULT_MIN_PAYMENT_SATS,
 )
 
-
 # --- Client (SDK) ---
 
 
