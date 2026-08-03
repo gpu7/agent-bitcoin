@@ -167,16 +167,57 @@ Replace `/path/to/agent-bitcoin` with the absolute path to your clone (example: 
 | `git file:///…` | Scan local git history via filesystem URL |
 | `--results=verified,unknown` | Report verified findings and unknown (needs review); skips known false-positive classes when possible |
 
-**How it differs from `git-secrets`:**
+**How these tools differ:**
 
 | Tool | Best for |
 |------|----------|
 | `git-secrets` | Pre-commit hooks; quick AWS-pattern scan of tree/history |
 | TruffleHog | Broader detectors + verification over full history |
+| Gitleaks | Fast full-history rules engine; JSON reports; redacted console output |
 
 **If TruffleHog reports findings:** treat `verified` hits as real secrets until proven otherwise. Rotate first, then decide on history rewrite only with an explicit operator plan. Document any accepted false positives offline (password manager notes) — do not commit real secrets “justified” as lab fixtures.
 
 You can also scan a remote clone without a local checkout (`trufflehog git https://github.com/gpu7/agent-bitcoin.git …`); prefer your clean local `main` so you know exactly which commit range was scanned.
+
+### Gitleaks (required operator tooling — full git history)
+
+Use [Gitleaks](https://github.com/gitleaks/gitleaks) for a rules-based full-history scan of this repo. It complements `git-secrets` (commit hooks / AWS patterns) and TruffleHog (detector verification). Run all three before mainnet prep or a long-lived backup that includes `.git`.
+
+**Install (macOS):**
+
+```bash
+brew install gitleaks
+cd /path/to/agent-bitcoin   # repo root
+```
+
+**Full history scan** (current recommended command):
+
+```bash
+gitleaks git -v
+```
+
+**Save a report** (keep offline — reports may contain secret material):
+
+```bash
+gitleaks git --report-path gitleaks-report.json --report-format json
+```
+
+Do **not** commit `gitleaks-report.json` (gitignored). Store under a restricted path if you archive findings.
+
+**Redact secrets in console output:**
+
+```bash
+gitleaks git --redact -v
+```
+
+| Flag | Meaning |
+|------|---------|
+| `git` | Scan git history of the current repository |
+| `-v` | Verbose findings |
+| `--report-path` / `--report-format json` | Write machine-readable results |
+| `--redact` | Mask secret values in printed output (still treat as sensitive) |
+
+**If Gitleaks reports findings:** same policy as the other scanners — rotate first; history rewrite only with an explicit operator decision. Prefer fixing or removing committed material over broad allowlists; use a local `.gitleaks.toml` allowlist only for proven false positives.
 
 ---
 
@@ -193,6 +234,7 @@ You can also scan a remote clone without a local checkout (`trufflehog git https
 - [ ] `git secrets --scan` clean on working tree
 - [ ] `git secrets --scan-history` run at least once (and before mainnet / full repo backup)
 - [ ] TruffleHog installed; `trufflehog git file:///…/agent-bitcoin --results=verified,unknown` run at least once (and before mainnet / full repo backup)
+- [ ] Gitleaks installed; `gitleaks git -v` (and optional JSON report) run at least once (and before mainnet / full repo backup)
 
 ---
 
@@ -214,4 +256,5 @@ You can also scan a remote clone without a local checkout (`trufflehog git https
 - [x] gitignore backup/export paths
 - [x] `git-secrets` install / scan / history-scan documented (operator tooling)
 - [x] TruffleHog full-history scan documented (operator tooling)
+- [x] Gitleaks full-history scan / report documented (operator tooling)
 - [ ] Operator completes checklist above before Phase 8

@@ -87,6 +87,10 @@ lnd-backups/
 .nostr-poc/
 .nostr-poc-signet/
 
+# Secret-scan reports (may contain findings / redacted still sensitive)
+gitleaks-report.json
+gitleaks-report.*
+
 # Docker
 .docker/
 .dockerignore
