@@ -37,8 +37,10 @@ jobs:
       - name: Run Ruff
         run: uv run ruff check .
 
-      - name: Run Black
-        run: uv run black --check .
+      # Prefer ruff format (same as pre-commit). Black and ruff-format can
+      # disagree on assert wrapping; one formatter only avoids red CI.
+      - name: Run Ruff format
+        run: uv run ruff format --check .
 
       - name: Run tests
         run: uv run pytest
