@@ -143,6 +143,41 @@ git secrets --scan-history
 
 Optional: add project-specific patterns for LND/macaroon-looking blobs if you find gaps; AWS register covers the most common cloud leak class.
 
+### TruffleHog (required operator tooling — full git history)
+
+Use [TruffleHog](https://github.com/trufflesecurity/trufflehog) as a deeper secret scan of the **entire git history** (entropy + detector verification). It complements `git-secrets` (fast pattern hooks): run both. Prefer a scan **before mainnet prep**, before publishing a mirror, or before any long-lived backup that includes `.git`.
+
+**Install (macOS):**
+
+```bash
+brew install trufflehog
+```
+
+**Scan this repo’s history** (run from *outside* the repo directory — recommended by TruffleHog for `file://` paths):
+
+```bash
+# From *outside* the repo directory
+trufflehog git file:///path/to/agent-bitcoin --results=verified,unknown
+```
+
+Replace `/path/to/agent-bitcoin` with the absolute path to your clone (example: `file:///Users/you/agent-bitcoin`).
+
+| Flag / filter | Meaning |
+|---------------|---------|
+| `git file:///…` | Scan local git history via filesystem URL |
+| `--results=verified,unknown` | Report verified findings and unknown (needs review); skips known false-positive classes when possible |
+
+**How it differs from `git-secrets`:**
+
+| Tool | Best for |
+|------|----------|
+| `git-secrets` | Pre-commit hooks; quick AWS-pattern scan of tree/history |
+| TruffleHog | Broader detectors + verification over full history |
+
+**If TruffleHog reports findings:** treat `verified` hits as real secrets until proven otherwise. Rotate first, then decide on history rewrite only with an explicit operator plan. Document any accepted false positives offline (password manager notes) — do not commit real secrets “justified” as lab fixtures.
+
+You can also scan a remote clone without a local checkout (`trufflehog git https://github.com/gpu7/agent-bitcoin.git …`); prefer your clean local `main` so you know exactly which commit range was scanned.
+
 ---
 
 ## Operator checklist (Phase 6 exit)
@@ -157,6 +192,7 @@ Optional: add project-specific patterns for LND/macaroon-looking blobs if you fi
 - [ ] `git-secrets` installed; hooks installed; `git secrets --register-aws` done
 - [ ] `git secrets --scan` clean on working tree
 - [ ] `git secrets --scan-history` run at least once (and before mainnet / full repo backup)
+- [ ] TruffleHog installed; `trufflehog git file:///…/agent-bitcoin --results=verified,unknown` run at least once (and before mainnet / full repo backup)
 
 ---
 
@@ -177,4 +213,5 @@ Optional: add project-specific patterns for LND/macaroon-looking blobs if you fi
 - [x] Backend default localhost + optional rate limit
 - [x] gitignore backup/export paths
 - [x] `git-secrets` install / scan / history-scan documented (operator tooling)
+- [x] TruffleHog full-history scan documented (operator tooling)
 - [ ] Operator completes checklist above before Phase 8

@@ -63,6 +63,7 @@ Security fixes will be released as soon as possible and announced in the [CHANGE
 - Use strong, unique passwords for wallets and a password manager
 - Treat any secret that has appeared in chat, tickets, or logs as compromised for high-value use
 - Install and run **git-secrets** on developer clones (hooks + AWS patterns + working-tree and history scans); operator steps: [docs/security-hardening.md](docs/security-hardening.md#git-secrets-required-operator-tooling)
+- Run **TruffleHog** over full git history (`trufflehog git file:///path/to/repo --results=verified,unknown`); operator steps: [docs/security-hardening.md](docs/security-hardening.md#trufflehog-required-operator-tooling--full-git-history)
 
 ### For operators and integrators
 
