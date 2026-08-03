@@ -55,21 +55,31 @@ Mac:  counterparty LND (bitcoind or other production-grade chain backend)
 
 ---
 
-## Numeric limits (draft — adjust before Phase 8)
+## Numeric limits (first mainnet pilot — tight exposure)
 
-These are **pilot ceilings**, not product marketing defaults. Code in Phase 2 should be able to enforce them via env.
+These are **pilot ceilings**, not product marketing defaults. Enforced in code via env where noted (Phase 2).
 
-| Limit | Draft value | Rationale |
+**Operator risk budget (2026-08-03):** maximum intentional exposure for the first mainnet bring-up is **≈ 50,000 sats** total on-chain + in-channel (not the earlier 500k / 1M draft).
+
+| Limit | Pilot value | Rationale |
 |-------|-------------|-----------|
-| Max single payment | **50,000 sats** (~0.0005 BTC) | Tight blast radius |
-| Max daily payments (sum) | **100,000 sats** | Caps runaway loops |
-| Max channel capacity | **500,000 sats** | Small channel; not a routing node |
-| Min payment (product default) | **2,000 sats** (unchanged) | Existing SDK policy |
-| First mainnet on-chain fund | **≤ 1,000,000 sats** total to node | Enough for channel + fees + margin |
+| **Max loss budget (all funds on pilot nodes)** | **≤ 50,000 sats** | Worst-case if wallet/host is compromised or channel is lost |
+| Max single payment | **≤ 50,000 sats** (`MAX_PAYMENT_SATS`) | Already matches risk budget; prefer smaller first pays (e.g. 2k–10k) |
+| Max daily payments (sum) | **≤ 50,000 sats** (`MAX_DAILY_PAYMENT_SATS`) | Cap runaway loops within the same budget |
+| Max channel capacity | **≤ 50,000 sats** | Channel cannot hold more than the loss budget |
+| Min payment (product default) | **2,000 sats** (unchanged) | Existing SDK policy; first pays can be 2k |
+| First mainnet on-chain fund | **≤ 50,000 sats** total across both nodes combined | Includes UTXOs used to open the channel; leave a little headroom *inside* 50k for open fees by sizing channel slightly under 50k if needed |
 | Autoloop / Loop on mainnet | **Disabled** | Not in pilot |
 | Autonomous agent `pay_invoice` | **Disabled** by default | Human attends every pay |
 
-**Operator accepted these draft limits (2026-08-01).** Phase 2 will enforce them in code.
+### What “max loss ≈ 50k” means
+
+- **In scope:** sats you send on-chain to the pilot LND wallets + sats locked in the pilot channel (local+remote of *your* dual-node channel is still your capital until paid out).
+- **Also real costs (small, outside “balance” but still money):** on-chain **open/close fees** and any force-close / anchor fees. Size the first fund so **channel + planned open fee ≤ 50k**, or accept that fees may push total spent slightly over if you fund exactly 50k into a 50k channel.
+- **Practical first channel:** open **~40,000–45,000 sats** after funding **≤ 50,000 sats** total, so open fees fit under the budget; keep payments small (start at **2,000**).
+- **Not in scope of the 50k number:** arbitrary future deposits, other wallets, or raising limits later (requires a new go decision).
+
+Earlier draft (500k channel / 1M fund) is **retired** for the first pilot.
 
 ---
 

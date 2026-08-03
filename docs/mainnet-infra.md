@@ -158,11 +158,12 @@ Recommended for pilot day: **only mainnet** containers running on each host.
 
 ## Funding and channel (Phase 8 only — not Step 4)
 
-Frozen pilot limits from [mainnet-pilot.md](./mainnet-pilot.md):
+Frozen pilot limits from [mainnet-pilot.md](./mainnet-pilot.md) (**tight first pilot**):
 
-- First fund ≤ **1,000,000** sats to node
-- Channel ≤ **500,000** sats
-- Pay ≤ **50,000** / day sum **100,000**
+- **Max loss budget ≈ 50,000 sats** total (on-chain + channel on pilot nodes)
+- First fund ≤ **50,000** sats combined
+- Channel ≤ **50,000** sats (prefer ~40–45k so open fees fit under 50k)
+- Pay ≤ **50,000** single / **50,000** daily sum (prefer first pays of 2k)
 - Human unlock / open / pay
 - Autoloop off; on-chain product fee off
 
