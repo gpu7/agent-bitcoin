@@ -1,5 +1,9 @@
 # Agent-Bitcoin
 
+<p align="center">
+  <img src="./images/dark-factory-image.jpg" alt="Dark Factory Agent Bitcoin" width="400"/>
+</p>
+
 [![Test PyPI](https://img.shields.io/badge/Test%20PyPI-0.2.0-blue)](https://test.pypi.org/project/agent-bitcoin/)
 [![Python](https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
