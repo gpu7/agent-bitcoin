@@ -22,16 +22,18 @@ jobs:
           context: .
           file: ./Dockerfile
           push: false
+          load: true
           tags: agent-bitcoin:awstest
           build-args: |
             TARGET=aws
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # Non-blocking until we have a clean baseline; load:true makes image visible to Trivy
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: 'agent-bitcoin:awstest'
           format: 'table'
-          exit-code: '0'        # Changed to 0 (non-blocking)
+          exit-code: '0'
           severity: 'CRITICAL,HIGH'
