@@ -1,4 +1,4 @@
-# Agent-Bitcoin
+<br>
 
 <p align="center">
   <img src="./images/dark-factory-image.jpg" alt="Dark Factory Agent Bitcoin" width="700"/>
