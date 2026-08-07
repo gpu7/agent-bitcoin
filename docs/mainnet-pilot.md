@@ -1,7 +1,7 @@
 # Mainnet pilot scope (Phase 0)
 
-**Status:** Phases 0–7 complete (operator). Step 4 mainnet infra design + compose scaffolding ready. **No mainnet go-live / funding until Phase 8 decision.**
-**Date:** 2026-08-01 (infra design 2026-08-03)
+**Status:** Phase 8 execution in progress (nodes syncing / synced). **Mainnet Lightning channel open deferred until after BIP-110 mandatory signaling (block 961,632) and split observation.** On-chain node ops, backups, AMI, and Loop **install** (Autoloop off) may continue.
+**Date:** 2026-08-01 (infra 2026-08-03; BIP-110 freeze 2026-08-07)
 **Audience:** Operator (you) and implementers of readiness Phases 1–8.
 
 This document freezes what a **minimal, defensible mainnet pilot** means for agent-bitcoin. Engineering readiness work (gRPC client, limits, backups, security) targets this scope. It does **not** authorize funding a mainnet wallet or autonomous payments.
@@ -25,7 +25,24 @@ Prove that **human-supervised** Lightning payments work on mainnet with the same
 - Zero critical incidents (or a written postmortem)
 - Explicit go/no-go on expanding limits or automation
 
-Until Phase 8, all practice stays on **signet** (or regtest).
+Until Phase 8 channel open, Lightning practice stays on **signet** (or regtest). Mainnet **bitcoind/LND sync**, backups, and optional **loopd install** (no Autoloop, no channels) are allowed.
+
+---
+
+## BIP-110 (RDTS) — mainnet channel freeze
+
+**Why:** User-activated soft fork **BIP-110 / RDTS** enters **mandatory signaling at block 961,632** (~8–9 Aug 2026). Enforcing clients (e.g. Knots RDTS) reject non-signaling blocks; a non-signaling tip on the heaviest chain can **split** the network. Open Lightning channels are mirrored on both chains while a node watches only one — revoked-state risk. See [Start9 BIP-110 guide](https://start9.com/bip110/).
+
+**This project runs Bitcoin Core** (non-enforcing). Risk is still real if a split occurs and a channel is open.
+
+| Allowed before observation complete | Frozen |
+|-------------------------------------|--------|
+| Keep mainnet LND/bitcoind online | **Open first mainnet channel** |
+| SCB export, AMI, health checks | **Mainnet LN payments** |
+| Install **loopd** (Autoloop **OFF**) | **Enable Autoloop on mainnet** |
+| Signet/regtest channels and Loop lab | Fund only if you accept on-chain-only risk |
+
+**Resume channel open when:** tip is past 961,632+, operator has checked for split (height/hash vs explorers / second client), and explicitly decides to proceed with ≤50k pilot.
 
 ---
 

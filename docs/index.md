@@ -19,7 +19,8 @@
 | [security-hardening.md](./security-hardening.md) | **Phase 6:** secrets, SG, backend bind, mainnet vs lab |
 | [signet-dress-rehearsal.md](./signet-dress-rehearsal.md) | **Phase 7:** signet “as if mainnet” checklist |
 | [liquidity-automation.md](./liquidity-automation.md) | **Simple story:** channel health + Autoloop Phases 1–3 |
-| [loop-autoloop.md](./loop-autoloop.md) | Phase 2 deep dive: Loop Autoloop, agent-loopd, ops |
+| [loop-autoloop.md](./loop-autoloop.md) | Phase 2 deep dive: Loop Autoloop, agent-loopd, ops (regtest) |
+| [loop-multi-network.md](./loop-multi-network.md) | Install loopd on regtest / signet / mainnet (Autoloop off on mainnet) |
 | [nostr-agent-identity.md](./nostr-agent-identity.md) | ADR: Nostr agent identity Phases A–C (keys, pay coord, policy signer) |
 | [setup.md](./setup.md) | Short setup pointers |
 

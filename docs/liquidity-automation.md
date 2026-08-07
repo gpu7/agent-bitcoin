@@ -9,6 +9,7 @@ This page is the **simple story** in one place. Deep runbooks live in the linked
 |-------|--------|
 | Phase 1 — monitoring | [backend.md](./backend.md) (`check-aws-health.sh`, channel floors) |
 | Phase 2 — Autoloop | [loop-autoloop.md](./loop-autoloop.md) (`wire-agent-loopd.sh`, `configure-autoloop-regtest.sh`) |
+| Multi-network Loop install | [loop-multi-network.md](./loop-multi-network.md) (`wire-loopd.sh` regtest/signet/mainnet) |
 | Security / keys | [SECURITY.md](../SECURITY.md) |
 
 ---
