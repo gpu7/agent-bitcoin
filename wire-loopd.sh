@@ -209,8 +209,8 @@ if [[ -z "$LOOPD_IMAGE" ]]; then
   if container_running loopclient; then
     LOOPD_IMAGE=$(docker inspect loopclient --format '{{.Config.Image}}')
   else
-    # Public image used by Lightning Labs / common packages
-    LOOPD_IMAGE=${LOOPD_IMAGE:-lightninglabs/loop:latest}
+    # Docker Hub has version tags only (no :latest). Pin a known release.
+    LOOPD_IMAGE=${LOOPD_IMAGE:-lightninglabs/loop:v0.34.0-beta}
   fi
 fi
 echo "Using image: $LOOPD_IMAGE"

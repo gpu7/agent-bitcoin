@@ -92,10 +92,15 @@ If `terms` fails on signet, keep the install documented as “client ready” an
 
 ### Mainnet (AWS and/or Mac) — install only
 
+Docker Hub image is **`lightninglabs/loop:<version>`** (there is **no** `:latest` tag). Default in `wire-loopd.sh` is **`v0.34.0-beta`**. Override with `LOOPD_IMAGE=...` if needed.
+
 ```bash
 # Mainnet LND up, unlocked, synced_to_chain preferred
 ./wire-loopd.sh mainnet              # AWS
 ./wire-loopd.sh mainnet --host mac   # Mac
+
+# Or pin explicitly:
+# LOOPD_IMAGE=lightninglabs/loop:v0.34.0-beta ./wire-loopd.sh mainnet
 
 export LOOP_CLI='docker exec -i agent-loopd-mainnet loop'
 $LOOP_CLI --network=mainnet getinfo
