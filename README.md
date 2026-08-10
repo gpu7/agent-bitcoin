@@ -23,7 +23,7 @@ A lightweight Python SDK that enables AI agents to send and receive Lightning/Bi
 | **[SDK.md](SDK.md)** | App & agent developers (install, API, fees, quotes, LLM agents, HTTP API) |
 | **[docs/backend.md](docs/backend.md)** | Operators: AWS/Mac **regtest** dual-node lab |
 | **[docs/signet.md](docs/signet.md)** | Operators: dual-node **signet** (current pre-mainnet lab) |
-| **[docs/mainnet-pilot.md](docs/mainnet-pilot.md)** | Mainnet **readiness** scope only — not go-live |
+| **[docs/mainnet-pilot.md](docs/mainnet-pilot.md)** | Mainnet pilot **Phases 0–8** (ops complete; ≤50k dual-node) |
 
 ---
 
@@ -133,7 +133,7 @@ Agent-Bitcoin is developed with security in mind:
 - **Bounded autonomous payment decisions** — hard amount limits in code before any LLM approval
 - **Mainnet kill switches** — e.g. `AGENT_BITCOIN_ALLOW_MAINNET`, `AGENT_BITCOIN_ALLOW_AUTOPAY`, daily spend caps
 - **Operator health checks** — dual-node signet health, backups ([docs/daily-ops-signet.md](docs/daily-ops-signet.md), [docs/security-hardening.md](docs/security-hardening.md))
-- **Regtest / signet first**; mainnet is never the implicit default and is not a completed go-live path
+- **Regtest / signet first** for lab work; mainnet is never the implicit default (pilot ops complete under ≤50k dual-node — [docs/mainnet-pilot.md](docs/mainnet-pilot.md))
 
 Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)**. Do not open public issues for security reports.
 
@@ -147,7 +147,7 @@ Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)**. Do not 
 | [docs/index.md](docs/index.md) | Full docs index (signet, mainnet readiness, backup, health, liquidity) |
 | [docs/backend.md](docs/backend.md) | Regtest dual-node workflow |
 | [docs/signet.md](docs/signet.md) | Signet dual-node lab |
-| [docs/mainnet-pilot.md](docs/mainnet-pilot.md) | Mainnet pilot scope (readiness; not go-live) |
+| [docs/mainnet-pilot.md](docs/mainnet-pilot.md) | Mainnet pilot Phases 0–8 (ops complete; ≤50k dual-node) |
 | [examples/](examples/) | Runnable sample scripts (incl. signet product path) |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 | [SECURITY.md](SECURITY.md) | Security policy and vulnerability reporting |

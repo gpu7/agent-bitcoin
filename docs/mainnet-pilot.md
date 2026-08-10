@@ -1,12 +1,13 @@
-# Mainnet pilot scope (Phase 0)
+# Mainnet pilot scope (Phases 0–8)
 
-**Status:** Phase 8 execution in progress (nodes syncing / synced). **Mainnet Lightning channel open deferred until after BIP-110 mandatory signaling (block 961,632) and split observation.** On-chain node ops, backups, AMI, and Loop **install** (Autoloop off) may continue.
-**Date:** 2026-08-01 (infra 2026-08-03; BIP-110 freeze 2026-08-07)
-**Audience:** Operator (you) and implementers of readiness Phases 1–8.
+**Status:** **Phase 8 ops pilot COMPLETE** (2026-08-09/10) — dual-node private channel live; **N = 5** human-attended mainnet Lightning payments succeeded via `lncli`.
+**Still out of pilot:** autonomous autopay, mainnet Autoloop, raising the ≤50k loss budget, public routing, and (optional follow-up) SDK/backend mainnet pay path.
+**Date:** 2026-08-01 (infra 2026-08-03; BIP-110 freeze 2026-08-07; pilot complete 2026-08-10)
+**Audience:** Operator and implementers of readiness Phases 1–8.
 
-This document freezes what a **minimal, defensible mainnet pilot** means for agent-bitcoin. Engineering readiness work (gRPC client, limits, backups, security) targets this scope. It does **not** authorize funding a mainnet wallet or autonomous payments.
+This document freezes what a **minimal, defensible mainnet pilot** means for agent-bitcoin and records the Phase 8 outcome. Engineering readiness (gRPC client, limits, backups, security) targeted this scope.
 
-**Related:** [signet.md](./signet.md) (current lab) · [mainnet-infra.md](./mainnet-infra.md) (Step 4 compose/ports/volumes) · [SECURITY.md](../SECURITY.md) · [liquidity-automation.md](./liquidity-automation.md)
+**Related:** [mainnet-infra.md](./mainnet-infra.md) · [liquidity-topology-b.md](./liquidity-topology-b.md) · [loop-multi-network.md](./loop-multi-network.md) · [SECURITY.md](../SECURITY.md) · [signet.md](./signet.md)
 
 ---
 
@@ -14,35 +15,114 @@ This document freezes what a **minimal, defensible mainnet pilot** means for age
 
 Prove that **human-supervised** Lightning payments work on mainnet with the same dual-node mental model as signet:
 
-- Create/pay via product stack (SDK, later gRPC transport)
 - One small channel between **your** two nodes
 - Bounded loss if something goes wrong
 - Clear kill switches and backups
+- Create/pay path available (ops: `lncli`; product: SDK later)
 
-**Success metric (when Phase 8 is approved later):**
+### Success metrics
 
-- At least **N = 5** successful human-attended mainnet payments via SDK
-- Zero critical incidents (or a written postmortem)
-- Explicit go/no-go on expanding limits or automation
+| Metric | Target | Phase 8 result (2026-08-10) |
+|--------|--------|------------------------------|
+| Human-attended mainnet pays | **N ≥ 5** | **PASS — 5/5 @ 2,000 sats** via `lncli` |
+| Critical incidents | Zero (or written postmortem) | **None** |
+| Loss budget respected | ≤ **50,000** sats total intentional exposure | **PASS** — funded 50k; channel 43k |
+| Autoloop | Off | **Off** |
+| Go/no-go expand limits/automation | Explicit later decision | **Not expanded** — still pilot ceilings |
 
-Until Phase 8 channel open, Lightning practice stays on **signet** (or regtest). Mainnet **bitcoind/LND sync**, backups, and optional **loopd install** (no Autoloop, no channels) are allowed.
+**Note:** Original draft said “via SDK.” Ops pilot proved dual-node Lightning with **`lncli`**. SDK/`AgentBitcoinClient` mainnet pay under kill switches remains an **optional post-pilot** item, not a re-open of Phase 8 ops.
 
 ---
 
-## BIP-110 (RDTS) — mainnet channel freeze
+## Phase 8 pilot log (executed)
 
-**Why:** User-activated soft fork **BIP-110 / RDTS** enters **mandatory signaling at block 961,632** (~8–9 Aug 2026). Enforcing clients (e.g. Knots RDTS) reject non-signaling blocks; a non-signaling tip on the heaviest chain can **split** the network. Open Lightning channels are mirrored on both chains while a node watches only one — revoked-state risk. See [Start9 BIP-110 guide](https://start9.com/bip110/).
+| Item | Value |
+|------|--------|
+| Topology | **B** — AWS agent LND ↔ Mac counterparty LND |
+| Chain | Bitcoin Core **main**; both hosts matched public tip before open |
+| BIP-110 | Freeze observed past block **961,632**; Mac + AWS tip/hash matched explorers; residual headers-only tip ignored |
+| AWS LND identity | `0290ec8b1733192e5dcbc5d32f8fec5ae345ff777fc48dafed757c2d14781d4967` |
+| Mac LND identity | `02abf846d9f1479b709dc9a542e6f98bc0a0091c88ec93caab0672e12da9fa153b` |
+| AWS P2P | EIP **3.90.159.146:9735** (SG: Mac IP /32) |
+| Fund deposit address | `bc1q0ycjstr6a66xy9cp8cq99mjkpmglun9xuuuc04` |
+| Fund amount | **50,000 sats** (0.0005 BTC) |
+| Fund txid | `900f7aebebaff9213ad4087c0c15d1930696bbed6f3834e2debf62aef29944a5` |
+| Channel funding txid | `c8d24876298bb243e03757f8b5c8a603f51f3f2ab847ead077bc570169fd423b` |
+| Channel point | `c8d248…423b:1` |
+| Capacity | **43,000** sats, **private**, ANCHORS |
+| Connect | Mac → AWS before open |
+| Pays | 5 × **2,000** sats AWS → Mac; routing fee **0** |
+| Balances after pays | AWS local **32,037** / remote **10,000**; Mac mirrored |
+| Loop | `loopd` install allowed; **Autoloop off** (min public Loop size above pilot) |
 
-**This project runs Bitcoin Core** (non-enforcing). Risk is still real if a split occurs and a channel is open.
+Containers:
 
-| Allowed before observation complete | Frozen |
-|-------------------------------------|--------|
-| Keep mainnet LND/bitcoind online | **Open first mainnet channel** |
-| SCB export, AMI, health checks | **Mainnet LN payments** |
-| Install **loopd** (Autoloop **OFF**) | **Enable Autoloop on mainnet** |
-| Signet/regtest channels and Loop lab | Fund only if you accept on-chain-only risk |
+| Role | Host | Container |
+|------|------|-----------|
+| Agent LND | AWS | `agent-payment-decision-lnd-mainnet` |
+| Agent bitcoind | AWS | `agent-payment-decision-bitcoind-mainnet` |
+| Peer LND | Mac | `agent-bitcoin-lnd-mainnet` |
+| Peer bitcoind | Mac | `agent-bitcoin-bitcoind-mainnet` |
 
-**Resume channel open when:** tip is past 961,632+, operator has checked for split (height/hash vs explorers / second client), and explicitly decides to proceed with ≤50k pilot.
+---
+
+## Phase 8 pilot-complete checklist
+
+Use this as the operator close-out for Phase 8 ops. Check off what you have done; items under **Post-pilot optional** are not required for “ops complete.”
+
+### Pre-open (done)
+
+- [x] Phases 0–7 complete (scope, gRPC, limits, backup runbooks, health, liquidity SOP, security, signet dress rehearsal)
+- [x] Mainnet infra up (compose, new volumes, both bitcoind + LND synced)
+- [x] BIP-110: tip ≥ 961,632; Mac + AWS `bestblockhash` match each other and public explorers
+- [x] LND both sides: unlocked, `synced_to_chain=true` (Mac also `synced_to_graph=true`)
+- [x] SCB baseline export (empty-channel OK)
+
+### Fund + channel (done)
+
+- [x] Fund AWS only ≤ **50,000** sats once
+- [x] Confirmed balance before open
+- [x] Mac `connect` to AWS `@EIP:9735`
+- [x] Open private channel ~**40–45k** (executed **43k**)
+- [x] Channel **active** both sides (`listchannels`)
+
+### Payments (done)
+
+- [x] **N ≥ 5** human-attended pays (2k each, AWS → Mac)
+- [x] Balances consistent (sent/received mirror)
+- [x] Zero critical incidents
+
+### Housekeeping (operator — confirm)
+
+- [ ] Post-open **and** post-pay SCB on **both** hosts
+- [ ] AWS SCB copied **off-instance** (Mac or offline storage)
+- [ ] Wallet passwords / seed still offline only (never in git)
+- [ ] Autoloop remains **disabled** on mainnet
+- [ ] No additional mainnet deposits without a new budget decision
+
+### Post-pilot optional (not Phase 8 ops)
+
+- [ ] One reverse pay Mac → AWS (both directions)
+- [ ] One SDK/backend pay with `AGENT_BITCOIN_ALLOW_MAINNET=1` and explicit autopay latch
+- [ ] Formal restore drill date logged
+- [ ] Explicit go/no-go: keep ≤50k dual-node only vs raise limits / automation
+- [ ] AMI refresh after pilot
+
+---
+
+## BIP-110 (RDTS) — freeze (historical) and residual risk
+
+**Why freeze existed:** User-activated soft fork **BIP-110 / RDTS** entered **mandatory signaling at block 961,632** (~8–9 Aug 2026). Enforcing clients can reject non-signaling blocks; a split raises revoked-state risk for open Lightning channels. See [Start9 BIP-110 guide](https://start9.com/bip110/).
+
+**What we did:** Held channel open until after signaling height; confirmed **Bitcoin Core** tips on Mac and AWS matched **public main** (e.g. height ~961,741+ with matching `bestblockhash`); observed only a **headers-only** non-active tip near 961,633 — not a competing full chain on our nodes.
+
+**Status now:** Freeze **lifted for this pilot** after observation + operator **proceed**. Residual multi-client soft-fork risk is non-zero in theory; pilot accepted it under the **≤50k** loss budget.
+
+| Still frozen without new decision | Allowed (pilot) |
+|-----------------------------------|-----------------|
+| Autoloop / Loop swaps on mainnet | Keep channel; human `lncli` / future SDK pays under flags |
+| Raising loss budget above 50k | SCB, health, AMI, docs |
+| Autonomous agent execution of pays | Human unlock / open / pay only |
 
 ---
 
@@ -51,63 +131,57 @@ Until Phase 8 channel open, Lightning practice stays on **signet** (or regtest).
 ```text
 AWS:  agent LND (payment decision / primary funded side)
         │
-   Lightning channel (mainnet pilot — small)
+   Lightning channel (mainnet pilot — small, private)
         │
-Mac:  counterparty LND (bitcoind or other production-grade chain backend)
+Mac:  counterparty LND + local bitcoind
 ```
 
-| Role | Host | Lab analogue (signet today) |
-|------|------|------------------------------|
+| Role | Host | Lab analogue (signet) |
+|------|------|------------------------|
 | Agent / primary | AWS | `agent-payment-decision-lnd-signet` |
 | Counterparty | Mac | `agent-bitcoin-lnd-signet` + local bitcoind |
 | Connect direction | Mac → AWS (outbound from home) | Same as signet |
-| Channel open | Prefer AWS funds open (or as operator decides) | Same as signet |
+| Channel open | AWS funds open | Same as signet |
 
-**Why B:** Matches skills and docs you already have (SG IP, unlock, connect, dual-node pay). Higher ops burden than AWS-only + LSP, but no third-party custody of the channel counterparty.
+**Why B:** Matches existing dual-node ops (SG IP, unlock, connect, pay). No third-party custody of the counterparty.
 
-**Rejected for this pilot (unless scope is revised):**
-
-- **A** — AWS-only + public LN peer (less dual-node practice reuse)
-- **C** — LSP-managed liquidity (faster liquidity, more external dependency)
+**Rejected for this pilot:** topology A (AWS-only + public peer), C (LSP-managed liquidity).
 
 ---
 
-## Numeric limits (first mainnet pilot — tight exposure)
+## Numeric limits (first mainnet pilot — still in force)
 
-These are **pilot ceilings**, not product marketing defaults. Enforced in code via env where noted (Phase 2).
-
-**Operator risk budget (2026-08-03):** maximum intentional exposure for the first mainnet bring-up is **≈ 50,000 sats** total on-chain + in-channel (not the earlier 500k / 1M draft).
+These remain **pilot ceilings** until an explicit expand decision. Enforced in code via env where noted (Phase 2).
 
 | Limit | Pilot value | Rationale |
 |-------|-------------|-----------|
-| **Max loss budget (all funds on pilot nodes)** | **≤ 50,000 sats** | Worst-case if wallet/host is compromised or channel is lost |
-| Max single payment | **≤ 50,000 sats** (`MAX_PAYMENT_SATS`) | Already matches risk budget; prefer smaller first pays (e.g. 2k–10k) |
-| Max daily payments (sum) | **≤ 50,000 sats** (`MAX_DAILY_PAYMENT_SATS`) | Cap runaway loops within the same budget |
-| Max channel capacity | **≤ 50,000 sats** | Channel cannot hold more than the loss budget |
-| Min payment (product default) | **2,000 sats** (unchanged) | Existing SDK policy; first pays can be 2k |
-| First mainnet on-chain fund | **≤ 50,000 sats** total across both nodes combined | Includes UTXOs used to open the channel; leave a little headroom *inside* 50k for open fees by sizing channel slightly under 50k if needed |
-| Autoloop / Loop on mainnet | **Disabled** | Not in pilot |
+| **Max loss budget (all funds on pilot nodes)** | **≤ 50,000 sats** | Worst-case if wallet/host/channel lost |
+| Max single payment | **≤ 50,000 sats** (`MAX_PAYMENT_SATS`) | Prefer smaller pays (2k–10k) |
+| Max daily payments (sum) | Prefer **≤ 50,000** pilot discipline | Code default may be higher; do not treat as budget raise |
+| Max channel capacity | **≤ 50,000 sats** | First channel was **43,000** |
+| Min payment (product default) | **2,000 sats** | Pilot pays used 2k |
+| First mainnet on-chain fund | **≤ 50,000 sats** total | Executed at 50k on AWS only |
+| Autoloop / Loop on mainnet | **Disabled** | Still disabled after pilot |
 | Autonomous agent `pay_invoice` | **Disabled** by default | Human attends every pay |
 
 ### What “max loss ≈ 50k” means
 
-- **In scope:** sats you send on-chain to the pilot LND wallets + sats locked in the pilot channel (local+remote of *your* dual-node channel is still your capital until paid out).
-- **Also real costs (small, outside “balance” but still money):** on-chain **open/close fees** and any force-close / anchor fees. Size the first fund so **channel + planned open fee ≤ 50k**, or accept that fees may push total spent slightly over if you fund exactly 50k into a 50k channel.
-- **Practical first channel:** open **~40,000–45,000 sats** after funding **≤ 50,000 sats** total, so open fees fit under the budget; keep payments small (start at **2,000**).
-- **Not in scope of the 50k number:** arbitrary future deposits, other wallets, or raising limits later (requires a new go decision).
+- **In scope:** sats sent on-chain to pilot LND wallets + sats in the pilot channel.
+- **Also real:** open/close/anchor on-chain fees (size channel under 50k when funding exactly 50k).
+- **Not in scope:** future deposits, other wallets, or raising limits without a new go decision.
 
-Earlier draft (500k channel / 1M fund) is **retired** for the first pilot.
+Earlier draft (500k channel / 1M fund) remains **retired** for this pilot.
 
 ---
 
 ## Who may do what
 
-| Action | Pilot rule |
-|--------|------------|
-| Unlock LND wallet | **Human operator only** (no auto-unlock) |
+| Action | Pilot rule (still in force) |
+|--------|------------------------------|
+| Unlock LND wallet | **Human operator only** |
 | Open / close channel | **Human operator only** |
-| `pay_invoice` / `POST /pay` | **Human operator only**; no autopay flag on mainnet until post-pilot |
-| `create_invoice` | Operator or agent process OK if receive-only credentials later |
+| `payinvoice` / SDK pay / `POST /pay` | **Human operator only**; no autopay on mainnet until post-pilot go |
+| `create_invoice` / `addinvoice` | Operator OK |
 | PaymentDecisionAgent | May **recommend** only; must not execute |
 | AMI / host admin | Operator; AMI stays **private** |
 
@@ -115,71 +189,67 @@ Earlier draft (500k channel / 1M fund) is **retired** for the first pilot.
 
 ## Fee model on mainnet (decision)
 
-**Lab today:** fixed **1,000 sat on-chain** fee per payment design (`FEE_*` / `/send-fee`).
+**Lab (regtest/signet):** fixed **1,000 sat on-chain** fee path may still apply (`FEE_*` / `/send-fee`).
 
-**Mainnet pilot decision:**
+**Mainnet pilot:**
 
-- **Disable** automatic on-chain fee collection (`collect_transaction_fee` / `/send-fee`) on mainnet for the pilot.
-- Rationale: mainnet on-chain fees and UX make a fixed 1k-sat side payment a separate product decision; do not couple it to the first Lightning pilot.
-- Lightning payment amount is the full invoice amount (no “X − 1000 to recipient” split in pilot).
-- Redesign fee model **after** pilot (Phase 8 review), not as a go-live blocker.
-
-Regtest/signet lab fee demos may continue unchanged.
+- **Disable** automatic on-chain fee collection on mainnet for the pilot.
+- Lightning amount is the full invoice amount (no “X − 1000” split).
+- Redesign product fee model is a **post-pilot** product decision.
 
 ---
 
-## Chain backend (mainnet, when Phase 8 is approved)
+## Chain backend (mainnet)
 
-| Host | Expectation |
-|------|-------------|
-| AWS LND | **bitcoind** (pruned pilot default) — see [mainnet-infra.md](./mainnet-infra.md) |
-| Mac LND | **local bitcoind** (same lesson as signet Neutrino failure on Docker Desktop) |
+| Host | Expectation | Pilot reality |
+|------|-------------|----------------|
+| AWS LND | **bitcoind** (pruned OK) | In use |
+| Mac LND | **local bitcoind** | In use |
 
-Compose scaffolding: `docker-compose.mainnet.{aws,mac}.yml` + `startup-mainnet-*.sh`.
-**Do not reuse signet/regtest wallets or volumes on mainnet.**
+Compose: `docker-compose.mainnet.{aws,mac}.yml` + `startup-mainnet-*.sh`.
+**Do not** reuse signet/regtest wallets or volumes on mainnet.
 
 ---
 
-## Non-goals (frozen for this pilot)
+## Non-goals (still frozen for this pilot)
 
-Do **not** block mainnet readiness on:
+Do **not** treat pilot complete as approval for:
 
-- Nostr production identity / NWC
+- Nostr production identity / NWC on mainnet
 - Liquidity Phase 3 (Faraday, Pool, multi-objective controller)
-- Mainnet Autoloop / Loop
+- Mainnet Autoloop / Loop swaps
 - Multi-agent swarm orchestrator
 - Public routing node / large inbound from strangers
-- Signet HTTP API (optional; SDK path is enough for pilot)
+- Raising capital above ≤50k without a new decision
 
 ---
 
-## Readiness phases (execute in order)
+## Readiness phases
 
 | Phase | Name | Status |
 |-------|------|--------|
-| **0** | This document — scope | **Complete** (topology B + limits accepted) |
-| **1** | gRPC + macaroon LND client (lab docker-exec kept) | **Complete** — see [lnd-client.md](./lnd-client.md) |
-| **2** | Limits + kill switches in code | **Complete** — see below |
+| **0** | Scope (this document) | **Complete** |
+| **1** | gRPC + macaroon LND client | **Complete** — [lnd-client.md](./lnd-client.md) |
+| **2** | Limits + kill switches | **Complete** — see below |
 | **3** | Backup / restore | **Complete** — [lnd-backup-restore.md](./lnd-backup-restore.md) |
-| **4** | Health / daily ops | **Complete** — [daily-ops-signet.md](./daily-ops-signet.md), `./check-signet-health.sh` |
-| **5** | Liquidity SOP for topology B | **Complete** — [liquidity-topology-b.md](./liquidity-topology-b.md) |
+| **4** | Health / daily ops | **Complete** — [daily-ops-signet.md](./daily-ops-signet.md) |
+| **5** | Liquidity SOP topology B | **Complete** — [liquidity-topology-b.md](./liquidity-topology-b.md) |
 | **6** | Security hardening | **Complete** — [security-hardening.md](./security-hardening.md) |
-| **7** | Signet dress rehearsal | **Complete** (operator PASS 2026-08-03) — [signet-dress-rehearsal.md](./signet-dress-rehearsal.md) |
-| 8 | Mainnet pilot go-live | **Explicit separate decision** — requires [mainnet-infra.md](./mainnet-infra.md) |
+| **7** | Signet dress rehearsal | **Complete** (PASS 2026-08-03) — [signet-dress-rehearsal.md](./signet-dress-rehearsal.md) |
+| **8** | Mainnet pilot go-live | **Ops COMPLETE** (2026-08-10) — lncli dual-node; see pilot log |
 
-**Operator path to Phase 8 (session):** dress rehearsal → restore drill → security attestations → **infra design** ([mainnet-infra.md](./mainnet-infra.md), complete) → go/no-go.
+**Path taken:** dress rehearsal → infra ([mainnet-infra.md](./mainnet-infra.md)) → BIP-110 observation → fund/open/pay under ≤50k.
 
 ---
 
 ## Operator acceptance (Phase 0 exit)
 
-Check when you agree this scope is correct:
-
 - [x] Topology **B** (Mac ↔ AWS dual-node)
-- [x] Draft numeric limits accepted
+- [x] Numeric limits accepted (≤50k)
 - [x] Fee path **disabled** on mainnet for pilot
 - [x] Non-goals list accepted
-- [x] Phase 1 started (gRPC client + [lnd-client.md](./lnd-client.md))
+- [x] Phase 1+ engineering complete
+- [x] Phase 8 ops success metrics met (N=5 pays, no critical incidents)
 
 ---
 
@@ -190,19 +260,15 @@ Enforced in `agent_bitcoin.constants`, `AgentBitcoinClient`, and the FastAPI bac
 | Control | Env | Lab default | Mainnet default |
 |---------|-----|-------------|-----------------|
 | Single pay max | `MAX_PAYMENT_SATS` | 1_000_000 | **50_000** |
-| Daily pay sum (UTC) | `MAX_DAILY_PAYMENT_SATS` | 0 (off) | **100_000** |
+| Daily pay sum (UTC) | `MAX_DAILY_PAYMENT_SATS` | 0 (off) | **100_000** (code); pilot discipline ≤50k |
 | Allow Lightning pay | `AGENT_BITCOIN_ALLOW_AUTOPAY` | on (set `0` to kill) | **off** (need `=1`) |
 | Allow on-chain fee send | `AGENT_BITCOIN_ALLOW_MAINNET_FEE` | on | **off** (need `=1`) |
 | Mainnet network | `AGENT_BITCOIN_ALLOW_MAINNET` | n/a | **must be `1`** |
 | Spend ledger file | `AGENT_BITCOIN_SPEND_LEDGER` | `~/.config/agent-bitcoin/spend-ledger.json` | same |
 
-**Custody (operator):**
+**Custody:** wallet password/seed offline only; macaroons/certs restricted paths; never commit secrets.
 
-- Wallet password and seed: offline password manager / paper — never in git or public AMI
-- Macaroons/certs: export only under restricted dirs (`chmod 600`); prefer invoice-only macaroon for receive-only processes later
-- Spend ledger: local file; back up with host backups if you rely on daily caps across restarts
-
-Signet/regtest SDK product path does **not** need `ALLOW_AUTOPAY` (lab default allows pay).
+Signet/regtest product path does **not** need `ALLOW_AUTOPAY` (lab default allows pay).
 
 ---
 
@@ -215,21 +281,48 @@ Signet/regtest SDK product path does **not** need `ALLOW_AUTOPAY` (lab default a
 | Full runbook + drill checklist | [lnd-backup-restore.md](./lnd-backup-restore.md) |
 | Pilot RPO / RTO | ≤ 24h / ≤ 4h (see runbook) |
 
-**Operator checklist (do once per host):**
+**After pilot payments (required hygiene):**
 
-- [ ] Mac: export + verify
-- [ ] AWS: export + verify
-- [ ] Restore drill completed or date scheduled: __________
+```bash
+# AWS
+docker exec agent-payment-decision-lnd-mainnet \
+  lncli --lnddir=/home/lnd/.lnd --network=mainnet exportchanbackup --all \
+  > ~/lnd-backups/mainnet/scb-aws-post-pays.backup
+
+# Mac
+docker exec agent-bitcoin-lnd-mainnet \
+  lncli --lnddir=/home/lnd/.lnd --network=mainnet exportchanbackup --all \
+  > ~/lnd-backups/mainnet/scb-mac-post-pays.backup
+```
+
+Copy AWS backup off the instance. Schedule further exports after close/rebalance.
 
 ---
 
-## Immediate lab practice (no mainnet)
+## Ongoing ops (mainnet pilot steady state)
 
-Continue using [signet.md](./signet.md) dual-node + SDK product path. Daily ops:
+1. Mac: keep AWS SG updated for your IP (`update-aws-sg-my-ip.sh` or equivalent) so **9735** stays reachable.
+2. Unlock LND on both hosts when operating (no auto-unlock).
+3. Confirm `listchannels` active and peer connected before pays.
+4. Prefer small human-attended pays; respect ≤50k budget.
+5. Export SCB after material channel state changes.
+6. Lab work continues on **regtest/signet**; do not conflate volumes with mainnet.
 
-1. Mac: `./update-aws-sg-my-ip.sh`
-2. Unlock LND on both hosts as needed
-3. Mac connect → AWS; `listchannels` active
-4. SDK create/pay; tests per [test-suite.md](./test-suite.md)
+**Steady state is valid:** leave the 43k private channel open, Autoloop off, no new funds, human pays only.
 
-No `LND_NETWORK=mainnet` and no real funds under this document alone.
+---
+
+## Post-pilot decisions (not automatic)
+
+| Decision | Default until changed |
+|----------|------------------------|
+| Raise loss budget | **No** |
+| Enable `AGENT_BITCOIN_ALLOW_AUTOPAY` on mainnet | **No** |
+| Mainnet Autoloop / Loop Out | **No** |
+| Public channel announce / routing | **No** |
+| SDK mainnet integration test | Optional |
+| Cooperative close and exit to cold storage | Operator choice (on-chain fees apply) |
+
+---
+
+*Phase 0–8 readiness and ops pilot recorded. Product expansion requires a new written go decision.*

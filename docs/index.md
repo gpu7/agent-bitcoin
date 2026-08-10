@@ -10,8 +10,8 @@
 | [SDK.md](../SDK.md) | SDK / app / agent developers |
 | [backend.md](./backend.md) | Operators: AWS + Mac regtest, LND, channels |
 | [signet.md](./signet.md) | Operators: run agent-bitcoin on Bitcoin **signet** |
-| [mainnet-pilot.md](./mainnet-pilot.md) | **Phase 0:** mainnet pilot scope (topology B) — not go-live |
-| [mainnet-infra.md](./mainnet-infra.md) | **Step 4:** mainnet compose, ports, SG, volumes (pre–Phase 8) |
+| [mainnet-pilot.md](./mainnet-pilot.md) | **Phases 0–8:** mainnet pilot scope + **ops complete** (≤50k dual-node; N=5 pays) |
+| [mainnet-infra.md](./mainnet-infra.md) | Mainnet compose, ports, SG, volumes (infra for Phase 8) |
 | [lnd-client.md](./lnd-client.md) | **Phase 1:** LND transports (`docker` vs `grpc`) |
 | [lnd-backup-restore.md](./lnd-backup-restore.md) | **Phase 3:** SCB export, volume backup, restore drill |
 | [daily-ops-signet.md](./daily-ops-signet.md) | **Phase 4:** daily start/stop + `check-signet-health.sh` |
@@ -37,7 +37,7 @@
 2. Run the regtest stack → [backend.md](./backend.md)
 3. Channel health and Autoloop (operators) → [liquidity-automation.md](./liquidity-automation.md)
 4. Signet (after regtest) → [signet.md](./signet.md)
-5. Mainnet readiness scope (later) → [mainnet-pilot.md](./mainnet-pilot.md)
+5. Mainnet pilot (ops complete; limits still tight) → [mainnet-pilot.md](./mainnet-pilot.md)
 
 ## Repository
 

@@ -373,4 +373,4 @@ Never disable secret scanning / push protection just for convenience.
 - [x] `git-secrets` install / scan / history-scan documented (operator tooling)
 - [x] TruffleHog full-history scan documented (operator tooling)
 - [x] Gitleaks full-history scan / report documented (operator tooling)
-- [ ] Operator completes checklist above before Phase 8
+- [x] Operator completed checklist items needed for Phase 8 ops pilot (2026-08-10); re-check before raising limits or enabling autopay
