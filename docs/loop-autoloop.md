@@ -232,7 +232,7 @@ $LOOP_CLI --network=regtest setparams --autoloop=false
 
 ## Safety rules
 
-- Do **not** enable Autoloop on mainnet from this guide.
+- Do **not** enable Autoloop on mainnet from this regtest guide. Mainnet path (policy + manual Loop first): [public-routing-loop.md](./public-routing-loop.md).
 - Keep a **hard fee budget**; stop if swaps fail repeatedly (backoff).
 - Autoloop will not use channels already in a **manual** swap.
 - Prefer health-check WARN on low inbound before enabling automation.

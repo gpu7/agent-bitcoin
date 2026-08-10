@@ -24,6 +24,7 @@ A lightweight Python SDK that enables AI agents to send and receive Lightning/Bi
 | **[docs/backend.md](docs/backend.md)** | Operators: AWS/Mac **regtest** dual-node lab |
 | **[docs/signet.md](docs/signet.md)** | Operators: dual-node **signet** (current pre-mainnet lab) |
 | **[docs/mainnet-pilot.md](docs/mainnet-pilot.md)** | Mainnet pilot **Phases 0–8** (ops complete; ≤50k dual-node) |
+| **[docs/public-routing-loop.md](docs/public-routing-loop.md)** | Post-pilot: public routing on AWS + Loop (design; needs capital go) |
 
 ---
 
@@ -148,6 +149,7 @@ Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)**. Do not 
 | [docs/backend.md](docs/backend.md) | Regtest dual-node workflow |
 | [docs/signet.md](docs/signet.md) | Signet dual-node lab |
 | [docs/mainnet-pilot.md](docs/mainnet-pilot.md) | Mainnet pilot Phases 0–8 (ops complete; ≤50k dual-node) |
+| [docs/public-routing-loop.md](docs/public-routing-loop.md) | Public routing + Loop on AWS (topology A′ design) |
 | [examples/](examples/) | Runnable sample scripts (incl. signet product path) |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 | [SECURITY.md](SECURITY.md) | Security policy and vulnerability reporting |
