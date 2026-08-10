@@ -1,3 +1,17 @@
+## Docs — public routing + Loop design (2026-08-10)
+
+### Added
+
+- [docs/public-routing-loop.md](docs/public-routing-loop.md): post-pilot **topology A′** — single AWS LND opens **public** channels to external peers; **loopd** manages liquidity; Mac not permanent partner; no second AWS agent required
+- P0–P4 operator checklist (policy, harden, open, Loop, product integration)
+
+### Changed
+
+- [docs/mainnet-pilot.md](docs/mainnet-pilot.md): cooperative close in pilot log; post-pilot table points at public-routing design
+- Cross-links in index, liquidity-automation, loop-multi-network, loop-autoloop
+
+---
+
 ## Docs — mainnet Phase 8 ops pilot (2026-08-10)
 
 ### Documented

@@ -44,7 +44,7 @@ From [mainnet-pilot.md](./mainnet-pilot.md) (accepted):
 | Public routing / large inbound from strangers | **Out of scope** |
 | Channel open/close | **Human operator only** |
 
-Do **not** enable Easy Autoloop or Loop Out against mainnet agent channels until a later explicit decision (Phase 8 ops complete; Autoloop still off — see [mainnet-pilot.md](./mainnet-pilot.md)).
+Do **not** enable Easy Autoloop or Loop Out against mainnet agent channels until a later explicit decision (Phase 8 ops complete; Autoloop still off — see [mainnet-pilot.md](./mainnet-pilot.md)). For **public** routing + Loop (not dual-node Mac), see [public-routing-loop.md](./public-routing-loop.md).
 
 ---
 

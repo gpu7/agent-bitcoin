@@ -13,9 +13,9 @@
 |---------|-----------------|-----------------|------------------------|
 | **regtest** | Yes (local Loop server) | Optional, operator flag | Lab only |
 | **signet** | Yes if LND up; public Loop may be limited | Prefer off | Lab only |
-| **mainnet** | Yes (public Loop servers) | **OFF** until explicit post-pilot decision | Dual-node LN channel pilot **done** (see [mainnet-pilot.md](./mainnet-pilot.md)); **no Loop swaps / Autoloop** without new go |
+| **mainnet** | Yes (public Loop servers) | **OFF** until explicit post-pilot go | Dual-node pilot **done** ([mainnet-pilot.md](./mainnet-pilot.md)). **Public routing + Loop** design: [public-routing-loop.md](./public-routing-loop.md). No swaps/Autoloop without P0 checklist. |
 
-Installing Loop **does not** open channels or move funds. Autoloop is separate and must stay **disabled** on mainnet until a post-pilot decision.
+Installing Loop **does not** open channels or move funds. Autoloop is separate and must stay **disabled** on mainnet until a written post-pilot decision ([public-routing-loop.md](./public-routing-loop.md)).
 
 ---
 
@@ -155,4 +155,4 @@ docker network ls
 
 ## BIP-110 note (historical)
 
-Channel open was deferred until after block **961,632** mandatory signaling and split review. That freeze is **lifted for the dual-node pilot** (complete 2026-08-10). **Autoloop / Loop swaps on mainnet remain off** until a separate post-pilot decision. See [mainnet-pilot.md](./mainnet-pilot.md) and [start9.com/bip110](https://start9.com/bip110/).
+Channel open was deferred until after block **961,632** mandatory signaling and split review. That freeze is **lifted for the dual-node pilot** (complete 2026-08-10). **Autoloop / Loop swaps on mainnet remain off** until a separate post-pilot decision. See [mainnet-pilot.md](./mainnet-pilot.md), [public-routing-loop.md](./public-routing-loop.md), and [start9.com/bip110](https://start9.com/bip110/).

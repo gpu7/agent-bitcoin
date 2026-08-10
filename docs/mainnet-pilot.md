@@ -1,13 +1,13 @@
 # Mainnet pilot scope (Phases 0–8)
 
-**Status:** **Phase 8 ops pilot COMPLETE** (2026-08-09/10) — dual-node private channel live; **N = 5** human-attended mainnet Lightning payments succeeded via `lncli`.
-**Still out of pilot:** autonomous autopay, mainnet Autoloop, raising the ≤50k loss budget, public routing, and (optional follow-up) SDK/backend mainnet pay path.
-**Date:** 2026-08-01 (infra 2026-08-03; BIP-110 freeze 2026-08-07; pilot complete 2026-08-10)
+**Status:** **Phase 8 ops pilot COMPLETE** (2026-08-09/10) — dual-node private channel, **N = 5** human-attended mainnet pays via `lncli`, then **cooperative close** (funds back on-chain).
+**Still out of pilot defaults:** autonomous autopay; **raising** the ≤50k loss budget; public routing + mainnet Loop/Autoloop until an explicit **post-pilot go** (see [public-routing-loop.md](./public-routing-loop.md)).
+**Date:** 2026-08-01 (infra 2026-08-03; BIP-110 freeze 2026-08-07; pilot complete 2026-08-10; channel closed same window)
 **Audience:** Operator and implementers of readiness Phases 1–8.
 
 This document freezes what a **minimal, defensible mainnet pilot** means for agent-bitcoin and records the Phase 8 outcome. Engineering readiness (gRPC client, limits, backups, security) targeted this scope.
 
-**Related:** [mainnet-infra.md](./mainnet-infra.md) · [liquidity-topology-b.md](./liquidity-topology-b.md) · [loop-multi-network.md](./loop-multi-network.md) · [SECURITY.md](../SECURITY.md) · [signet.md](./signet.md)
+**Related:** [mainnet-infra.md](./mainnet-infra.md) · [liquidity-topology-b.md](./liquidity-topology-b.md) · [public-routing-loop.md](./public-routing-loop.md) (post-pilot topology A′) · [loop-multi-network.md](./loop-multi-network.md) · [SECURITY.md](../SECURITY.md) · [signet.md](./signet.md)
 
 ---
 
@@ -53,7 +53,9 @@ Prove that **human-supervised** Lightning payments work on mainnet with the same
 | Connect | Mac → AWS before open |
 | Pays | 5 × **2,000** sats AWS → Mac; routing fee **0** |
 | Balances after pays | AWS local **32,037** / remote **10,000**; Mac mirrored |
-| Loop | `loopd` install allowed; **Autoloop off** (min public Loop size above pilot) |
+| Cooperative close | Yes — `COOPERATIVE_CLOSE`; closing tx `4d103ba0…cdd5`; settled AWS **32,624** / Mac **10,000** |
+| Post-close wallets (approx) | AWS on-chain **~38,801** · Mac **~10,000** · Lightning **0** |
+| Loop | `loopd` install allowed; **Autoloop off** during pilot |
 
 Containers:
 
@@ -308,20 +310,23 @@ Copy AWS backup off the instance. Schedule further exports after close/rebalance
 5. Export SCB after material channel state changes.
 6. Lab work continues on **regtest/signet**; do not conflate volumes with mainnet.
 
-**Steady state is valid:** leave the 43k private channel open, Autoloop off, no new funds, human pays only.
+**Steady state is valid:** no open pilot channel, residual on-chain on both hosts, Autoloop off, human control only.
 
 ---
 
 ## Post-pilot decisions (not automatic)
 
-| Decision | Default until changed |
-|----------|------------------------|
-| Raise loss budget | **No** |
-| Enable `AGENT_BITCOIN_ALLOW_AUTOPAY` on mainnet | **No** |
-| Mainnet Autoloop / Loop Out | **No** |
-| Public channel announce / routing | **No** |
-| SDK mainnet integration test | Optional |
-| Cooperative close and exit to cold storage | Operator choice (on-chain fees apply) |
+| Decision | Default until changed | Next design |
+|----------|------------------------|-------------|
+| Raise loss budget | **No** | Required for public Loop/routing |
+| Enable `AGENT_BITCOIN_ALLOW_AUTOPAY` on mainnet | **No** | Product go |
+| Mainnet Autoloop / Loop Out | **No** | [public-routing-loop.md](./public-routing-loop.md) P0 + P3 |
+| Public channel announce / routing | **No** | [public-routing-loop.md](./public-routing-loop.md) (topology A′) |
+| Second AWS LND as “routing partner” | **No** | Not needed for public routing |
+| SDK mainnet integration test | Optional | Kill switches |
+| Sweep residual to cold storage | Operator choice | On-chain fees apply |
+
+**Public routing + Loop** is a **new phase**, not a silent extension of Phase 8. Complete the P0 checklist in [public-routing-loop.md](./public-routing-loop.md) before funding or opening public channels.
 
 ---
 
