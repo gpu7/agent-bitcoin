@@ -1,3 +1,18 @@
+## Docs — mainnet Phase 8 ops pilot (2026-08-10)
+
+### Documented
+
+- **Phase 8 ops complete:** dual-node mainnet private channel (43k sats), fund ≤50k, **N=5** human-attended Lightning pays via `lncli`
+- Updated [docs/mainnet-pilot.md](docs/mainnet-pilot.md): pilot log, BIP-110 freeze historical, **pilot-complete checklist**, post-pilot non-goals
+- Aligned [docs/mainnet-infra.md](docs/mainnet-infra.md), [docs/loop-multi-network.md](docs/loop-multi-network.md), [docs/liquidity-topology-b.md](docs/liquidity-topology-b.md), [docs/index.md](docs/index.md), README
+
+### Still out of scope (unchanged policy)
+
+- Mainnet Autoloop / raising loss budget / autonomous autopay without a new go decision
+- SDK mainnet pay path remains optional post-pilot validation
+
+---
+
 ## [23.1.0] - 2026-07-14
 
 ### Major Changes

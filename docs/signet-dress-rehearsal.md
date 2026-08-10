@@ -1,7 +1,7 @@
 # Signet dress rehearsal (Phase 7)
 
 **Goal:** Run the mainnet **pilot procedure** on **signet**, end-to-end, before any real funds.
-**Not:** mainnet go-live (that is Phase 8, separate decision).
+**Not:** mainnet go-live itself (Phase 8 was a separate decision; **ops pilot complete** 2026-08-10 — see [mainnet-pilot.md](./mainnet-pilot.md)).
 
 **Audience:** Operator (topology B).
 **Related:** [mainnet-pilot.md](./mainnet-pilot.md) · [daily-ops-signet.md](./daily-ops-signet.md) · [lnd-client.md](./lnd-client.md) · [security-hardening.md](./security-hardening.md) · [liquidity-topology-b.md](./liquidity-topology-b.md)
@@ -236,12 +236,11 @@ If anything failed: fix on signet, re-run the failed section, then mark complete
 
 ## After Phase 7
 
-You are **eligible to decide** on Phase 8 (mainnet pilot). Phase 8 is **not** automatic:
+You were **eligible to decide** on Phase 8 (mainnet pilot). Phase 8 ops is **complete** (2026-08-10); see [mainnet-pilot.md](./mainnet-pilot.md). Further expansion is **not** automatic:
 
-- New mainnet wallets/volumes
-- Tiny channel ≤ 500k
-- Human-attended pays only
-- Explicit go/no-go
+- Keep ≤ **50,000** sats loss budget unless a new go raises it
+- Human-attended pays only; Autoloop off
+- Explicit go/no-go before autopay, Loop swaps, or public routing
 
 ---
 

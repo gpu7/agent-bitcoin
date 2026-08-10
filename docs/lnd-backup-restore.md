@@ -29,7 +29,7 @@ Never commit backups to git. Prefer encrypted disk / password manager attachment
 | **RPO** | ≤ 24h | Max data loss: take SCB **daily** (or after every channel open/close) |
 | **RTO** | ≤ 4h | Time to restore on a new host and reconnect peer (human present) |
 
-Tighten before mainnet Phase 8 if you need better.
+Tighten further if you raise capital or automate pays beyond the ≤50k pilot.
 
 ---
 

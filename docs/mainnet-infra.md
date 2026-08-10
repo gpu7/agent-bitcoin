@@ -1,8 +1,7 @@
-# Mainnet infrastructure design (Step 4 — pre–Phase 8)
+# Mainnet infrastructure design (Step 4)
 
-**Status:** Design accepted for topology B pilot. **Compose scaffolding in repo.**
-**Does not authorize funding or Phase 8 go-live.**
-**Date:** 2026-08-03
+**Status:** Design accepted; compose/scripts in repo; **Phase 8 ops pilot complete** (2026-08-10). See [mainnet-pilot.md](./mainnet-pilot.md) for fund/channel/pay log and limits still in force.
+**Date:** 2026-08-03 (pilot complete 2026-08-10)
 **Audience:** Operator.
 
 **Related:** [mainnet-pilot.md](./mainnet-pilot.md) · [security-hardening.md](./security-hardening.md) · [signet.md](./signet.md) · [lnd-backup-restore.md](./lnd-backup-restore.md)
@@ -123,10 +122,10 @@ export AWS_IP='…eip…'   # AWS only, for LND --externalip
 3. `./startup-mainnet-mac.sh` and `./startup-mainnet-aws.sh <EIP>`.
 4. `lncli create` **new** wallets (never import signet seed).
 5. Wait for both `synced_to_chain=true`.
-6. Export SCB placeholders after wallet create (`export-lnd-backup.sh` with mainnet container names).
-7. **Stop here** until Phase 8 go/no-go.
+6. Export SCB after wallet create (`export-lnd-backup.sh` with mainnet container names).
+7. For fund/open/pay procedure and ceilings, follow [mainnet-pilot.md](./mainnet-pilot.md) (Phase 8 ops already executed once under ≤50k).
 
-### Env for SDK (when Phase 8 approved only)
+### Env for SDK (mainnet — human-attended only)
 
 ```bash
 export LND_NETWORK=mainnet
@@ -156,9 +155,9 @@ Recommended for pilot day: **only mainnet** containers running on each host.
 
 ---
 
-## Funding and channel (Phase 8 only — not Step 4)
+## Funding and channel (Phase 8 — executed; limits still apply)
 
-Frozen pilot limits from [mainnet-pilot.md](./mainnet-pilot.md) (**tight first pilot**):
+Pilot limits from [mainnet-pilot.md](./mainnet-pilot.md) (**tight first pilot**, still in force):
 
 - **Max loss budget ≈ 50,000 sats** total (on-chain + channel on pilot nodes)
 - First fund ≤ **50,000** sats combined
@@ -207,18 +206,18 @@ Schedule: after wallet create, after channel open/close, daily during pilot.
 - [x] Compose + start/stop scripts in repo (scaffolding)
 - [x] Ports / SG / volumes / “new volumes only” specified
 - [x] bitcoind-both-sides decision recorded
-- [x] Explicit: **no funding** until Phase 8 go/no-go
-- [ ] Operator reviews this doc and agrees (session / offline)
-- [ ] Optional dry run: `compose config` only (no IBD required for Step 4 exit)
+- [x] Explicit funding only under Phase 8 procedure / ≤50k budget ([mainnet-pilot.md](./mainnet-pilot.md))
+- [x] Operator executed Phase 8 ops pilot (fund, channel, N=5 pays) — 2026-08-10
+- [ ] Optional: keep this design doc aligned when ports/EIP/SG change
 
 ---
 
-## What Step 4 does **not** include
+## What Step 4 design covered vs pilot execution
 
-- Creating mainnet wallets
-- IBD completion
-- On-chain funding
-- Opening channels
-- Phase 8 approval
+| Step 4 (this doc) | Phase 8 ([mainnet-pilot.md](./mainnet-pilot.md)) |
+|-------------------|--------------------------------------------------|
+| Compose, ports, SG, volumes | Wallets, IBD, funding, channel open, pays |
+| No Autoloop default | Confirmed Autoloop off |
+| New volumes only | Executed on mainnet volumes |
 
-Those are **Step 5** (decision) then controlled go-live.
+Raising limits, autopay, or Autoloop still require a **new** written go decision.

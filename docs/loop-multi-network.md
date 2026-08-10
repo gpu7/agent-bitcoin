@@ -13,9 +13,9 @@
 |---------|-----------------|-----------------|------------------------|
 | **regtest** | Yes (local Loop server) | Optional, operator flag | Lab only |
 | **signet** | Yes if LND up; public Loop may be limited | Prefer off | Lab only |
-| **mainnet** | Yes (public Loop servers) | **OFF** until explicit post-pilot decision | **No new channels until after BIP-110 mandatory signaling (block 961,632+) and split status is clear** |
+| **mainnet** | Yes (public Loop servers) | **OFF** until explicit post-pilot decision | Dual-node LN channel pilot **done** (see [mainnet-pilot.md](./mainnet-pilot.md)); **no Loop swaps / Autoloop** without new go |
 
-Installing Loop **does not** open channels or move funds. Autoloop is separate and must stay disabled on mainnet for the pilot freeze.
+Installing Loop **does not** open channels or move funds. Autoloop is separate and must stay **disabled** on mainnet until a post-pilot decision.
 
 ---
 
@@ -110,9 +110,8 @@ $LOOP_CLI --network=mainnet terms
 **Do not:**
 
 ```bash
-# DO NOT on mainnet during BIP-110 freeze / pilot
+# DO NOT enable Autoloop on mainnet without explicit post-pilot go
 loop ... setparams --autoloop=true
-# DO NOT open channels until after block 961632 observation window
 ```
 
 Status / recreate / stop:
@@ -147,13 +146,13 @@ docker network ls
 
 ## Success criteria (install phase)
 
-- [ ] `loop getinfo` works against the intended LND pubkey
+- [x] `loop getinfo` works against the intended LND pubkey (AWS mainnet install)
 - [ ] `loop terms` works (regtest/mainnet; signet best-effort)
-- [ ] Autoloop **disabled** on mainnet
-- [ ] No mainnet channel open before BIP-110 observation complete
+- [x] Autoloop **disabled** on mainnet (policy)
+- [x] BIP-110 observation complete; dual-node channel pilot done — see [mainnet-pilot.md](./mainnet-pilot.md)
 
 ---
 
-## BIP-110 note
+## BIP-110 note (historical)
 
-Mainnet **channel open** and **Autoloop** stay frozen until after block **961,632** mandatory signaling and operator review of split status. See [mainnet-pilot.md](./mainnet-pilot.md) and [start9.com/bip110](https://start9.com/bip110/).
+Channel open was deferred until after block **961,632** mandatory signaling and split review. That freeze is **lifted for the dual-node pilot** (complete 2026-08-10). **Autoloop / Loop swaps on mainnet remain off** until a separate post-pilot decision. See [mainnet-pilot.md](./mainnet-pilot.md) and [start9.com/bip110](https://start9.com/bip110/).

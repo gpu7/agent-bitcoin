@@ -44,7 +44,7 @@ From [mainnet-pilot.md](./mainnet-pilot.md) (accepted):
 | Public routing / large inbound from strangers | **Out of scope** |
 | Channel open/close | **Human operator only** |
 
-Do **not** enable Easy Autoloop or Loop Out against mainnet agent channels until a later explicit decision (after Phase 8 review).
+Do **not** enable Easy Autoloop or Loop Out against mainnet agent channels until a later explicit decision (Phase 8 ops complete; Autoloop still off — see [mainnet-pilot.md](./mainnet-pilot.md)).
 
 ---
 
@@ -157,16 +157,17 @@ After any close: export SCB again; update health expectations (zero channels unt
 
 ---
 
-## Mainnet pilot differences (when Phase 8 is approved)
+## Mainnet pilot differences (Phase 8 ops complete — limits still apply)
 
 | Topic | Pilot rule |
 |-------|------------|
-| Channel size | ≤ **500,000** sats |
-| Funding | New mainnet wallet/volumes; never reuse signet seed |
+| Channel size | ≤ **50,000** sats (first channel **43,000** private) |
+| Funding | New mainnet wallet/volumes; never reuse signet seed; budget ≤ **50,000** sats total |
 | Autoloop | **Off** |
-| Public peers | Not required; dual-node only |
-| Rebalance | Same payment technique; respect Phase 2 pay limits + autopay flag |
-| Liquidity “enough” | Enough outbound on the **payer** for your test invoices (often AWS) |
+| Public peers | Not required; dual-node only (private channel) |
+| Rebalance | Same payment technique; human-attended; respect Phase 2 limits + autopay flag |
+| Liquidity “enough” | Enough outbound on the **payer** (AWS funded first pilot) |
+| Result | N=5 pays @ 2k sats — [mainnet-pilot.md](./mainnet-pilot.md) |
 
 ---
 
