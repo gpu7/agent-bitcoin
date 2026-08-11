@@ -1,3 +1,19 @@
+## Docs — topology A′ Loop Out complete + capital HOLD (2026-08-11)
+
+### Documented
+
+- First mainnet **Loop Out SUCCESS** (250k; ~841 sats total cost) and dual **public** channels (ACINQ + LNBiG, 500k each)
+- **Capital intent: HOLD as-is** — no further opens, deposits, or swaps without a new go; Autoloop remains **off**
+- Updated [docs/public-routing-loop.md](docs/public-routing-loop.md): execution log, P0–P3 checkmarks, steady-state HOLD ops
+- Updated [docs/mainnet-pilot.md](docs/mainnet-pilot.md): post-pilot decision table + cross-links
+- [docs/index.md](docs/index.md) index line for A′ status
+
+### Ops note (not automated)
+
+- L402 `timeout_seconds` fix remains in [docker/loop-timeout-fix/](docker/loop-timeout-fix/) (merged PR #56)
+
+---
+
 ## Docs — public routing + Loop design (2026-08-10)
 
 ### Added
