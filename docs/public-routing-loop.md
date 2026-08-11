@@ -291,9 +291,41 @@ $LOOP_CLI --network=mainnet setparams --autoloop=false
 
 ---
 
+## Troubleshooting: Loop Out + L402 `timeout_seconds`
+
+**Symptoms**
+
+```text
+cannot initiate swap: timeout_seconds must be specified
+# or
+payment isn't initiated. consider removing pending token file...
+```
+
+`listauth` shows `l402.token.pending` with zero preimage; `listpayments` has no matching hash; logs say “paying invoice” but no `lnbc…`.
+
+**Cause:** LND requires `timeout_seconds` on `SendPaymentV2`. Loop L402 pays via `lndclient.PayInvoice`, which omits that field.
+
+**Fix:** rebuild Loop with the project patch, then recreate loopd (volume kept):
+
+```bash
+docker build -t agent-bitcoin/loop:v0.34.0-beta-timeoutfix \
+  -f docker/loop-timeout-fix/Dockerfile \
+  docker/loop-timeout-fix
+
+docker exec agent-loopd-mainnet rm -f /root/.loop/mainnet/l402.token.pending 2>/dev/null || true
+export LOOPD_IMAGE=agent-bitcoin/loop:v0.34.0-beta-timeoutfix
+./wire-loopd.sh mainnet --recreate
+```
+
+Details: [docker/loop-timeout-fix/README.md](../docker/loop-timeout-fix/README.md).
+
+Then retry `loop out` with `--payment_timeout=1h`. Keep Autoloop off until a manual out succeeds.
+
+---
+
 ## References
 
 - [Loop](https://lightning.engineering/loop/)
 - [Autoloop](https://docs.lightning.engineering/lightning-network-tools/loop/autoloop)
 - [Channel liquidity](https://docs.lightning.engineering/lightning-network-tools/lightning-terminal/channel-liquidity)
-- In-repo: [loop-multi-network.md](./loop-multi-network.md), [loop-autoloop.md](./loop-autoloop.md)
+- In-repo: [loop-multi-network.md](./loop-multi-network.md), [loop-autoloop.md](./loop-autoloop.md), [docker/loop-timeout-fix/](../docker/loop-timeout-fix/)
