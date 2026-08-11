@@ -92,8 +92,15 @@ def _bus_dir(root: Path) -> Path:
 
 
 def _lnd_client(container: str):
+    """Build LND client. Honors LND_NETWORK; mainnet needs AGENT_BITCOIN_ALLOW_MAINNET=1."""
     from agent_bitcoin.lightning import LNDClient
 
+    network = os.environ.get("LND_NETWORK", "regtest").strip().lower() or "regtest"
+    if network == "mainnet":
+        print(
+            "[lnd] LND_NETWORK=mainnet — live invoice/pay moves real sats; "
+            "requires AGENT_BITCOIN_ALLOW_MAINNET=1 (enforced by LNDClient)."
+        )
     client = LNDClient()
     client.container = container
     # Both AWS and Mac compose use this lnddir
@@ -416,8 +423,15 @@ def main() -> int:
     p_st.set_defaults(func=cmd_status)
 
     args = parser.parse_args()
+    network = os.environ.get("LND_NETWORK", "regtest").strip().lower() or "regtest"
     print("=== agent-bitcoin Nostr Phase B (coordination + LND) ===")
     print(f"dir={args.dir}")
+    print(f"LND_NETWORK={network}")
+    if network == "mainnet":
+        print(
+            "NOTE: mainnet Phase B is operator-attended only; see "
+            "docs/nostr-agent-identity.md#mainnet-process-not-yet-executed"
+        )
     return int(args.func(args))
 
 

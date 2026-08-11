@@ -1,3 +1,14 @@
+## Docs — Nostr mainnet process (not yet executed) (2026-08-11)
+
+### Documented
+
+- Confirmed Nostr Phase A/B live on **regtest + signet only**; mainnet identity/pay and NWC remain **frozen** without a new go
+- Step-by-step mainnet process (M1 identity → M2 2k smoke → M3 roadmap) in [docs/nostr-agent-identity.md](docs/nostr-agent-identity.md)
+- Cross-links in [docs/mainnet-pilot.md](docs/mainnet-pilot.md) and [docs/index.md](docs/index.md)
+- Phase B example prints `LND_NETWORK` and mainnet warning; live mainnet still gated by `AGENT_BITCOIN_ALLOW_MAINNET=1` in `LNDClient`
+
+---
+
 ## Docs — topology A′ Loop Out complete + capital HOLD (2026-08-11)
 
 ### Documented

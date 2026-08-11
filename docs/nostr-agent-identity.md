@@ -1,11 +1,11 @@
 # ADR: Nostr identity for agent swarms (Phase A)
 
-**Status:** Accepted — Phase A/B complete (regtest + **signet** live); Phase C hardening PoC available
-**Date:** 2026-07-29 (signet Phase B exercised 2026-08-02)
+**Status:** Accepted — Phase A/B complete on **regtest + signet**; Phase C hardening PoC available. **Mainnet Nostr not implemented** (no live Phase B; NWC frozen). See [Mainnet process](#mainnet-process-not-yet-executed).
+**Date:** 2026-07-29 (signet Phase B exercised 2026-08-02; mainnet process documented 2026-08-11)
 **Audience:** Operators and developers.
 **Agents / SDK payment path:** unchanged. Nostr is **additive** identity/transport, not a replacement for LND, Autoloop, or the FastAPI backend.
 
-**Related:** [liquidity-automation.md](./liquidity-automation.md) · [SECURITY.md](../SECURITY.md)
+**Related:** [liquidity-automation.md](./liquidity-automation.md) · [mainnet-pilot.md](./mainnet-pilot.md) · [signet.md](./signet.md) · [SECURITY.md](../SECURITY.md)
 **Examples:**
 - [nostr_agent_poc.py](../examples/nostr_agent_poc.py) (Phase A)
 - [nostr_phase_b_payment.py](../examples/nostr_phase_b_payment.py) (Phase B)
@@ -72,12 +72,13 @@ Gaps: no per-agent public identity, no decentralized discovery/messaging, multi-
 
 Default container names differ by network (override via env):
 
-| Network | Payer container (Mac) | Invoice container (AWS) |
-|---------|----------------------|-------------------------|
-| regtest | `agent-bitcoin-lnd` | `agent-payment-decision-lnd` |
-| signet | `agent-bitcoin-lnd-signet` | `agent-payment-decision-lnd-signet` |
+| Network | Payer container (Mac) | Invoice container (AWS) | Phase B + LND status |
+|---------|----------------------|-------------------------|----------------------|
+| regtest | `agent-bitcoin-lnd` | `agent-payment-decision-lnd` | **Live** (lab) |
+| signet | `agent-bitcoin-lnd-signet` | `agent-payment-decision-lnd-signet` | **Live** (2026-08-02) |
+| mainnet | `agent-bitcoin-lnd-mainnet` | `agent-payment-decision-lnd-mainnet` | **Not exercised** — process below |
 
-Set `LND_NETWORK=signet` (or `regtest`) so `LNDClient` / `lncli` use the right chain. See [signet.md](./signet.md) for the full signet dual-host runbook.
+Set `LND_NETWORK` to the chain (`regtest` / `signet` / `mainnet`) so `LNDClient` / `lncli` use the right network. **Mainnet** also requires `AGENT_BITCOIN_ALLOW_MAINNET=1` (enforced in `LNDClient`). Signet runbook: [signet.md](./signet.md).
 
 ### Phase B message flow
 
@@ -297,11 +298,179 @@ Policy file: [examples/nostr_phase_c_policy.json](../examples/nostr_phase_c_poli
 
 ---
 
-## Non-goals (explicit)
+## Status matrix (swarm identity track)
 
+| Phase | Deliverable | regtest | signet | mainnet |
+|-------|-------------|---------|--------|---------|
+| **A** | Keys, encrypt, sign notes | Yes | Yes (same scripts) | Identity-only possible; **not** a mainnet economic rollout |
+| **B** | Signed pay coord + LND invoice/pay | **Live** | **Live** (2k Mac→AWS) | **Not done** |
+| **C** | Local policy signer PoC | Demo | Demo | Demo only; not NIP-46 |
+| **Roadmap** | NIP-46, NIP-17, **NIP-47 NWC**, MPC | — | — | **Frozen** until separate go |
+
+### Explicit non-goals (still frozen without a new go)
+
+Aligned with [mainnet-pilot.md](./mainnet-pilot.md):
+
+- **Nostr production identity / NWC on mainnet**
+- Autonomous agent execution of pays on mainnet
+- Treating A′ Loop Out / capital HOLD as approval for Nostr mainnet pays
 - Replacing `AGENT_BITCOIN_API_KEY` HTTP auth
 - Merging Nostr into `PaymentDecisionAgent` payment execution
-- Mainnet Nostr + Lightning agent economies without further design
 - Claiming NIP-04 DMs as production-grade privacy (prefer NIP-17 later)
 - Public-relay reliability as a Phase B/C requirement (file bus + local signer are lab paths)
 - Claiming the Phase C Unix signer is a complete NIP-46 implementation
+
+---
+
+## Mainnet process (not yet executed)
+
+**Do not run live mainnet Phase B until Stage 0 is signed off.** Topology A′ capital **HOLD** still forbids new deposits/channels/Loop; a small Nostr smoke pay still needs an explicit **Nostr mainnet go** (channel liquidity spend + unfreeze of this non-goal).
+
+### Targets
+
+| Target | Meaning | Risk vs HOLD |
+|--------|---------|----------------|
+| **M1** | Phase A (+ optional C) with **dedicated** mainnet keys; no Lightning | Compatible with HOLD |
+| **M2** | Phase B file bus + mainnet LND (one human-attended pay, default **2,000** sats) | Needs small pay budget go |
+| **M3** | Relays + NIP-46 + NWC production swarm | Separate design; not v1 |
+
+**Recommended:** M1 → M2 smoke → hard stop. Defer M3.
+
+### Stage 0 — Policy go (operator)
+
+1. Confirm capital HOLD for deposits / new channels / Loop / Autoloop.
+2. Unfreeze **only** M1 and/or M2 in writing (this ADR checklist + pilot post-pilot table).
+3. Choose Lightning path for M2:
+   - **Dual:** Mac `agent-bitcoin-lnd-mainnet` pays → AWS `agent-payment-decision-lnd-mainnet` receives (signet-shaped; needs Mac outbound path).
+   - **Public-receive:** AWS invoices using A′ inbound (~251k remote); payer is Mac mainnet LND or another wallet that can route to AWS.
+4. Cap max single Nostr-coordinated pay (recommend **2,000** sats = `MIN_PAYMENT_SATS`).
+5. Autopay remains **off**; human CLI only; optional `--decide`.
+
+**Exit:** written go + amount cap + path.
+
+### Stage 1 — M1 identity (no payments)
+
+```bash
+uv venv -p 3.12 .venv-nostr
+uv pip install --python .venv-nostr/bin/python -e '.[nostr]'
+export NOSTR_PASSPHRASE='…strong unique mainnet passphrase…'
+export NOSTR_POC_DIR=./.nostr-poc-mainnet   # gitignored; never reuse regtest/signet dirs
+
+.venv-nostr/bin/python examples/nostr_agent_poc.py --offline
+```
+
+- New keys only (do **not** reuse lab npubs for mainnet economic identity).
+- Store npubs offline; never commit encrypted key blobs or passphrases.
+- Optional: kind 0 profile on a relay — **no** mainnet BOLT11s or secrets in public notes.
+
+**Exit:** encrypted keys under `.nostr-poc-mainnet/`; offline sign/verify PASS.
+
+### Stage 2 — Phase C signer (recommended before M2)
+
+```bash
+export NOSTR_POC_DIR=./.nostr-poc-mainnet
+.venv-nostr/bin/python examples/nostr_phase_c_signer.py demo --agent alice
+.venv-nostr/bin/python examples/nostr_phase_c_signer.py demo --agent bob
+```
+
+- Prefer signing via the policy signer for any long-lived mainnet identity.
+- **Code gap:** Phase B still loads nsec in-process via `load_or_create_agent` unless wired to the socket (roadmap item). Until wired, treat M2 as short attended sessions only.
+
+**Exit:** demo PASS; decide whether to wire Phase B → signer before live pay.
+
+### Stage 3 — Lightning readiness (M2 only)
+
+| Check | Dual path | Public-receive path |
+|-------|-----------|---------------------|
+| AWS LND | `agent-payment-decision-lnd-mainnet` unlocked, synced | Same |
+| Mac LND | `agent-bitcoin-lnd-mainnet` unlocked, synced | Optional if paying from another wallet |
+| Inbound on invoice node | Need path to AWS | A′ remote balance already ~251k |
+| Outbound on payer | Local balance ≥ 2k + fee | Same for chosen payer |
+| Channel / route | Private Mac↔AWS or public graph | Public graph into ACINQ/LNBiG |
+
+**Exit:** active route; amounts feasible. No Autoloop.
+
+### Stage 4 — Env + safety (already partly in SDK)
+
+```bash
+export LND_NETWORK=mainnet
+export AGENT_BITCOIN_ALLOW_MAINNET=1   # required by LNDClient; session-only
+export LND_PAYER_CONTAINER=agent-bitcoin-lnd-mainnet
+export LND_INVOICE_CONTAINER=agent-payment-decision-lnd-mainnet
+export NOSTR_POC_DIR=./.nostr-poc-mainnet
+export NOSTR_PASSPHRASE='…'
+# Do NOT set AGENT_BITCOIN_ALLOW_AUTOPAY=1 for this smoke
+```
+
+`LNDClient` refuses mainnet unless `AGENT_BITCOIN_ALLOW_MAINNET=1`. Unset the latch after the session.
+
+### Stage 5 — Dry-run (no money movement)
+
+```bash
+.venv-nostr/bin/python examples/nostr_phase_b_payment.py \
+  --dir "$NOSTR_POC_DIR" --passphrase "$NOSTR_PASSPHRASE" \
+  request --amount 2000 --memo 'nostr-mainnet-b-dry'
+
+.venv-nostr/bin/python examples/nostr_phase_b_payment.py \
+  --dir "$NOSTR_POC_DIR" --passphrase "$NOSTR_PASSPHRASE" invoice --dry-run
+
+.venv-nostr/bin/python examples/nostr_phase_b_payment.py \
+  --dir "$NOSTR_POC_DIR" --passphrase "$NOSTR_PASSPHRASE" pay --dry-run
+
+.venv-nostr/bin/python examples/nostr_phase_b_payment.py \
+  --dir "$NOSTR_POC_DIR" --passphrase "$NOSTR_PASSPHRASE" status
+```
+
+**Exit:** bus signatures verify; channel balances unchanged.
+
+### Stage 6 — Live M2 smoke (human-attended)
+
+Mirror [signet Phase B](./signet.md#nostr-phase-b-on-signet-same-as-regtest) with mainnet containers:
+
+1. Mac: `request --amount 2000 --memo 'nostr-mainnet-b'`
+2. rsync/scp `.nostr-poc-mainnet/` → AWS
+3. AWS: `invoice` with mainnet invoice container + `LND_NETWORK=mainnet` + allow latch
+4. Sync bus offer back to Mac
+5. Mac: `pay` (optional `--decide`); confirm LND `SUCCEEDED`
+6. Verify balances; `status` on bus
+7. Fresh **SCB** export after material channel change
+8. Unset `AGENT_BITCOIN_ALLOW_MAINNET`; log payment hash privately; update success criteria below
+
+**Do not:** publish mainnet bolt11 on public relays; enable Autoloop; loop auto-pay scripts.
+
+### Stage 7 — Hard stop
+
+- No further Nostr pays without a new N budget.
+- Capital HOLD unchanged for deposits/channels/Loop.
+- Autoloop off; autopay off.
+- Record outcome in the table below.
+
+### Stage 8 — Production (M3) — roadmap only
+
+1. NIP-46 remote signer
+2. NIP-17 private invoice handoff
+3. NIP-47 NWC (limited wallet; no admin macaroon in agent)
+4. Multi-relay policy, rate limits, spend ledger
+5. Product go for any autonomous execution
+
+### Mainnet success criteria (v1)
+
+- [ ] Stage 0 policy go recorded (M1 and/or M2)
+- [ ] Dedicated `.nostr-poc-mainnet` keys (lab keys unused)
+- [ ] Phase A offline PASS
+- [ ] (Recommended) Phase C demo PASS
+- [ ] Phase B dry-run PASS with mainnet env
+- [ ] One live **2,000 sat** Phase B pay SUCCESS (fill log when done)
+- [ ] NWC / Autoloop / autopay still **off**
+- [ ] Docs updated with payment hash / date (private ops + short public note)
+
+### Mainnet exercise log
+
+| Field | Value |
+|-------|--------|
+| Status | **Not run** |
+| Date | — |
+| Amount | — |
+| Path | Dual / Public-receive — |
+| Payment hash | — |
+| LND status | — |
