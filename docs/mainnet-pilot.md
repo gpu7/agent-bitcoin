@@ -1,8 +1,8 @@
 # Mainnet pilot scope (Phases 0–8)
 
 **Status:** **Phase 8 ops pilot COMPLETE** (2026-08-09/10) — dual-node private channel, **N = 5** human-attended mainnet pays via `lncli`, then **cooperative close** (funds back on-chain).
-**Still out of pilot defaults:** autonomous autopay; **raising** the ≤50k loss budget; public routing + mainnet Loop/Autoloop until an explicit **post-pilot go** (see [public-routing-loop.md](./public-routing-loop.md)).
-**Date:** 2026-08-01 (infra 2026-08-03; BIP-110 freeze 2026-08-07; pilot complete 2026-08-10; channel closed same window)
+**Post-pilot topology A′ (2026-08-11):** public channels + first mainnet **Loop Out SUCCESS** — see [public-routing-loop.md](./public-routing-loop.md). **Capital intent: HOLD as-is.** Autoloop still **off**. Autonomous autopay still **off**.
+**Date:** 2026-08-01 (infra 2026-08-03; BIP-110 freeze 2026-08-07; pilot complete 2026-08-10; A′ Loop Out 2026-08-11)
 **Audience:** Operator and implementers of readiness Phases 1–8.
 
 This document freezes what a **minimal, defensible mainnet pilot** means for agent-bitcoin and records the Phase 8 outcome. Engineering readiness (gRPC client, limits, backups, security) targeted this scope.
@@ -120,11 +120,13 @@ Use this as the operator close-out for Phase 8 ops. Check off what you have done
 
 **Status now:** Freeze **lifted for this pilot** after observation + operator **proceed**. Residual multi-client soft-fork risk is non-zero in theory; pilot accepted it under the **≤50k** loss budget.
 
-| Still frozen without new decision | Allowed (pilot) |
-|-----------------------------------|-----------------|
-| Autoloop / Loop swaps on mainnet | Keep channel; human `lncli` / future SDK pays under flags |
-| Raising loss budget above 50k | SCB, health, AMI, docs |
+| Still frozen without new decision | Allowed |
+|-----------------------------------|---------|
+| **Autoloop** on mainnet | Human `lncli` / optional SDK under kill switches |
+| Further capital / new channels / more Loop (A′ is on **HOLD**) | SCB, health, AMI, docs; monitor existing public channels |
 | Autonomous agent execution of pays | Human unlock / open / pay only |
+
+**Note:** Manual mainnet Loop Out and public channels were approved under topology A′ (not Phase 8 ≤50k). See [public-routing-loop.md](./public-routing-loop.md) execution log.
 
 ---
 
@@ -163,7 +165,7 @@ These remain **pilot ceilings** until an explicit expand decision. Enforced in c
 | Max channel capacity | **≤ 50,000 sats** | First channel was **43,000** |
 | Min payment (product default) | **2,000 sats** | Pilot pays used 2k |
 | First mainnet on-chain fund | **≤ 50,000 sats** total | Executed at 50k on AWS only |
-| Autoloop / Loop on mainnet | **Disabled** | Still disabled after pilot |
+| Autoloop on mainnet | **Disabled** | Manual Loop Out done under A′; Autoloop still off |
 | Autonomous agent `pay_invoice` | **Disabled** by default | Human attends every pay |
 
 ### What “max loss ≈ 50k” means
@@ -213,16 +215,16 @@ Compose: `docker-compose.mainnet.{aws,mac}.yml` + `startup-mainnet-*.sh`.
 
 ---
 
-## Non-goals (still frozen for this pilot)
+## Non-goals (still frozen unless a new go)
 
-Do **not** treat pilot complete as approval for:
+Do **not** treat Phase 8 complete or A′ first Loop as approval for:
 
 - Nostr production identity / NWC on mainnet
 - Liquidity Phase 3 (Faraday, Pool, multi-objective controller)
-- Mainnet Autoloop / Loop swaps
+- **Mainnet Autoloop** (manual Loop Out is done; automation is not)
 - Multi-agent swarm orchestrator
-- Public routing node / large inbound from strangers
-- Raising capital above ≤50k without a new decision
+- Further public channel growth or deposits while A′ capital intent is **HOLD**
+- Autonomous agent `pay_invoice` on mainnet
 
 ---
 
@@ -314,20 +316,21 @@ Copy AWS backup off the instance. Schedule further exports after close/rebalance
 
 ---
 
-## Post-pilot decisions (not automatic)
+## Post-pilot decisions
 
-| Decision | Default until changed | Next design |
-|----------|------------------------|-------------|
-| Raise loss budget | **No** | Required for public Loop/routing |
-| Enable `AGENT_BITCOIN_ALLOW_AUTOPAY` on mainnet | **No** | Product go |
-| Mainnet Autoloop / Loop Out | **No** | [public-routing-loop.md](./public-routing-loop.md) P0 + P3 |
-| Public channel announce / routing | **No** | [public-routing-loop.md](./public-routing-loop.md) (topology A′) |
+| Decision | Status (2026-08-11) | Notes |
+|----------|---------------------|--------|
+| Topology A′ public channels | **Done** | ACINQ + LNBiG, 500k each |
+| Manual mainnet Loop Out | **Done — SUCCESS** | 250k; ~841 sats cost; ~251k inbound |
+| Capital intent | **HOLD as-is** | No further opens/swaps/deposits without new go |
+| Mainnet Autoloop | **Off** | Manual path proven only |
+| Enable `AGENT_BITCOIN_ALLOW_AUTOPAY` on mainnet | **No** | Product go still required |
 | Second AWS LND as “routing partner” | **No** | Not needed for public routing |
 | SDK mainnet integration test | Optional | Kill switches |
 | Sweep residual to cold storage | Operator choice | On-chain fees apply |
 
-**Public routing + Loop** is a **new phase**, not a silent extension of Phase 8. Complete the P0 checklist in [public-routing-loop.md](./public-routing-loop.md) before funding or opening public channels.
+**Public routing + Loop** is documented in [public-routing-loop.md](./public-routing-loop.md) (design + execution log). Further expansion requires a **new written go**, not an implicit extension of HOLD.
 
 ---
 
-*Phase 0–8 readiness and ops pilot recorded. Product expansion requires a new written go decision.*
+*Phase 0–8 readiness and ops pilot recorded. Topology A′ first Loop Out recorded under HOLD. Further product/capital expansion requires a new written go decision.*

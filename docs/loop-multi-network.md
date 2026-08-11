@@ -13,9 +13,9 @@
 |---------|-----------------|-----------------|------------------------|
 | **regtest** | Yes (local Loop server) | Optional, operator flag | Lab only |
 | **signet** | Yes if LND up; public Loop may be limited | Prefer off | Lab only |
-| **mainnet** | Yes (public Loop servers) | **OFF** until explicit post-pilot go | Dual-node pilot **done** ([mainnet-pilot.md](./mainnet-pilot.md)). **Public routing + Loop** design: [public-routing-loop.md](./public-routing-loop.md). No swaps/Autoloop without P0 checklist. |
+| **mainnet** | Yes (public Loop servers) | **OFF** (capital **HOLD**) | Dual-node pilot **done** ([mainnet-pilot.md](./mainnet-pilot.md)). Topology A′ first **Loop Out SUCCESS** recorded; further swaps need a new go: [public-routing-loop.md](./public-routing-loop.md). |
 
-Installing Loop **does not** open channels or move funds. Autoloop is separate and must stay **disabled** on mainnet until a written post-pilot decision ([public-routing-loop.md](./public-routing-loop.md)).
+Installing Loop **does not** open channels or move funds. Autoloop must stay **disabled** on mainnet while capital intent is HOLD ([public-routing-loop.md](./public-routing-loop.md)).
 
 ---
 
