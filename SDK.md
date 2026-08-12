@@ -577,6 +577,7 @@ Runnable scripts under [examples/](examples/):
 | `nostr_common.py` | Shared helpers for Nostr examples (not public SDK) |
 | `nwc_regtest_smoke.py` | NWC service+client smoke (`--mock` or live LND) |
 | `nwc_decision_pay.py` | **N5:** decide PAY/REJECT → settle only via NWC |
+| `nwc_mainnet_smoke.py` | **N6:** mainnet multi-latch smoke (default max 2k sats) |
 
 ### Basic
 
@@ -667,7 +668,15 @@ uv run --python 3.12 python examples/nwc_decision_pay.py --mock
 # from agent_bitcoin.nwc import rule_based_decision, nwc_pay_if_approved, NWCClient
 ```
 
-Mainnet NWC remains **off** unless you set enable latches **and** have an explicit operator go.
+**Mainnet NWC (N6, tight budget):** requires all of
+`LND_NETWORK=mainnet`, `AGENT_BITCOIN_ALLOW_MAINNET=1`,
+`AGENT_BITCOIN_NWC_ENABLE=1`, `AGENT_BITCOIN_NWC_ALLOW_MAINNET=1`.
+Default max pay **2,000 sats** (`NWC_MAX_PAYMENT_SATS` to override).
+
+```bash
+uv run --python 3.12 python examples/nwc_mainnet_smoke.py --yes-mainnet --amount 2000
+# --pay only with confirmed outbound liquidity
+```
 
 ---
 

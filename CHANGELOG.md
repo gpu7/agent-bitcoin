@@ -1,3 +1,19 @@
+## Feat — NWC mainnet tight-budget go (N6) (2026-08-12)
+
+### Added
+
+- `AGENT_BITCOIN_NWC_ALLOW_MAINNET` + `assert_nwc_network_allowed()` (requires enable + LND mainnet latch)
+- Mainnet NWC default max **2,000 sats** (`DEFAULT_NWC_MAINNET_MAX_SATS` / `NWC_MAX_PAYMENT_SATS`)
+- `examples/nwc_mainnet_smoke.py` (`--yes-mainnet`, optional `--pay`)
+- Tests: `tests/test_nwc_mainnet_policy.py`
+
+### Policy
+
+- Operator go for human-attended mainnet NWC smoke only; unset latches after session
+- Autoloop remains off
+
+---
+
 ## Feat — NWC decision → pay product path (N5) (2026-08-12)
 
 ### Added

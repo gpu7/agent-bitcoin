@@ -14,6 +14,7 @@ from agent_bitcoin.nwc.flow import (
     rule_based_decision,
 )
 from agent_bitcoin.nwc.policy import (
+    DEFAULT_NWC_MAINNET_MAX_SATS,
     KIND_INFO,
     KIND_REQUEST,
     KIND_RESPONSE,
@@ -21,11 +22,14 @@ from agent_bitcoin.nwc.policy import (
     NWCBudgetPolicy,
     assert_amount_sats_allowed,
     assert_method_allowed,
+    assert_nwc_network_allowed,
     nwc_enabled,
+    nwc_mainnet_allowed,
 )
 from agent_bitcoin.nwc.uri import NWCConnectionURI, build_nwc_uri, parse_nwc_uri
 
 __all__ = [
+    "DEFAULT_NWC_MAINNET_MAX_SATS",
     "KIND_INFO",
     "KIND_REQUEST",
     "KIND_RESPONSE",
@@ -37,9 +41,11 @@ __all__ = [
     "V1_ALLOWED_METHODS",
     "assert_amount_sats_allowed",
     "assert_method_allowed",
+    "assert_nwc_network_allowed",
     "build_nwc_uri",
     "decision_is_pay",
     "nwc_enabled",
+    "nwc_mainnet_allowed",
     "nwc_pay_if_approved",
     "parse_nwc_uri",
     "rule_based_decision",
