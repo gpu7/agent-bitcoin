@@ -184,14 +184,20 @@ Do **not** export NWC pay as the default `AgentBitcoinClient` path until N5 is d
 
 ---
 
-## Operator checklist (regtest — after N4)
+## Operator checklist (regtest — N4)
 
-1. Regtest AWS (or single-host) LND unlocked; channel active if paying.
-2. `export AGENT_BITCOIN_NWC_ENABLE=1 LND_NETWORK=regtest LND_TRANSPORT=docker`
-3. Start NWC service (command TBD in N4 docs).
-4. Issue connection URI to client env `NWC_URL=…` (never commit).
-5. Run `examples/nwc_regtest_smoke.py` (make invoice + pay ≥ 2k).
-6. Disable: `AGENT_BITCOIN_NWC_ENABLE=0`.
+1. Regtest LND unlocked; channel active if using `--pay` live.
+2. ```bash
+   export AGENT_BITCOIN_NWC_ENABLE=1
+   export LND_NETWORK=regtest
+   export LND_TRANSPORT=docker
+   export LND_CONTAINER=agent-payment-decision-lnd
+   uv run --python 3.12 python examples/nwc_regtest_smoke.py --amount 2000
+   # or offline:
+   uv run --python 3.12 python examples/nwc_regtest_smoke.py --mock --pay
+   ```
+3. Never commit issued NWC URIs or secrets.
+4. Disable when done: `AGENT_BITCOIN_NWC_ENABLE=0`.
 
 ---
 
@@ -200,11 +206,12 @@ Do **not** export NWC pay as the default `AgentBitcoinClient` path until N5 is d
 - [x] Design ADR accepted (this document)
 - [x] URI parse + policy unit tests (`tests/test_nwc_uri.py`, `tests/test_nwc_policy.py`)
 - [x] NWC client + mock wallet offline tests (`tests/test_nwc_client.py`)
-- [ ] Regtest: client+service `make_invoice` + `pay_invoice` SUCCESS ≥ 2,000 sats
-- [ ] Agent path holds no LND admin macaroon
-- [ ] PaymentDecisionAgent still non-executing
-- [ ] Mainnet NWC off by default; documented separate go
-- [ ] SDK.md note when client/service land (N3–N5)
+- [x] NWC service + FakeLND offline tests (`tests/test_nwc_service.py`)
+- [ ] Live regtest Docker: client+service invoice+pay (operator smoke)
+- [x] Agent path holds no LND admin macaroon (client only has NWC URI)
+- [x] PaymentDecisionAgent still non-executing
+- [x] Mainnet NWC off by default (`AGENT_BITCOIN_NWC_ENABLE`)
+- [ ] SDK.md note when product path wired (N5)
 
 ### N2 scaffold (landed)
 
@@ -234,6 +241,25 @@ uv run pytest tests/test_nwc_uri.py tests/test_nwc_policy.py tests/test_nwc_clie
 ```
 
 Encryption note: v1 uses **NIP-04** via pynostr (NIP-47 allows legacy; NIP-44 preferred long-term).
+
+### N4 service (landed)
+
+```text
+agent_bitcoin/nwc/service.py   # NWCService + create_nwc_service
+examples/nwc_regtest_smoke.py  # --mock offline; live LND optional
+```
+
+```bash
+export AGENT_BITCOIN_NWC_ENABLE=1
+uv run --python 3.12 pytest tests/test_nwc_service.py -q
+uv run --python 3.12 python examples/nwc_regtest_smoke.py --mock --pay
+# Live LND (regtest, wallet unlocked):
+# export LND_NETWORK=regtest LND_TRANSPORT=docker LND_CONTAINER=agent-payment-decision-lnd
+# uv run --python 3.12 python examples/nwc_regtest_smoke.py --amount 2000
+```
+
+Service enforces: method allowlist, min/max sats, authorized client pubkeys from
+`issue_connection()`, and `AGENT_BITCOIN_NWC_ENABLE` when `require_enable=True`.
 
 ---
 
