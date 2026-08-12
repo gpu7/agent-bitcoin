@@ -1,3 +1,18 @@
+## Ops — Nostr mainnet M2 Dual 2k SUCCESS (2026-08-12)
+
+### Done
+
+- Private dual channel Mac↔AWS: 25k capacity, push 12k to Mac (`b76115f9…1002:0`)
+- Phase B signed bus: request → AWS invoice → Mac pay **2000 sats SUCCEEDED** (fee 0)
+- Payment hash `f87a39a3597a59859436d6d947e3788cc6e1dc5cea9dc092f0d715a70fa8ca71`
+- Phase B defaults `LND_TRANSPORT=docker` to avoid stale signet gRPC `:30009` failures
+
+### Hard stop
+
+- No further Nostr mainnet pays without a new N budget; Autoloop/NWC/autopay remain off
+
+---
+
 ## Ops/docs — Nostr mainnet M2 Dual go (2026-08-12)
 
 ### Policy

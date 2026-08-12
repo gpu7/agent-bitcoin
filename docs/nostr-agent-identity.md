@@ -1,7 +1,7 @@
 # ADR: Nostr identity for agent swarms (Phase A)
 
-**Status:** Accepted — Phase A/B complete on **regtest + signet**. **Mainnet M1 + Stage 2 DONE**; **M2 Dual 2k go approved** (2026-08-12) — live pay pending operator LN unlock/path. NWC still frozen. See [Mainnet process](#mainnet-process-not-yet-executed).
-**Date:** 2026-07-29 (signet Phase B 2026-08-02; **M2 Dual go 2026-08-12**)
+**Status:** Accepted — Phase A/B complete on **regtest + signet**. **Mainnet M1 + Stage 2 + M2 Dual 2k LIVE SUCCESS** (2026-08-12). NWC / Autoloop still frozen. See [Mainnet process](#mainnet-process-not-yet-executed).
+**Date:** 2026-07-29 (signet Phase B 2026-08-02; **M2 Dual SUCCESS 2026-08-12**)
 **Audience:** Operators and developers.
 **Agents / SDK payment path:** unchanged. Nostr is **additive** identity/transport, not a replacement for LND, Autoloop, or the FastAPI backend.
 
@@ -304,7 +304,7 @@ Policy file: [examples/nostr_phase_c_policy.json](../examples/nostr_phase_c_poli
 | Phase | Deliverable | regtest | signet | mainnet |
 |-------|-------------|---------|--------|---------|
 | **A** | Keys, encrypt, sign notes | Yes | Yes (same scripts) | **M1 done** (2026-08-12) — dual alice/bob keys offline |
-| **B** | Signed pay coord + LND invoice/pay | **Live** | **Live** (2k Mac→AWS) | **Not done** (M2 deferred) |
+| **B** | Signed pay coord + LND invoice/pay | **Live** | **Live** (2k Mac→AWS) | **Live** (2k Dual Mac→AWS, 2026-08-12) |
 | **C** | Local policy signer PoC | Demo | Demo | **Mainnet keys demo PASS** (alice+bob, 2026-08-12); not NIP-46 |
 | **Roadmap** | NIP-46, NIP-17, **NIP-47 NWC**, MPC | — | — | **Frozen** until separate go |
 
@@ -515,6 +515,7 @@ Prereqs: Stage 3 PASS, Stage 5 PASS, keys on AWS, both wallets unlocked.
 # --- Mac: request ---
 export LND_NETWORK=mainnet
 export AGENT_BITCOIN_ALLOW_MAINNET=1
+export LND_TRANSPORT=docker   # avoid stale signet gRPC :30009
 export LND_PAYER_CONTAINER=agent-bitcoin-lnd-mainnet
 export NOSTR_POC_DIR=./.nostr-poc-mainnet
 export NOSTR_PASSPHRASE='…'
@@ -532,6 +533,7 @@ rsync -az -e "ssh -i ~/.ssh/aws/agent-bitcoin-key.pem -o IdentitiesOnly=yes" \
 # ssh to AWS, then:
 export LND_NETWORK=mainnet
 export AGENT_BITCOIN_ALLOW_MAINNET=1
+export LND_TRANSPORT=docker
 export LND_INVOICE_CONTAINER=agent-payment-decision-lnd-mainnet
 export NOSTR_POC_DIR=./.nostr-poc-mainnet
 export NOSTR_PASSPHRASE='…'
@@ -546,6 +548,7 @@ rsync -az -e "ssh -i ~/.ssh/aws/agent-bitcoin-key.pem -o IdentitiesOnly=yes" \
 .venv-nostr/bin/python examples/nostr_phase_b_payment.py \
   --dir "$NOSTR_POC_DIR" --passphrase "$NOSTR_PASSPHRASE" pay
 # optional: add --decide
+
 
 .venv-nostr/bin/python examples/nostr_phase_b_payment.py \
   --dir "$NOSTR_POC_DIR" --passphrase "$NOSTR_PASSPHRASE" status
@@ -582,15 +585,15 @@ After SUCCESS: export SCB on both hosts if channel state material; record paymen
 - [x] Phase C demo on mainnet keys (alice + bob **PASS**, 2026-08-12)
 - [ ] Phase B dry-run / live pay — **out of scope until M2 go**
 
-**M2 (in progress):**
+**M2 (complete):**
 
 - [x] Stage 0 M2 go (Dual, **2,000 sats**, 2026-08-12)
-- [ ] Stage 3 LN readiness (Mac unlock + outbound; AWS inbound)
-- [ ] Stage 5 Phase B dry-run PASS
-- [ ] Stage 6 live 2k Phase B SUCCESS
-- [ ] Stage 7 hard stop + payment hash logged
+- [x] Stage 3 LN readiness — private dual channel 25k + push 12k (funding `b76115f9…1002:0`)
+- [x] Stage 5 Phase B dry-run PASS
+- [x] Stage 6 live 2k Phase B **SUCCESS**
+- [x] Stage 7 hard stop (no further auto pays; NWC/Autoloop off)
 - [ ] Optional: wire Phase B → Phase C signer socket
-- [ ] NWC / Autoloop / autopay still **off**
+- [x] NWC / Autoloop / autopay still **off**
 
 ### Mainnet exercise log
 
@@ -604,6 +607,11 @@ After SUCCESS: export SCB on both hosts if channel state material; record paymen
 | alice npub | `npub1u9z2exv9udv2hkhnq5fl8pvlsqvuphmuuxejj2u6g0lf06r8tgsqxl68s8` |
 | bob npub | `npub1jy3ch65u5wvhx4x5s7239k63qtp65h4084fcaq8djgra0dh0erfslusp9f` |
 | Offline crypto | **PASS** |
-| M2 dry-run | **Pending** |
-| M2 live pay | **Pending** |
-| Amount / payment hash | — |
+| M2 dry-run | **PASS** |
+| Dual channel | 25k private; Mac local 12k→**10k** after pay; push_amt 12k |
+| M2 live pay | **SUCCESS** |
+| Amount | **2000** sats |
+| Fee | **0** (direct private channel) |
+| Payment hash | `f87a39a3597a59859436d6d947e3788cc6e1dc5cea9dc092f0d715a70fa8ca71` |
+| Request id | `e44b6ca962e0409e` |
+| Pay note | First Phase B attempt failed: gRPC to `127.0.0.1:30009` (signet map). Retry with `LND_TRANSPORT=docker` **SUCCEEDED**. |
