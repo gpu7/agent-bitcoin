@@ -1,3 +1,15 @@
+## Feat — M3 production swarm primitives (2026-08-12)
+
+### Added
+
+- [docs/m3-production-swarm.md](docs/m3-production-swarm.md): M3 scope vs NWC N1–N6
+- `agent_bitcoin/nostr/`: NIP-46 bunker, NIP-17 gift-wrap (NIP-04 lab crypto), swarm registry, optional `WebsocketNWCRelay`
+- Examples: `nip46_bunker_demo.py`, `swarm_registry_demo.py`, `nwc_relay_loopback.py`, `nwc_dual_pay_runbook.py`
+- Tests: `tests/test_nostr_m3.py`
+- Mainnet NWC `--pay` and always-on autopay remain **off** (2k Dual pay is operator-only)
+
+---
+
 ## Ops — NWC mainnet invoice smoke PASS; session closed (2026-08-12)
 
 ### Documented

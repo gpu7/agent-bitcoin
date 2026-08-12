@@ -306,7 +306,7 @@ Policy file: [examples/nostr_phase_c_policy.json](../examples/nostr_phase_c_poli
 | **A** | Keys, encrypt, sign notes | Yes | Yes (same scripts) | **M1 done** (2026-08-12) — dual alice/bob keys offline |
 | **B** | Signed pay coord + LND invoice/pay | **Live** | **Live** (2k Mac→AWS) | **Live** (2k Dual Mac→AWS, 2026-08-12) |
 | **C** | Local policy signer PoC | Demo | Demo | **Mainnet keys demo PASS** (alice+bob, 2026-08-12); not NIP-46 |
-| **Roadmap** | NIP-46, NIP-17, **NIP-47 NWC**, MPC | Design + code path next | Later | Mainnet NWC **frozen** until go — [nwc-automatic-wallets.md](./nwc-automatic-wallets.md) |
+| **M3 / roadmap** | Relays, NIP-46, NIP-17, NWC, swarm | **v1 primitives** | Optional live | NWC `--pay` / autopay still gated — [m3-production-swarm.md](./m3-production-swarm.md) |
 
 ### Explicit non-goals (still frozen without a new go)
 
@@ -333,7 +333,7 @@ Aligned with [mainnet-pilot.md](./mainnet-pilot.md):
 |--------|---------|----------------|
 | **M1** | Phase A (+ optional C) with **dedicated** mainnet keys; no Lightning | Compatible with HOLD |
 | **M2** | Phase B file bus + mainnet LND (one human-attended pay, default **2,000** sats) | Needs small pay budget go |
-| **M3** | Relays + NIP-46 + NWC production swarm | Separate design; not v1 |
+| **M3** | Relays + NIP-46 + NWC production swarm | **v1 primitives 2026-08-12** — [m3-production-swarm.md](./m3-production-swarm.md) |
 
 **Recommended:** M1 → M2 smoke → hard stop. Defer M3.
 

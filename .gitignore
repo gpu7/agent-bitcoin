@@ -88,6 +88,7 @@ lnd-backups/
 .nostr-poc-signet/
 .nostr-poc-mainnet/
 .nostr-poc-mainnet/**
+.swarm-registry.json
 
 # Secret-scan reports (may contain findings / redacted still sensitive)
 gitleaks-report.json

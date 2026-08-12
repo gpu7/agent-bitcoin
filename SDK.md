@@ -578,6 +578,10 @@ Runnable scripts under [examples/](examples/):
 | `nwc_regtest_smoke.py` | NWC service+client smoke (`--mock` or live LND) |
 | `nwc_decision_pay.py` | **N5:** decide PAY/REJECT → settle only via NWC |
 | `nwc_mainnet_smoke.py` | **N6:** mainnet multi-latch smoke (default max 2k sats) |
+| `nip46_bunker_demo.py` | **M3:** NIP-46 bunker + client (in-process) |
+| `swarm_registry_demo.py` | **M3:** local multi-agent registry |
+| `nwc_relay_loopback.py` | **M3:** NWC over in-memory (optional `--live` relay) |
+| `nwc_dual_pay_runbook.py` | **M3:** print Dual 2k pay steps (does not send) |
 
 ### Basic
 
