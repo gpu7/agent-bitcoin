@@ -329,7 +329,7 @@ Copy AWS backup off the instance. Schedule further exports after close/rebalance
 | SDK mainnet integration test | Optional | Kill switches |
 | Nostr mainnet **M1** identity | **Done** (2026-08-12) | Dual alice/bob keys; offline PASS; no Lightning — [nostr-agent-identity.md](./nostr-agent-identity.md#mainnet-process-not-yet-executed) |
 | Nostr mainnet **Stage 2** Phase C | **Done** (2026-08-12) | Local policy signer demo PASS for alice + bob on mainnet keys |
-| Nostr mainnet **M2** 2k Phase B smoke | **Deferred** | Dual path chosen; after Stage 2 close-out |
+| Nostr mainnet **M2** 2k Phase B smoke | **Go approved** (2026-08-12); live pending LN | Dual Mac→AWS; 2k cap; runbook in [nostr-agent-identity.md](./nostr-agent-identity.md#mainnet-process-not-yet-executed) |
 | Nostr NWC / production swarm (M3) | **Frozen** | After M2 + separate design |
 | Sweep residual to cold storage | Operator choice | On-chain fees apply |
 
