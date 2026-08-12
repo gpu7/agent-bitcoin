@@ -62,10 +62,14 @@ def main() -> int:
 
         relay = WebsocketNWCRelay(conn.relays, timeout=20.0)
         print("[mac] public WebsocketNWCRelay")
+        print(
+            "[mac] AWS must already show 'subscribed, polling' (else this times out at 30s)"
+        )
 
     client = NWCClient(conn, relay=relay, default_timeout=30.0)
 
     if args.method == "get_info":
+        print("[mac] get_info: publish 23194, wait ≤30s for 23195", flush=True)
         print(client.get_info())
         return 0
     if args.method == "get_balance":

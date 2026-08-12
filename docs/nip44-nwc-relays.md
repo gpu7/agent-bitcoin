@@ -25,7 +25,7 @@ AWS NWCService (long-lived SUB 23194) ◄──────┘
 
 | Item | Rule |
 |------|------|
-| Relays | **Public only** (defaults: damus, nos.lol); no private relay required |
+| Relays | **Public only** (defaults: nos.lol, primal, damus); no private relay required |
 | New NWC payloads | **`nip44_v2`** |
 | NIP-04 | Lab fallback only if `AGENT_BITCOIN_NWC_ALLOW_NIP04=1` |
 | Payments | NWC methods; mainnet max **2k**; multi-latch |
@@ -43,6 +43,22 @@ export LND_TRANSPORT=docker
 export LND_CONTAINER=agent-payment-decision-lnd-mainnet
 uv run --python 3.12 python examples/nwc_relay_service.py
 # copy printed NWC URI to Mac — never commit
+# wait until you see: [aws] subscribed, polling ['wss://…']
+```
+
+Per-relay connect is ~2s (hard skip after ~3.5s). Do **not** wait minutes on `connecting …`. Mac `get_info` waits **30s** then exits.
+
+Expected AWS logs:
+
+```text
+[aws] connecting wss://nos.lol …
+[aws] ok wss://nos.lol
+[aws] connecting wss://relay.primal.net …
+[aws] skip wss://relay.primal.net: connect timeout or error   # optional
+[aws] registered wss://nos.lol (close_on_eose=False)
+[aws] subscribed, polling ['wss://nos.lol']
+[aws] request from abcd1234…     # only after Mac get_info
+[aws] published 23195
 ```
 
 **Mac** (client):

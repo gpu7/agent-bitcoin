@@ -1,20 +1,193 @@
 """Optional WebSocket NWC relay adapter (pynostr RelayManager).
 
 Network-dependent. Prefer InMemoryNWCBus for tests and CI.
+
+pynostr ``Relay.connect()`` stays in a read loop after the socket opens, so
+``RelayManager.run_sync()`` only returns when the per-relay connect timeout
+fires. Never pass the NWC RPC wait (15–30s) as ``RelayManager(timeout=…)`` —
+that makes the first poll wait that long *per relay* and looks hung.
+
+Long-lived SUB / wait-for-response must use ``close_on_eose=False``. The
+default ``True`` closes the socket on empty EOSE, so a later 23195 is missed.
 """
 
 from __future__ import annotations
 
+import threading
 import time
 import uuid
-from typing import Any, Sequence
+from typing import Any, Callable, Sequence
 
 from pynostr.event import Event
 from pynostr.filters import Filters, FiltersList
 from pynostr.relay_manager import RelayManager
 
 from agent_bitcoin.nwc.errors import NWCError
-from agent_bitcoin.nwc.policy import KIND_RESPONSE
+from agent_bitcoin.nwc.policy import KIND_REQUEST, KIND_RESPONSE
+
+# Per-relay websocket connect / one poll of run_sync. Not the NWC RPC wait.
+CONNECT_TIMEOUT = 2.0
+# Extra wall-clock so a hung tornado connect cannot block the caller.
+PROBE_GRACE = 1.5
+
+LogFn = Callable[[str], None]
+ProbeFn = Callable[..., bool]
+
+
+def register_relays(
+    mgr: RelayManager,
+    urls: Sequence[str],
+    *,
+    close_on_eose: bool,
+    timeout: float = CONNECT_TIMEOUT,
+    log: LogFn | None = None,
+) -> list[str]:
+    """Register URLs on a manager. ``add_relay`` does not open sockets."""
+    added: list[str] = []
+    for url in urls:
+        try:
+            mgr.add_relay(url, timeout=timeout, close_on_eose=close_on_eose)
+            added.append(url)
+            if log:
+                log(f"registered {url} (close_on_eose={close_on_eose})")
+        except Exception as e:
+            if log:
+                log(f"skip {url}: {e}")
+    return added
+
+
+def _default_probe_connect(url: str, timeout: float) -> None:
+    mgr = RelayManager()
+    try:
+        mgr.add_relay(url, timeout=timeout, close_on_eose=True)
+        mgr.run_sync()
+    finally:
+        try:
+            mgr.close_all_relay_connections()
+        except Exception:
+            pass
+
+
+def probe_relay(
+    url: str,
+    timeout: float = CONNECT_TIMEOUT,
+    *,
+    _connect: Callable[[str, float], None] | None = None,
+) -> bool:
+    """Try one relay in a side thread so a hung websocket cannot block."""
+    connect = _connect or _default_probe_connect
+    result: dict[str, bool] = {"ok": False}
+
+    def _worker() -> None:
+        try:
+            connect(url, timeout)
+            result["ok"] = True
+        except Exception:
+            result["ok"] = False
+
+    thread = threading.Thread(target=_worker, daemon=True, name=f"nwc-probe-{url}")
+    thread.start()
+    thread.join(timeout + PROBE_GRACE)
+    if thread.is_alive():
+        return False
+    return bool(result["ok"])
+
+
+def select_live_relays(
+    urls: Sequence[str],
+    *,
+    timeout: float = CONNECT_TIMEOUT,
+    log: LogFn | None = None,
+    probe: ProbeFn | None = None,
+) -> list[str]:
+    """Probe each URL; skip timeouts and errors. Never blocks past timeout+grace."""
+    check = probe or probe_relay
+    live: list[str] = []
+    for url in urls:
+        if log:
+            log(f"connecting {url} …")
+        try:
+            ok = check(url, timeout=timeout)
+        except TypeError:
+            ok = check(url, timeout)
+        except Exception as e:
+            if log:
+                log(f"skip {url}: {e}")
+            continue
+        if ok:
+            if log:
+                log(f"ok {url}")
+            live.append(url)
+        elif log:
+            log(f"skip {url}: connect timeout or error")
+    return live
+
+
+def run_nwc_listen_session(
+    urls: Sequence[str],
+    wallet_pubkey: str,
+    on_request: Callable[[dict[str, Any]], None],
+    *,
+    log: LogFn | None = None,
+    stop: Callable[[], bool] | None = None,
+    poll_sleep: float = 0.3,
+    connect_timeout: float = CONNECT_TIMEOUT,
+    probe: ProbeFn | None = None,
+    manager_factory: Callable[[], Any] | None = None,
+) -> None:
+    """Connect live relays, SUB kind 23194, poll until ``stop`` or error.
+
+    Logs per-relay connect / skip, then ``subscribed, polling`` before the
+    first ``run_sync``. Dead relays are dropped in the probe pass.
+    """
+    live = select_live_relays(urls, timeout=connect_timeout, log=log, probe=probe)
+    if not live:
+        raise NWCError(f"no public relays accepted a connection: {list(urls)}")
+
+    factory = manager_factory or RelayManager
+    mgr = factory()
+    added = register_relays(
+        mgr,
+        live,
+        close_on_eose=False,
+        timeout=connect_timeout,
+        log=log,
+    )
+    if not added:
+        raise NWCError("failed to register any live relay")
+
+    flt = FiltersList(
+        [
+            Filters(
+                kinds=[KIND_REQUEST],
+                pubkey_refs=[wallet_pubkey],
+                limit=20,
+            )
+        ]
+    )
+    mgr.add_subscription_on_all_relays(uuid.uuid4().hex, flt)
+    if log:
+        log(f"subscribed, polling {added}")
+
+    seen: set[str] = set()
+    while not (stop and stop()):
+        try:
+            mgr.run_sync()
+        except Exception as e:
+            raise NWCError(f"relay poll failed: {e}") from e
+        while mgr.message_pool.has_events():
+            ev = mgr.message_pool.get_event().event
+            d = _event_to_dict(ev)
+            if int(d.get("kind") or 0) != KIND_REQUEST:
+                continue
+            eid = str(d.get("id") or "")
+            if eid and eid in seen:
+                continue
+            if eid:
+                seen.add(eid)
+            on_request(d)
+        if poll_sleep:
+            time.sleep(poll_sleep)
 
 
 class WebsocketNWCRelay:
@@ -29,13 +202,22 @@ class WebsocketNWCRelay:
         if not urls:
             raise NWCError("at least one relay URL is required")
         self.urls = tuple(urls)
+        # NWC RPC wait (publish + response). Not the websocket connect timeout.
         self.timeout = timeout
 
     def publish(self, event: dict[str, Any]) -> None:
         ev = _dict_to_event(event)
-        mgr = RelayManager(timeout=self.timeout)
-        for url in self.urls:
-            mgr.add_relay(url)
+        # One-shot: close_on_eose is fine. Do not set RelayManager.timeout to
+        # the RPC wait — that would block run_sync for the full wait per URL.
+        mgr = RelayManager()
+        added = register_relays(
+            mgr,
+            self.urls,
+            close_on_eose=True,
+            timeout=CONNECT_TIMEOUT,
+        )
+        if not added:
+            raise NWCError(f"no relays accepted publish: {self.urls}")
         try:
             mgr.publish_event(ev)
             mgr.run_sync()
@@ -61,9 +243,17 @@ class WebsocketNWCRelay:
                 )
             ]
         )
-        mgr = RelayManager(timeout=max(timeout, 2.0))
-        for url in self.urls:
-            mgr.add_relay(url)
+        # Keep the SUB open after empty EOSE so a later 23195 is received.
+        # Connect timeout stays short; `timeout` is only the RPC wait.
+        mgr = RelayManager()
+        added = register_relays(
+            mgr,
+            self.urls,
+            close_on_eose=False,
+            timeout=CONNECT_TIMEOUT,
+        )
+        if not added:
+            raise NWCError(f"no relays accepted subscribe: {self.urls}")
         sub = uuid.uuid4().hex
         try:
             mgr.add_subscription_on_all_relays(sub, filters)

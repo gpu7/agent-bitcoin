@@ -105,7 +105,9 @@ def main() -> int:
         print("[aws] --once: not listening")
         return 0
 
-    print("[aws] listening (Ctrl+C to stop). In-process bus + optional WS poll.")
+    print(
+        "[aws] listening (Ctrl+C to stop). Wait for 'subscribed, polling' before Mac."
+    )
     # Long-lived: poll public relays for 23194 when not mock
     if args.mock:
         try:
@@ -115,61 +117,35 @@ def main() -> int:
             print("\n[aws] stopped")
         return 0
 
-    from agent_bitcoin.nostr.relay import WebsocketNWCRelay
-    from agent_bitcoin.nwc.policy import KIND_REQUEST
-    from pynostr.filters import Filters, FiltersList
-    from pynostr.relay_manager import RelayManager
-    import uuid
+    from agent_bitcoin.nostr.relay import (
+        WebsocketNWCRelay,
+        run_nwc_listen_session,
+    )
+
+    def _log(msg: str) -> None:
+        print(f"[aws] {msg}", flush=True)
+
+    def _on_request(d: dict) -> None:
+        pk = str(d.get("pubkey") or "")
+        print(f"[aws] request from {pk[:16]}…", flush=True)
+        svc.handle_request_event(d)
+        if bus.all_events():
+            last = bus.all_events()[-1]
+            if int(last.get("kind") or 0) == 23195:
+                ws = WebsocketNWCRelay(relays, timeout=10)
+                ws.publish(last)
+                print("[aws] published 23195", flush=True)
 
     backoff = 1.0
     while True:
         try:
-            print(f"[aws] connecting relays {relays} …")
-            mgr = RelayManager(timeout=15)
-            connected = 0
-            for url in relays:
-                try:
-                    mgr.add_relay(url)
-                    connected += 1
-                except Exception as e:
-                    print(f"[aws] skip {url}: {e}", file=sys.stderr)
-            if connected == 0:
-                raise RuntimeError("no public relays accepted a connection")
-            flt = FiltersList(
-                [
-                    Filters(
-                        kinds=[KIND_REQUEST],
-                        pubkey_refs=[svc.wallet_pubkey],
-                        limit=20,
-                    )
-                ]
+            run_nwc_listen_session(
+                relays,
+                svc.wallet_pubkey,
+                _on_request,
+                log=_log,
             )
-            mgr.add_subscription_on_all_relays(uuid.uuid4().hex, flt)
-            while True:
-                mgr.run_sync()
-                while mgr.message_pool.has_events():
-                    ev = mgr.message_pool.get_event().event
-                    d = {
-                        "id": ev.id,
-                        "pubkey": ev.pubkey,
-                        "created_at": ev.created_at,
-                        "kind": ev.kind,
-                        "tags": list(ev.tags or []),
-                        "content": ev.content,
-                        "sig": ev.sig,
-                    }
-                    if int(d.get("kind") or 0) != KIND_REQUEST:
-                        continue
-                    print(f"[aws] request from {d['pubkey'][:16]}…")
-                    svc.handle_request_event(d)
-                    # publish last response via one-shot
-                    if bus.all_events():
-                        last = bus.all_events()[-1]
-                        if int(last.get("kind") or 0) == 23195:
-                            ws = WebsocketNWCRelay(relays, timeout=10)
-                            ws.publish(last)
-                time.sleep(0.3)
-                backoff = 1.0
+            backoff = 1.0
         except KeyboardInterrupt:
             print("\n[aws] stopped")
             return 0
