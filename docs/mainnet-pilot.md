@@ -219,7 +219,7 @@ Compose: `docker-compose.mainnet.{aws,mac}.yml` + `startup-mainnet-*.sh`.
 
 Do **not** treat Phase 8 complete or A′ first Loop as approval for:
 
-- Nostr **M2 pay / NWC production** on mainnet (M1 identity done 2026-08-12; M2+ still frozen — [nostr-agent-identity.md](./nostr-agent-identity.md#mainnet-process-not-yet-executed))
+- Nostr **NWC on mainnet** (design + regtest path open — [nwc-automatic-wallets.md](./nwc-automatic-wallets.md); mainnet NWC still requires a separate go)
 - Liquidity Phase 3 (Faraday, Pool, multi-objective controller)
 - **Mainnet Autoloop** (manual Loop Out is done; automation is not)
 - Multi-agent swarm orchestrator
@@ -330,7 +330,7 @@ Copy AWS backup off the instance. Schedule further exports after close/rebalance
 | Nostr mainnet **M1** identity | **Done** (2026-08-12) | Dual alice/bob keys; offline PASS; no Lightning — [nostr-agent-identity.md](./nostr-agent-identity.md#mainnet-process-not-yet-executed) |
 | Nostr mainnet **Stage 2** Phase C | **Done** (2026-08-12) | Local policy signer demo PASS for alice + bob on mainnet keys |
 | Nostr mainnet **M2** 2k Phase B smoke | **SUCCESS** (2026-08-12) | Dual private 25k channel; 2k Mac→AWS; hash `f87a39a3…ca71`; fee 0 |
-| Nostr NWC / production swarm (M3) | **Frozen** | After M2 + separate design |
+| Nostr NWC / production swarm (M3) | **Design + regtest go** (2026-08-12); mainnet NWC **frozen** | [nwc-automatic-wallets.md](./nwc-automatic-wallets.md) |
 | Sweep residual to cold storage | Operator choice | On-chain fees apply |
 
 **Public routing + Loop** is documented in [public-routing-loop.md](./public-routing-loop.md) (design + execution log). Further expansion requires a **new written go**, not an implicit extension of HOLD.

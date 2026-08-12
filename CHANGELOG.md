@@ -1,3 +1,13 @@
+## Docs — NWC automatic wallets design (2026-08-12)
+
+### Added
+
+- [docs/nwc-automatic-wallets.md](docs/nwc-automatic-wallets.md): NIP-47 automatic wallets ADR — architecture, allowlist, budgets, phases N0–N6
+- Policy go: **design + regtest implementation**; mainnet NWC remains frozen
+- Cross-links: index, mainnet-pilot, nostr-agent-identity
+
+---
+
 ## Ops — Nostr mainnet M2 Dual 2k SUCCESS (2026-08-12)
 
 ### Done

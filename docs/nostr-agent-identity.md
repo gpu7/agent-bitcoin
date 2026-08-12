@@ -1,11 +1,11 @@
 # ADR: Nostr identity for agent swarms (Phase A)
 
-**Status:** Accepted — Phase A/B complete on **regtest + signet**. **Mainnet M1 + Stage 2 + M2 Dual 2k LIVE SUCCESS** (2026-08-12). NWC / Autoloop still frozen. See [Mainnet process](#mainnet-process-not-yet-executed).
-**Date:** 2026-07-29 (signet Phase B 2026-08-02; **M2 Dual SUCCESS 2026-08-12**)
+**Status:** Accepted — Phase A/B complete on **regtest + signet**. **Mainnet M1 + Stage 2 + M2 Dual 2k LIVE SUCCESS** (2026-08-12). **NWC design accepted** (regtest implementation next); mainnet NWC and Autoloop still frozen. See [nwc-automatic-wallets.md](./nwc-automatic-wallets.md).
+**Date:** 2026-07-29 (signet Phase B 2026-08-02; M2 Dual SUCCESS 2026-08-12; **NWC design 2026-08-12**)
 **Audience:** Operators and developers.
-**Agents / SDK payment path:** unchanged. Nostr is **additive** identity/transport, not a replacement for LND, Autoloop, or the FastAPI backend.
+**Agents / SDK payment path:** unchanged until NWC client lands. Nostr is **additive** identity/transport, not a replacement for LND, Autoloop, or the FastAPI backend.
 
-**Related:** [liquidity-automation.md](./liquidity-automation.md) · [mainnet-pilot.md](./mainnet-pilot.md) · [signet.md](./signet.md) · [SECURITY.md](../SECURITY.md)
+**Related:** [nwc-automatic-wallets.md](./nwc-automatic-wallets.md) · [liquidity-automation.md](./liquidity-automation.md) · [mainnet-pilot.md](./mainnet-pilot.md) · [signet.md](./signet.md) · [SECURITY.md](../SECURITY.md)
 **Examples:**
 - [nostr_agent_poc.py](../examples/nostr_agent_poc.py) (Phase A)
 - [nostr_phase_b_payment.py](../examples/nostr_phase_b_payment.py) (Phase B)
@@ -286,7 +286,7 @@ Policy file: [examples/nostr_phase_c_policy.json](../examples/nostr_phase_c_poli
 
 1. **NIP-46** — interoperable remote signer (“bunker”) instead of custom Unix protocol
 2. **NIP-17** — modern private DMs for inter-agent secrets (not NIP-04)
-3. **NIP-47 NWC** — limited Lightning permissions for agents (no full admin macaroon in agent process)
+3. **NIP-47 NWC** — limited Lightning permissions for agents (no full admin macaroon in agent process) — design: [nwc-automatic-wallets.md](./nwc-automatic-wallets.md)
 4. **MPC / TEE** — for high-value autonomous keys
 5. Wire Phase B `pay`/`request` to call the signer instead of `load_or_create_agent` in the agent process
 
@@ -306,13 +306,13 @@ Policy file: [examples/nostr_phase_c_policy.json](../examples/nostr_phase_c_poli
 | **A** | Keys, encrypt, sign notes | Yes | Yes (same scripts) | **M1 done** (2026-08-12) — dual alice/bob keys offline |
 | **B** | Signed pay coord + LND invoice/pay | **Live** | **Live** (2k Mac→AWS) | **Live** (2k Dual Mac→AWS, 2026-08-12) |
 | **C** | Local policy signer PoC | Demo | Demo | **Mainnet keys demo PASS** (alice+bob, 2026-08-12); not NIP-46 |
-| **Roadmap** | NIP-46, NIP-17, **NIP-47 NWC**, MPC | — | — | **Frozen** until separate go |
+| **Roadmap** | NIP-46, NIP-17, **NIP-47 NWC**, MPC | Design + code path next | Later | Mainnet NWC **frozen** until go — [nwc-automatic-wallets.md](./nwc-automatic-wallets.md) |
 
 ### Explicit non-goals (still frozen without a new go)
 
 Aligned with [mainnet-pilot.md](./mainnet-pilot.md):
 
-- **Nostr production identity / NWC on mainnet**
+- **NWC on mainnet** (regtest implementation allowed per [nwc-automatic-wallets.md](./nwc-automatic-wallets.md))
 - Autonomous agent execution of pays on mainnet
 - Treating A′ Loop Out / capital HOLD as approval for Nostr mainnet pays
 - Replacing `AGENT_BITCOIN_API_KEY` HTTP auth
