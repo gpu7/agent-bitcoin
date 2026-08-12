@@ -1,3 +1,17 @@
+## Ops/docs — Nostr mainnet M2 Dual go (2026-08-12)
+
+### Policy
+
+- **M2 go:** Dual path (Mac alice → AWS bob), **2,000 sats** max, human-attended, autopay off
+- Capital HOLD still covers deposits / new channels / Loop / Autoloop
+- Live pay pending Stage 3 (Mac wallet unlock + outbound path) and Stage 5 dry-run
+
+### Documented
+
+- Expanded dual-host runbook Stages 3–6 in [docs/nostr-agent-identity.md](docs/nostr-agent-identity.md)
+
+---
+
 ## Ops/docs — Nostr mainnet Stage 2 Phase C (2026-08-12)
 
 ### Done

@@ -1,7 +1,7 @@
 # ADR: Nostr identity for agent swarms (Phase A)
 
-**Status:** Accepted — Phase A/B complete on **regtest + signet**. **Mainnet M1 identity + Stage 2 Phase C demo DONE** (2026-08-12); M2 pay smoke and NWC still frozen. See [Mainnet process](#mainnet-process-not-yet-executed).
-**Date:** 2026-07-29 (signet Phase B 2026-08-02; mainnet process 2026-08-11; **M1 + Stage 2 Dual 2026-08-12**)
+**Status:** Accepted — Phase A/B complete on **regtest + signet**. **Mainnet M1 + Stage 2 DONE**; **M2 Dual 2k go approved** (2026-08-12) — live pay pending operator LN unlock/path. NWC still frozen. See [Mainnet process](#mainnet-process-not-yet-executed).
+**Date:** 2026-07-29 (signet Phase B 2026-08-02; **M2 Dual go 2026-08-12**)
 **Audience:** Operators and developers.
 **Agents / SDK payment path:** unchanged. Nostr is **additive** identity/transport, not a replacement for LND, Autoloop, or the FastAPI backend.
 
@@ -339,25 +339,19 @@ Aligned with [mainnet-pilot.md](./mainnet-pilot.md):
 
 ### Stage 0 — Policy go (operator)
 
-**Recorded 2026-08-12:**
+**M1 recorded 2026-08-12** (identity only). **M2 recorded 2026-08-12:**
 
 | Field | Decision |
 |-------|----------|
-| Scope | **M1 only** (identity; no Lightning) |
-| Path for later M2 | **Dual** (Mac alice / AWS bob) — not executed yet |
-| M2 / M3 | Deferred until after M1 close-out |
-| Capital HOLD | Unchanged (no deposits / channels / Loop / Autoloop) |
-| Autopay | **Off** |
+| Scope | **M2** — one human-attended Phase B pay |
+| Path | **Dual** — Mac `alice` pays → AWS `bob` invoices |
+| Amount cap | **2,000 sats** (`MIN_PAYMENT_SATS`) + routing fee |
+| Capital HOLD | Still no new deposits / channels / Loop / Autoloop |
+| Autopay | **Off** (`AGENT_BITCOIN_ALLOW_AUTOPAY` unset) |
+| Mainnet latch | Session-only `AGENT_BITCOIN_ALLOW_MAINNET=1` for invoice/pay |
+| Kill switch | Stop after first SUCCESS or first incident |
 
-Historical checklist (for a future M2 go):
-
-1. Confirm capital HOLD for deposits / new channels / Loop / Autoloop.
-2. Unfreeze **only** M1 and/or M2 in writing (this ADR checklist + pilot post-pilot table).
-3. Choose Lightning path for M2: **Dual** (chosen) or Public-receive.
-4. Cap max single Nostr-coordinated pay (recommend **2,000** sats).
-5. Autopay remains **off**.
-
-**Exit (M1):** written go + Dual noted for later.
+**Exit (M2 go):** written go + Dual + 2k cap.
 
 ### Stage 1 — M1 identity (no payments) — **DONE 2026-08-12**
 
@@ -418,35 +412,85 @@ unset NOSTR_PASSPHRASE
 
 **Exit:** demo PASS for alice + bob.
 
-### Stage 3 — Lightning readiness (M2 only)
+### Stage 3 — Lightning readiness (M2 Dual)
 
-| Check | Dual path | Public-receive path |
-|-------|-----------|---------------------|
-| AWS LND | `agent-payment-decision-lnd-mainnet` unlocked, synced | Same |
-| Mac LND | `agent-bitcoin-lnd-mainnet` unlocked, synced | Optional if paying from another wallet |
-| Inbound on invoice node | Need path to AWS | A′ remote balance already ~251k |
-| Outbound on payer | Local balance ≥ 2k + fee | Same for chosen payer |
-| Channel / route | Private Mac↔AWS or public graph | Public graph into ACINQ/LNBiG |
+| Check | Dual requirement | Notes (2026-08-12) |
+|-------|------------------|--------------------|
+| AWS LND | `agent-payment-decision-lnd-mainnet` unlocked, synced | A′ node; inbound ~251k after Loop Out |
+| Mac LND | `agent-bitcoin-lnd-mainnet` unlocked, synced | **Was locked** at M2 start — unlock before live pay |
+| Inbound on AWS | remote_balance ≥ 2k | Prefer public channels (ACINQ/LNBiG) |
+| Outbound on Mac | local_balance ≥ 2k + fee | Phase 8 private channel was closed; pay via **public graph** or reopen dual channel (new capital go) |
+| Route | Mac can pay AWS invoice | `queryroutes` / first pay attempt |
+| Autoloop | Off | Do not enable |
 
-**Exit:** active route; amounts feasible. No Autoloop.
+**Mac checks:**
 
-### Stage 4 — Env + safety (already partly in SDK)
+```bash
+docker exec -it agent-bitcoin-lnd-mainnet \
+  lncli --lnddir=/home/lnd/.lnd --network=mainnet unlock
+
+docker exec agent-bitcoin-lnd-mainnet \
+  lncli --lnddir=/home/lnd/.lnd --network=mainnet getinfo | grep -E 'synced_to_chain|num_active_channels'
+
+docker exec agent-bitcoin-lnd-mainnet \
+  lncli --lnddir=/home/lnd/.lnd --network=mainnet channelbalance
+```
+
+**AWS checks:**
+
+```bash
+docker exec agent-payment-decision-lnd-mainnet \
+  lncli --lnddir=/home/lnd/.lnd --network=mainnet getinfo | grep -E 'synced_to_chain|identity_pubkey'
+
+docker exec agent-payment-decision-lnd-mainnet \
+  lncli --lnddir=/home/lnd/.lnd --network=mainnet channelbalance
+```
+
+**Exit:** both unlocked; AWS inbound and Mac outbound feasible; no Autoloop.
+
+### Stage 4 — Env + safety
+
+**Mac (payer / alice):**
 
 ```bash
 export LND_NETWORK=mainnet
-export AGENT_BITCOIN_ALLOW_MAINNET=1   # required by LNDClient; session-only
+export AGENT_BITCOIN_ALLOW_MAINNET=1
 export LND_PAYER_CONTAINER=agent-bitcoin-lnd-mainnet
-export LND_INVOICE_CONTAINER=agent-payment-decision-lnd-mainnet
 export NOSTR_POC_DIR=./.nostr-poc-mainnet
-export NOSTR_PASSPHRASE='…'
-# Do NOT set AGENT_BITCOIN_ALLOW_AUTOPAY=1 for this smoke
+export NOSTR_PASSPHRASE='…from password manager…'
+# Do NOT set AGENT_BITCOIN_ALLOW_AUTOPAY=1
 ```
 
-`LNDClient` refuses mainnet unless `AGENT_BITCOIN_ALLOW_MAINNET=1`. Unset the latch after the session.
-
-### Stage 5 — Dry-run (no money movement)
+**AWS (invoice / bob)** — after key tree copy:
 
 ```bash
+export LND_NETWORK=mainnet
+export AGENT_BITCOIN_ALLOW_MAINNET=1
+export LND_INVOICE_CONTAINER=agent-payment-decision-lnd-mainnet
+export NOSTR_POC_DIR=./.nostr-poc-mainnet
+export NOSTR_PASSPHRASE='…same passphrase…'
+```
+
+`LNDClient` refuses mainnet without `AGENT_BITCOIN_ALLOW_MAINNET=1`. Unset after session.
+
+**Copy keys to AWS (exclude passphrase file):**
+
+```bash
+# Mac → AWS
+rsync -az -e "ssh -i ~/.ssh/aws/agent-bitcoin-key.pem -o IdentitiesOnly=yes" \
+  --exclude 'PASSPHRASE.local' \
+  .nostr-poc-mainnet/ \
+  ubuntu@<AWS_EIP>:~/agent-bitcoin/.nostr-poc-mainnet/
+```
+
+### Stage 5 — Dry-run (no money movement) — **run first**
+
+On **Mac** (needs passphrase; no LND unlock required):
+
+```bash
+export NOSTR_POC_DIR=./.nostr-poc-mainnet
+export NOSTR_PASSPHRASE='…'
+
 .venv-nostr/bin/python examples/nostr_phase_b_payment.py \
   --dir "$NOSTR_POC_DIR" --passphrase "$NOSTR_PASSPHRASE" \
   request --amount 2000 --memo 'nostr-mainnet-b-dry'
@@ -461,22 +505,57 @@ export NOSTR_PASSPHRASE='…'
   --dir "$NOSTR_POC_DIR" --passphrase "$NOSTR_PASSPHRASE" status
 ```
 
-**Exit:** bus signatures verify; channel balances unchanged.
+**Exit:** bus signatures verify; no channel balance change.
 
-### Stage 6 — Live M2 smoke (human-attended)
+### Stage 6 — Live M2 Dual smoke (human-attended)
 
-Mirror [signet Phase B](./signet.md#nostr-phase-b-on-signet-same-as-regtest) with mainnet containers:
+Prereqs: Stage 3 PASS, Stage 5 PASS, keys on AWS, both wallets unlocked.
 
-1. Mac: `request --amount 2000 --memo 'nostr-mainnet-b'`
-2. rsync/scp `.nostr-poc-mainnet/` → AWS
-3. AWS: `invoice` with mainnet invoice container + `LND_NETWORK=mainnet` + allow latch
-4. Sync bus offer back to Mac
-5. Mac: `pay` (optional `--decide`); confirm LND `SUCCEEDED`
-6. Verify balances; `status` on bus
-7. Fresh **SCB** export after material channel change
-8. Unset `AGENT_BITCOIN_ALLOW_MAINNET`; log payment hash privately; update success criteria below
+```bash
+# --- Mac: request ---
+export LND_NETWORK=mainnet
+export AGENT_BITCOIN_ALLOW_MAINNET=1
+export LND_PAYER_CONTAINER=agent-bitcoin-lnd-mainnet
+export NOSTR_POC_DIR=./.nostr-poc-mainnet
+export NOSTR_PASSPHRASE='…'
 
-**Do not:** publish mainnet bolt11 on public relays; enable Autoloop; loop auto-pay scripts.
+.venv-nostr/bin/python examples/nostr_phase_b_payment.py \
+  --dir "$NOSTR_POC_DIR" --passphrase "$NOSTR_PASSPHRASE" \
+  request --amount 2000 --memo 'nostr-mainnet-b'
+
+# Sync keys + bus to AWS (if not already)
+rsync -az -e "ssh -i ~/.ssh/aws/agent-bitcoin-key.pem -o IdentitiesOnly=yes" \
+  --exclude 'PASSPHRASE.local' \
+  "$NOSTR_POC_DIR"/ ubuntu@<AWS_EIP>:~/agent-bitcoin/.nostr-poc-mainnet/
+
+# --- AWS: invoice (real addinvoice) ---
+# ssh to AWS, then:
+export LND_NETWORK=mainnet
+export AGENT_BITCOIN_ALLOW_MAINNET=1
+export LND_INVOICE_CONTAINER=agent-payment-decision-lnd-mainnet
+export NOSTR_POC_DIR=./.nostr-poc-mainnet
+export NOSTR_PASSPHRASE='…'
+
+.venv-nostr/bin/python examples/nostr_phase_b_payment.py \
+  --dir "$NOSTR_POC_DIR" --passphrase "$NOSTR_PASSPHRASE" invoice
+
+# --- Mac: pull bus offer, then pay ---
+rsync -az -e "ssh -i ~/.ssh/aws/agent-bitcoin-key.pem -o IdentitiesOnly=yes" \
+  ubuntu@<AWS_EIP>:~/agent-bitcoin/.nostr-poc-mainnet/bus/ "$NOSTR_POC_DIR/bus/"
+
+.venv-nostr/bin/python examples/nostr_phase_b_payment.py \
+  --dir "$NOSTR_POC_DIR" --passphrase "$NOSTR_PASSPHRASE" pay
+# optional: add --decide
+
+.venv-nostr/bin/python examples/nostr_phase_b_payment.py \
+  --dir "$NOSTR_POC_DIR" --passphrase "$NOSTR_PASSPHRASE" status
+
+unset NOSTR_PASSPHRASE AGENT_BITCOIN_ALLOW_MAINNET
+```
+
+After SUCCESS: export SCB on both hosts if channel state material; record payment hash in exercise log; Stage 7 hard stop.
+
+**Do not:** publish mainnet bolt11 on public relays; enable Autoloop; auto-pay loops.
 
 ### Stage 7 — Hard stop
 
@@ -503,13 +582,15 @@ Mirror [signet Phase B](./signet.md#nostr-phase-b-on-signet-same-as-regtest) wit
 - [x] Phase C demo on mainnet keys (alice + bob **PASS**, 2026-08-12)
 - [ ] Phase B dry-run / live pay — **out of scope until M2 go**
 
-**M2+ (deferred):**
+**M2 (in progress):**
 
-- [ ] Phase B dry-run PASS with mainnet env
-- [ ] One live **2,000 sat** Phase B pay SUCCESS
+- [x] Stage 0 M2 go (Dual, **2,000 sats**, 2026-08-12)
+- [ ] Stage 3 LN readiness (Mac unlock + outbound; AWS inbound)
+- [ ] Stage 5 Phase B dry-run PASS
+- [ ] Stage 6 live 2k Phase B SUCCESS
+- [ ] Stage 7 hard stop + payment hash logged
 - [ ] Optional: wire Phase B → Phase C signer socket
 - [ ] NWC / Autoloop / autopay still **off**
-- [ ] Docs updated with payment hash / date
 
 ### Mainnet exercise log
 
@@ -518,9 +599,11 @@ Mirror [signet Phase B](./signet.md#nostr-phase-b-on-signet-same-as-regtest) wit
 | M1 status | **DONE** (identity only) |
 | M1 date | **2026-08-12** |
 | Stage 2 Phase C | **PASS** alice + bob (2026-08-12) |
-| Path (planned for M2) | **Dual** (Mac alice → AWS bob) |
+| M2 policy go | **Approved** Dual / 2k (2026-08-12) |
+| Path | **Dual** (Mac alice → AWS bob) |
 | alice npub | `npub1u9z2exv9udv2hkhnq5fl8pvlsqvuphmuuxejj2u6g0lf06r8tgsqxl68s8` |
 | bob npub | `npub1jy3ch65u5wvhx4x5s7239k63qtp65h4084fcaq8djgra0dh0erfslusp9f` |
 | Offline crypto | **PASS** |
-| M2 pay status | **Not run** (deferred) |
+| M2 dry-run | **Pending** |
+| M2 live pay | **Pending** |
 | Amount / payment hash | — |
