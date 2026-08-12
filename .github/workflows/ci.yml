@@ -32,15 +32,17 @@ jobs:
           version: "latest"
 
       - name: Install dependencies
-        run: uv sync --dev
+        # Pin 3.12: pynostr/coincurve lack reliable 3.14 wheels; uv may otherwise
+        # pick latest CPython. Include nostr extra for NWC client tests.
+        run: uv sync --python 3.12 --dev --extra nostr
 
       - name: Run Ruff
-        run: uv run ruff check .
+        run: uv run --python 3.12 ruff check .
 
       # Prefer ruff format (same as pre-commit). Black and ruff-format can
       # disagree on assert wrapping; one formatter only avoids red CI.
       - name: Run Ruff format
-        run: uv run ruff format --check .
+        run: uv run --python 3.12 ruff format --check .
 
       - name: Run tests
-        run: uv run pytest
+        run: uv run --python 3.12 pytest

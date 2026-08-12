@@ -1,7 +1,10 @@
 """Nostr Wallet Connect (NIP-47) helpers for automatic agent wallets.
 
-Phase N2: URI parse + policy allowlist (offline).
-Client/service (N3–N4) land in follow-up PRs — see docs/nwc-automatic-wallets.md.
+- N2: URI parse + policy allowlist (no pynostr required)
+- N3: client + in-memory bus (requires optional ``.[nostr]`` / pynostr)
+- N4: LND-backed service (next)
+
+See docs/nwc-automatic-wallets.md.
 """
 
 from agent_bitcoin.nwc.errors import NWCError, NWCPolicyError, NWCURIError
@@ -33,3 +36,21 @@ __all__ = [
     "nwc_enabled",
     "parse_nwc_uri",
 ]
+
+# Client stack needs pynostr (optional extra)
+try:
+    from agent_bitcoin.nwc.bus import InMemoryNWCBus
+    from agent_bitcoin.nwc.client import (
+        NWCClient,
+        attach_mock_wallet,
+        sign_response_event,
+    )
+
+    __all__ += [
+        "InMemoryNWCBus",
+        "NWCClient",
+        "attach_mock_wallet",
+        "sign_response_event",
+    ]
+except ImportError:  # pragma: no cover - environment without pynostr
+    pass

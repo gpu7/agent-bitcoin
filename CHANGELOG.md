@@ -1,3 +1,14 @@
+## Feat — NWC client + mock bus (N3) (2026-08-12)
+
+### Added
+
+- `NWCClient`: encrypted NIP-47 requests (`get_info`, `get_balance`, `make_invoice`, `pay_invoice`)
+- `InMemoryNWCBus` + `attach_mock_wallet` for offline/lab tests (no WebSocket relays)
+- NIP-04 payload crypto via pynostr; tests in `tests/test_nwc_client.py`
+- No LND-backed service yet (N4)
+
+---
+
 ## Feat — NWC scaffold URI + policy (N2) (2026-08-12)
 
 ### Added

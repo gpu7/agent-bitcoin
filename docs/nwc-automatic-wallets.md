@@ -199,6 +199,7 @@ Do **not** export NWC pay as the default `AgentBitcoinClient` path until N5 is d
 
 - [x] Design ADR accepted (this document)
 - [x] URI parse + policy unit tests (`tests/test_nwc_uri.py`, `tests/test_nwc_policy.py`)
+- [x] NWC client + mock wallet offline tests (`tests/test_nwc_client.py`)
 - [ ] Regtest: client+service `make_invoice` + `pay_invoice` SUCCESS ≥ 2,000 sats
 - [ ] Agent path holds no LND admin macaroon
 - [ ] PaymentDecisionAgent still non-executing
@@ -218,6 +219,21 @@ agent_bitcoin/nwc/
 ```bash
 uv run pytest tests/test_nwc_uri.py tests/test_nwc_policy.py -q
 ```
+
+### N3 client (landed)
+
+```text
+agent_bitcoin/nwc/
+  crypto.py    # NIP-04 encrypt/decrypt (pynostr)
+  bus.py       # InMemoryNWCBus (lab mock relay)
+  client.py    # NWCClient + attach_mock_wallet
+```
+
+```bash
+uv run pytest tests/test_nwc_uri.py tests/test_nwc_policy.py tests/test_nwc_client.py -q
+```
+
+Encryption note: v1 uses **NIP-04** via pynostr (NIP-47 allows legacy; NIP-44 preferred long-term).
 
 ---
 
