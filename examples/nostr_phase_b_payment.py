@@ -92,15 +92,23 @@ def _bus_dir(root: Path) -> Path:
 
 
 def _lnd_client(container: str):
-    """Build LND client. Honors LND_NETWORK; mainnet needs AGENT_BITCOIN_ALLOW_MAINNET=1."""
+    """Build LND client. Honors LND_NETWORK; mainnet needs AGENT_BITCOIN_ALLOW_MAINNET=1.
+
+    Defaults to docker exec lncli. Signet gRPC host maps (e.g. :30009) must not
+    silently capture Phase B — set LND_TRANSPORT=grpc only when intentional.
+    """
     from agent_bitcoin.lightning import LNDClient
 
+    # Prefer docker for dual-host lab/mainnet smoke (avoid stale gRPC :30009 from .env)
+    os.environ.setdefault("LND_TRANSPORT", "docker")
     network = os.environ.get("LND_NETWORK", "regtest").strip().lower() or "regtest"
+    transport = os.environ.get("LND_TRANSPORT", "docker").strip().lower() or "docker"
     if network == "mainnet":
         print(
             "[lnd] LND_NETWORK=mainnet — live invoice/pay moves real sats; "
             "requires AGENT_BITCOIN_ALLOW_MAINNET=1 (enforced by LNDClient)."
         )
+    print(f"[lnd] LND_TRANSPORT={transport} container={container}")
     client = LNDClient()
     client.container = container
     # Both AWS and Mac compose use this lnddir
