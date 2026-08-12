@@ -16,7 +16,11 @@ from pynostr.key import PrivateKey
 
 from agent_bitcoin.nwc.bus import InMemoryNWCBus
 from agent_bitcoin.nwc.client import sign_response_event
-from agent_bitcoin.nwc.crypto import client_private_key, nip04_decrypt
+from agent_bitcoin.nwc.crypto import (
+    client_private_key,
+    decrypt_payload,
+    scheme_from_event_tags,
+)
 from agent_bitcoin.nwc.errors import NWCError, NWCPolicyError
 from agent_bitcoin.nwc.policy import (
     V1_ALLOWED_METHODS,
@@ -119,8 +123,12 @@ class NWCService:
                     code="UNAUTHORIZED",
                 )
 
-            clear = nip04_decrypt(
-                self.wallet_sk.hex(), client_pubkey, req.get("content") or ""
+            sch = scheme_from_event_tags(req.get("tags"))
+            clear = decrypt_payload(
+                self.wallet_sk.hex(),
+                client_pubkey,
+                req.get("content") or "",
+                scheme=sch,
             )
             body = json.loads(clear)
             method = str(body.get("method") or "unknown")

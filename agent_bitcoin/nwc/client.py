@@ -15,7 +15,13 @@ from pynostr.event import Event
 from pynostr.key import PrivateKey
 
 from agent_bitcoin.nwc.bus import InMemoryNWCBus
-from agent_bitcoin.nwc.crypto import client_private_key, nip04_decrypt, nip04_encrypt
+from agent_bitcoin.nwc.crypto import (
+    SCHEME_NIP44,
+    client_private_key,
+    decrypt_payload,
+    encrypt_payload,
+    scheme_from_event_tags,
+)
 from agent_bitcoin.nwc.errors import NWCError, NWCPolicyError
 from agent_bitcoin.nwc.policy import (
     KIND_REQUEST,
@@ -84,14 +90,19 @@ class NWCClient:
 
         payload = {"method": method, "params": params}
         plaintext = json.dumps(payload, separators=(",", ":"), sort_keys=True)
-        content = nip04_encrypt(self.connection.secret, self.wallet_pubkey, plaintext)
+        content = encrypt_payload(
+            self.connection.secret,
+            self.wallet_pubkey,
+            plaintext,
+            scheme=SCHEME_NIP44,
+        )
 
         event = Event(
             kind=KIND_REQUEST,
             content=content,
             tags=[
                 ["p", self.wallet_pubkey],
-                ["encryption", "nip04"],
+                ["encryption", SCHEME_NIP44],
             ],
         )
         event.sign(self.connection.secret)
@@ -157,9 +168,13 @@ class NWCClient:
     ) -> dict[str, Any]:
         # Response encrypted to client by wallet; decrypt with client secret.
         ciphertext = response.get("content") or ""
+        scheme = scheme_from_event_tags(response.get("tags"))
         try:
-            clear = nip04_decrypt(
-                self.connection.secret, self.wallet_pubkey, ciphertext
+            clear = decrypt_payload(
+                self.connection.secret,
+                self.wallet_pubkey,
+                ciphertext,
+                scheme=scheme,
             )
         except NWCError:
             raise
@@ -218,14 +233,16 @@ def sign_response_event(
         "result": result if error is None else None,
     }
     plaintext = json.dumps(body, separators=(",", ":"), sort_keys=True)
-    content = nip04_encrypt(wallet_sk.hex(), client_pubkey, plaintext)
+    content = encrypt_payload(
+        wallet_sk.hex(), client_pubkey, plaintext, scheme=SCHEME_NIP44
+    )
     event = Event(
         kind=KIND_RESPONSE,
         content=content,
         tags=[
             ["p", client_pubkey],
             ["e", request_event_id],
-            ["encryption", "nip04"],
+            ["encryption", SCHEME_NIP44],
         ],
     )
     event.sign(wallet_sk.hex())
@@ -244,8 +261,12 @@ def attach_mock_wallet(
     def _on_request(req: dict[str, Any]) -> None:
         client_pubkey = req.get("pubkey") or ""
         try:
-            clear = nip04_decrypt(
-                wallet_sk.hex(), client_pubkey, req.get("content") or ""
+            sch = scheme_from_event_tags(req.get("tags"))
+            clear = decrypt_payload(
+                wallet_sk.hex(),
+                client_pubkey,
+                req.get("content") or "",
+                scheme=sch,
             )
             body = json.loads(clear)
         except Exception as e:

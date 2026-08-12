@@ -1,3 +1,16 @@
+## Feat — NIP-44 v2 + public-relay NWC (2026-08-12)
+
+### Added
+
+- `agent_bitcoin/nostr/nip44.py` — NIP-44 v2 (ECDH / HKDF / ChaCha20 / HMAC) + spec vector tests
+- NWC client/service default encryption **`nip44_v2`** (NIP-04 only if `AGENT_BITCOIN_NWC_ALLOW_NIP04=1`)
+- NIP-46 / NIP-17 payloads use the same NIP-44 facade
+- Public-relay operator scripts: `nwc_relay_service.py` (AWS, reconnect), `nwc_relay_client.py` (Mac)
+- Defaults: `wss://relay.damus.io`, `wss://nos.lol`
+- Mainnet pay still multi-latch + 2k; Autopay off
+
+---
+
 ## Feat — M3 production swarm primitives (2026-08-12)
 
 ### Added

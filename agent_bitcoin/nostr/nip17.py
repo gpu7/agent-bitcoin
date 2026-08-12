@@ -14,7 +14,7 @@ from typing import Any
 from pynostr.event import Event
 from pynostr.key import PrivateKey
 
-from agent_bitcoin.nwc.crypto import nip04_decrypt, nip04_encrypt
+from agent_bitcoin.nwc.crypto import decrypt_payload, encrypt_payload
 
 KIND_SEAL = 13
 KIND_WRAP = 1059
@@ -36,7 +36,7 @@ def gift_wrap(
         "tags": extra_tags or [],
         "content": plaintext,
     }
-    seal_content = nip04_encrypt(
+    seal_content = encrypt_payload(
         sender.hex(), recipient_pubkey, json.dumps(rumor, separators=(",", ":"))
     )
     seal = Event(kind=KIND_SEAL, content=seal_content, tags=[])
@@ -55,7 +55,7 @@ def gift_wrap(
         },
         separators=(",", ":"),
     )
-    wrap_ct = nip04_encrypt(wrap_sk.hex(), recipient_pubkey, wrap_payload)
+    wrap_ct = encrypt_payload(wrap_sk.hex(), recipient_pubkey, wrap_payload)
     wrap = Event(
         kind=KIND_WRAP,
         content=wrap_ct,
@@ -78,13 +78,13 @@ def gift_unwrap(recipient: PrivateKey, wrap: dict[str, Any]) -> dict[str, Any]:
     if int(wrap.get("kind", 0)) != KIND_WRAP:
         raise ValueError("not a kind 1059 wrap")
     sender_wrap_pk = str(wrap.get("pubkey") or "")
-    seal_json = nip04_decrypt(
+    seal_json = decrypt_payload(
         recipient.hex(), sender_wrap_pk, wrap.get("content") or ""
     )
     seal = json.loads(seal_json)
     if int(seal.get("kind", 0)) != KIND_SEAL:
         raise ValueError("inner event is not a seal")
-    rumor_json = nip04_decrypt(
+    rumor_json = decrypt_payload(
         recipient.hex(), str(seal.get("pubkey") or ""), seal.get("content") or ""
     )
     rumor = json.loads(rumor_json)
