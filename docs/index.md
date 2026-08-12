@@ -23,6 +23,7 @@
 | [loop-multi-network.md](./loop-multi-network.md) | Install loopd on regtest / signet / mainnet (Autoloop off on mainnet until go) |
 | [public-routing-loop.md](./public-routing-loop.md) | **Topology A′:** public channels + first Loop Out **SUCCESS**; capital **HOLD**; Autoloop off |
 | [nostr-agent-identity.md](./nostr-agent-identity.md) | ADR: Nostr A–C; **mainnet M2 Dual 2k SUCCESS** |
+| [nwc-automatic-wallets.md](./nwc-automatic-wallets.md) | **NWC / NIP-47:** automatic wallets design; regtest implementation next; mainnet frozen |
 | [setup.md](./setup.md) | Short setup pointers |
 
 ## Also
@@ -40,6 +41,7 @@
 4. Signet (after regtest) → [signet.md](./signet.md)
 5. Mainnet pilot (ops complete; limits still tight) → [mainnet-pilot.md](./mainnet-pilot.md)
 6. Public routing + Loop (A′ executed; capital HOLD) → [public-routing-loop.md](./public-routing-loop.md)
+7. Automatic wallets (NWC design) → [nwc-automatic-wallets.md](./nwc-automatic-wallets.md)
 
 ## Repository
 
