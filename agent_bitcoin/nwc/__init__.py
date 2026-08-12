@@ -8,6 +8,11 @@ See docs/nwc-automatic-wallets.md.
 """
 
 from agent_bitcoin.nwc.errors import NWCError, NWCPolicyError, NWCURIError
+from agent_bitcoin.nwc.flow import (
+    decision_is_pay,
+    nwc_pay_if_approved,
+    rule_based_decision,
+)
 from agent_bitcoin.nwc.policy import (
     KIND_INFO,
     KIND_REQUEST,
@@ -33,8 +38,11 @@ __all__ = [
     "assert_amount_sats_allowed",
     "assert_method_allowed",
     "build_nwc_uri",
+    "decision_is_pay",
     "nwc_enabled",
+    "nwc_pay_if_approved",
     "parse_nwc_uri",
+    "rule_based_decision",
 ]
 
 # Client/service stack needs pynostr (optional extra)

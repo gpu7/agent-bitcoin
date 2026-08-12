@@ -1,3 +1,14 @@
+## Feat — NWC decision → pay product path (N5) (2026-08-12)
+
+### Added
+
+- `agent_bitcoin/nwc/flow.py`: `decision_is_pay`, `nwc_pay_if_approved`, `rule_based_decision`
+- `examples/nwc_decision_pay.py`: offline/mock (and optional LLM) gate then NWC settle
+- SDK.md section for automatic wallets; tests in `tests/test_nwc_flow.py`
+- PaymentDecisionAgent remains recommend-only; execution only via NWC after PAY
+
+---
+
 ## Feat — NWC LND service (N4) (2026-08-12)
 
 ### Added

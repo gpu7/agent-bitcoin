@@ -575,6 +575,8 @@ Runnable scripts under [examples/](examples/):
 | `nostr_phase_c_signer.py` | Phase C local policy signer (agent never holds nsec) |
 | `nostr_phase_c_policy.json` | Default signer policy for Phase C |
 | `nostr_common.py` | Shared helpers for Nostr examples (not public SDK) |
+| `nwc_regtest_smoke.py` | NWC service+client smoke (`--mock` or live LND) |
+| `nwc_decision_pay.py` | **N5:** decide PAY/REJECT → settle only via NWC |
 
 ### Basic
 
@@ -641,6 +643,31 @@ export NOSTR_PASSPHRASE='choose-a-strong-passphrase'
 # Phase C local policy signer (nsec only in signer process):
 .venv-nostr/bin/python examples/nostr_phase_c_signer.py demo --agent alice
 ```
+
+### Automatic wallets (NWC / NIP-47)
+
+Agents hold a **Nostr Wallet Connect URI**, not an LND admin macaroon.
+`PaymentDecisionAgent` still **recommends only**; settlement runs through `NWCClient` after **PAY**.
+
+Design: [docs/nwc-automatic-wallets.md](docs/nwc-automatic-wallets.md).
+
+```bash
+# Python 3.12 + optional nostr extra (pynostr)
+uv sync --python 3.12 --extra nostr --group dev
+export AGENT_BITCOIN_NWC_ENABLE=1
+
+# Offline product path (rule-based decision + mock wallet):
+uv run --python 3.12 python examples/nwc_decision_pay.py --mock
+
+# Optional LLM gate (still does not pay by itself):
+# export XAI_API_KEY=...
+# uv run --python 3.12 python examples/nwc_decision_pay.py --mock --llm grok
+
+# Library helpers:
+# from agent_bitcoin.nwc import rule_based_decision, nwc_pay_if_approved, NWCClient
+```
+
+Mainnet NWC remains **off** unless you set enable latches **and** have an explicit operator go.
 
 ---
 
