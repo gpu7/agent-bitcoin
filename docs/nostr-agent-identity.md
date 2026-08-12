@@ -1,7 +1,7 @@
 # ADR: Nostr identity for agent swarms (Phase A)
 
-**Status:** Accepted — Phase A/B complete on **regtest + signet**; Phase C hardening PoC available. **Mainnet Nostr not implemented** (no live Phase B; NWC frozen). See [Mainnet process](#mainnet-process-not-yet-executed).
-**Date:** 2026-07-29 (signet Phase B exercised 2026-08-02; mainnet process documented 2026-08-11)
+**Status:** Accepted — Phase A/B complete on **regtest + signet**; Phase C hardening PoC available. **Mainnet M1 identity DONE** (2026-08-12); M2 pay smoke and NWC still frozen. See [Mainnet process](#mainnet-process-not-yet-executed).
+**Date:** 2026-07-29 (signet Phase B 2026-08-02; mainnet process 2026-08-11; **M1 Dual go 2026-08-12**)
 **Audience:** Operators and developers.
 **Agents / SDK payment path:** unchanged. Nostr is **additive** identity/transport, not a replacement for LND, Autoloop, or the FastAPI backend.
 
@@ -302,8 +302,8 @@ Policy file: [examples/nostr_phase_c_policy.json](../examples/nostr_phase_c_poli
 
 | Phase | Deliverable | regtest | signet | mainnet |
 |-------|-------------|---------|--------|---------|
-| **A** | Keys, encrypt, sign notes | Yes | Yes (same scripts) | Identity-only possible; **not** a mainnet economic rollout |
-| **B** | Signed pay coord + LND invoice/pay | **Live** | **Live** (2k Mac→AWS) | **Not done** |
+| **A** | Keys, encrypt, sign notes | Yes | Yes (same scripts) | **M1 done** (2026-08-12) — dual alice/bob keys offline |
+| **B** | Signed pay coord + LND invoice/pay | **Live** | **Live** (2k Mac→AWS) | **Not done** (M2 deferred) |
 | **C** | Local policy signer PoC | Demo | Demo | Demo only; not NIP-46 |
 | **Roadmap** | NIP-46, NIP-17, **NIP-47 NWC**, MPC | — | — | **Frozen** until separate go |
 
@@ -338,32 +338,52 @@ Aligned with [mainnet-pilot.md](./mainnet-pilot.md):
 
 ### Stage 0 — Policy go (operator)
 
+**Recorded 2026-08-12:**
+
+| Field | Decision |
+|-------|----------|
+| Scope | **M1 only** (identity; no Lightning) |
+| Path for later M2 | **Dual** (Mac alice / AWS bob) — not executed yet |
+| M2 / M3 | Deferred until after M1 close-out |
+| Capital HOLD | Unchanged (no deposits / channels / Loop / Autoloop) |
+| Autopay | **Off** |
+
+Historical checklist (for a future M2 go):
+
 1. Confirm capital HOLD for deposits / new channels / Loop / Autoloop.
 2. Unfreeze **only** M1 and/or M2 in writing (this ADR checklist + pilot post-pilot table).
-3. Choose Lightning path for M2:
-   - **Dual:** Mac `agent-bitcoin-lnd-mainnet` pays → AWS `agent-payment-decision-lnd-mainnet` receives (signet-shaped; needs Mac outbound path).
-   - **Public-receive:** AWS invoices using A′ inbound (~251k remote); payer is Mac mainnet LND or another wallet that can route to AWS.
-4. Cap max single Nostr-coordinated pay (recommend **2,000** sats = `MIN_PAYMENT_SATS`).
-5. Autopay remains **off**; human CLI only; optional `--decide`.
+3. Choose Lightning path for M2: **Dual** (chosen) or Public-receive.
+4. Cap max single Nostr-coordinated pay (recommend **2,000** sats).
+5. Autopay remains **off**.
 
-**Exit:** written go + amount cap + path.
+**Exit (M1):** written go + Dual noted for later.
 
-### Stage 1 — M1 identity (no payments)
+### Stage 1 — M1 identity (no payments) — **DONE 2026-08-12**
 
 ```bash
 uv venv -p 3.12 .venv-nostr
 uv pip install --python .venv-nostr/bin/python -e '.[nostr]'
-export NOSTR_PASSPHRASE='…strong unique mainnet passphrase…'
+# Passphrase: strong unique; store offline (local file pattern: .nostr-poc-mainnet/PASSPHRASE.local)
+export NOSTR_PASSPHRASE='…'   # do not commit
 export NOSTR_POC_DIR=./.nostr-poc-mainnet   # gitignored; never reuse regtest/signet dirs
 
-.venv-nostr/bin/python examples/nostr_agent_poc.py --offline
+.venv-nostr/bin/python examples/nostr_agent_poc.py \
+  --dir "$NOSTR_POC_DIR" --passphrase "$NOSTR_PASSPHRASE" \
+  --force-new-keys --offline
 ```
 
-- New keys only (do **not** reuse lab npubs for mainnet economic identity).
-- Store npubs offline; never commit encrypted key blobs or passphrases.
-- Optional: kind 0 profile on a relay — **no** mainnet BOLT11s or secrets in public notes.
+**Executed:**
 
-**Exit:** encrypted keys under `.nostr-poc-mainnet/`; offline sign/verify PASS.
+| Role | Agent | Host (Dual plan) | npub (public) |
+|------|-------|------------------|---------------|
+| Payer | `alice` | Mac | `npub1u9z2exv9udv2hkhnq5fl8pvlsqvuphmuuxejj2u6g0lf06r8tgsqxl68s8` |
+| Invoice | `bob` | AWS | `npub1jy3ch65u5wvhx4x5s7239k63qtp65h4084fcaq8djgra0dh0erfslusp9f` |
+
+- Offline crypto check: **PASS** (Alice sign → verify).
+- Material under gitignored `.nostr-poc-mainnet/` (`*.enc.json`, passphrase local file).
+- Dual later: rsync/scp the whole dir to AWS with the **same** passphrase before M2 (not required for M1).
+
+**Exit:** encrypted keys; offline sign/verify PASS.
 
 ### Stage 2 — Phase C signer (recommended before M2)
 
@@ -455,22 +475,30 @@ Mirror [signet Phase B](./signet.md#nostr-phase-b-on-signet-same-as-regtest) wit
 
 ### Mainnet success criteria (v1)
 
-- [ ] Stage 0 policy go recorded (M1 and/or M2)
-- [ ] Dedicated `.nostr-poc-mainnet` keys (lab keys unused)
-- [ ] Phase A offline PASS
-- [ ] (Recommended) Phase C demo PASS
+**M1 (this go):**
+
+- [x] Stage 0 policy go recorded (**M1 only**; Dual path for later M2)
+- [x] Dedicated `.nostr-poc-mainnet` keys (lab keys unused)
+- [x] Phase A offline PASS (2026-08-12)
+- [ ] (Optional later) Phase C demo on mainnet keys
+- [ ] Phase B dry-run / live pay — **out of scope for M1**
+
+**M2+ (deferred):**
+
 - [ ] Phase B dry-run PASS with mainnet env
-- [ ] One live **2,000 sat** Phase B pay SUCCESS (fill log when done)
+- [ ] One live **2,000 sat** Phase B pay SUCCESS
 - [ ] NWC / Autoloop / autopay still **off**
-- [ ] Docs updated with payment hash / date (private ops + short public note)
+- [ ] Docs updated with payment hash / date
 
 ### Mainnet exercise log
 
 | Field | Value |
 |-------|--------|
-| Status | **Not run** |
-| Date | — |
-| Amount | — |
-| Path | Dual / Public-receive — |
-| Payment hash | — |
-| LND status | — |
+| M1 status | **DONE** (identity only) |
+| M1 date | **2026-08-12** |
+| Path (planned for M2) | **Dual** (Mac alice → AWS bob) |
+| alice npub | `npub1u9z2exv9udv2hkhnq5fl8pvlsqvuphmuuxejj2u6g0lf06r8tgsqxl68s8` |
+| bob npub | `npub1jy3ch65u5wvhx4x5s7239k63qtp65h4084fcaq8djgra0dh0erfslusp9f` |
+| Offline crypto | **PASS** |
+| M2 pay status | **Not run** (deferred) |
+| Amount / payment hash | — |

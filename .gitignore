@@ -86,6 +86,8 @@ lnd-backups/
 # Nostr agent PoC key material (encrypted nsec + local pubs)
 .nostr-poc/
 .nostr-poc-signet/
+.nostr-poc-mainnet/
+.nostr-poc-mainnet/**
 
 # Secret-scan reports (may contain findings / redacted still sensitive)
 gitleaks-report.json
