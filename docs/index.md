@@ -25,6 +25,7 @@
 | [nostr-agent-identity.md](./nostr-agent-identity.md) | ADR: Nostr A–C; **mainnet M2 Dual 2k SUCCESS** |
 | [nwc-automatic-wallets.md](./nwc-automatic-wallets.md) | **NWC / NIP-47:** automatic wallets (client+service+decision flow); mainnet invoice smoke closed |
 | [m3-production-swarm.md](./m3-production-swarm.md) | **M3 v1:** relays, NIP-46, NIP-17, swarm registry (autopay still off) |
+| [nip44-nwc-relays.md](./nip44-nwc-relays.md) | **NIP-44** + public-relay NWC (Mac listener / AWS service) |
 | [setup.md](./setup.md) | Short setup pointers |
 
 ## Also

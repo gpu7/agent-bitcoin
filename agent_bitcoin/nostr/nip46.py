@@ -13,7 +13,7 @@ from typing import Any, Callable
 from pynostr.event import Event
 from pynostr.key import PrivateKey
 
-from agent_bitcoin.nwc.crypto import nip04_decrypt, nip04_encrypt
+from agent_bitcoin.nwc.crypto import decrypt_payload, encrypt_payload
 from agent_bitcoin.nwc.errors import NWCError, NWCPolicyError
 
 NIP46_KIND = 24133
@@ -109,12 +109,12 @@ class Nip46Bunker:
         if int(event.get("kind", 0)) != NIP46_KIND:
             return None
         client_pubkey = str(event.get("pubkey") or "")
-        clear = nip04_decrypt(
+        clear = decrypt_payload(
             self.conn_sk.hex(), client_pubkey, event.get("content") or ""
         )
         req = json.loads(clear)
         resp_body = self.handle_plaintext(req, client_pubkey=client_pubkey)
-        ct = nip04_encrypt(self.conn_sk.hex(), client_pubkey, json.dumps(resp_body))
+        ct = encrypt_payload(self.conn_sk.hex(), client_pubkey, json.dumps(resp_body))
         out = Event(
             kind=NIP46_KIND,
             content=ct,
@@ -148,7 +148,7 @@ class Nip46Client:
         }
         ev = Event(
             kind=NIP46_KIND,
-            content=nip04_encrypt(
+            content=encrypt_payload(
                 self.client_sk.hex(),
                 self.bunker.connection_pubkey,
                 json.dumps(req),
@@ -168,7 +168,7 @@ class Nip46Client:
         resp_ev = self.bunker.handle_event(ev_dict)
         if not resp_ev:
             raise NWCError("no NIP-46 response")
-        clear = nip04_decrypt(
+        clear = decrypt_payload(
             self.client_sk.hex(),
             self.bunker.connection_pubkey,
             resp_ev["content"],
