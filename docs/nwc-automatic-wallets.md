@@ -1,6 +1,6 @@
 # ADR: Automatic wallets via Nostr Wallet Connect (NIP-47)
 
-**Status:** Accepted for **design + regtest implementation** (N0/N1). Mainnet NWC remains **frozen** until a separate go after regtest PASS.
+**Status:** N0–N5 **done**. **N6 mainnet go accepted** (2026-08-12) with a **tight budget** (default max **2,000 sats**). Requires multi-latch env; Autoloop still off.
 **Date:** 2026-08-12
 **Audience:** Operators and implementers.
 **Related:** [nostr-agent-identity.md](./nostr-agent-identity.md) · [mainnet-pilot.md](./mainnet-pilot.md) · [lnd-client.md](./lnd-client.md) · [SECURITY.md](../SECURITY.md) · [NIP-47](https://nips.nostr.com/47)
@@ -11,7 +11,7 @@
 
 **Nostr Wallet Connect (NWC / NIP-47)** lets agents control a **limited** Lightning wallet over Nostr relays using a connection URI, without holding LND admin macaroons.
 
-This document is the design for agent-bitcoin **automatic wallets**. Implementation follows phases **N2–N5** on **regtest** first; **signet/mainnet** require explicit later goes.
+This document is the design for agent-bitcoin **automatic wallets**. Phases **N2–N5** are implemented; **N6** allows **session-scoped mainnet** under explicit latches and a tight pay ceiling.
 
 ---
 
@@ -41,10 +41,11 @@ Neither is ideal for multi-agent swarms:
 - `PaymentDecisionAgent` remains **recommend-only**; NWC client executes only after an explicit product path allows it.
 - Regtest end-to-end: `make_invoice` + `pay_invoice` ≥ `MIN_PAYMENT_SATS` (2,000).
 
-### Non-goals (v1)
+### Non-goals (v1 / N6)
 
-- Mainnet NWC without a new written go.
+- Mainnet NWC **without** multi-latch env + operator acknowledgement.
 - Autoloop / channel open-close / on-chain send via NWC.
+- Unlimited or high mainnet NWC budgets (default max remains **2k sats**).
 - Replacing FastAPI `AGENT_BITCOIN_API_KEY` backend auth.
 - Full Alby Hub feature parity or every NIP-47 extension.
 - Full NIP-46 bunker (orthogonal; Phase C Unix signer remains the local identity path).
@@ -119,14 +120,14 @@ Map NWC service enforcement to existing project controls:
 | Control | Env / mechanism | NWC use |
 |---------|-----------------|--------|
 | Enable service | `AGENT_BITCOIN_NWC_ENABLE=1` | Default **off** |
-| Network | `LND_NETWORK` | Service inherits; mainnet needs `AGENT_BITCOIN_ALLOW_MAINNET=1` |
-| Min amount | `MIN_PAYMENT_SATS` (default 2,000) | `make_invoice` / `pay_invoice` |
-| Max single pay | `MAX_PAYMENT_SATS` | Cap every pay |
-| Daily sum | spend ledger / `MAX_DAILY_PAYMENT_SATS` | Cap cumulative pays |
-| Autopay latch | `AGENT_BITCOIN_ALLOW_AUTOPAY` | If service uses SDK pay helpers that require it |
+| Mainnet NWC go | `AGENT_BITCOIN_NWC_ALLOW_MAINNET=1` | Default **off** (N6) |
+| LND mainnet | `AGENT_BITCOIN_ALLOW_MAINNET=1` | Required for `LNDClient` on mainnet |
+| Network | `LND_NETWORK` | `mainnet` only for N6 smoke |
+| Min amount | `MIN_PAYMENT_SATS` / `NWC_MIN_PAYMENT_SATS` | default 2,000 |
+| Max single pay | `NWC_MAX_PAYMENT_SATS` or mainnet default **2,000** | Lab uses `MAX_PAYMENT_SATS` |
 | Transport | `LND_TRANSPORT=docker` default | Avoid stale gRPC port misconfig (see M2 lesson) |
 
-**Mainnet:** even with code present, operators must not set NWC enable + mainnet latches without a **new written go** and tiny budgets.
+**Mainnet (N6):** all three of `NWC_ENABLE`, `NWC_ALLOW_MAINNET`, and `ALLOW_MAINNET` must be `1`. Budget defaults to **max 2,000 sats**.
 
 ---
 
@@ -152,7 +153,7 @@ Map NWC service enforcement to existing project controls:
 | **N3** | NWC **client** (request/response; mock relay tests) | Offline / mock |
 | **N4** | NWC **service** → `LNDClient`; regtest e2e invoice+pay | **regtest** |
 | **N5** | Example + docs: decision → NWC pay path; SDK.md note | **Done** (mock/regtest) |
-| **N6** | Signet then mainnet | Explicit goes only |
+| **N6** | Mainnet tight-budget go + latches | **Go 2026-08-12** (max 2k; multi-latch) |
 
 ### Suggested module layout
 
@@ -212,6 +213,7 @@ Do **not** export NWC pay as the default `AgentBitcoinClient` path until N5 is d
 - [x] PaymentDecisionAgent still non-executing
 - [x] Mainnet NWC off by default (`AGENT_BITCOIN_NWC_ENABLE`)
 - [x] SDK.md + `examples/nwc_decision_pay.py` + `nwc_pay_if_approved` (N5)
+- [x] N6 mainnet multi-latch + tight 2k default budget + `nwc_mainnet_smoke.py`
 
 ### N2 scaffold (landed)
 
@@ -259,7 +261,8 @@ uv run --python 3.12 python examples/nwc_regtest_smoke.py --mock --pay
 ```
 
 Service enforces: method allowlist, min/max sats, authorized client pubkeys from
-`issue_connection()`, and `AGENT_BITCOIN_NWC_ENABLE` when `require_enable=True`.
+`issue_connection()`, `AGENT_BITCOIN_NWC_ENABLE`, and on mainnet
+`assert_nwc_network_allowed()` (NWC_ALLOW_MAINNET + ALLOW_MAINNET).
 
 ### N5 product path (landed)
 
@@ -277,6 +280,37 @@ uv run --python 3.12 pytest tests/test_nwc_flow.py -q
 
 Flow: **PaymentDecisionAgent / rule_based_decision** returns PAY|REJECT → only on PAY does
 `nwc_pay_if_approved` call `NWCClient.pay_invoice`.
+
+### N6 mainnet tight budget (landed)
+
+**Policy go (2026-08-12):** mainnet NWC allowed for **human-attended smoke** only.
+
+| Limit | Value |
+|-------|--------|
+| Max single pay | **2,000 sats** (`DEFAULT_NWC_MAINNET_MAX_SATS`; override `NWC_MAX_PAYMENT_SATS`) |
+| Min pay | **2,000 sats** (project min) |
+| Recommended N | **1** successful path per session |
+| Autoloop | **Off** |
+| Transport | in-memory bus + docker LND (same process smoke) |
+
+```bash
+export LND_NETWORK=mainnet
+export AGENT_BITCOIN_ALLOW_MAINNET=1
+export AGENT_BITCOIN_NWC_ENABLE=1
+export AGENT_BITCOIN_NWC_ALLOW_MAINNET=1
+export LND_TRANSPORT=docker
+export LND_CONTAINER=agent-payment-decision-lnd-mainnet   # or Mac payer container
+# optional: export NWC_MAX_PAYMENT_SATS=2000
+
+uv run --python 3.12 python examples/nwc_mainnet_smoke.py --yes-mainnet --amount 2000
+# settle only when ready:
+# uv run --python 3.12 python examples/nwc_mainnet_smoke.py --yes-mainnet --amount 2000 --pay
+
+# Hard stop
+unset AGENT_BITCOIN_NWC_ALLOW_MAINNET AGENT_BITCOIN_NWC_ENABLE AGENT_BITCOIN_ALLOW_MAINNET
+```
+
+**Prereqs:** unlocked mainnet LND; for `--pay`, sufficient **local** channel balance (e.g. Mac dual private channel after M2). Invoice-only exercises receive path on the service node.
 
 ---
 

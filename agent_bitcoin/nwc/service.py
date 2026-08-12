@@ -23,6 +23,7 @@ from agent_bitcoin.nwc.policy import (
     NWCBudgetPolicy,
     assert_amount_sats_allowed,
     assert_method_allowed,
+    assert_nwc_network_allowed,
     msats_to_sats,
     nwc_enabled,
     sats_to_msats,
@@ -108,6 +109,8 @@ class NWCService:
                     "NWC disabled: set AGENT_BITCOIN_NWC_ENABLE=1",
                     code="RESTRICTED",
                 )
+            # Mainnet dual latch (NWC_ALLOW_MAINNET + ALLOW_MAINNET)
+            assert_nwc_network_allowed()
             if self.require_client_auth and (
                 client_pubkey not in self.authorized_client_pubkeys
             ):

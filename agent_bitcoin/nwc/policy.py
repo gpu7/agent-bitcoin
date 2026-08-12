@@ -6,13 +6,21 @@ import os
 from dataclasses import dataclass
 from typing import Final
 
-from agent_bitcoin.constants import max_payment_sats, min_payment_sats
+from agent_bitcoin.constants import (
+    is_mainnet,
+    max_payment_sats,
+    min_payment_sats,
+)
 from agent_bitcoin.nwc.errors import NWCPolicyError
 
 # NIP-47 event kinds (for clients/services)
 KIND_INFO: Final[int] = 13194
 KIND_REQUEST: Final[int] = 23194
 KIND_RESPONSE: Final[int] = 23195
+
+# N6 mainnet pilot: single-pay ceiling unless NWC_MAX_PAYMENT_SATS is set lower/higher
+DEFAULT_NWC_MAINNET_MAX_SATS: Final[int] = 2_000
+DEFAULT_NWC_MAINNET_DAILY_SATS: Final[int] = 2_000
 
 # v1 methods (see docs/nwc-automatic-wallets.md)
 V1_ALLOWED_METHODS: Final[frozenset[str]] = frozenset(
@@ -33,15 +41,43 @@ V1_DENIED_METHODS: Final[frozenset[str]] = frozenset(
 )
 
 
+def _truthy(name: str, default: str = "0") -> bool:
+    return os.getenv(name, default).strip() in {"1", "true", "TRUE", "yes", "YES"}
+
+
 def nwc_enabled() -> bool:
     """Master kill switch for NWC service (default off)."""
-    return os.getenv("AGENT_BITCOIN_NWC_ENABLE", "0").strip() in {
-        "1",
-        "true",
-        "TRUE",
-        "yes",
-        "YES",
-    }
+    return _truthy("AGENT_BITCOIN_NWC_ENABLE")
+
+
+def nwc_mainnet_allowed() -> bool:
+    """Explicit mainnet NWC go (default off; separate from LND ALLOW_MAINNET)."""
+    return _truthy("AGENT_BITCOIN_NWC_ALLOW_MAINNET")
+
+
+def assert_nwc_network_allowed() -> None:
+    """Refuse mainnet NWC unless both enable and mainnet NWC latch are set.
+
+    Also requires ``AGENT_BITCOIN_ALLOW_MAINNET=1`` so LNDClient can open mainnet.
+    """
+    if not is_mainnet():
+        return
+    if not nwc_enabled():
+        raise NWCPolicyError(
+            "NWC disabled on mainnet: set AGENT_BITCOIN_NWC_ENABLE=1",
+            code="RESTRICTED",
+        )
+    if not nwc_mainnet_allowed():
+        raise NWCPolicyError(
+            "Mainnet NWC frozen: set AGENT_BITCOIN_NWC_ALLOW_MAINNET=1 only for "
+            "an intentional tight-budget session (see docs/nwc-automatic-wallets.md N6)",
+            code="RESTRICTED",
+        )
+    if os.getenv("AGENT_BITCOIN_ALLOW_MAINNET", "").strip() != "1":
+        raise NWCPolicyError(
+            "Mainnet NWC requires AGENT_BITCOIN_ALLOW_MAINNET=1 for LND access",
+            code="RESTRICTED",
+        )
 
 
 @dataclass(frozen=True)
@@ -53,7 +89,33 @@ class NWCBudgetPolicy:
 
     @classmethod
     def from_env(cls) -> NWCBudgetPolicy:
-        return cls(min_sats=min_payment_sats(), max_sats=max_payment_sats())
+        """Build budget from env.
+
+        Mainnet NWC defaults to a **tight** max (2_000 sats) unless
+        ``NWC_MAX_PAYMENT_SATS`` is set. Lab nets use project max_payment_sats().
+        """
+        min_s = min_payment_sats()
+        if os.getenv("NWC_MIN_PAYMENT_SATS", "").strip():
+            min_s = int(os.environ["NWC_MIN_PAYMENT_SATS"])
+
+        if os.getenv("NWC_MAX_PAYMENT_SATS", "").strip():
+            max_s = int(os.environ["NWC_MAX_PAYMENT_SATS"])
+        elif is_mainnet():
+            max_s = DEFAULT_NWC_MAINNET_MAX_SATS
+        else:
+            max_s = max_payment_sats()
+
+        if max_s < min_s:
+            max_s = min_s
+        return cls(min_sats=min_s, max_sats=max_s)
+
+    @classmethod
+    def mainnet_tight(cls) -> NWCBudgetPolicy:
+        """N6 default: exactly the pilot min amount, max 2k."""
+        return cls(
+            min_sats=min_payment_sats(),
+            max_sats=DEFAULT_NWC_MAINNET_MAX_SATS,
+        )
 
 
 def assert_method_allowed(method: str) -> None:
