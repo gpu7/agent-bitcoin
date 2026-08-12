@@ -1,3 +1,13 @@
+## Feat — NWC scaffold URI + policy (N2) (2026-08-12)
+
+### Added
+
+- `agent_bitcoin/nwc/`: `parse_nwc_uri`, `build_nwc_uri`, v1 method allowlist, amount budgets, `AGENT_BITCOIN_NWC_ENABLE` kill switch
+- Offline tests: `tests/test_nwc_uri.py`, `tests/test_nwc_policy.py`
+- No client/service wire protocol yet (N3–N4)
+
+---
+
 ## Docs — NWC automatic wallets design (2026-08-12)
 
 ### Added

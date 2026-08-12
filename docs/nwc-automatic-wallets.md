@@ -198,12 +198,26 @@ Do **not** export NWC pay as the default `AgentBitcoinClient` path until N5 is d
 ## Success criteria (v1)
 
 - [x] Design ADR accepted (this document)
-- [ ] URI parse + policy unit tests green in CI
+- [x] URI parse + policy unit tests (`tests/test_nwc_uri.py`, `tests/test_nwc_policy.py`)
 - [ ] Regtest: client+service `make_invoice` + `pay_invoice` SUCCESS ≥ 2,000 sats
 - [ ] Agent path holds no LND admin macaroon
 - [ ] PaymentDecisionAgent still non-executing
 - [ ] Mainnet NWC off by default; documented separate go
-- [ ] SDK.md / index / CHANGELOG updated when code lands
+- [ ] SDK.md note when client/service land (N3–N5)
+
+### N2 scaffold (landed)
+
+```text
+agent_bitcoin/nwc/
+  __init__.py
+  uri.py       # parse_nwc_uri / build_nwc_uri
+  policy.py    # V1 allowlist, budgets, AGENT_BITCOIN_NWC_ENABLE
+  errors.py
+```
+
+```bash
+uv run pytest tests/test_nwc_uri.py tests/test_nwc_policy.py -q
+```
 
 ---
 
