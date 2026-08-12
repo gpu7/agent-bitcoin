@@ -1,3 +1,14 @@
+## Fix — NWC public-relay listener does not hang on connect (2026-08-12)
+
+### Fixed
+
+- Probe each relay in a side thread (~2s, hard skip ~3.5s) so a dead `wss://` cannot block `add_relay` / `run_sync`
+- Long-lived SUB and client `wait_for_response` use `close_on_eose=False` (empty EOSE no longer drops the socket before 23195)
+- Do not pass the 15–30s NWC wait as `RelayManager(timeout=…)` (that made the first poll look hung)
+- AWS logs per-relay `connecting` / `ok` / `skip`, then **`subscribed, polling`** — start Mac only after that line
+
+---
+
 ## Feat — NIP-44 v2 + public-relay NWC (2026-08-12)
 
 ### Added
