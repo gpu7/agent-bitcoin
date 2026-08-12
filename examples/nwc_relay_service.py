@@ -126,8 +126,15 @@ def main() -> int:
         try:
             print(f"[aws] connecting relays {relays} …")
             mgr = RelayManager(timeout=15)
+            connected = 0
             for url in relays:
-                mgr.add_relay(url)
+                try:
+                    mgr.add_relay(url)
+                    connected += 1
+                except Exception as e:
+                    print(f"[aws] skip {url}: {e}", file=sys.stderr)
+            if connected == 0:
+                raise RuntimeError("no public relays accepted a connection")
             flt = FiltersList(
                 [
                     Filters(

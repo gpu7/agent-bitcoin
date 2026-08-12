@@ -5,8 +5,10 @@ from __future__ import annotations
 import os
 
 DEFAULT_PUBLIC_RELAYS: tuple[str, ...] = (
-    "wss://relay.damus.io",
     "wss://nos.lol",
+    "wss://relay.primal.net",
+    "wss://relay.damus.io",
+    "wss://offchain.pub",
 )
 
 
