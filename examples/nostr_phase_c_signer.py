@@ -436,38 +436,51 @@ def cmd_demo(args: argparse.Namespace) -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Phase C local policy signer (NIP-46-inspired, localhost)"
-    )
-    parser.add_argument(
+    # Shared flags as parents so either order works:
+    #   prog --agent alice demo
+    #   prog demo --agent alice
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument(
         "--dir", type=Path, default=DEFAULT_DIR, help="Key + socket directory"
     )
-    parser.add_argument(
+    common.add_argument(
         "--agent", default="alice", help="Agent key name (default: alice)"
     )
-    parser.add_argument(
+    common.add_argument(
         "--passphrase", default=DEFAULT_PASSPHRASE, help="Or NOSTR_PASSPHRASE"
     )
-    parser.add_argument(
+    common.add_argument(
         "--policy",
         type=Path,
         default=DEFAULT_POLICY,
         help="Policy JSON path",
     )
-    parser.add_argument("--force-new-keys", action="store_true")
+    common.add_argument("--force-new-keys", action="store_true")
 
+    parser = argparse.ArgumentParser(
+        description="Phase C local policy signer (NIP-46-inspired, localhost)",
+        parents=[common],
+    )
     sub = parser.add_subparsers(dest="cmd", required=True)
 
-    p_serve = sub.add_parser("serve", help="Run signer daemon (holds nsec)")
+    p_serve = sub.add_parser(
+        "serve", parents=[common], help="Run signer daemon (holds nsec)"
+    )
     p_serve.set_defaults(func=cmd_serve)
 
-    p_pk = sub.add_parser("get-pubkey", help="Client: fetch pubkey from signer")
+    p_pk = sub.add_parser(
+        "get-pubkey", parents=[common], help="Client: fetch pubkey from signer"
+    )
     p_pk.set_defaults(func=cmd_get_pubkey)
 
-    p_pol = sub.add_parser("get-policy", help="Client: fetch active policy")
+    p_pol = sub.add_parser(
+        "get-policy", parents=[common], help="Client: fetch active policy"
+    )
     p_pol.set_defaults(func=cmd_get_policy)
 
-    p_sign = sub.add_parser("sign", help="Client: request a signed event")
+    p_sign = sub.add_parser(
+        "sign", parents=[common], help="Client: request a signed event"
+    )
     p_sign.add_argument("--type", default="phase_c_demo")
     p_sign.add_argument("--message", default="")
     p_sign.add_argument("--content", default="", help="Raw JSON object string")
@@ -475,10 +488,14 @@ def main() -> int:
     p_sign.add_argument("--kind", type=int, default=1)
     p_sign.set_defaults(func=cmd_sign)
 
-    p_deny = sub.add_parser("deny-demo", help="Client: show a policy denial")
+    p_deny = sub.add_parser(
+        "deny-demo", parents=[common], help="Client: show a policy denial"
+    )
     p_deny.set_defaults(func=cmd_deny_demo)
 
-    p_demo = sub.add_parser("demo", help="One-shot: signer + client self-test")
+    p_demo = sub.add_parser(
+        "demo", parents=[common], help="One-shot: signer + client self-test"
+    )
     p_demo.set_defaults(func=cmd_demo)
 
     args = parser.parse_args()
