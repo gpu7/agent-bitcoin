@@ -117,24 +117,20 @@ def main() -> int:
             print("\n[aws] stopped")
         return 0
 
-    from agent_bitcoin.nostr.relay import (
-        WebsocketNWCRelay,
-        run_nwc_listen_session,
-    )
+    from agent_bitcoin.nostr.relay import run_nwc_listen_session
 
     def _log(msg: str) -> None:
         print(f"[aws] {msg}", flush=True)
 
-    def _on_request(d: dict) -> None:
+    def _on_request(d: dict) -> dict | None:
         pk = str(d.get("pubkey") or "")
         print(f"[aws] request from {pk[:16]}…", flush=True)
         svc.handle_request_event(d)
         if bus.all_events():
             last = bus.all_events()[-1]
             if int(last.get("kind") or 0) == 23195:
-                ws = WebsocketNWCRelay(relays, timeout=10)
-                ws.publish(last)
-                print("[aws] published 23195", flush=True)
+                return last
+        return None
 
     backoff = 1.0
     while True:

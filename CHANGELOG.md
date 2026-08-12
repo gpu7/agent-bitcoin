@@ -1,3 +1,12 @@
+## Fix — NWC listener handles a second Mac call (2026-08-12)
+
+### Fixed
+
+- Re-send the kind-23194 REQ every poll (`run_sync` opens a new websocket and dropped the SUB after `get_info`)
+- Publish 23195 on the live manager instead of a second `RelayManager` on the same Tornado IOLoop
+
+---
+
 ## Fix — NWC public-relay listener does not hang on connect (2026-08-12)
 
 ### Fixed

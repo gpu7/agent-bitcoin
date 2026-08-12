@@ -126,7 +126,7 @@ def select_live_relays(
 def run_nwc_listen_session(
     urls: Sequence[str],
     wallet_pubkey: str,
-    on_request: Callable[[dict[str, Any]], None],
+    on_request: Callable[[dict[str, Any]], dict[str, Any] | None],
     *,
     log: LogFn | None = None,
     stop: Callable[[], bool] | None = None,
@@ -139,6 +139,11 @@ def run_nwc_listen_session(
 
     Logs per-relay connect / skip, then ``subscribed, polling`` before the
     first ``run_sync``. Dead relays are dropped in the probe pass.
+
+    ``run_sync`` reconnects each cycle, so the 23194 REQ is re-sent every
+    poll. If ``on_request`` returns a kind-23195 dict, it is published on
+    the same manager (a second RelayManager on IOLoop.current() wedges
+    the listener after the first call).
     """
     live = select_live_relays(urls, timeout=connect_timeout, log=log, probe=probe)
     if not live:
@@ -165,12 +170,14 @@ def run_nwc_listen_session(
             )
         ]
     )
-    mgr.add_subscription_on_all_relays(uuid.uuid4().hex, flt)
     if log:
         log(f"subscribed, polling {added}")
 
     seen: set[str] = set()
     while not (stop and stop()):
+        # pynostr connect() opens a new websocket each run_sync; without a
+        # fresh REQ the second Mac call (get_balance) is never delivered.
+        mgr.add_subscription_on_all_relays(uuid.uuid4().hex, flt)
         try:
             mgr.run_sync()
         except Exception as e:
@@ -185,7 +192,15 @@ def run_nwc_listen_session(
                 continue
             if eid:
                 seen.add(eid)
-            on_request(d)
+            reply = on_request(d)
+            if isinstance(reply, dict) and int(reply.get("kind") or 0) == KIND_RESPONSE:
+                try:
+                    mgr.publish_event(_dict_to_event(reply))
+                    if log:
+                        log("queued 23195 on live relays")
+                except Exception as e:
+                    if log:
+                        log(f"failed to queue 23195: {e}")
         if poll_sleep:
             time.sleep(poll_sleep)
 

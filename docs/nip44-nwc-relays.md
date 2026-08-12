@@ -57,8 +57,8 @@ Expected AWS logs:
 [aws] skip wss://relay.primal.net: connect timeout or error   # optional
 [aws] registered wss://nos.lol (close_on_eose=False)
 [aws] subscribed, polling ['wss://nos.lol']
-[aws] request from abcd1234…     # only after Mac get_info
-[aws] published 23195
+[aws] request from abcd1234…     # after each Mac call (get_info, get_balance, …)
+[aws] queued 23195 on live relays
 ```
 
 **Mac** (client):
