@@ -148,6 +148,52 @@ def test_listen_session_logs_subscribed_and_keeps_socket() -> None:
     assert "wss://b.dead" not in mgr.relays
     assert len(requests) == 1
     assert requests[0]["id"] == "req1"
+    assert len(mgr.subscriptions) >= 1
+
+
+def test_listen_resubscribes_each_poll_and_publishes_on_same_manager() -> None:
+    mgr = _FakeMgr()
+    polls = {"n": 0}
+
+    def _stop() -> bool:
+        polls["n"] += 1
+        return polls["n"] > 2
+
+    reply = {
+        "id": "resp1",
+        "pubkey": "bb" * 32,
+        "created_at": 2,
+        "kind": KIND_RESPONSE,
+        "tags": [["e", "req1"], ["p", "client"]],
+        "content": "cipher-out",
+        "sig": "sig",
+    }
+
+    def _on_request(d: dict) -> dict:
+        return reply
+
+    ev = SimpleNamespace(
+        id="req1",
+        pubkey="aa" * 32,
+        created_at=1,
+        kind=KIND_REQUEST,
+        tags=[["p", "wallet"]],
+        content="cipher",
+        sig="sig",
+    )
+    mgr.message_pool = _FakePool([ev])
+
+    run_nwc_listen_session(
+        ["wss://a.live"],
+        "walletpubkey",
+        _on_request,
+        stop=_stop,
+        poll_sleep=0,
+        probe=lambda url, timeout=2.0: True,
+        manager_factory=lambda: mgr,
+    )
+    assert len(mgr.subscriptions) >= 2
+    assert getattr(mgr, "published", None) is not None
 
 
 def test_listen_session_raises_when_all_relays_dead() -> None:
