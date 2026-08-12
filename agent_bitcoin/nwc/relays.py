@@ -8,7 +8,6 @@ DEFAULT_PUBLIC_RELAYS: tuple[str, ...] = (
     "wss://nos.lol",
     "wss://relay.primal.net",
     "wss://relay.damus.io",
-    "wss://offchain.pub",
 )
 
 
