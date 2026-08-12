@@ -330,7 +330,7 @@ Copy AWS backup off the instance. Schedule further exports after close/rebalance
 | Nostr mainnet **M1** identity | **Done** (2026-08-12) | Dual alice/bob keys; offline PASS; no Lightning — [nostr-agent-identity.md](./nostr-agent-identity.md#mainnet-process-not-yet-executed) |
 | Nostr mainnet **Stage 2** Phase C | **Done** (2026-08-12) | Local policy signer demo PASS for alice + bob on mainnet keys |
 | Nostr mainnet **M2** 2k Phase B smoke | **SUCCESS** (2026-08-12) | Dual private 25k channel; 2k Mac→AWS; hash `f87a39a3…ca71`; fee 0 |
-| Nostr NWC / production swarm (M3) | **N6 mainnet go** (2026-08-12): tight budget max **2k**; multi-latch | [nwc-automatic-wallets.md](./nwc-automatic-wallets.md) N6; `AGENT_BITCOIN_NWC_ALLOW_MAINNET=1` |
+| Nostr NWC / production swarm (M3) | **N6 invoice smoke PASS** (2026-08-12 AWS); **closed** at invoice-only | Max 2k; hash `7afc7a2b…28e6`; no `--pay`; latches off — [nwc-automatic-wallets.md](./nwc-automatic-wallets.md) |
 | Sweep residual to cold storage | Operator choice | On-chain fees apply |
 
 **Public routing + Loop** is documented in [public-routing-loop.md](./public-routing-loop.md) (design + execution log). Further expansion requires a **new written go**, not an implicit extension of HOLD.

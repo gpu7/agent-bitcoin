@@ -1,6 +1,6 @@
 # ADR: Automatic wallets via Nostr Wallet Connect (NIP-47)
 
-**Status:** N0–N5 **done**. **N6 mainnet go accepted** (2026-08-12) with a **tight budget** (default max **2,000 sats**). Requires multi-latch env; Autoloop still off.
+**Status:** N0–N5 **done**. **N6 mainnet invoice smoke PASS** (2026-08-12, AWS) — tight budget max **2k**; latches unset after session. **Closed:** no further mainnet NWC pays unless a new go. Autoloop still off.
 **Date:** 2026-08-12
 **Audience:** Operators and implementers.
 **Related:** [nostr-agent-identity.md](./nostr-agent-identity.md) · [mainnet-pilot.md](./mainnet-pilot.md) · [lnd-client.md](./lnd-client.md) · [SECURITY.md](../SECURITY.md) · [NIP-47](https://nips.nostr.com/47)
@@ -214,6 +214,7 @@ Do **not** export NWC pay as the default `AgentBitcoinClient` path until N5 is d
 - [x] Mainnet NWC off by default (`AGENT_BITCOIN_NWC_ENABLE`)
 - [x] SDK.md + `examples/nwc_decision_pay.py` + `nwc_pay_if_approved` (N5)
 - [x] N6 mainnet multi-latch + tight 2k default budget + `nwc_mainnet_smoke.py`
+- [x] N6 live invoice smoke on AWS (2026-08-12) — session closed; no `--pay`
 
 ### N2 scaffold (landed)
 
@@ -311,6 +312,20 @@ unset AGENT_BITCOIN_NWC_ALLOW_MAINNET AGENT_BITCOIN_NWC_ENABLE AGENT_BITCOIN_ALL
 ```
 
 **Prereqs:** unlocked mainnet LND; for `--pay`, sufficient **local** channel balance (e.g. Mac dual private channel after M2). Invoice-only exercises receive path on the service node.
+
+### N6 exercise log (operator)
+
+| Field | Value |
+|-------|--------|
+| Date | **2026-08-12** |
+| Host | **AWS** (`agent-payment-decision-lnd-mainnet`) |
+| Path | Invoice-only (`nwc_mainnet_smoke.py --yes-mainnet --amount 2000`) |
+| Result | **PASS** — get_info / get_balance / make_invoice |
+| Amount | **2000** sats |
+| Payment hash | `7afc7a2b0c0098a61aaa64ed4b7d433424faa3996ccca70db4bafdb7f47c28e6` |
+| `--pay` | **Not run** (session closed at invoice smoke) |
+| Hard stop | Latches **unset** after run |
+| Next | **Hold** — new go required for NWC `--pay` or higher budget |
 
 ---
 
