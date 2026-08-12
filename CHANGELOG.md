@@ -1,3 +1,14 @@
+## Ops/docs — Nostr mainnet M1 identity (2026-08-12)
+
+### Done
+
+- **Stage 0 go:** M1 only; Dual path reserved for later M2; capital HOLD unchanged
+- **M1:** dedicated alice/bob keys under gitignored `.nostr-poc-mainnet/`; Phase A offline crypto **PASS**
+- `.gitignore` covers `.nostr-poc-mainnet/`; no nsec/passphrase in git
+- ADR + pilot post-pilot table record M1 complete; M2/M3 still deferred
+
+---
+
 ## Docs — Nostr mainnet process (not yet executed) (2026-08-11)
 
 ### Documented

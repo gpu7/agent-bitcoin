@@ -219,7 +219,7 @@ Compose: `docker-compose.mainnet.{aws,mac}.yml` + `startup-mainnet-*.sh`.
 
 Do **not** treat Phase 8 complete or A′ first Loop as approval for:
 
-- Nostr production identity / NWC on mainnet (lab A/B only on regtest+signet; mainnet process documented, **not executed** — [nostr-agent-identity.md](./nostr-agent-identity.md#mainnet-process-not-yet-executed))
+- Nostr **M2 pay / NWC production** on mainnet (M1 identity done 2026-08-12; M2+ still frozen — [nostr-agent-identity.md](./nostr-agent-identity.md#mainnet-process-not-yet-executed))
 - Liquidity Phase 3 (Faraday, Pool, multi-objective controller)
 - **Mainnet Autoloop** (manual Loop Out is done; automation is not)
 - Multi-agent swarm orchestrator
@@ -327,7 +327,8 @@ Copy AWS backup off the instance. Schedule further exports after close/rebalance
 | Enable `AGENT_BITCOIN_ALLOW_AUTOPAY` on mainnet | **No** | Product go still required |
 | Second AWS LND as “routing partner” | **No** | Not needed for public routing |
 | SDK mainnet integration test | Optional | Kill switches |
-| Nostr mainnet (M1 identity / M2 2k Phase B smoke) | **Not started** | Explicit go required; process in [nostr-agent-identity.md](./nostr-agent-identity.md#mainnet-process-not-yet-executed) |
+| Nostr mainnet **M1** identity | **Done** (2026-08-12) | Dual alice/bob keys; offline PASS; no Lightning — [nostr-agent-identity.md](./nostr-agent-identity.md#mainnet-process-not-yet-executed) |
+| Nostr mainnet **M2** 2k Phase B smoke | **Deferred** | Dual path chosen; after M1 close-out |
 | Nostr NWC / production swarm (M3) | **Frozen** | After M2 + separate design |
 | Sweep residual to cold storage | Operator choice | On-chain fees apply |
 
