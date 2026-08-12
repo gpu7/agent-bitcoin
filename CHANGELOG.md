@@ -1,3 +1,13 @@
+## Ops/docs — Nostr mainnet Stage 2 Phase C (2026-08-12)
+
+### Done
+
+- Phase C local policy signer **PASS** for alice + bob against `.nostr-poc-mainnet` keys (client never loaded nsec; policy deny verified)
+- CLI: `nostr_phase_c_signer.py` accepts `--agent` / `--dir` before **or** after the subcommand
+- M2 pay still deferred; Dual path reserved
+
+---
+
 ## Ops/docs — Nostr mainnet M1 identity (2026-08-12)
 
 ### Done

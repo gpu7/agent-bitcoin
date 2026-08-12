@@ -1,7 +1,7 @@
 # ADR: Nostr identity for agent swarms (Phase A)
 
-**Status:** Accepted — Phase A/B complete on **regtest + signet**; Phase C hardening PoC available. **Mainnet M1 identity DONE** (2026-08-12); M2 pay smoke and NWC still frozen. See [Mainnet process](#mainnet-process-not-yet-executed).
-**Date:** 2026-07-29 (signet Phase B 2026-08-02; mainnet process 2026-08-11; **M1 Dual go 2026-08-12**)
+**Status:** Accepted — Phase A/B complete on **regtest + signet**. **Mainnet M1 identity + Stage 2 Phase C demo DONE** (2026-08-12); M2 pay smoke and NWC still frozen. See [Mainnet process](#mainnet-process-not-yet-executed).
+**Date:** 2026-07-29 (signet Phase B 2026-08-02; mainnet process 2026-08-11; **M1 + Stage 2 Dual 2026-08-12**)
 **Audience:** Operators and developers.
 **Agents / SDK payment path:** unchanged. Nostr is **additive** identity/transport, not a replacement for LND, Autoloop, or the FastAPI backend.
 
@@ -268,6 +268,7 @@ export NOSTR_PASSPHRASE='use-a-strong-passphrase'
 export NOSTR_POC_DIR=./.nostr-poc
 
 # One-shot: signer + client (client never loads nsec)
+# --agent may be before or after demo
 .venv-nostr/bin/python examples/nostr_phase_c_signer.py demo --agent alice
 
 # Or two terminals:
@@ -304,7 +305,7 @@ Policy file: [examples/nostr_phase_c_policy.json](../examples/nostr_phase_c_poli
 |-------|-------------|---------|--------|---------|
 | **A** | Keys, encrypt, sign notes | Yes | Yes (same scripts) | **M1 done** (2026-08-12) — dual alice/bob keys offline |
 | **B** | Signed pay coord + LND invoice/pay | **Live** | **Live** (2k Mac→AWS) | **Not done** (M2 deferred) |
-| **C** | Local policy signer PoC | Demo | Demo | Demo only; not NIP-46 |
+| **C** | Local policy signer PoC | Demo | Demo | **Mainnet keys demo PASS** (alice+bob, 2026-08-12); not NIP-46 |
 | **Roadmap** | NIP-46, NIP-17, **NIP-47 NWC**, MPC | — | — | **Frozen** until separate go |
 
 ### Explicit non-goals (still frozen without a new go)
@@ -385,18 +386,37 @@ export NOSTR_POC_DIR=./.nostr-poc-mainnet   # gitignored; never reuse regtest/si
 
 **Exit:** encrypted keys; offline sign/verify PASS.
 
-### Stage 2 — Phase C signer (recommended before M2)
+### Stage 2 — Phase C signer (recommended before M2) — **DONE 2026-08-12**
 
 ```bash
 export NOSTR_POC_DIR=./.nostr-poc-mainnet
-.venv-nostr/bin/python examples/nostr_phase_c_signer.py demo --agent alice
-.venv-nostr/bin/python examples/nostr_phase_c_signer.py demo --agent bob
+export NOSTR_PASSPHRASE='…from password manager…'   # do not commit; unset after
+
+.venv-nostr/bin/python examples/nostr_phase_c_signer.py \
+  --dir "$NOSTR_POC_DIR" --passphrase "$NOSTR_PASSPHRASE" \
+  demo --agent alice
+
+.venv-nostr/bin/python examples/nostr_phase_c_signer.py \
+  --dir "$NOSTR_POC_DIR" --passphrase "$NOSTR_PASSPHRASE" \
+  demo --agent bob
+
+unset NOSTR_PASSPHRASE
 ```
 
-- Prefer signing via the policy signer for any long-lived mainnet identity.
-- **Code gap:** Phase B still loads nsec in-process via `load_or_create_agent` unless wired to the socket (roadmap item). Until wired, treat M2 as short attended sessions only.
+(`--agent` may be before or after `demo`; both orders work.)
 
-**Exit:** demo PASS; decide whether to wire Phase B → signer before live pay.
+**Executed (Mac, mainnet key dir):**
+
+| Agent | get_public_key | sign allowed | policy deny | Result |
+|-------|----------------|--------------|-------------|--------|
+| alice | npub matches M1 | VERIFY ok | `not_allowed_type` denied | **PASS** |
+| bob | npub matches M1 | VERIFY ok | `not_allowed_type` denied | **PASS** |
+
+- Client never loaded nsec; signer held keys on Unix socket only.
+- Prefer this pattern for any long-lived mainnet identity.
+- **Code gap remains:** Phase B still loads nsec in-process via `load_or_create_agent` unless wired to the socket (roadmap). Optional before M2; not required to close Stage 2.
+
+**Exit:** demo PASS for alice + bob.
 
 ### Stage 3 — Lightning readiness (M2 only)
 
@@ -475,18 +495,19 @@ Mirror [signet Phase B](./signet.md#nostr-phase-b-on-signet-same-as-regtest) wit
 
 ### Mainnet success criteria (v1)
 
-**M1 (this go):**
+**M1 + Stage 2 (this go):**
 
 - [x] Stage 0 policy go recorded (**M1 only**; Dual path for later M2)
 - [x] Dedicated `.nostr-poc-mainnet` keys (lab keys unused)
 - [x] Phase A offline PASS (2026-08-12)
-- [ ] (Optional later) Phase C demo on mainnet keys
-- [ ] Phase B dry-run / live pay — **out of scope for M1**
+- [x] Phase C demo on mainnet keys (alice + bob **PASS**, 2026-08-12)
+- [ ] Phase B dry-run / live pay — **out of scope until M2 go**
 
 **M2+ (deferred):**
 
 - [ ] Phase B dry-run PASS with mainnet env
 - [ ] One live **2,000 sat** Phase B pay SUCCESS
+- [ ] Optional: wire Phase B → Phase C signer socket
 - [ ] NWC / Autoloop / autopay still **off**
 - [ ] Docs updated with payment hash / date
 
@@ -496,6 +517,7 @@ Mirror [signet Phase B](./signet.md#nostr-phase-b-on-signet-same-as-regtest) wit
 |-------|--------|
 | M1 status | **DONE** (identity only) |
 | M1 date | **2026-08-12** |
+| Stage 2 Phase C | **PASS** alice + bob (2026-08-12) |
 | Path (planned for M2) | **Dual** (Mac alice → AWS bob) |
 | alice npub | `npub1u9z2exv9udv2hkhnq5fl8pvlsqvuphmuuxejj2u6g0lf06r8tgsqxl68s8` |
 | bob npub | `npub1jy3ch65u5wvhx4x5s7239k63qtp65h4084fcaq8djgra0dh0erfslusp9f` |
