@@ -151,7 +151,7 @@ Map NWC service enforcement to existing project controls:
 | **N2** | `agent_bitcoin/nwc/` skeleton: URI parse, allowlist, types; unit tests | Offline |
 | **N3** | NWC **client** (request/response; mock relay tests) | Offline / mock |
 | **N4** | NWC **service** → `LNDClient`; regtest e2e invoice+pay | **regtest** |
-| **N5** | Example + docs: decision → NWC pay path; SDK.md note | regtest |
+| **N5** | Example + docs: decision → NWC pay path; SDK.md note | **Done** (mock/regtest) |
 | **N6** | Signet then mainnet | Explicit goes only |
 
 ### Suggested module layout
@@ -211,7 +211,7 @@ Do **not** export NWC pay as the default `AgentBitcoinClient` path until N5 is d
 - [x] Agent path holds no LND admin macaroon (client only has NWC URI)
 - [x] PaymentDecisionAgent still non-executing
 - [x] Mainnet NWC off by default (`AGENT_BITCOIN_NWC_ENABLE`)
-- [ ] SDK.md note when product path wired (N5)
+- [x] SDK.md + `examples/nwc_decision_pay.py` + `nwc_pay_if_approved` (N5)
 
 ### N2 scaffold (landed)
 
@@ -260,6 +260,23 @@ uv run --python 3.12 python examples/nwc_regtest_smoke.py --mock --pay
 
 Service enforces: method allowlist, min/max sats, authorized client pubkeys from
 `issue_connection()`, and `AGENT_BITCOIN_NWC_ENABLE` when `require_enable=True`.
+
+### N5 product path (landed)
+
+```text
+agent_bitcoin/nwc/flow.py          # decision_is_pay, nwc_pay_if_approved, rule_based_decision
+examples/nwc_decision_pay.py       # decide → invoice → NWC pay (agent has no macaroon)
+tests/test_nwc_flow.py
+```
+
+```bash
+export AGENT_BITCOIN_NWC_ENABLE=1
+uv run --python 3.12 python examples/nwc_decision_pay.py --mock
+uv run --python 3.12 pytest tests/test_nwc_flow.py -q
+```
+
+Flow: **PaymentDecisionAgent / rule_based_decision** returns PAY|REJECT → only on PAY does
+`nwc_pay_if_approved` call `NWCClient.pay_invoice`.
 
 ---
 
