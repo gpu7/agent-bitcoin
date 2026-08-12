@@ -23,7 +23,8 @@
 | [loop-multi-network.md](./loop-multi-network.md) | Install loopd on regtest / signet / mainnet (Autoloop off on mainnet until go) |
 | [public-routing-loop.md](./public-routing-loop.md) | **Topology A′:** public channels + first Loop Out **SUCCESS**; capital **HOLD**; Autoloop off |
 | [nostr-agent-identity.md](./nostr-agent-identity.md) | ADR: Nostr A–C; **mainnet M2 Dual 2k SUCCESS** |
-| [nwc-automatic-wallets.md](./nwc-automatic-wallets.md) | **NWC / NIP-47:** automatic wallets (client+service+decision flow); mainnet frozen |
+| [nwc-automatic-wallets.md](./nwc-automatic-wallets.md) | **NWC / NIP-47:** automatic wallets (client+service+decision flow); mainnet invoice smoke closed |
+| [m3-production-swarm.md](./m3-production-swarm.md) | **M3 v1:** relays, NIP-46, NIP-17, swarm registry (autopay still off) |
 | [setup.md](./setup.md) | Short setup pointers |
 
 ## Also
