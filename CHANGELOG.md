@@ -1,3 +1,14 @@
+## Ops — NWC mainnet invoice smoke PASS; session closed (2026-08-12)
+
+### Documented
+
+- AWS live N6 invoice path **PASS** (`nwc_mainnet_smoke.py --yes-mainnet --amount 2000`)
+- Payment hash `7afc7a2b0c0098a61aaa64ed4b7d433424faa3996ccca70db4bafdb7f47c28e6`
+- Operator closed at invoice-only (no `--pay`); latches unset
+- Further mainnet NWC pays require a **new written go**
+
+---
+
 ## Feat — NWC mainnet tight-budget go (N6) (2026-08-12)
 
 ### Added
