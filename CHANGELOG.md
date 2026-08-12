@@ -1,3 +1,15 @@
+## Feat — NWC LND service (N4) (2026-08-12)
+
+### Added
+
+- `NWCService`: authorize clients, enforce budgets/enable latch, dispatch to LND
+- `create_nwc_service()`, `issue_connection()` → `nostr+walletconnect://` URI
+- Offline tests with FakeLND (`tests/test_nwc_service.py`)
+- `examples/nwc_regtest_smoke.py` (`--mock` or live docker LND)
+- Mainnet still off unless `AGENT_BITCOIN_NWC_ENABLE=1` + separate go
+
+---
+
 ## Feat — NWC client + mock bus (N3) (2026-08-12)
 
 ### Added

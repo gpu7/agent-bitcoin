@@ -2,7 +2,7 @@
 
 - N2: URI parse + policy allowlist (no pynostr required)
 - N3: client + in-memory bus (requires optional ``.[nostr]`` / pynostr)
-- N4: LND-backed service (next)
+- N4: LND-backed service (this package)
 
 See docs/nwc-automatic-wallets.md.
 """
@@ -37,7 +37,7 @@ __all__ = [
     "parse_nwc_uri",
 ]
 
-# Client stack needs pynostr (optional extra)
+# Client/service stack needs pynostr (optional extra)
 try:
     from agent_bitcoin.nwc.bus import InMemoryNWCBus
     from agent_bitcoin.nwc.client import (
@@ -45,11 +45,14 @@ try:
         attach_mock_wallet,
         sign_response_event,
     )
+    from agent_bitcoin.nwc.service import NWCService, create_nwc_service
 
     __all__ += [
         "InMemoryNWCBus",
         "NWCClient",
+        "NWCService",
         "attach_mock_wallet",
+        "create_nwc_service",
         "sign_response_event",
     ]
 except ImportError:  # pragma: no cover - environment without pynostr
