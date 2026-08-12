@@ -32,7 +32,8 @@ jobs:
           version: "latest"
 
       - name: Install dependencies
-        run: uv sync --dev
+        # Include optional nostr extra so NWC client tests exercise pynostr (NIP-47).
+        run: uv sync --dev --extra nostr
 
       - name: Run Ruff
         run: uv run ruff check .
