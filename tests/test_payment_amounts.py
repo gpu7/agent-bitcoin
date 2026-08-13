@@ -36,7 +36,7 @@ def test_abt001_client_normal_amount_reaches_lnd(clear_payment_env, payment_limi
         assert inv.payment_request.startswith("lnbcrt")
         mock_lnd.create_invoice.assert_called_once()
         args = mock_lnd.create_invoice.call_args[0]
-        assert args[1] == mid
+        assert args[1] == mid + client.fee_amount_sats
 
 
 def test_abt002_client_below_minimum(clear_payment_env, payment_limits):

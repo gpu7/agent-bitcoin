@@ -362,7 +362,7 @@ Always consider:
 
 - Fixed fee: **21 sats** per payment (env overrides may exist: `FEE_AMOUNT_SATS`, `FEE_SATS`).
 - Minimum payment: **1,000 sats** (`MIN_PAYMENT_SATS` / `NWC_MIN_PAYMENT_SATS`).
-- Typical path: Lightning pay net amount; fee may be collected on-chain to `FEE_WALLET_ADDRESS` / `FEE_ADDRESS`.
+- Typical path: Lightning invoice is requested amount **plus** the 21 sat fee; payer pays one BOLT11. No separate on-chain fee.
 - Update client, backend, README, and examples together if the model changes.
 
 ### Security

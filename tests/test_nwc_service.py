@@ -103,13 +103,16 @@ def test_service_get_info_and_balance(service_client) -> None:
 
 def test_service_make_and_pay_invoice(service_client) -> None:
     _svc, client, lnd = service_client
+    from agent_bitcoin.constants import fee_amount_sats
+
     inv = client.make_invoice(2000, description="n4-test")
-    assert inv["invoice"] == "lnbcrt_fake_2000"
-    assert inv["amount"] == 2_000_000
-    assert lnd.invoices[-1] == ("n4-test", 2000)
+    billed = 2000 + fee_amount_sats()
+    assert inv["invoice"] == f"lnbcrt_fake_{billed}"
+    assert inv["amount"] == billed * 1000
+    assert lnd.invoices[-1] == ("n4-test", billed)
     paid = client.pay_invoice(inv["invoice"])
     assert paid["preimage"]
-    assert lnd.pays == ["lnbcrt_fake_2000"]
+    assert lnd.pays == [f"lnbcrt_fake_{billed}"]
 
 
 def test_service_disabled_without_env(monkeypatch: pytest.MonkeyPatch) -> None:

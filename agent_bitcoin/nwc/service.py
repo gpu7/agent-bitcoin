@@ -22,6 +22,7 @@ from agent_bitcoin.nwc.crypto import (
     scheme_from_event_tags,
 )
 from agent_bitcoin.nwc.errors import NWCError, NWCPolicyError
+from agent_bitcoin.constants import fee_amount_sats
 from agent_bitcoin.nwc.policy import (
     V1_ALLOWED_METHODS,
     NWCBudgetPolicy,
@@ -227,8 +228,9 @@ class NWCService:
         )
         memo = str(params.get("description") or "nwc-invoice")
         expiry = int(params.get("expiry") or 3600)
+        billed = amount_sats + int(fee_amount_sats())
         inv = self.lnd.create_invoice(
-            memo=memo, amount_sats=amount_sats, expiry_seconds=expiry
+            memo=memo, amount_sats=billed, expiry_seconds=expiry
         )
         payment_request = getattr(inv, "payment_request", None) or ""
         payment_hash = (
@@ -239,7 +241,7 @@ class NWCService:
             "invoice": payment_request,
             "description": memo,
             "payment_hash": str(payment_hash),
-            "amount": sats_to_msats(amount_sats),
+            "amount": sats_to_msats(billed),
             "fees_paid": 0,
             "created_at": int(time.time()),
             "expires_at": int(time.time()) + expiry,

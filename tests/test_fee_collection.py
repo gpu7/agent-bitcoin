@@ -106,3 +106,6 @@ def test_invoice_quote_adds_default_21_sat_fee(clear_payment_env, monkeypatch):
         assert quote.platform_fee_sats == 21
         assert quote.transaction_fee_sats == 21
         assert quote.total_cost_sats == 2021
+        assert quote.collection == "lightning_bundled"
+        mock_lnd.create_invoice.assert_called_once()
+        assert mock_lnd.create_invoice.call_args[0][1] == 2021
