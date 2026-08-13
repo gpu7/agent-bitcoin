@@ -18,7 +18,7 @@ LND_NETWORK=regtest uv run pytest tests/test_lnd_sdk_integration.py -m integrati
 # Live HTTP backend script (optional; needs API key + running backend)
 export AGENT_BITCOIN_API_KEY=...
 uv run python tests/test_aws_integration.py --network signet \
-  --backend-url http://127.0.0.1:8000 --skip-fee
+  --backend-url http://127.0.0.1:8000
 uv run python tests/test_aws_integration.py --network regtest \
   --backend-url http://<AWS_EIP>:8000
 ```
@@ -39,7 +39,7 @@ Dual-node **pay** tests require **both** containers on the same Docker host. Typ
 | **ABT-001** | Normal payment (min &lt; amt ≤ max) | Client + API + agent allow mid-range | SDK create/pay when dual local |
 | **ABT-002** | Below minimum | Client/API/agent reject | — |
 | **ABT-003** | Above maximum (1,000,000 sats) | Client/API/agent reject | — |
-| **ABT-004** | Fee deposit amount | Client `collect_transaction_fee` + API `/send-fee` mock | Optional `/send-fee` in HTTP script |
+| **ABT-004** | Platform fee bundled | Invoice quote `total = amount + 21`, `collection=lightning_bundled` | — |
 
 ## Shared limits
 

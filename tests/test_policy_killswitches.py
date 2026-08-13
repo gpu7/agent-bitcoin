@@ -105,4 +105,4 @@ def test_client_fee_blocked_on_mainnet(clear_payment_env, monkeypatch):
 
         c = AgentBitcoinClient()
         with pytest.raises(RuntimeError, match="MAINNET_FEE"):
-            c.collect_transaction_fee()
+            c.send_onchain("bc1qtest", 21)

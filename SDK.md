@@ -64,8 +64,7 @@ The Python client loads environment variables via `python-dotenv` (typically a `
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `FEE_WALLET_ADDRESS` | (none) | On-chain address for `collect_transaction_fee()` |
-| `FEE_AMOUNT_SATS` | `21` | Fee amount for `collect_transaction_fee()` |
+| `FEE_AMOUNT_SATS` | `21` | Platform fee bundled into each payee invoice |
 | `MIN_PAYMENT_SATS` | `1000` | Minimum `amount_sats` for `create_invoice()` |
 | `MAX_PAYMENT_SATS` | `1000000` (lab) / `50000` (mainnet default) | Shared max for invoices and pays |
 | `MAX_DAILY_PAYMENT_SATS` | `0` lab (off) / `100000` mainnet | UTC daily spend cap; ledger file |
@@ -110,8 +109,7 @@ When using `backend/main.py` (FastAPI), fee collection uses:
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `FEE_SATS` | `21` | On-chain fee amount |
-| `FEE_ADDRESS` | (none) | Destination for `/send-fee` |
+
 
 Base URL is typically `http://localhost:8000` or `http://<aws-public-ip>:8000`.
 
@@ -161,8 +159,7 @@ client = create_client()  # -> AgentBitcoinClient
 | `build_payer_decision_inputs(quote, routing_fee_limit_sats=200)` | `PayerDecisionInputs` | Decision/budget fields; `quote_valid` flag. |
 | `pay_invoice(payment_request)` | `PaymentResult` | Pays a BOLT11 invoice. Raises `ValueError` if request is empty. |
 | `pay_invoice_quote(quote, …)` | `PaymentResult` | Validate quote, budget `total_cost_sats`, pay LN amount (optional fee collect). |
-| `send_onchain(address, amount_sats)` | `OnChainSendResult` | On-chain send. |
-| `collect_transaction_fee()` | `OnChainSendResult` | Sends `FEE_AMOUNT_SATS` to `FEE_WALLET_ADDRESS`. Raises `RuntimeError` if address unset. |
+| `send_onchain(address, amount_sats)` | `OnChainSendResult` | Generic on-chain send (not used for the platform fee). |
 | `get_balance()` | `LightningBalance` | On-chain wallet balances (string fields from LND). |
 | `get_channel_balance()` | `ChannelBalance` | Local/remote channel balances (ints). |
 
@@ -255,7 +252,7 @@ from agent_bitcoin.agents.payment_decision import (
 ### Implementer notes
 
 - `create_invoice` enforces the minimum at the client.
-- Fee collection is **not** always automatic inside `pay_invoice`; use `collect_transaction_fee()` or the backend `/send-fee` path (and your own orchestration) depending on architecture.
+- The platform fee is **inside the BOLT11**. There is no `collect_transaction_fee` / `/send-fee` path.
 - HTTP agents often call the **Backend API** so fee policy is enforced in one place.
 
 ### Explicit quote (independent payee / payer agents)
@@ -293,7 +290,7 @@ Base type: `AgentBitcoinError`.
 | `NoRouteError` | No Lightning route |
 | `ConfigurationError` | Bad or missing config |
 | `ValueError` | Client validation (min amount, empty pay req, etc.) |
-| `RuntimeError` | e.g. missing `FEE_WALLET_ADDRESS` on fee collect |
+| `RuntimeError` | e.g. mainnet autopay blocked without `AGENT_BITCOIN_ALLOW_AUTOPAY=1` |
 
 ```python
 from agent_bitcoin import create_client, PaymentError, AgentBitcoinError
@@ -455,12 +452,12 @@ Generate (example): `openssl rand -hex 32` — store in a password manager and h
 |-----|---------|------------|
 | `MIN_PAYMENT_SATS` | 1000 | `POST /invoices` |
 | `MAX_INVOICE_SATS` / `MAX_PAYMENT_SATS` | 1000000 | `POST /invoices` |
-| `MAX_FEE_SEND_SATS` | 100000 | `POST /send-fee` |
+
 
 ### Why use it
 
 - Single control point for Lightning ops
-- Fee collection hooks (`FEE_SATS`, `FEE_ADDRESS`)
+- Platform fee bundled into `/invoices` BOLT11 (`FEE_AMOUNT_SATS`)
 - API key gate on balances and payments
 - Easy for any language / HTTP agent
 
@@ -472,7 +469,6 @@ Generate (example): `openssl rand -hex 32` — store in a password manager and h
 | `GET` | `/balance` | Yes | Lightning + on-chain balances |
 | `POST` | `/invoices` | Yes | Create invoice (`memo`, `amount_sats`) |
 | `POST` | `/pay` | Yes | Pay invoice (`payment_request`, optional `fee_limit_sats`) |
-| `POST` | `/send-fee` | Yes | On-chain fee send (`amount_sats` optional override) |
 
 > **Note:** Use **`POST /pay`** (not `/payments`).
 
@@ -512,18 +508,6 @@ Example response fields:
 ### Balance
 
 `GET /balance` — returns Lightning and on-chain payloads plus `total_sat` when successful.
-
-### Send fee
-
-`POST /send-fee`
-
-```json
-{
-  "amount_sats": 1000
-}
-```
-
-Requires `FEE_ADDRESS` (and positive amount).
 
 ### Minimal HTTP example
 
@@ -689,7 +673,7 @@ uv run --python 3.12 python examples/nwc_mainnet_smoke.py --yes-mainnet --amount
 | Symptom | Likely cause | What to do |
 |---------|--------------|------------|
 | `Minimum payment is 1000 sats` | Amount below `MIN_PAYMENT_SATS` | Use ≥ 1000 or set `MIN_PAYMENT_SATS` |
-| `FEE_WALLET_ADDRESS not configured` | Fee collect without env | Set `FEE_WALLET_ADDRESS` in `.env` |
+
 | `Payment request is required` | Empty BOLT11 | Pass full `payment_request` |
 | Import errors for `langchain_xai` / `langchain_ollama` | Optional stack missing | `uv add` / `pip install` those packages |
 | Grok agent fails auth | Missing API key | `export XAI_API_KEY=...` or pass `api_key=` |

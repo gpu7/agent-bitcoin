@@ -47,7 +47,6 @@ class AgentBitcoinClient:
     def __init__(self):
         self.lnd = LNDClient()
 
-        self.fee_wallet_address = os.getenv("FEE_WALLET_ADDRESS")
         self.fee_amount_sats = fee_amount_sats()
         if (
             os.getenv("FEE_AMOUNT_SATS", "").strip() == ""
@@ -290,16 +289,6 @@ class AgentBitcoinClient:
         if amount_sats <= 0:
             raise ValueError("Amount must be positive")
         return self.lnd.send_coins(address, amount_sats)
-
-    def collect_transaction_fee(self) -> OnChainSendResult:
-        if not fee_send_allowed():
-            raise RuntimeError(
-                "Fee collection blocked on mainnet unless "
-                "AGENT_BITCOIN_ALLOW_MAINNET_FEE=1 (pilot default off)."
-            )
-        if not self.fee_wallet_address:
-            raise RuntimeError("FEE_WALLET_ADDRESS not configured in .env")
-        return self.send_onchain(self.fee_wallet_address, self.fee_amount_sats)
 
     def get_balance(self) -> LightningBalance:
         return self.lnd.get_balance()

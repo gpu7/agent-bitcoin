@@ -80,7 +80,7 @@ Do not commit personal IPs into the repo; the script stores the last IP under `~
 
 ### Backend API authentication
 
-The FastAPI backend (`backend/main.py`) protects `/balance`, `/invoices`, `/pay`, and `/send-fee` with an API key.
+The FastAPI backend (`backend/main.py`) protects `/balance`, `/invoices`, and `/pay` with an API key.
 
 1. Generate a key (on any trusted machine):
    ```bash
