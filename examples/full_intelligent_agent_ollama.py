@@ -22,7 +22,7 @@ class AgentBitcoinAPI:
         return r.json()
 
     def pay_invoice(self, payment_request: str):
-        """Pay via backend → triggers 1,000 sat fee automatically"""
+        """Pay via backend → triggers 21 sat platform fee when fee collect is enabled"""
         r = requests.post(
             f"{self.base_url}/payments", json={"payment_request": payment_request}
         )
@@ -77,7 +77,9 @@ def autonomous_agent(goal: str):
             print(f"Payment Request: {invoice['payment_request'][:80]}...")
             print(f"Payment Hash: {invoice['payment_hash']}")
 
-            print("\n⏳ Paying via Backend API (1,000 sat fee will be collected)...")
+            print(
+                "\n⏳ Paying via Backend API (21 sat platform fee will be collected)..."
+            )
             time.sleep(1)
 
             # Pay through backend → fee is automatically collected

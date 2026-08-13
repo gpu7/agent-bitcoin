@@ -65,7 +65,7 @@ The Python client loads environment variables via `python-dotenv` (typically a `
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `FEE_WALLET_ADDRESS` | (none) | On-chain address for `collect_transaction_fee()` |
-| `FEE_AMOUNT_SATS` | `1000` | Fee amount for `collect_transaction_fee()` |
+| `FEE_AMOUNT_SATS` | `21` | Fee amount for `collect_transaction_fee()` |
 | `MIN_PAYMENT_SATS` | `2000` | Minimum `amount_sats` for `create_invoice()` |
 | `MAX_PAYMENT_SATS` | `1000000` (lab) / `50000` (mainnet default) | Shared max for invoices and pays |
 | `MAX_DAILY_PAYMENT_SATS` | `0` lab (off) / `100000` mainnet | UTC daily spend cap; ledger file |
@@ -110,7 +110,7 @@ When using `backend/main.py` (FastAPI), fee collection uses:
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `FEE_SATS` | `1000` | On-chain fee amount |
+| `FEE_SATS` | `21` | On-chain fee amount |
 | `FEE_ADDRESS` | (none) | Destination for `/send-fee` |
 
 Base URL is typically `http://localhost:8000` or `http://<aws-public-ip>:8000`.
@@ -234,23 +234,23 @@ from agent_bitcoin.agents.payment_decision import (
 
 | Rule | Default | Configurable via |
 |------|---------|------------------|
-| Fixed fee | **1,000 sats** | `FEE_AMOUNT_SATS` / backend `FEE_SATS` |
+| Fixed fee | **21 sats** | `FEE_AMOUNT_SATS` / backend `FEE_SATS` |
 | Minimum invoice/payment amount | **2,000 sats** | `MIN_PAYMENT_SATS` |
 | Maximum invoice/payment amount | **1,000,000 sats** | `MAX_PAYMENT_SATS` (shared) |
 
 ### Semantics
 
-1. When a payment of **X** sats is approved, **1,000 sats** is the platform fee.
-2. **X − 1000** sats are intended for the recipient over Lightning.
-3. The **1,000 sat fee** is collected **on-chain** to the configured fee address (`collect_transaction_fee()` or backend `/send-fee`).
+1. When a payment of **X** sats is approved, **21 sats** is the platform fee.
+2. The payee receives **X** over Lightning (full BOLT11 amount).
+3. The **21 sat fee** is collected **separately on-chain** to the configured fee address (`collect_transaction_fee()` or backend `/send-fee`).
 
 ### Example (2,000 sats)
 
 | | Sats |
 |--|------|
-| Original amount | 2,000 |
-| Fee (on-chain) | 1,000 |
-| Net to recipient (Lightning) | 1,000 |
+| Lightning amount (BOLT11) | 2,000 |
+| Platform fee (on-chain, separate) | 21 |
+| Total cost | 2,021 |
 
 ### Implementer notes
 

@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 
 from .constants import (
+    DEFAULT_FEE_AMOUNT_SATS,
     autopay_allowed,
     fee_amount_sats,
     fee_send_allowed,
@@ -52,7 +53,9 @@ class AgentBitcoinClient:
             os.getenv("FEE_AMOUNT_SATS", "").strip() == ""
             and os.getenv("FEE_SATS", "").strip()
         ):
-            self.fee_amount_sats = int(os.getenv("FEE_SATS", "1000"))
+            self.fee_amount_sats = int(
+                os.getenv("FEE_SATS", str(DEFAULT_FEE_AMOUNT_SATS))
+            )
         self.min_payment_sats = min_payment_sats()
         self.max_payment_sats = max_payment_sats()
         self.max_daily_payment_sats = max_daily_payment_sats()
