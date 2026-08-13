@@ -1,3 +1,16 @@
+## v.26.0.0 — 2026-08-13
+
+Align package / `__version__` / git tag after NWC, 21-sat fee, and CI hygiene.
+
+### Highlights
+
+- Public-relay NWC (NIP-44 v2) Mac ↔ AWS; listener no longer hangs or drops the second call
+- Platform fee default **21 sats** (min payment still 2,000)
+- Dependabot Actions + aiohttp / setuptools / cryptography 50
+- Docker CI: pin `trivy-action` v0.36.0 by commit SHA
+
+---
+
 ## Fix — pin Trivy action so Docker CI can resolve (2026-08-13)
 
 ### Fixed
