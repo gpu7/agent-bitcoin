@@ -39,7 +39,7 @@ Neither is ideal for multi-agent swarms:
 - Agents never need LND admin macaroons for invoice/pay/balance.
 - Reuse project kill switches: min/max payment, optional daily ledger, network latches.
 - `PaymentDecisionAgent` remains **recommend-only**; NWC client executes only after an explicit product path allows it.
-- Regtest end-to-end: `make_invoice` + `pay_invoice` ≥ `MIN_PAYMENT_SATS` (2,000).
+- Regtest end-to-end: `make_invoice` + `pay_invoice` ≥ `MIN_PAYMENT_SATS` (1,000).
 
 ### Non-goals (v1 / N6)
 
@@ -123,7 +123,7 @@ Map NWC service enforcement to existing project controls:
 | Mainnet NWC go | `AGENT_BITCOIN_NWC_ALLOW_MAINNET=1` | Default **off** (N6) |
 | LND mainnet | `AGENT_BITCOIN_ALLOW_MAINNET=1` | Required for `LNDClient` on mainnet |
 | Network | `LND_NETWORK` | `mainnet` only for N6 smoke |
-| Min amount | `MIN_PAYMENT_SATS` / `NWC_MIN_PAYMENT_SATS` | default 2,000 |
+| Min amount | `MIN_PAYMENT_SATS` / `NWC_MIN_PAYMENT_SATS` | default 1,000 |
 | Max single pay | `NWC_MAX_PAYMENT_SATS` or mainnet default **2,000** | Lab uses `MAX_PAYMENT_SATS` |
 | Transport | `LND_TRANSPORT=docker` default | Avoid stale gRPC port misconfig (see M2 lesson) |
 
@@ -289,7 +289,7 @@ Flow: **PaymentDecisionAgent / rule_based_decision** returns PAY|REJECT → only
 | Limit | Value |
 |-------|--------|
 | Max single pay | **2,000 sats** (`DEFAULT_NWC_MAINNET_MAX_SATS`; override `NWC_MAX_PAYMENT_SATS`) |
-| Min pay | **2,000 sats** (project min) |
+| Min pay | **1,000 sats** (project min) |
 | Recommended N | **1** successful path per session |
 | Autoloop | **Off** |
 | Transport | in-memory bus + docker LND (same process smoke) |

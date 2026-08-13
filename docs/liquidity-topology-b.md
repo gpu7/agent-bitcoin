@@ -27,7 +27,7 @@ AWS agent LND  ──channel──  Mac peer LND
 
 **Product-path default:** Mac **creates** invoice → AWS **pays** (uses AWS outbound).
 
-**Reverse path:** AWS creates → Mac pays only if Mac has enough **local** (≥ `MIN_PAYMENT_SATS`, default 2000).
+**Reverse path:** AWS creates → Mac pays only if Mac has enough **local** (≥ `MIN_PAYMENT_SATS`, default 1000).
 
 ---
 

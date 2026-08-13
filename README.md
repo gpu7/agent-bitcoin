@@ -61,7 +61,7 @@ Agent-Bitcoin’s **transaction fee** is a fixed **platform fee** (default **21 
 | Rule | Default |
 |------|--------|
 | Platform / transaction fee | **21 sats** (`FEE_AMOUNT_SATS`) |
-| Minimum Lightning invoice amount | **2,000 sats** (`MIN_PAYMENT_SATS`) |
+| Minimum Lightning invoice amount | **1,000 sats** (`MIN_PAYMENT_SATS`) |
 
 **How it works (when fee collection is used)**
 

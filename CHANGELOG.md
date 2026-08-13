@@ -1,3 +1,13 @@
+## Change — minimum Lightning payment is 1,000 sats (2026-08-13)
+
+### Changed
+
+- `DEFAULT_MIN_PAYMENT_SATS` **2,000 → 1,000** (`MIN_PAYMENT_SATS`)
+- NWC min follows the same default (`NWC_MIN_PAYMENT_SATS` unset → `min_payment_sats()`)
+- Mainnet NWC **max** remains **2,000 sats**
+
+---
+
 ## v.26.0.0 — 2026-08-13
 
 Align package / `__version__` / git tag after NWC, 21-sat fee, and CI hygiene.

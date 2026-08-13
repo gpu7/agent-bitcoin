@@ -163,7 +163,7 @@ These remain **pilot ceilings** until an explicit expand decision. Enforced in c
 | Max single payment | **≤ 50,000 sats** (`MAX_PAYMENT_SATS`) | Prefer smaller pays (2k–10k) |
 | Max daily payments (sum) | Prefer **≤ 50,000** pilot discipline | Code default may be higher; do not treat as budget raise |
 | Max channel capacity | **≤ 50,000 sats** | First channel was **43,000** |
-| Min payment (product default) | **2,000 sats** | Pilot pays used 2k |
+| Min payment (product default) | **1,000 sats** | Pilot pays used 2k |
 | First mainnet on-chain fund | **≤ 50,000 sats** total | Executed at 50k on AWS only |
 | Autoloop on mainnet | **Disabled** | Manual Loop Out done under A′; Autoloop still off |
 | Autonomous agent `pay_invoice` | **Disabled** by default | Human attends every pay |
