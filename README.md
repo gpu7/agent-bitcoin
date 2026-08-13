@@ -32,7 +32,7 @@ A lightweight Python SDK that enables AI agents to send and receive Lightning/Bi
 
 - Simple, agent-friendly API (`create_client`)
 - Create and pay Lightning invoices (**payee** creates, **payer** pays)
-- **Explicit invoice quotes** for independent agents (`create_invoice_quote` / `pay_invoice_quote`) — BOLT11 amount plus disclosed platform/transaction fee
+- **Explicit invoice quotes** for independent agents (`create_invoice_quote` / `pay_invoice_quote`) — one BOLT11 for service amount plus platform fee
 - Fixed **platform fee** (transaction fee) model — separate from Lightning **routing** fees
 - LND transports: **docker** `lncli` (lab default) or **gRPC** + macaroon ([docs/lnd-client.md](docs/lnd-client.md))
 - Networks: **regtest** (default), **signet**, testnet; **mainnet** only with explicit latch
@@ -63,11 +63,11 @@ Agent-Bitcoin’s **transaction fee** is a fixed **platform fee** (default **21 
 | Platform / transaction fee | **21 sats** (`FEE_AMOUNT_SATS`) |
 | Minimum Lightning invoice amount | **1,000 sats** (`MIN_PAYMENT_SATS`) |
 
-**How it works (when fee collection is used)**
+**How it works**
 
-1. Payee issues an **invoice quote**: Lightning amount `X` plus disclosed `platform_fee_sats` / `total_cost_sats`.
-2. Payer pays **`X` over Lightning** to the payee (full BOLT11 amount).
-3. Platform fee is collected **separately on-chain** to `FEE_WALLET_ADDRESS` when you call fee collection (not automatic inside every `pay_invoice`).
+1. Payee issues an **invoice quote**: requested amount `X` plus platform fee (21).
+2. BOLT11 is for **`X + 21`**. Payer pays that single Lightning invoice.
+3. The full amount is inbound on the payee LND node. There is **no** separate on-chain fee send.
 
 For independent agents, prefer **`create_invoice_quote`** so the payer learns the fee without shared env. Details: **[SDK.md](SDK.md#transaction-fees-and-limits)** and the explicit-quote section.
 

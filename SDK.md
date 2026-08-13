@@ -155,8 +155,8 @@ client = create_client()  # -> AgentBitcoinClient
 
 | Method | Returns | Description |
 |--------|---------|-------------|
-| `create_invoice(memo, amount_sats, expiry_seconds=3600)` | `Invoice` | Creates a Lightning invoice. Raises `ValueError` if `amount_sats < min_payment_sats`. |
-| `create_invoice_quote(memo, amount_sats, …)` | `InvoiceQuote` | **Payee:** BOLT11 + explicit platform/transaction fee + `total_cost_sats` for independent payers. |
+| `create_invoice(memo, amount_sats, expiry_seconds=3600)` | `Invoice` | Creates a Lightning invoice for **amount + platform fee**. Raises `ValueError` if requested `amount_sats` is out of min/max. |
+| `create_invoice_quote(memo, amount_sats, …)` | `InvoiceQuote` | **Payee:** one BOLT11 for requested + fee; `collection=lightning_bundled`. |
 | `validate_invoice_quote(quote)` | `InvoiceQuote` | **Payer:** checks total and BOLT11 amount match. |
 | `build_payer_decision_inputs(quote, routing_fee_limit_sats=200)` | `PayerDecisionInputs` | Decision/budget fields; `quote_valid` flag. |
 | `pay_invoice(payment_request)` | `PaymentResult` | Pays a BOLT11 invoice. Raises `ValueError` if request is empty. |
@@ -240,17 +240,17 @@ from agent_bitcoin.agents.payment_decision import (
 
 ### Semantics
 
-1. When a payment of **X** sats is approved, **21 sats** is the platform fee.
-2. The payee receives **X** over Lightning (full BOLT11 amount).
-3. The **21 sat fee** is collected **separately on-chain** to the configured fee address (`collect_transaction_fee()` or backend `/send-fee`).
+1. When a payment of **X** sats is requested, **21 sats** is bundled as the platform fee.
+2. The payee issues **one** BOLT11 for **X + 21**. The payer pays that invoice.
+3. The full **X + 21** is Lightning inbound on the payee. No separate Bitcoin fee payment.
 
-### Example (2,000 sats)
+### Example (2,000 sats requested)
 
 | | Sats |
 |--|------|
-| Lightning amount (BOLT11) | 2,000 |
-| Platform fee (on-chain, separate) | 21 |
-| Total cost | 2,021 |
+| Requested / service amount | 2,000 |
+| Platform fee (in the same invoice) | 21 |
+| BOLT11 / total Lightning pay | 2,021 |
 
 ### Implementer notes
 
@@ -266,7 +266,7 @@ For agents that do **not** share env/config, the **payee** should send an **invo
 # Payee
 quote = client.create_invoice_quote(memo="service", amount_sats=2000)
 # quote.payment_request, amount_sats, platform_fee_sats / transaction_fee_sats,
-# total_cost_sats, collection="onchain_separate"
+# total_cost_sats, collection="lightning_bundled"
 
 # Payer
 inputs = client.build_payer_decision_inputs(quote, routing_fee_limit_sats=200)

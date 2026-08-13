@@ -67,7 +67,8 @@ class AgentBitcoinClient:
             raise ValueError(f"Minimum payment is {self.min_payment_sats} sats")
         if amount_sats > self.max_payment_sats:
             raise ValueError(f"Maximum payment is {self.max_payment_sats} sats")
-        return self.lnd.create_invoice(memo, amount_sats, expiry_seconds)
+        total = int(amount_sats) + int(self.fee_amount_sats)
+        return self.lnd.create_invoice(memo, total, expiry_seconds)
 
     def create_invoice_quote(
         self,
@@ -77,13 +78,16 @@ class AgentBitcoinClient:
         platform_fee_sats: int | None = None,
     ) -> InvoiceQuote:
         """
-        Payee: create BOLT11 and attach an explicit fee quote for independent payers.
+        Payee: create one BOLT11 for requested amount + platform fee.
 
-        Lightning amount = amount_sats (what payee receives on LN).
-        Platform/transaction fee is disclosed separately (default FEE_AMOUNT_SATS).
-        collection remains onchain_separate (not enforced inside pay_invoice).
+        amount_sats is the service amount (min/max apply to this).
+        BOLT11 and total_cost_sats are amount + fee (default FEE_AMOUNT_SATS).
+        collection is lightning_bundled — no separate on-chain fee send.
         """
-        inv = self.create_invoice(memo, amount_sats, expiry_seconds)
+        if amount_sats < self.min_payment_sats:
+            raise ValueError(f"Minimum payment is {self.min_payment_sats} sats")
+        if amount_sats > self.max_payment_sats:
+            raise ValueError(f"Maximum payment is {self.max_payment_sats} sats")
         fee = (
             self.fee_amount_sats
             if platform_fee_sats is None
@@ -92,13 +96,14 @@ class AgentBitcoinClient:
         if fee < 0:
             raise ValueError("platform_fee_sats must be >= 0")
         total = int(amount_sats) + fee
+        inv = self.lnd.create_invoice(memo, total, expiry_seconds)
         return InvoiceQuote(
             payment_request=inv.payment_request,
             amount_sats=int(amount_sats),
             platform_fee_sats=fee,
             transaction_fee_sats=fee,
             total_cost_sats=total,
-            collection="onchain_separate",
+            collection="lightning_bundled",
             memo=memo or "",
             r_hash=inv.r_hash,
             payment_hash=inv.payment_hash,
@@ -130,10 +135,11 @@ class AgentBitcoinClient:
 
         decoded = self.lnd.decode_pay_req(quote.payment_request.strip())
         bolt_amt = _invoice_amount_sats(decoded)
-        if bolt_amt != quote.amount_sats:
+        if bolt_amt != quote.total_cost_sats:
             raise ValueError(
-                f"BOLT11 amount {bolt_amt} does not match quote amount_sats "
-                f"{quote.amount_sats}"
+                f"BOLT11 amount {bolt_amt} does not match quote total_cost_sats "
+                f"{quote.total_cost_sats} (requested {quote.amount_sats} + "
+                f"fee {quote.platform_fee_sats})"
             )
         return quote
 
@@ -244,10 +250,11 @@ class AgentBitcoinClient:
         """
         Payer: validate quote, budget total_cost_sats, pay BOLT11 amount on LN.
 
-        Does not auto-collect platform fee unless collect_platform_fee=True
-        and fee sends are allowed (see FEE_WALLET_ADDRESS / mainnet fee flag).
-        Daily/deposit ledger uses total_cost_sats (LN amount + platform fee).
+        Platform fee is already inside the BOLT11 (lightning_bundled).
+        collect_platform_fee is ignored (no separate on-chain send).
+        Daily/deposit ledger uses total_cost_sats.
         """
+        _ = collect_platform_fee
         q = self.validate_invoice_quote(quote)
         if not autopay_allowed():
             raise RuntimeError(
@@ -270,17 +277,6 @@ class AgentBitcoinClient:
         )
         if result.success:
             record_spend(q.total_cost_sats, payment_hash=result.payment_hash)
-            if collect_platform_fee and q.platform_fee_sats > 0:
-                if not fee_send_allowed():
-                    raise RuntimeError(
-                        "LN pay succeeded but platform fee collection blocked "
-                        "(AGENT_BITCOIN_ALLOW_MAINNET_FEE=1 on mainnet)."
-                    )
-                if not self.fee_wallet_address:
-                    raise RuntimeError(
-                        "LN pay succeeded but FEE_WALLET_ADDRESS not set for fee collection"
-                    )
-                self.send_onchain(self.fee_wallet_address, q.platform_fee_sats)
         return result
 
     def send_onchain(self, address: str, amount_sats: int) -> OnChainSendResult:

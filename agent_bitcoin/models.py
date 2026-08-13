@@ -15,8 +15,8 @@ class InvoiceQuote(BaseModel):
     """
     Explicit quote package from the payee to the payer (independent agents).
 
-    BOLT11 only carries the Lightning amount to the payee. Platform/transaction
-    fee is disclosed here so the payer can budget total cost without shared env.
+    amount_sats is the requested service amount. BOLT11 is total_cost_sats
+    (requested + platform fee) so the payer pays one Lightning invoice.
     """
 
     payment_request: str
@@ -25,8 +25,8 @@ class InvoiceQuote(BaseModel):
     # Alias name for the same fee (docs / product language)
     transaction_fee_sats: int
     total_cost_sats: int
-    # How the platform fee is collected (not part of BOLT11)
-    collection: str = "onchain_separate"
+    # How the platform fee is collected (bundled into BOLT11)
+    collection: str = "lightning_bundled"
     memo: str = ""
     r_hash: str = ""
     payment_hash: str = ""

@@ -1,3 +1,13 @@
+## Change — platform fee bundled into the Lightning invoice (2026-08-13)
+
+### Changed
+
+- Payee BOLT11 is **requested amount + 21 sats** (`create_invoice`, `create_invoice_quote`, NWC `make_invoice`)
+- Quote `collection` is **`lightning_bundled`**; payer pays one invoice
+- No separate on-chain platform-fee send on the quote pay path
+
+---
+
 ## Change — minimum Lightning payment is 1,000 sats (2026-08-13)
 
 ### Changed
