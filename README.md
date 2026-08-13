@@ -6,7 +6,7 @@
 
 <br>
 
-[![Test PyPI](https://img.shields.io/badge/Test%20PyPI-0.2.0-blue)](https://test.pypi.org/project/agent-bitcoin/)
+[![Test PyPI](https://img.shields.io/badge/Test%20PyPI-26.0.0-blue)](https://test.pypi.org/project/agent-bitcoin/)
 [![Python](https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Release](https://img.shields.io/github/v/release/gpu7/agent-bitcoin)](https://github.com/gpu7/agent-bitcoin/releases/latest)
@@ -80,7 +80,7 @@ Mainnet pilot: fee collection stays **off** unless explicitly allowed — see [d
 ### From TestPyPI
 
 ```bash
-pip install -i https://test.pypi.org/simple/ agent-bitcoin==0.2.0
+pip install -i https://test.pypi.org/simple/ agent-bitcoin==26.0.0
 ```
 
 ### From source

@@ -295,13 +295,13 @@ Switch effort: `/effort high|medium|low` or `/model grok-4.5 high`.
 
 ### Version strings
 
-There is historical drift between:
+Keep these in sync on every tagged release (`RELEASE_CHECKLIST.md`):
 
-- `pyproject.toml` (`0.2.0`)
+- `pyproject.toml` `version`
 - `agent_bitcoin/__init__.__version__`
-- Git tags / CHANGELOG (`v.23.x`)
+- Git tag (`v.26.0.0` style) and CHANGELOG heading
 
-When releasing, update the versions the release checklist cares about; do not “fix” version numbers casually mid-feature.
+Do not change version numbers casually mid-feature.
 
 ---
 

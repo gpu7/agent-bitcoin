@@ -34,7 +34,7 @@
 ### From TestPyPI
 
 ```bash
-pip install -i https://test.pypi.org/simple/ agent-bitcoin==0.2.0
+pip install -i https://test.pypi.org/simple/ agent-bitcoin==26.0.0
 ```
 
 ### From source
