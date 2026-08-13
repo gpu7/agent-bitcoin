@@ -1,3 +1,12 @@
+## Fix — pin Trivy action so Docker CI can resolve (2026-08-13)
+
+### Fixed
+
+- `aquasecurity/trivy-action@0.28.0` no longer exists (tags moved to `v*` after the March 2026 supply-chain incident)
+- Pin `trivy-action` to commit SHA of **v0.36.0**; scan stays non-blocking (`exit-code: 0`)
+
+---
+
 ## Change — platform / transaction fee default is 21 sats (2026-08-13)
 
 ### Changed
