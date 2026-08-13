@@ -10,9 +10,9 @@ Examples:
   uv run python tests/test_aws_integration.py \\
     --network regtest --backend-url http://<AWS_EIP>:8000
 
-  # Signet: backend must use LND_NETWORK=signet (optional fee skip)
+  # Signet: backend must use LND_NETWORK=signet
   uv run python tests/test_aws_integration.py \\
-    --network signet --backend-url http://127.0.0.1:8000 --skip-fee
+    --network signet --backend-url http://127.0.0.1:8000
 
   # Prefer pure SDK dual-node tests without HTTP:
   #   LND_NETWORK=signet uv run pytest tests/test_lnd_sdk_integration.py -m integration -v
@@ -89,11 +89,6 @@ def main() -> int:
         help="Backend API key (or set AGENT_BITCOIN_API_KEY)",
     )
     parser.add_argument(
-        "--skip-fee",
-        action="store_true",
-        help="Skip /send-fee (recommended on signet unless fee wallet is funded)",
-    )
-    parser.add_argument(
         "--skip-pay",
         action="store_true",
         help="Only create invoice via API (no peer pay on this host)",
@@ -106,7 +101,7 @@ def main() -> int:
     if not api_key:
         print(
             "❌ AGENT_BITCOIN_API_KEY / --api-key required for backend "
-            "/balance, /invoices, /send-fee"
+            "/balance, /invoices, /pay"
         )
         return 1
 
@@ -158,15 +153,6 @@ def main() -> int:
                 return rc
         else:
             print("⏭  --skip-pay: not paying on this host")
-
-        if not args.skip_fee:
-            print("💰 Sending fee via /send-fee...")
-            r = requests.post(f"{url}/send-fee", headers=headers, timeout=120)
-            r.raise_for_status()
-            fee_result = r.json()
-            print(f"✅ Fee sent! TXID: {fee_result.get('txid')}")
-        else:
-            print("⏭  --skip-fee")
 
         print("\n✅ Integration flow finished")
         return 0

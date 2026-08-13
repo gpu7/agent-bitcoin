@@ -113,7 +113,7 @@ Pick the persona that matches the work. Use `general-purpose` for implementation
 
 **Responsibilities**
 
-- `backend/main.py` routes: `/`, `/balance`, `/invoices`, `/pay`, `/send-fee`.
+- `backend/main.py` routes: `/`, `/balance`, `/invoices`, `/pay`.
 - Request/response shapes, retries (e.g. payment retries), env-based fee config.
 - Keep API agent-friendly and documented in `SDK.md` (HTTP Backend API) when endpoints change.
 

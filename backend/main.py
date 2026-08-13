@@ -31,9 +31,6 @@ from starlette.responses import JSONResponse
 
 from agent_bitcoin.client import AgentBitcoinClient
 from agent_bitcoin.constants import (
-    DEFAULT_FEE_AMOUNT_SATS,
-    fee_send_allowed,
-    max_fee_send_sats,
     max_invoice_sats,
     min_payment_sats,
 )
@@ -55,7 +52,7 @@ BACKEND_HOST = (os.getenv("BACKEND_HOST") or "127.0.0.1").strip() or "127.0.0.1"
 BACKEND_PORT = int(os.getenv("BACKEND_PORT") or "8000")
 BACKEND_RATE_LIMIT_PER_MIN = int(os.getenv("BACKEND_RATE_LIMIT_PER_MIN") or "60")
 
-_RATE_LIMITED_PATHS = frozenset({"/pay", "/invoices", "/send-fee", "/balance"})
+_RATE_LIMITED_PATHS = frozenset({"/pay", "/invoices", "/balance"})
 _rate_buckets: Dict[str, Deque[float]] = defaultdict(deque)
 
 
@@ -114,14 +111,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(AccessLogMiddleware)
 
-FEE_SATS = int(os.getenv("FEE_SATS", str(DEFAULT_FEE_AMOUNT_SATS)))
-FEE_ADDRESS = os.getenv("FEE_ADDRESS") or os.getenv("FEE_WALLET_ADDRESS")
 MIN_PAYMENT_SATS = min_payment_sats()
 MAX_INVOICE_SATS = max_invoice_sats()
-MAX_FEE_SEND_SATS = max_fee_send_sats()
 API_KEY = (os.getenv("AGENT_BITCOIN_API_KEY") or "").strip()
 
-# AgentBitcoinClient enforces min/max, daily spend, mainnet autopay, fee kill-switch
+# AgentBitcoinClient enforces min/max, daily spend, mainnet autopay
 client = AgentBitcoinClient()
 
 
@@ -133,10 +127,6 @@ class InvoiceRequest(BaseModel):
 class PayRequest(BaseModel):
     payment_request: str
     fee_limit_sats: int = 500
-
-
-class FeeRequest(BaseModel):
-    amount_sats: Optional[int] = None
 
 
 def _extract_api_key(
@@ -263,8 +253,6 @@ async def pay_invoice(req: PayRequest):
             return {
                 "success": True,
                 "payment_hash": result.payment_hash,
-                "fee_sent": FEE_SATS if fee_send_allowed() else 0,
-                "fee_address": FEE_ADDRESS if fee_send_allowed() else None,
                 "attempts": attempt + 1,
             }
         except (ValueError, RuntimeError) as e:
@@ -281,49 +269,6 @@ async def pay_invoice(req: PayRequest):
         status_code=400,
         detail=f"Payment failed after 3 attempts. Last error: {last_error}",
     )
-
-
-@app.post("/send-fee", dependencies=[Depends(require_api_key)])
-async def send_fee(req: Optional[FeeRequest] = None):
-    """On-chain fee send to configured fee address (disabled on mainnet pilot)."""
-    if not fee_send_allowed():
-        raise HTTPException(
-            status_code=403,
-            detail=(
-                "On-chain fee sends disabled on mainnet unless "
-                "AGENT_BITCOIN_ALLOW_MAINNET_FEE=1 (see docs/mainnet-pilot.md)."
-            ),
-        )
-    amount = req.amount_sats if req and req.amount_sats is not None else FEE_SATS
-    if not FEE_ADDRESS or amount <= 0:
-        raise HTTPException(status_code=400, detail="Fee configuration missing")
-    if amount > MAX_FEE_SEND_SATS:
-        raise HTTPException(
-            status_code=400,
-            detail=f"amount_sats must be <= {MAX_FEE_SEND_SATS}",
-        )
-
-    try:
-        logger.info("fee send amount_sats=%s", amount)
-        # Prefer client fee path (also checks FEE_WALLET_ADDRESS on collect)
-        if (
-            hasattr(client, "fee_wallet_address")
-            and client.fee_wallet_address
-            and amount == client.fee_amount_sats
-        ):
-            fee_tx = client.collect_transaction_fee()
-        else:
-            fee_tx = client.send_onchain(FEE_ADDRESS, amount)
-        logger.info("fee sent txid=%s", fee_tx.txid)
-        return {
-            "success": True,
-            "txid": fee_tx.txid,
-            "amount_sats": amount,
-            "address": FEE_ADDRESS,
-        }
-    except Exception as e:
-        logger.error("fee send failed: %s", e)
-        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 if __name__ == "__main__":

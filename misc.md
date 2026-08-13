@@ -245,7 +245,7 @@ Run payments sequentially:python
 for agent in [agent_bitcoin, agent_bitcoin_1]:
     invoice = agent.create_invoice(amount=5000)
     success = agent.pay_invoice(invoice.payment_request)
-    fee_success = agent.send_fee()   # or call backend /send-fee
+    # platform fee is bundled into the Lightning invoice
 
 Add verification stepAfter both payments:Check Lightning balances on AWS
 Check on-chain fee transactions on AWS bitcoind / LND
@@ -313,7 +313,7 @@ Update .env or config to map agent names to container names
 
 Phase 3: Swarm Orchestrator (1–2 days)Create swarm/sequential_two_agent_swarm.py  Initialize both agents
 Run sequential payments
-Call backend /send-fee after each payment
+Platform fee is inside the invoice; no separate /send-fee call
 
 Create tests/test_two_agent_swarm.py  Run the swarm and verify:Both payments succeeded
 Fees were sent to Bitcoin wallet

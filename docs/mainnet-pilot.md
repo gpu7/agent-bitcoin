@@ -193,7 +193,7 @@ Earlier draft (500k channel / 1M fund) remains **retired** for this pilot.
 
 ## Fee model on mainnet (decision)
 
-**Lab (regtest/signet):** fixed **21 sat on-chain** fee path may still apply (`FEE_*` / `/send-fee`).
+**Lab and mainnet:** platform fee is **bundled into the Lightning invoice** (no `/send-fee`).
 
 **Mainnet pilot:**
 

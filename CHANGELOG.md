@@ -1,3 +1,15 @@
+## Remove — unused on-chain platform-fee APIs (2026-08-13)
+
+### Removed
+
+- `AgentBitcoinClient.collect_transaction_fee()`
+- Backend `POST /send-fee`
+- `/pay` response fields `fee_sent` / `fee_address`
+
+Platform fee remains bundled in the Lightning invoice (`FEE_AMOUNT_SATS`).
+
+---
+
 ## Change — platform fee bundled into the Lightning invoice (2026-08-13)
 
 ### Changed

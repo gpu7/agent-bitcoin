@@ -109,9 +109,9 @@ def autopay_allowed() -> bool:
 
 def fee_send_allowed() -> bool:
     """
-    On-chain fee deposit (/send-fee, collect_transaction_fee).
+    Generic on-chain send (`send_onchain`). Not used for the platform fee.
 
-    Mainnet pilot: disabled unless AGENT_BITCOIN_ALLOW_MAINNET_FEE=1.
+    Mainnet: disabled unless AGENT_BITCOIN_ALLOW_MAINNET_FEE=1.
     Lab nets: allowed.
     """
     if is_mainnet():

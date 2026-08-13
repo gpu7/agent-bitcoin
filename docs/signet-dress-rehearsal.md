@@ -16,7 +16,7 @@
 | Single pay ≤ 50k | `MAX_PAYMENT_SATS=50000` |
 | Daily sum ≤ 100k | `MAX_DAILY_PAYMENT_SATS=100000` |
 | Autopay deliberate | Set `AGENT_BITCOIN_ALLOW_AUTOPAY=1` only while paying (practice the flag) |
-| No on-chain fee path | Do **not** call `/send-fee` or `collect_transaction_fee` |
+| No on-chain fee path | Platform fee is inside the Lightning invoice |
 | Human unlock | No auto-unlock; unlock yourself after restart |
 | Dual-node | Mac ↔ AWS channel active |
 | Backup | Export + verify SCB before and after |
@@ -197,7 +197,7 @@ print(create_client().get_channel_balance())
 
 - [ ] Pay `success=True`
 - [ ] Balances moved
-- [ ] Did **not** run `/send-fee`
+- [ ] Did **not** send a separate on-chain fee
 
 ### C4. Backup after pay
 
