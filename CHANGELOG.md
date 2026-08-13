@@ -1,3 +1,13 @@
+## Change — platform / transaction fee default is 21 sats (2026-08-13)
+
+### Changed
+
+- `DEFAULT_FEE_AMOUNT_SATS` **1,000 → 21** (`FEE_AMOUNT_SATS` / backend `FEE_SATS`)
+- Minimum Lightning payment remains **2,000 sats** (`MIN_PAYMENT_SATS`)
+- Invoice quote `total_cost_sats` is now Lightning amount + 21 (e.g. 2,000 + 21 = 2,021)
+
+---
+
 ## Fix — NWC listener handles a second Mac call (2026-08-12)
 
 ### Fixed

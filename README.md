@@ -56,11 +56,11 @@ Either physical node (AWS agent LND or Mac counterparty LND) can act as payee or
 
 ## Transaction fee (platform fee)
 
-Agent-Bitcoin’s **transaction fee** is a fixed **platform fee** (default **1,000 sats**), **not** a Lightning routing fee.
+Agent-Bitcoin’s **transaction fee** is a fixed **platform fee** (default **21 sats**), **not** a Lightning routing fee.
 
 | Rule | Default |
 |------|--------|
-| Platform / transaction fee | **1,000 sats** (`FEE_AMOUNT_SATS`) |
+| Platform / transaction fee | **21 sats** (`FEE_AMOUNT_SATS`) |
 | Minimum Lightning invoice amount | **2,000 sats** (`MIN_PAYMENT_SATS`) |
 
 **How it works (when fee collection is used)**
