@@ -13,7 +13,7 @@ from __future__ import annotations
 import os
 
 # --- Canonical defaults (sats) ---
-DEFAULT_MIN_PAYMENT_SATS = 2_000
+DEFAULT_MIN_PAYMENT_SATS = 1_000
 DEFAULT_MAX_PAYMENT_SATS = 1_000_000
 # When LND_NETWORK=mainnet and MAX_PAYMENT_SATS unset (pilot ceiling)
 DEFAULT_MAINNET_MAX_PAYMENT_SATS = 50_000

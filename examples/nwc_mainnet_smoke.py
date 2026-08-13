@@ -11,7 +11,7 @@ Requires explicit operator go via env (all required):
   export LND_CONTAINER=agent-payment-decision-lnd-mainnet   # AWS invoice/service
   # optional tighter overrides:
   # export NWC_MAX_PAYMENT_SATS=2000
-  # export NWC_MIN_PAYMENT_SATS=2000
+  # export NWC_MIN_PAYMENT_SATS=1000
 
   uv sync --python 3.12 --extra nostr --group dev
   uv run --python 3.12 python examples/nwc_mainnet_smoke.py --amount 2000

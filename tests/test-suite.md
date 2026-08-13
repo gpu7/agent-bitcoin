@@ -47,7 +47,7 @@ Defined in `agent_bitcoin/constants.py`:
 
 | Constant | Default (sats) |
 |----------|----------------|
-| `DEFAULT_MIN_PAYMENT_SATS` | 2,000 |
+| `DEFAULT_MIN_PAYMENT_SATS` | 1,000 |
 | `DEFAULT_MAX_PAYMENT_SATS` | **1,000,000** |
 | `DEFAULT_FEE_AMOUNT_SATS` | 21 |
 

@@ -62,7 +62,7 @@ def test_abt003_client_above_maximum(clear_payment_env, payment_limits):
 
 
 def test_shared_defaults_one_million_max(clear_payment_env):
-    assert DEFAULT_MIN_PAYMENT_SATS == 2_000
+    assert DEFAULT_MIN_PAYMENT_SATS == 1_000
     assert DEFAULT_MAX_PAYMENT_SATS == 1_000_000
     assert DEFAULT_FEE_AMOUNT_SATS == 21
     from agent_bitcoin.constants import max_invoice_sats, payment_decision_max_sats

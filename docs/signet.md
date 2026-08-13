@@ -135,7 +135,7 @@ SG: allow **19735** (or 9735 if remapped) from peers you need.
 
 ### 7) First payment
 
-- Have a peer pay your invoice, or pay a peer invoice (amount ≥ `MIN_PAYMENT_SATS`, default 2000).
+- Have a peer pay your invoice, or pay a peer invoice (amount ≥ `MIN_PAYMENT_SATS`, default 1000).
 - Confirm `listpayments` / channel balances.
 
 ### 8) Health (signet)
@@ -254,7 +254,7 @@ Primary success direction (AWS holds most liquidity): **Mac creates → AWS pays
 - Daily Mac: `./update-aws-sg-my-ip.sh` then connect if needed
 - AWS: unlock LND if locked
 - Both: `synced_to_chain` and `listchannels` → `"active": true`
-- Amount ≥ `MIN_PAYMENT_SATS` (default **2000**)
+- Amount ≥ `MIN_PAYMENT_SATS` (default **1000**)
 
 Record balances before/after:
 
@@ -419,7 +419,7 @@ Same scripts and protocol as regtest Phase B ([nostr-agent-identity.md](./nostr-
 - Mac + AWS signet stacks up, wallets unlocked, **peer connected**, **channel active**
 - Python 3.12 + `.[nostr]` on both hosts that sign (`uv venv -p 3.12 .venv-nostr`)
 - Shared `NOSTR_PASSPHRASE` and shared bus/keys (rsync/scp `.nostr-poc-signet/`)
-- Payer has enough **local** channel balance (amount ≥ `MIN_PAYMENT_SATS`, default 2000)
+- Payer has enough **local** channel balance (amount ≥ `MIN_PAYMENT_SATS`, default 1000)
 
 ### Env (signet containers)
 

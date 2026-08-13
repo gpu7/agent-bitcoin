@@ -14,7 +14,7 @@ Keep this file actionable. Prefer links to `README.md`, `docs/`, and `SECURITY.m
 - Provide a simple, agent-friendly API for invoices, payments, balances, and fee collection.
 - Support intelligent payment decisions via LLMs (Grok by default; Ollama optional).
 - Run a split **AWS payment-decision node + Mac counterparty node** architecture on **Bitcoin regtest**.
-- Keep fees transparent and low (fixed **21 sat** fee; minimum payment **2,000 sats**).
+- Keep fees transparent and low (fixed **21 sat** fee; minimum payment **1,000 sats**).
 - Stay secure by default: no real funds in automated flows unless the user explicitly opts into testnet/mainnet.
 
 ### Non-goals (unless explicitly requested)
@@ -88,7 +88,7 @@ Pick the persona that matches the work. Use `general-purpose` for implementation
 **Responsibilities**
 
 - `PaymentDecisionAgent` behavior, decision parsing (`PAY` / `REJECT`), risk policy.
-- Fee model consistency (21 sat fee, 2,000 sat minimum) across client, backend, docs, and examples.
+- Fee model consistency (21 sat fee, 1,000 sat minimum) across client, backend, docs, and examples.
 - Ensure agents never auto-pay without a clear decision path.
 
 **Capabilities**
@@ -331,8 +331,8 @@ uv run python tests/test_aws_integration.py --backend-url http://<aws-ip>:8000
 
 Always consider:
 
-1. Amount &lt; minimum (2,000 sats) → reject / error.
-2. Nominal payment ≥ 2,000 sats → success path.
+1. Amount &lt; minimum (1,000 sats) → reject / error.
+2. Nominal payment ≥ 1,000 sats → success path.
 3. Fee path: 21 sats fee configuration still makes sense.
 4. Decision agent PAY/REJECT parsing still works with prompt changes.
 
@@ -361,7 +361,7 @@ Always consider:
 ### Fee model (do not silently change)
 
 - Fixed fee: **21 sats** per payment (env overrides may exist: `FEE_AMOUNT_SATS`, `FEE_SATS`).
-- Minimum payment: **2,000 sats** (`MIN_PAYMENT_SATS`).
+- Minimum payment: **1,000 sats** (`MIN_PAYMENT_SATS` / `NWC_MIN_PAYMENT_SATS`).
 - Typical path: Lightning pay net amount; fee may be collected on-chain to `FEE_WALLET_ADDRESS` / `FEE_ADDRESS`.
 - Update client, backend, README, and examples together if the model changes.
 

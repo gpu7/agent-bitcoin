@@ -203,7 +203,7 @@ export NOSTR_POC_DIR=./.nostr-poc
 .venv-nostr/bin/python examples/nostr_phase_b_payment.py pay --dry-run
 .venv-nostr/bin/python examples/nostr_phase_b_payment.py status
 
-# --- Live dual-host (example amounts must be >= MIN_PAYMENT_SATS, default 2000) ---
+# --- Live dual-host (example amounts must be >= MIN_PAYMENT_SATS, default 1000) ---
 # Mac (payer has local outbound):
 .venv-nostr/bin/python examples/nostr_phase_b_payment.py request --amount 5000 --memo 'nostr-b'
 # scp -r .nostr-poc  ubuntu@AWS:~/agent-bitcoin/
@@ -345,7 +345,7 @@ Aligned with [mainnet-pilot.md](./mainnet-pilot.md):
 |-------|----------|
 | Scope | **M2** — one human-attended Phase B pay |
 | Path | **Dual** — Mac `alice` pays → AWS `bob` invoices |
-| Amount cap | **2,000 sats** (`MIN_PAYMENT_SATS`) + routing fee |
+| Amount cap | **1,000 sats** (`MIN_PAYMENT_SATS`) + routing fee |
 | Capital HOLD | Still no new deposits / channels / Loop / Autoloop |
 | Autopay | **Off** (`AGENT_BITCOIN_ALLOW_AUTOPAY` unset) |
 | Mainnet latch | Session-only `AGENT_BITCOIN_ALLOW_MAINNET=1` for invoice/pay |

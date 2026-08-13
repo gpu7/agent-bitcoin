@@ -66,7 +66,7 @@ The Python client loads environment variables via `python-dotenv` (typically a `
 |----------|---------|---------|
 | `FEE_WALLET_ADDRESS` | (none) | On-chain address for `collect_transaction_fee()` |
 | `FEE_AMOUNT_SATS` | `21` | Fee amount for `collect_transaction_fee()` |
-| `MIN_PAYMENT_SATS` | `2000` | Minimum `amount_sats` for `create_invoice()` |
+| `MIN_PAYMENT_SATS` | `1000` | Minimum `amount_sats` for `create_invoice()` |
 | `MAX_PAYMENT_SATS` | `1000000` (lab) / `50000` (mainnet default) | Shared max for invoices and pays |
 | `MAX_DAILY_PAYMENT_SATS` | `0` lab (off) / `100000` mainnet | UTC daily spend cap; ledger file |
 | `AGENT_BITCOIN_ALLOW_AUTOPAY` | on in lab; **off on mainnet** | Mainnet requires `=1` to pay |
@@ -124,7 +124,7 @@ from agent_bitcoin import create_client
 
 client = create_client()
 
-# Amount must be >= MIN_PAYMENT_SATS (default 2000)
+# Amount must be >= MIN_PAYMENT_SATS (default 1000)
 invoice = client.create_invoice(memo="Test payment", amount_sats=5000)
 
 result = client.pay_invoice(invoice.payment_request)
@@ -235,7 +235,7 @@ from agent_bitcoin.agents.payment_decision import (
 | Rule | Default | Configurable via |
 |------|---------|------------------|
 | Fixed fee | **21 sats** | `FEE_AMOUNT_SATS` / backend `FEE_SATS` |
-| Minimum invoice/payment amount | **2,000 sats** | `MIN_PAYMENT_SATS` |
+| Minimum invoice/payment amount | **1,000 sats** | `MIN_PAYMENT_SATS` |
 | Maximum invoice/payment amount | **1,000,000 sats** | `MAX_PAYMENT_SATS` (shared) |
 
 ### Semantics
@@ -328,7 +328,7 @@ The agent **never executes payments**. It only returns a decision. Callers must 
 
 | Env / constructor | Default | Effect |
 |-------------------|---------|--------|
-| `MIN_PAYMENT_SATS` / `min_sats` | 2000 | Reject below minimum |
+| `MIN_PAYMENT_SATS` / `min_sats` | 1000 | Reject below minimum |
 | `PAYMENT_DECISION_MAX_SATS` / `max_sats` | **1000000** (shared default) | Hard reject above max |
 | `PAYMENT_DECISION_CONFIRM_ABOVE_SATS` / `confirm_above_sats` | unset | If set, amounts above return `CONFIRM_REQUIRED` (human must approve) |
 
@@ -453,7 +453,7 @@ Generate (example): `openssl rand -hex 32` — store in a password manager and h
 
 | Env | Default | Applies to |
 |-----|---------|------------|
-| `MIN_PAYMENT_SATS` | 2000 | `POST /invoices` |
+| `MIN_PAYMENT_SATS` | 1000 | `POST /invoices` |
 | `MAX_INVOICE_SATS` / `MAX_PAYMENT_SATS` | 1000000 | `POST /invoices` |
 | `MAX_FEE_SEND_SATS` | 100000 | `POST /send-fee` |
 
@@ -688,7 +688,7 @@ uv run --python 3.12 python examples/nwc_mainnet_smoke.py --yes-mainnet --amount
 
 | Symptom | Likely cause | What to do |
 |---------|--------------|------------|
-| `Minimum payment is 2000 sats` | Amount below `MIN_PAYMENT_SATS` | Use ≥ 2000 or lower env (not recommended for production policy) |
+| `Minimum payment is 1000 sats` | Amount below `MIN_PAYMENT_SATS` | Use ≥ 1000 or set `MIN_PAYMENT_SATS` |
 | `FEE_WALLET_ADDRESS not configured` | Fee collect without env | Set `FEE_WALLET_ADDRESS` in `.env` |
 | `Payment request is required` | Empty BOLT11 | Pass full `payment_request` |
 | Import errors for `langchain_xai` / `langchain_ollama` | Optional stack missing | `uv add` / `pip install` those packages |
