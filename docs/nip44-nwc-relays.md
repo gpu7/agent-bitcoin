@@ -1,7 +1,7 @@
 # NIP-44 + public-relay NWC (Mac ↔ AWS)
 
-**Status:** Implementation in progress — NIP-44 v2 required for new NWC connections; public relays only; payments via NWC with existing latches.
-**Date:** 2026-08-12
+**Status:** Dual-host public-relay NWC **read path PASS** (`get_info`, `get_balance`). Invoice/pay use project min **1,000** + bundled **21** sat fee. Mainnet `--pay` still needs a written go.
+**Date:** 2026-08-14
 **Related:** [nwc-automatic-wallets.md](./nwc-automatic-wallets.md) · [m3-production-swarm.md](./m3-production-swarm.md) · [NIP-44](https://github.com/nostr-protocol/nips/blob/master/44.md) · [NIP-47](https://nips.nostr.com/47)
 
 ---

@@ -69,7 +69,7 @@ The Python client loads environment variables via `python-dotenv` (typically a `
 | `MAX_PAYMENT_SATS` | `1000000` (lab) / `50000` (mainnet default) | Shared max for invoices and pays |
 | `MAX_DAILY_PAYMENT_SATS` | `0` lab (off) / `100000` mainnet | UTC daily spend cap; ledger file |
 | `AGENT_BITCOIN_ALLOW_AUTOPAY` | on in lab; **off on mainnet** | Mainnet requires `=1` to pay |
-| `AGENT_BITCOIN_ALLOW_MAINNET_FEE` | n/a lab; **off on mainnet** | Must be `=1` for on-chain fee sends |
+| `AGENT_BITCOIN_ALLOW_MAINNET_FEE` | n/a lab; **off on mainnet** | Must be `=1` for generic `send_onchain` (not the platform fee) |
 | `AGENT_BITCOIN_SPEND_LEDGER` | `~/.config/agent-bitcoin/spend-ledger.json` | Daily spend tracking path |
 | `LND_TRANSPORT` | `docker` | Or `grpc` — see [docs/lnd-client.md](docs/lnd-client.md) |
 | `MAX_INVOICE_SATS` | same as max | Optional override for backend only |
@@ -105,13 +105,7 @@ You can also pass `api_key=` into the agent constructors.
 
 ### HTTP backend (separate process)
 
-When using `backend/main.py` (FastAPI), fee collection uses:
-
-| Variable | Default | Purpose |
-|----------|---------|---------|
-
-
-Base URL is typically `http://localhost:8000` or `http://<aws-public-ip>:8000`.
+`backend/main.py` uses the same SDK client. Platform fee is **bundled into** `POST /invoices` (no `/send-fee`). Base URL is typically `http://localhost:8000` or `http://<aws-public-ip>:8000`.
 
 ---
 
@@ -122,7 +116,8 @@ from agent_bitcoin import create_client
 
 client = create_client()
 
-# Amount must be >= MIN_PAYMENT_SATS (default 1000)
+# Requested amount must be >= MIN_PAYMENT_SATS (default 1000).
+# BOLT11 is requested + 21 sat platform fee (5021 in this example).
 invoice = client.create_invoice(memo="Test payment", amount_sats=5000)
 
 result = client.pay_invoice(invoice.payment_request)
@@ -231,7 +226,7 @@ from agent_bitcoin.agents.payment_decision import (
 
 | Rule | Default | Configurable via |
 |------|---------|------------------|
-| Fixed fee | **21 sats** | `FEE_AMOUNT_SATS` / backend `FEE_SATS` |
+| Fixed fee | **21 sats** (inside BOLT11) | `FEE_AMOUNT_SATS` |
 | Minimum invoice/payment amount | **1,000 sats** | `MIN_PAYMENT_SATS` |
 | Maximum invoice/payment amount | **1,000,000 sats** | `MAX_PAYMENT_SATS` (shared) |
 
@@ -488,11 +483,15 @@ Example response fields:
 ```json
 {
   "payment_request": "lnbcrt...",
-  "r_hash": "...",
   "amount_sats": 5000,
+  "platform_fee_sats": 21,
+  "total_cost_sats": 5021,
+  "collection": "lightning_bundled",
   "memo": "Payment for service"
 }
 ```
+
+BOLT11 amount is **5021** (requested 5000 + 21).
 
 ### Pay invoice
 

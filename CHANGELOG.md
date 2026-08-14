@@ -1,3 +1,13 @@
+## Docs — sync current fee, min, and NWC status (2026-08-14)
+
+### Documented
+
+- Product policy: min **1,000** requested; **21** sat fee **inside** BOLT11; no `/send-fee`
+- NWC public-relay read path PASS; `make_invoice` bills X+21
+- HTTP `/invoices` quote shape; `ALLOW_MAINNET_FEE` is only generic `send_onchain`
+
+---
+
 ## Remove — unused on-chain platform-fee APIs (2026-08-13)
 
 ### Removed

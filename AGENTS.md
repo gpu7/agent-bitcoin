@@ -155,7 +155,7 @@ Pick the persona that matches the work. Use `general-purpose` for implementation
 
 - Macaroons, TLS certs, `.env`, API keys (`XAI_API_KEY`, webhook keys), fee wallet addresses.
 - Ensure examples never commit real credentials.
-- Review payment and on-chain fee send paths for accidental fund movement.
+- Review payment and generic `send_onchain` paths for accidental fund movement.
 
 **Rules**
 
@@ -333,7 +333,7 @@ Always consider:
 
 1. Amount &lt; minimum (1,000 sats) → reject / error.
 2. Nominal payment ≥ 1,000 sats → success path.
-3. Fee path: 21 sats fee configuration still makes sense.
+3. Fee path: invoice is requested amount + 21 sats (bundled).
 4. Decision agent PAY/REJECT parsing still works with prompt changes.
 
 ### Definition of done (code changes)
@@ -360,9 +360,10 @@ Always consider:
 
 ### Fee model (do not silently change)
 
-- Fixed fee: **21 sats** per payment (env overrides may exist: `FEE_AMOUNT_SATS`, `FEE_SATS`).
-- Minimum payment: **1,000 sats** (`MIN_PAYMENT_SATS` / `NWC_MIN_PAYMENT_SATS`).
-- Typical path: Lightning invoice is requested amount **plus** the 21 sat fee; payer pays one BOLT11. No separate on-chain fee.
+- Fixed fee: **21 sats** bundled into the Lightning invoice (`FEE_AMOUNT_SATS`).
+- Minimum **requested** amount: **1,000 sats** (`MIN_PAYMENT_SATS` / `NWC_MIN_PAYMENT_SATS`).
+- Typical path: BOLT11 is **X + 21**; payer pays once. No `collect_transaction_fee` / `/send-fee`.
+- On-chain: only generic `send_onchain` (mainnet needs `AGENT_BITCOIN_ALLOW_MAINNET_FEE=1`).
 - Update client, backend, README, and examples together if the model changes.
 
 ### Security
