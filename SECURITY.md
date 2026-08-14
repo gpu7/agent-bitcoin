@@ -8,6 +8,9 @@ This project includes:
 - An optional **HTTP backend** for agent-facing operations
 - **Regtest-oriented** operator tooling (AWS + local counterparty)
 
+GitHub **Code scanning** (CodeQL) runs on `main` and pull requests. Review alerts at
+https://github.com/gpu7/agent-bitcoin/security/code-scanning (maintainers).
+
 **Default development network is regtest.** Testnet or mainnet use is an explicit operator decision, not the default path of stock scripts and compose files.
 
 ## Supported Versions

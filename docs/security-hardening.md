@@ -254,7 +254,8 @@ gitleaks git --redact -v
    - Secret scanning
    - Push protection
    - Private vulnerability reporting
-3. Leave paid-only options alone.
+   - **Code scanning** — in-repo workflow `.github/workflows/codeql.yml` (CodeQL on Python + Actions; weekly + every PR). Alerts: **Security → Code scanning**.
+3. Leave paid-only options alone. After the first CodeQL run succeeds, the Security overview “Set up code scanning” item should clear.
 
 #### 2) Pull request defaults (~2 min)
 
