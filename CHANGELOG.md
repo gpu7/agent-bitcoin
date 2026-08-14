@@ -1,3 +1,12 @@
+## Security — pin Actions SHAs and least-privilege tokens (2026-08-14)
+
+### Fixed
+
+- CodeQL `actions/unpinned-tag` and `actions/missing-workflow-permissions` on CI / Docker / Release
+- Third-party actions pinned to commit SHAs; `contents: read` (Docker also `actions: write` for GHA cache)
+
+---
+
 ## Security — CodeQL code scanning (2026-08-14)
 
 ### Added
