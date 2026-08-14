@@ -14,7 +14,8 @@ This project includes:
 
 | Version  | Supported          |
 |:-------- |:------------------ |
-| 24.0.0   | :white_check_mark: |
+| 26.0.0   | :white_check_mark: |
+| 24.0.0+  | :white_check_mark: |
 | < 24.0.0 | :x:                |
 
 ## Reporting a Vulnerability

@@ -47,7 +47,7 @@ A lightweight Python SDK that enables AI agents to send and receive Lightning/Bi
 
 | Role | Does |
 |------|------|
-| **Payee** | Creates the invoice (and quote); receives the **invoice amount** over Lightning |
+| **Payee** | Creates the invoice (and quote); receives **X + 21 sats** over Lightning |
 | **Payer** | Validates quote / budget; pays the BOLT11 amount (plus optional routing fee limit) |
 
 Either physical node (AWS agent LND or Mac counterparty LND) can act as payee or payer depending on who creates the invoice.
@@ -71,7 +71,7 @@ Agent-Bitcoin’s **transaction fee** is a fixed **platform fee** (default **21 
 
 For independent agents, prefer **`create_invoice_quote`** so the payer learns the fee without shared env. Details: **[SDK.md](SDK.md#transaction-fees-and-limits)** and the explicit-quote section.
 
-Mainnet pilot: fee collection stays **off** unless explicitly allowed — see [docs/mainnet-pilot.md](docs/mainnet-pilot.md).
+There is no `collect_transaction_fee` / `POST /send-fee`. Mainnet **pays** stay latch-gated — see [docs/mainnet-pilot.md](docs/mainnet-pilot.md).
 
 ---
 

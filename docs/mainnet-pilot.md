@@ -193,13 +193,13 @@ Earlier draft (500k channel / 1M fund) remains **retired** for this pilot.
 
 ## Fee model on mainnet (decision)
 
-**Lab and mainnet:** platform fee is **bundled into the Lightning invoice** (no `/send-fee`).
+**Lab and mainnet:** platform fee is **21 sats inside the Lightning invoice** (`X + 21`). There is no `collect_transaction_fee` / `POST /send-fee`.
 
 **Mainnet pilot:**
 
-- **Disable** automatic on-chain fee collection on mainnet for the pilot.
-- Lightning amount is the full invoice amount (no “X − 1000” split).
-- Redesign product fee model is a **post-pilot** product decision.
+- Invoice BOLT11 is the full amount the payee receives (requested + 21).
+- Generic `send_onchain` stays off unless `AGENT_BITCOIN_ALLOW_MAINNET_FEE=1`.
+- Millisat micropayments and auto-sweep of channel local to bitcoind are **not** in product.
 
 ---
 

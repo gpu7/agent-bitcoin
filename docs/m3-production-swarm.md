@@ -15,7 +15,7 @@ From the Nostr mainnet target table:
 | NIP-47 NWC client + service + decision→pay | Already N1–N5 |
 | Mainnet NWC invoice smoke | N6 PASS, then closed |
 | Mainnet NWC `--pay` | **Not auto-run**; Dual/manual path documented; 2k cap |
-| Public Nostr relays for wallet / swarm traffic | `WebsocketNWCRelay` + loopback example |
+| Public Nostr relays for wallet / swarm traffic | `WebsocketNWCRelay`; dual-host `get_info`/`get_balance` PASS |
 | NIP-46 remote signer (bunker-style) | `agent_bitcoin.nostr.nip46` (kind 24133 JSON-RPC; NIP-04 lab crypto) |
 | NIP-17 private DMs | `agent_bitcoin.nostr.nip17` gift-wrap structure (lab crypto) |
 | Multi-agent discovery / registry | `agent_bitcoin.nostr.swarm` |
