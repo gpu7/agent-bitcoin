@@ -1,3 +1,12 @@
+## Security — CodeQL code scanning (2026-08-14)
+
+### Added
+
+- `.github/workflows/codeql.yml` — CodeQL on Python and GitHub Actions (PRs, `main`, weekly)
+- Alerts appear under GitHub **Security → Code scanning**
+
+---
+
 ## Docs — sync current fee, min, and NWC status (2026-08-14)
 
 ### Documented
