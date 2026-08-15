@@ -1,3 +1,14 @@
+## Add — Aperture L402 HTTP gateway (signet) (2026-08-15)
+
+### Added
+
+- `docker-compose.l402.signet.yml` + `l402/aperture.signet.yaml` (AWS signet LND, `:8081`)
+- `./startup-l402-aws.sh signet` / `./shutdown-l402-aws.sh signet`
+
+Same 1,000 sat price and Mac `L402Client` as regtest. Stop the other L402 stack first (shared `:8081`).
+
+---
+
 ## Add — Aperture L402 HTTP gateway (regtest) (2026-08-15)
 
 ### Added

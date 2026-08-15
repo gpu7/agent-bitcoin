@@ -1,0 +1,38 @@
+# Aperture L402 gateway — signet.
+# Distinct from Loop's container named `aperture` (port 11018).
+listenaddr: "0.0.0.0:8081"
+insecure: true
+debuglevel: "info"
+basedir: "/root/.aperture"
+servestatic: false
+strictverify: false
+profile: 0
+
+authenticator:
+  network: "signet"
+  disable: false
+  lndhost: "agent-payment-decision-lnd-signet:10009"
+  tlspath: "/lnd/tls.cert"
+  macdir: "/lnd/data/chain/bitcoin/signet"
+
+dbbackend: "sqlite"
+sqlite:
+  dbfile: "/root/.aperture/aperture.db"
+  skipmigrations: false
+
+hashmail:
+  enabled: false
+
+prometheus:
+  enabled: false
+
+services:
+  - name: "l402-demo"
+    hostregexp: ".*"
+    pathregexp: "^/.*$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 1000
+    timeout: 3600
+    authwhitelistpaths:
+      - "^/health$"

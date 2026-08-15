@@ -6,6 +6,12 @@ Example (regtest, Mac → AWS):
     LND_NETWORK=regtest LND_CONTAINER=agent-bitcoin-lnd \\
       uv run python examples/l402_pay.py \\
       --url http://<AWS_EIP>:8081/paid/hello
+
+Signet:
+
+    LND_NETWORK=signet LND_CONTAINER=agent-bitcoin-lnd-signet \\
+      uv run python examples/l402_pay.py \\
+      --url http://<AWS_EIP>:8081/paid/hello
 """
 
 from __future__ import annotations

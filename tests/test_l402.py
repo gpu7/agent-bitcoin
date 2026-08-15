@@ -94,6 +94,12 @@ def test_origin_paths() -> None:
     assert status == 404
 
 
+def test_origin_network_from_env(monkeypatch) -> None:
+    monkeypatch.setenv("L402_NETWORK", "signet")
+    _, body = _payload("/paid/hello")
+    assert body["network"] == "signet"
+
+
 def _payer(preimage: str = "cd" * 32) -> MagicMock:
     payer = MagicMock()
     payer.min_payment_sats = 1000

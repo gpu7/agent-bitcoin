@@ -5,8 +5,9 @@
 # Usage:
 #   ./startup-l402-aws.sh              # regtest (default)
 #   ./startup-l402-aws.sh regtest
+#   ./startup-l402-aws.sh signet
 #
-# Signet/mainnet overlays land in later PRs.
+# Only one L402 stack can bind :8081. Stop the other network first.
 
 set -euo pipefail
 
@@ -15,9 +16,18 @@ NETWORK=${1:-regtest}
 case "$NETWORK" in
   regtest)
     COMPOSE=docker-compose.l402.regtest.yml
+    DOCKER_NET=regtest_regtest
+    LND=agent-payment-decision-lnd
+    START_HINT="./startup-aws.sh regtest <EIP>"
     ;;
-  signet|mainnet)
-    echo "ERROR: $NETWORK L402 compose is not in this PR. Use regtest." >&2
+  signet)
+    COMPOSE=docker-compose.l402.signet.yml
+    DOCKER_NET=agent-bitcoin-signet
+    LND=agent-payment-decision-lnd-signet
+    START_HINT="./startup-signet-aws.sh <EIP>"
+    ;;
+  mainnet)
+    echo "ERROR: mainnet L402 compose is not in this PR." >&2
     exit 1
     ;;
   *)
@@ -31,14 +41,14 @@ if ! docker info >/dev/null 2>&1; then
   exit 1
 fi
 
-if ! docker network inspect regtest_regtest >/dev/null 2>&1; then
-  echo "ERROR: docker network regtest_regtest is missing." >&2
-  echo "Start the AWS regtest stack first (./startup-aws.sh regtest <EIP>)." >&2
+if ! docker network inspect "$DOCKER_NET" >/dev/null 2>&1; then
+  echo "ERROR: docker network $DOCKER_NET is missing." >&2
+  echo "Start the AWS $NETWORK stack first ($START_HINT)." >&2
   exit 1
 fi
 
-if ! docker inspect -f '{{.State.Running}}' agent-payment-decision-lnd 2>/dev/null | grep -qx true; then
-  echo "ERROR: agent-payment-decision-lnd is not running." >&2
+if ! docker inspect -f '{{.State.Running}}' "$LND" 2>/dev/null | grep -qx true; then
+  echo "ERROR: $LND is not running." >&2
   echo "Start/unlock AWS LND before Aperture." >&2
   exit 1
 fi
@@ -53,6 +63,7 @@ echo
 echo "Health (free):     curl -sS http://127.0.0.1:8081/health"
 echo "Paid challenge:    curl -sSi http://127.0.0.1:8081/paid/hello"
 echo "From Mac:          ./update-aws-sg-my-ip.sh   # include port 8081"
-echo "                   uv run python examples/l402_pay.py --url http://<AWS_EIP>:8081/paid/hello"
+echo "                   LND_NETWORK=$NETWORK LND_CONTAINER=<mac-lnd> \\"
+echo "                     uv run python examples/l402_pay.py --url http://<AWS_EIP>:8081/paid/hello"
 echo
 docker compose -f "$COMPOSE" ps
