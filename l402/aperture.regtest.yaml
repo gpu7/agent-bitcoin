@@ -3,7 +3,7 @@
 listenaddr: "0.0.0.0:8081"
 insecure: true
 debuglevel: "info"
-basedir: "/data"
+basedir: "/root/.aperture"
 servestatic: false
 strictverify: false
 profile: 0
@@ -17,7 +17,7 @@ authenticator:
 
 dbbackend: "sqlite"
 sqlite:
-  dbfile: "/data/aperture.db"
+  dbfile: "/root/.aperture/aperture.db"
   skipmigrations: false
 
 hashmail:

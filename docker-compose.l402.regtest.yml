@@ -32,7 +32,7 @@ services:
     volumes:
       - ./l402/aperture.regtest.yaml:/config/aperture.yaml:ro
       - lnd-data:/lnd:ro
-      - l402-aperture-data:/data
+      - l402-aperture-data:/root/.aperture
     networks:
       - l402-net
 
