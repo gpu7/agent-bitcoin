@@ -11,10 +11,10 @@ Keep this file actionable. Prefer links to `README.md`, `docs/`, and `SECURITY.m
 
 ### Goals
 
-- Provide a simple, agent-friendly API for invoices, payments, balances, and fee collection.
+- Provide a simple, agent-friendly API for invoices, payments, and balances.
 - Support intelligent payment decisions via LLMs (Grok by default; Ollama optional).
 - Run a split **AWS payment-decision node + Mac counterparty node** architecture on **Bitcoin regtest**.
-- Keep fees transparent and low (fixed **21 sat** fee; minimum payment **1,000 sats**).
+- Keep payments transparent: **no platform fee**; minimum payment **1,000 sats**.
 - Stay secure by default: no real funds in automated flows unless the user explicitly opts into testnet/mainnet.
 
 ### Non-goals (unless explicitly requested)
@@ -32,7 +32,7 @@ Keep this file actionable. Prefer links to `README.md`, `docs/`, and `SECURITY.m
 | `agent_bitcoin/lightning.py` | LND access via `docker exec` + `lncli` (regtest) |
 | `agent_bitcoin/agents/` | LLM agents (`PaymentDecisionAgent`, `BitcoinLNDAgent`) |
 | `agent_bitcoin/prompts.py` | **Only** place to edit agent system prompts by default |
-| `backend/main.py` | FastAPI backend (invoices, pay, balance, fee) |
+| `backend/main.py` | FastAPI backend (invoices, pay, balance) |
 | `examples/` | Runnable demos (Grok, Ollama, full flows) |
 | `tests/` | Unit/integration tests + `test-suite.md` workflow cases |
 | `docker-compose.regtest.aws.yml` / `docker-compose.regtest.mac.yml` | Node stacks |
@@ -88,13 +88,13 @@ Pick the persona that matches the work. Use `general-purpose` for implementation
 **Responsibilities**
 
 - `PaymentDecisionAgent` behavior, decision parsing (`PAY` / `REJECT`), risk policy.
-- Fee model consistency (21 sat fee, 1,000 sat minimum) across client, backend, docs, and examples.
+- No platform fee; 1,000 sat minimum — keep that consistent across client, backend, docs, and examples.
 - Ensure agents never auto-pay without a clear decision path.
 
 **Capabilities**
 
 - Edit agent classes, factories, and tests around payment approval.
-- Align policy text with actual enforcement in code (min amount, fee collection).
+- Align policy text with actual enforcement in code (min amount; no platform fee).
 
 ### 2.4 Prompt Engineer Agent
 
@@ -333,7 +333,7 @@ Always consider:
 
 1. Amount &lt; minimum (1,000 sats) → reject / error.
 2. Nominal payment ≥ 1,000 sats → success path.
-3. Fee path: invoice is requested amount + 21 sats (bundled).
+3. No platform fee: BOLT11 amount equals the requested amount.
 4. Decision agent PAY/REJECT parsing still works with prompt changes.
 
 ### Definition of done (code changes)
@@ -360,9 +360,9 @@ Always consider:
 
 ### Fee model (do not silently change)
 
-- Fixed fee: **21 sats** bundled into the Lightning invoice (`FEE_AMOUNT_SATS`).
+- **No platform / transaction fee.** BOLT11 is the requested amount **X**.
 - Minimum **requested** amount: **1,000 sats** (`MIN_PAYMENT_SATS` / `NWC_MIN_PAYMENT_SATS`).
-- Typical path: BOLT11 is **X + 21**; payer pays once. No `collect_transaction_fee` / `/send-fee`.
+- Lightning **routing** fees remain a separate payer-side cap (`fee_limit_sats` / `routing_fee_limit_sats`).
 - On-chain: only generic `send_onchain` (mainnet needs `AGENT_BITCOIN_ALLOW_MAINNET_FEE=1`).
 - Update client, backend, README, and examples together if the model changes.
 

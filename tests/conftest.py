@@ -14,7 +14,6 @@ def pytest_configure(config):
 def payment_limits():
     """Canonical defaults from agent_bitcoin.constants."""
     from agent_bitcoin.constants import (
-        DEFAULT_FEE_AMOUNT_SATS,
         DEFAULT_MAX_PAYMENT_SATS,
         DEFAULT_MIN_PAYMENT_SATS,
     )
@@ -22,7 +21,6 @@ def payment_limits():
     return {
         "min": DEFAULT_MIN_PAYMENT_SATS,
         "max": DEFAULT_MAX_PAYMENT_SATS,
-        "fee": DEFAULT_FEE_AMOUNT_SATS,
     }
 
 

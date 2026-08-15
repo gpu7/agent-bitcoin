@@ -246,7 +246,7 @@ High-level intent: [liquidity-automation.md — Phase 3](./liquidity-automation.
 
 - Faraday channel productivity
 - Optional Pool
-- Platform fee is Lightning-bundled (not an on-chain fee wallet)
+- No platform fee (BOLT11 = requested amount; not an on-chain fee wallet)
 - Mainnet-only design (separate hosts, keys, budgets)
 
 ## References

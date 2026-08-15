@@ -10,7 +10,6 @@ __version__ = "26.0.0"
 # Core
 from .client import AgentBitcoinClient, create_client
 from .constants import (
-    DEFAULT_FEE_AMOUNT_SATS,
     DEFAULT_MAX_PAYMENT_SATS,
     DEFAULT_MIN_PAYMENT_SATS,
 )
@@ -45,7 +44,6 @@ __all__ = [
     "create_client",
     "DEFAULT_MIN_PAYMENT_SATS",
     "DEFAULT_MAX_PAYMENT_SATS",
-    "DEFAULT_FEE_AMOUNT_SATS",
     # Exceptions
     "AgentBitcoinError",
     "InvoiceCreationError",

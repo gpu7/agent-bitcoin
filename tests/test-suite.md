@@ -39,7 +39,7 @@ Dual-node **pay** tests require **both** containers on the same Docker host. Typ
 | **ABT-001** | Normal payment (min &lt; amt ≤ max) | Client + API + agent allow mid-range | SDK create/pay when dual local |
 | **ABT-002** | Below minimum | Client/API/agent reject | — |
 | **ABT-003** | Above maximum (1,000,000 sats) | Client/API/agent reject | — |
-| **ABT-004** | Platform fee bundled | Invoice quote `total = amount + 21`, `collection=lightning_bundled` | — |
+| **ABT-004** | No platform fee | Invoice quote `total_cost_sats = amount_sats`; BOLT11 == requested | — |
 
 ## Shared limits
 
@@ -49,7 +49,6 @@ Defined in `agent_bitcoin/constants.py`:
 |----------|----------------|
 | `DEFAULT_MIN_PAYMENT_SATS` | 1,000 |
 | `DEFAULT_MAX_PAYMENT_SATS` | **1,000,000** |
-| `DEFAULT_FEE_AMOUNT_SATS` | 21 |
 
 ## Markers
 

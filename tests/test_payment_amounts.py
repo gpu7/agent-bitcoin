@@ -11,7 +11,6 @@ import pytest
 from fastapi.testclient import TestClient
 
 from agent_bitcoin.constants import (
-    DEFAULT_FEE_AMOUNT_SATS,
     DEFAULT_MAX_PAYMENT_SATS,
     DEFAULT_MIN_PAYMENT_SATS,
 )
@@ -36,7 +35,7 @@ def test_abt001_client_normal_amount_reaches_lnd(clear_payment_env, payment_limi
         assert inv.payment_request.startswith("lnbcrt")
         mock_lnd.create_invoice.assert_called_once()
         args = mock_lnd.create_invoice.call_args[0]
-        assert args[1] == mid + client.fee_amount_sats
+        assert args[1] == mid
 
 
 def test_abt002_client_below_minimum(clear_payment_env, payment_limits):
@@ -64,7 +63,6 @@ def test_abt003_client_above_maximum(clear_payment_env, payment_limits):
 def test_shared_defaults_one_million_max(clear_payment_env):
     assert DEFAULT_MIN_PAYMENT_SATS == 1_000
     assert DEFAULT_MAX_PAYMENT_SATS == 1_000_000
-    assert DEFAULT_FEE_AMOUNT_SATS == 21
     from agent_bitcoin.constants import max_invoice_sats, payment_decision_max_sats
 
     assert max_invoice_sats() == 1_000_000
@@ -86,14 +84,11 @@ def api_client(clear_payment_env, monkeypatch):
     backend_main.client = MagicMock()
     from agent_bitcoin.models import InvoiceQuote
 
-    def _quote(memo, amount_sats, expiry_seconds=3600, platform_fee_sats=None):
-        fee = 1000 if platform_fee_sats is None else platform_fee_sats
+    def _quote(memo, amount_sats, expiry_seconds=3600):
         return InvoiceQuote(
             payment_request="lnbcrt1test",
             amount_sats=amount_sats,
-            platform_fee_sats=fee,
-            transaction_fee_sats=fee,
-            total_cost_sats=amount_sats + fee,
+            total_cost_sats=amount_sats,
             memo=memo,
             r_hash="rr",
             payment_hash="rr",
@@ -114,8 +109,8 @@ def test_abt001_api_normal_invoice(api_client, payment_limits):
     assert r.status_code == 200
     body = r.json()
     assert body["amount_sats"] == mid
-    assert body["platform_fee_sats"] == 1000
-    assert body["total_cost_sats"] == mid + 1000
+    assert body["total_cost_sats"] == mid
+    assert "platform_fee_sats" not in body
     backend_main.client.create_invoice_quote.assert_called()
 
 

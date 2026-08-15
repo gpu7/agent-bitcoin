@@ -252,7 +252,7 @@ JSON: `./check-aws-health.sh --json`
 
 #### Backend access logs
 
-The API logs method, path, status, and latency only (not API keys or invoice bodies). Auth failures log at warning. Invoice/pay/fee log amounts and payment_hash/txid where useful—not full BOLT11.
+The API logs method, path, status, and latency only (not API keys or invoice bodies). Auth failures log at warning. Invoice/pay log amounts and payment_hash/txid where useful—not full BOLT11.
 
 ```bash
 tmux attach -t backend
