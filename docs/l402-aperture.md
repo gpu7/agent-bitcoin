@@ -1,6 +1,6 @@
 # Aperture L402 paid gateway
 
-**Status:** Regtest Mac→AWS paid GET **PASS** (2026-08-15). Signet overlay is in this PR (live paid GET is the merge gate). Mainnet is a later PR.
+**Status:** Regtest Mac→AWS paid GET **PASS** (2026-08-15). Signet Mac→AWS paid GET **PASS** (2026-08-15). Mainnet is a later PR.
 **Not** Lightning Loop’s container named `aperture` (`aperture:11018`). That is Loop L402 auth. This gateway is **`agent-l402-aperture`** on **`:8081`**.
 
 ## What it is

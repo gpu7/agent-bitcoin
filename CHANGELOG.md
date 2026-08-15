@@ -5,7 +5,7 @@
 - `docker-compose.l402.signet.yml` + `l402/aperture.signet.yaml` (AWS signet LND, `:8081`)
 - `./startup-l402-aws.sh signet` / `./shutdown-l402-aws.sh signet`
 
-Same 1,000 sat price and Mac `L402Client` as regtest. Stop the other L402 stack first (shared `:8081`).
+Same 1,000 sat price and Mac `L402Client` as regtest. Stop the other L402 stack first (shared `:8081`). Live Mac→AWS paid GET **PASS** (2026-08-15).
 
 ---
 
