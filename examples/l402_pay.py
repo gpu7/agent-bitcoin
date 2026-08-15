@@ -12,6 +12,13 @@ Signet:
     LND_NETWORK=signet LND_CONTAINER=agent-bitcoin-lnd-signet \\
       uv run python examples/l402_pay.py \\
       --url http://<AWS_EIP>:8081/paid/hello
+
+Mainnet (real sats; latches required):
+
+    AGENT_BITCOIN_ALLOW_MAINNET=1 AGENT_BITCOIN_ALLOW_AUTOPAY=1 \\
+    LND_NETWORK=mainnet LND_CONTAINER=agent-bitcoin-lnd-mainnet \\
+      uv run python examples/l402_pay.py \\
+      --url http://<AWS_EIP>:8081/paid/hello
 """
 
 from __future__ import annotations

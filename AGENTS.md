@@ -365,7 +365,7 @@ Always consider:
 - **No platform / transaction fee.** BOLT11 is the requested amount **X**.
 - Minimum **requested** amount: **1,000 sats** (`MIN_PAYMENT_SATS` / `NWC_MIN_PAYMENT_SATS`).
 - Lightning **routing** fees remain a separate payer-side cap (`fee_limit_sats` / `routing_fee_limit_sats`).
-- Aperture L402 demo price is **1,000 sats** (`DEFAULT_L402_PRICE_SATS`). Not Loop's `aperture` container.
+- Aperture L402 demo price is **1,000 sats** (`DEFAULT_L402_PRICE_SATS`). Not Loop's `aperture` container. Mainnet L402 pay needs a written go.
 - On-chain: only generic `send_onchain` (mainnet needs `AGENT_BITCOIN_ALLOW_MAINNET_FEE=1`).
 - Update client, backend, README, and examples together if the model changes.
 
