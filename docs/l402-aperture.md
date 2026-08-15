@@ -1,6 +1,6 @@
 # Aperture L402 paid gateway
 
-**Status:** Regtest Mac→AWS paid GET **PASS** (2026-08-15). Signet Mac→AWS paid GET **PASS** (2026-08-15). Mainnet is a later PR.
+**Status:** Regtest and signet Mac→AWS paid GET **PASS** (2026-08-15). Mainnet overlay is this PR (one 1,000 sat pay with written go).
 **Not** Lightning Loop’s container named `aperture` (`aperture:11018`). That is Loop L402 auth. This gateway is **`agent-l402-aperture`** on **`:8081`**.
 
 ## What it is
@@ -32,6 +32,7 @@ Do **not** put Aperture in front of `/pay`, `/invoices`, or `/balance`.
 |---------|---------|---------|----------------|------------|
 | regtest | `agent-payment-decision-lnd` | `agent-bitcoin-lnd` | `regtest_regtest` | `agent-bitcoin_lnd-data` |
 | signet | `agent-payment-decision-lnd-signet` | `agent-bitcoin-lnd-signet` | `agent-bitcoin-signet` | `agent-bitcoin_lnd-signet-data` |
+| mainnet | `agent-payment-decision-lnd-mainnet` | `agent-bitcoin-lnd-mainnet` | `agent-bitcoin-mainnet` | `agent-bitcoin_lnd-mainnet-data` |
 
 ## Start on AWS
 
@@ -40,7 +41,7 @@ cd ~/agent-bitcoin
 git pull
 # Stop the other network's L402 first if :8081 is in use
 ./shutdown-l402-aws.sh regtest   # if switching to signet
-./startup-l402-aws.sh signet     # or: ./startup-l402-aws.sh regtest
+./startup-l402-aws.sh signet     # or: regtest | mainnet
 
 curl -sS http://127.0.0.1:8081/health          # 200, no payment
 curl -sSi http://127.0.0.1:8081/paid/hello     # 402 + WWW-Authenticate
@@ -71,6 +72,7 @@ Do **not** open LND gRPC `10009`. Do **not** world-open 8081.
 export LND_NETWORK=regtest LND_CONTAINER=agent-bitcoin-lnd
 # Signet
 # export LND_NETWORK=signet LND_CONTAINER=agent-bitcoin-lnd-signet
+# Mainnet (also AGENT_BITCOIN_ALLOW_MAINNET=1 AGENT_BITCOIN_ALLOW_AUTOPAY=1)
 
 uv run python examples/l402_pay.py --url http://<AWS_EIP>:8081/paid/hello
 ```
@@ -94,12 +96,15 @@ resp = client.fetch("http://<AWS_EIP>:8081/paid/hello")
 |------|------|
 | `docker-compose.l402.regtest.yml` | Origin + Aperture on `regtest_regtest` |
 | `docker-compose.l402.signet.yml` | Origin + Aperture on `agent-bitcoin-signet` |
-| `l402/aperture.regtest.yaml` / `aperture.signet.yaml` | `price: 1000`, `insecure: true` |
+| `docker-compose.l402.mainnet.yml` | Origin + Aperture on `agent-bitcoin-mainnet` |
+| `l402/aperture.*.yaml` | `price: 1000`, `insecure: true` |
 | `l402/origin.py` | Dummy origin |
 | `agent_bitcoin/l402/` | Client + header parser |
 | `examples/l402_pay.py` | Mac CLI |
 | `startup-l402-aws.sh` / `shutdown-l402-aws.sh` | Ops |
 
-## Later networks
+## Mainnet notes
 
-Mainnet gets its own compose overlay and PR. Same `:8081` + SG `/32`. Mainnet pay still needs a written go. Invoice-only macaroon is required on mainnet (Aperture already requests `invoice.macaroon` from `macdir`).
+- Same `:8081` + SG `/32`. Do **not** world-open 8081.
+- Aperture uses **`invoice.macaroon`** from the mainnet macaroon dir (not admin).
+- One paid GET is **1,000 real sats**. Needs `AGENT_BITCOIN_ALLOW_MAINNET=1` and `AGENT_BITCOIN_ALLOW_AUTOPAY=1` on the Mac payer. Autoloop stays **off**.

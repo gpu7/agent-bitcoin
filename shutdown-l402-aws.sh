@@ -5,6 +5,7 @@
 #   ./shutdown-l402-aws.sh
 #   ./shutdown-l402-aws.sh regtest
 #   ./shutdown-l402-aws.sh signet
+#   ./shutdown-l402-aws.sh mainnet
 
 set -euo pipefail
 
@@ -18,6 +19,10 @@ case "$NETWORK" in
   signet)
     COMPOSE=docker-compose.l402.signet.yml
     VOLS="agent-bitcoin_l402-aperture-signet, agent-bitcoin_lnd-signet-data"
+    ;;
+  mainnet)
+    COMPOSE=docker-compose.l402.mainnet.yml
+    VOLS="agent-bitcoin_l402-aperture-mainnet, agent-bitcoin_lnd-mainnet-data"
     ;;
   *)
     echo "ERROR: unknown network '$NETWORK'" >&2

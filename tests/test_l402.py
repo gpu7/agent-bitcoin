@@ -98,6 +98,9 @@ def test_origin_network_from_env(monkeypatch) -> None:
     monkeypatch.setenv("L402_NETWORK", "signet")
     _, body = _payload("/paid/hello")
     assert body["network"] == "signet"
+    monkeypatch.setenv("L402_NETWORK", "mainnet")
+    _, body = _payload("/paid/hello")
+    assert body["network"] == "mainnet"
 
 
 def _payer(preimage: str = "cd" * 32) -> MagicMock:

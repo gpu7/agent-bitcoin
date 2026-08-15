@@ -1,3 +1,14 @@
+## Add — Aperture L402 HTTP gateway (mainnet) (2026-08-15)
+
+### Added
+
+- `docker-compose.l402.mainnet.yml` + `l402/aperture.mainnet.yaml`
+- `./startup-l402-aws.sh mainnet` / `./shutdown-l402-aws.sh mainnet`
+
+Price remains **1,000 sats**. Payer needs mainnet + autopay latches. Autoloop stays off.
+
+---
+
 ## Add — Aperture L402 HTTP gateway (signet) (2026-08-15)
 
 ### Added

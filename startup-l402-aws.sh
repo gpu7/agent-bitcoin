@@ -6,6 +6,7 @@
 #   ./startup-l402-aws.sh              # regtest (default)
 #   ./startup-l402-aws.sh regtest
 #   ./startup-l402-aws.sh signet
+#   ./startup-l402-aws.sh mainnet
 #
 # Only one L402 stack can bind :8081. Stop the other network first.
 
@@ -27,8 +28,10 @@ case "$NETWORK" in
     START_HINT="./startup-signet-aws.sh <EIP>"
     ;;
   mainnet)
-    echo "ERROR: mainnet L402 compose is not in this PR." >&2
-    exit 1
+    COMPOSE=docker-compose.l402.mainnet.yml
+    DOCKER_NET=agent-bitcoin-mainnet
+    LND=agent-payment-decision-lnd-mainnet
+    START_HINT="./startup-mainnet-aws.sh <EIP>"
     ;;
   *)
     echo "ERROR: unknown network '$NETWORK'" >&2
