@@ -18,7 +18,6 @@ DEFAULT_MAX_PAYMENT_SATS = 1_000_000
 # When LND_NETWORK=mainnet and MAX_PAYMENT_SATS unset (pilot ceiling)
 DEFAULT_MAINNET_MAX_PAYMENT_SATS = 50_000
 DEFAULT_MAX_DAILY_PAYMENT_SATS = 100_000
-DEFAULT_FEE_AMOUNT_SATS = 21
 DEFAULT_MAX_FEE_SEND_SATS = 100_000
 
 
@@ -84,10 +83,6 @@ def payment_decision_max_sats() -> int:
     return max_payment_sats()
 
 
-def fee_amount_sats() -> int:
-    return env_int("FEE_AMOUNT_SATS", DEFAULT_FEE_AMOUNT_SATS)
-
-
 def max_fee_send_sats() -> int:
     return env_int("MAX_FEE_SEND_SATS", DEFAULT_MAX_FEE_SEND_SATS)
 
@@ -109,7 +104,7 @@ def autopay_allowed() -> bool:
 
 def fee_send_allowed() -> bool:
     """
-    Generic on-chain send (`send_onchain`). Not used for the platform fee.
+    Generic on-chain send (`send_onchain`).
 
     Mainnet: disabled unless AGENT_BITCOIN_ALLOW_MAINNET_FEE=1.
     Lab nets: allowed.

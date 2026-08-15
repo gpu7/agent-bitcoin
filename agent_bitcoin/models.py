@@ -15,18 +15,13 @@ class InvoiceQuote(BaseModel):
     """
     Explicit quote package from the payee to the payer (independent agents).
 
-    amount_sats is the requested service amount. BOLT11 is total_cost_sats
-    (requested + platform fee) so the payer pays one Lightning invoice.
+    amount_sats is the requested service amount. BOLT11 and total_cost_sats
+    equal that amount (no platform fee).
     """
 
     payment_request: str
     amount_sats: int
-    platform_fee_sats: int
-    # Alias name for the same fee (docs / product language)
-    transaction_fee_sats: int
     total_cost_sats: int
-    # How the platform fee is collected (bundled into BOLT11)
-    collection: str = "lightning_bundled"
     memo: str = ""
     r_hash: str = ""
     payment_hash: str = ""
@@ -39,8 +34,6 @@ class PayerDecisionInputs(BaseModel):
 
     payment_request: str
     amount_sats: int
-    platform_fee_sats: int
-    transaction_fee_sats: int
     total_cost_sats: int
     routing_fee_limit_sats: int
     quote_valid: bool

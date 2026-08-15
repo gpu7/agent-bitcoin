@@ -213,15 +213,15 @@ async def create_invoice(req: InvoiceRequest):
     """
     Payee: create invoice + explicit quote package for independent payers.
 
-    Returns BOLT11 plus platform/transaction fee and total_cost_sats.
+    Returns BOLT11 for the requested amount (no platform fee).
     """
     _validate_invoice_amount(req.amount_sats)
     try:
         quote = client.create_invoice_quote(req.memo, req.amount_sats)
         logger.info(
-            "invoice quote created amount_sats=%s platform_fee_sats=%s",
+            "invoice quote created amount_sats=%s total_cost_sats=%s",
             quote.amount_sats,
-            quote.platform_fee_sats,
+            quote.total_cost_sats,
         )
         return quote.model_dump()
     except ValueError as e:

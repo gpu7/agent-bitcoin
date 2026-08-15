@@ -1,3 +1,22 @@
+## Remove — platform / transaction fee (2026-08-15)
+
+### Removed
+
+- Bundled platform fee (`DEFAULT_FEE_AMOUNT_SATS`, `fee_amount_sats()`, `FEE_AMOUNT_SATS` / `FEE_SATS`)
+- Quote / HTTP fields `platform_fee_sats`, `transaction_fee_sats`, `collection`
+- `AgentBitcoinClient.fee_amount_sats` and `create_invoice_quote(..., platform_fee_sats=)`
+- Ignored `collect_platform_fee` argument on `pay_invoice_quote`
+
+### Changed
+
+- BOLT11 is the requested amount **X** (`create_invoice`, `create_invoice_quote`, NWC `make_invoice`)
+- `total_cost_sats` equals `amount_sats`
+- Minimum payment remains **1,000 sats**; Lightning routing-fee limits and generic `send_onchain` are unchanged
+
+Stale host `FEE_AMOUNT_SATS` / `FEE_SATS` env vars are ignored.
+
+---
+
 ## Security — pin Actions SHAs and least-privilege tokens (2026-08-14)
 
 ### Fixed

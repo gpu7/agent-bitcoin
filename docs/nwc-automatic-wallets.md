@@ -1,6 +1,6 @@
 # ADR: Automatic wallets via Nostr Wallet Connect (NIP-47)
 
-**Status:** N0–N5 **done**. **N6 mainnet invoice smoke PASS** (2026-08-12). Public-relay dual-host **`get_info` / `get_balance` PASS**. `make_invoice` bills **X + 21**. **Closed:** no mainnet NWC `--pay` unless a new go. Autoloop still off.
+**Status:** N0–N5 **done**. **N6 mainnet invoice smoke PASS** (2026-08-12). Public-relay dual-host **`get_info` / `get_balance` PASS**. `make_invoice` bills **X** (no platform fee). **Closed:** no mainnet NWC `--pay` unless a new go. Autoloop still off.
 **Date:** 2026-08-14
 **Audience:** Operators and implementers.
 **Related:** [nostr-agent-identity.md](./nostr-agent-identity.md) · [mainnet-pilot.md](./mainnet-pilot.md) · [lnd-client.md](./lnd-client.md) · [SECURITY.md](../SECURITY.md) · [NIP-47](https://nips.nostr.com/47)
@@ -39,7 +39,7 @@ Neither is ideal for multi-agent swarms:
 - Agents never need LND admin macaroons for invoice/pay/balance.
 - Reuse project kill switches: min/max payment, optional daily ledger, network latches.
 - `PaymentDecisionAgent` remains **recommend-only**; NWC client executes only after an explicit product path allows it.
-- Regtest end-to-end: `make_invoice` + `pay_invoice` ≥ `MIN_PAYMENT_SATS` (1,000 requested; BOLT11 is **X + 21**).
+- Regtest end-to-end: `make_invoice` + `pay_invoice` ≥ `MIN_PAYMENT_SATS` (1,000 requested; BOLT11 is **X**).
 
 ### Non-goals (v1 / N6)
 
@@ -289,7 +289,7 @@ Flow: **PaymentDecisionAgent / rule_based_decision** returns PAY|REJECT → only
 | Limit | Value |
 |-------|--------|
 | Max single pay | **2,000 sats** (`DEFAULT_NWC_MAINNET_MAX_SATS`; override `NWC_MAX_PAYMENT_SATS`) |
-| Min pay | **1,000 sats** requested (BOLT11 **X + 21**) |
+| Min pay | **1,000 sats** requested (BOLT11 **X**) |
 | Recommended N | **1** successful path per session |
 | Autoloop | **Off** |
 | Transport | in-memory bus + docker LND (same process smoke) |

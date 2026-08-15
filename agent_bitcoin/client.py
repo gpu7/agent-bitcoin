@@ -1,10 +1,7 @@
-import os
 from dotenv import load_dotenv
 
 from .constants import (
-    DEFAULT_FEE_AMOUNT_SATS,
     autopay_allowed,
-    fee_amount_sats,
     fee_send_allowed,
     max_daily_payment_sats,
     max_payment_sats,
@@ -47,14 +44,6 @@ class AgentBitcoinClient:
     def __init__(self):
         self.lnd = LNDClient()
 
-        self.fee_amount_sats = fee_amount_sats()
-        if (
-            os.getenv("FEE_AMOUNT_SATS", "").strip() == ""
-            and os.getenv("FEE_SATS", "").strip()
-        ):
-            self.fee_amount_sats = int(
-                os.getenv("FEE_SATS", str(DEFAULT_FEE_AMOUNT_SATS))
-            )
         self.min_payment_sats = min_payment_sats()
         self.max_payment_sats = max_payment_sats()
         self.max_daily_payment_sats = max_daily_payment_sats()
@@ -66,43 +55,30 @@ class AgentBitcoinClient:
             raise ValueError(f"Minimum payment is {self.min_payment_sats} sats")
         if amount_sats > self.max_payment_sats:
             raise ValueError(f"Maximum payment is {self.max_payment_sats} sats")
-        total = int(amount_sats) + int(self.fee_amount_sats)
-        return self.lnd.create_invoice(memo, total, expiry_seconds)
+        return self.lnd.create_invoice(memo, int(amount_sats), expiry_seconds)
 
     def create_invoice_quote(
         self,
         memo: str,
         amount_sats: int,
         expiry_seconds: int = 3600,
-        platform_fee_sats: int | None = None,
     ) -> InvoiceQuote:
         """
-        Payee: create one BOLT11 for requested amount + platform fee.
+        Payee: create one BOLT11 for the requested amount.
 
-        amount_sats is the service amount (min/max apply to this).
-        BOLT11 and total_cost_sats are amount + fee (default FEE_AMOUNT_SATS).
-        collection is lightning_bundled — no separate on-chain fee send.
+        amount_sats is the service amount (min/max apply). BOLT11 and
+        total_cost_sats equal that amount. There is no platform fee.
         """
         if amount_sats < self.min_payment_sats:
             raise ValueError(f"Minimum payment is {self.min_payment_sats} sats")
         if amount_sats > self.max_payment_sats:
             raise ValueError(f"Maximum payment is {self.max_payment_sats} sats")
-        fee = (
-            self.fee_amount_sats
-            if platform_fee_sats is None
-            else int(platform_fee_sats)
-        )
-        if fee < 0:
-            raise ValueError("platform_fee_sats must be >= 0")
-        total = int(amount_sats) + fee
+        total = int(amount_sats)
         inv = self.lnd.create_invoice(memo, total, expiry_seconds)
         return InvoiceQuote(
             payment_request=inv.payment_request,
-            amount_sats=int(amount_sats),
-            platform_fee_sats=fee,
-            transaction_fee_sats=fee,
+            amount_sats=total,
             total_cost_sats=total,
-            collection="lightning_bundled",
             memo=memo or "",
             r_hash=inv.r_hash,
             payment_hash=inv.payment_hash,
@@ -116,18 +92,12 @@ class AgentBitcoinClient:
         """
         if isinstance(quote, dict):
             quote = InvoiceQuote.model_validate(quote)
-        if quote.amount_sats < 0 or quote.platform_fee_sats < 0:
-            raise ValueError("amount_sats and platform_fee_sats must be >= 0")
-        if quote.transaction_fee_sats != quote.platform_fee_sats:
-            raise ValueError(
-                "transaction_fee_sats must equal platform_fee_sats "
-                "(aliases for the same fee)"
-            )
-        expected_total = quote.amount_sats + quote.platform_fee_sats
-        if quote.total_cost_sats != expected_total:
+        if quote.amount_sats < 0:
+            raise ValueError("amount_sats must be >= 0")
+        if quote.total_cost_sats != quote.amount_sats:
             raise ValueError(
                 f"total_cost_sats={quote.total_cost_sats} != "
-                f"amount_sats+platform_fee_sats={expected_total}"
+                f"amount_sats={quote.amount_sats}"
             )
         if not quote.payment_request:
             raise ValueError("payment_request is required")
@@ -137,8 +107,7 @@ class AgentBitcoinClient:
         if bolt_amt != quote.total_cost_sats:
             raise ValueError(
                 f"BOLT11 amount {bolt_amt} does not match quote total_cost_sats "
-                f"{quote.total_cost_sats} (requested {quote.amount_sats} + "
-                f"fee {quote.platform_fee_sats})"
+                f"{quote.total_cost_sats} (requested {quote.amount_sats})"
             )
         return quote
 
@@ -158,12 +127,6 @@ class AgentBitcoinClient:
                 return PayerDecisionInputs(
                     payment_request=str(quote.get("payment_request") or ""),
                     amount_sats=int(quote.get("amount_sats") or 0),
-                    platform_fee_sats=int(quote.get("platform_fee_sats") or 0),
-                    transaction_fee_sats=int(
-                        quote.get("transaction_fee_sats")
-                        or quote.get("platform_fee_sats")
-                        or 0
-                    ),
                     total_cost_sats=int(quote.get("total_cost_sats") or 0),
                     routing_fee_limit_sats=int(routing_fee_limit_sats),
                     quote_valid=False,
@@ -179,8 +142,6 @@ class AgentBitcoinClient:
             return PayerDecisionInputs(
                 payment_request=q.payment_request,
                 amount_sats=q.amount_sats,
-                platform_fee_sats=q.platform_fee_sats,
-                transaction_fee_sats=q.transaction_fee_sats,
                 total_cost_sats=q.total_cost_sats,
                 routing_fee_limit_sats=int(routing_fee_limit_sats),
                 quote_valid=True,
@@ -192,8 +153,6 @@ class AgentBitcoinClient:
             return PayerDecisionInputs(
                 payment_request=q.payment_request,
                 amount_sats=q.amount_sats,
-                platform_fee_sats=q.platform_fee_sats,
-                transaction_fee_sats=q.transaction_fee_sats,
                 total_cost_sats=q.total_cost_sats,
                 routing_fee_limit_sats=int(routing_fee_limit_sats),
                 quote_valid=False,
@@ -244,16 +203,13 @@ class AgentBitcoinClient:
         self,
         quote: InvoiceQuote | dict,
         routing_fee_limit_sats: int = 200,
-        collect_platform_fee: bool = False,
     ) -> PaymentResult:
         """
         Payer: validate quote, budget total_cost_sats, pay BOLT11 amount on LN.
 
-        Platform fee is already inside the BOLT11 (lightning_bundled).
-        collect_platform_fee is ignored (no separate on-chain send).
+        total_cost_sats equals the requested amount (no platform fee).
         Daily/deposit ledger uses total_cost_sats.
         """
-        _ = collect_platform_fee
         q = self.validate_invoice_quote(quote)
         if not autopay_allowed():
             raise RuntimeError(

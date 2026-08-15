@@ -2,7 +2,7 @@
 
 **Lightning Bitcoin payments for autonomous AI Agents.**
 
-**Current product policy (2026-08-14, `main` after v.26.0.0):** requested Lightning amount **≥ 1,000 sats**; platform fee **21 sats inside the same BOLT11** (`X + 21`); no `/send-fee` / `collect_transaction_fee`. Mainnet NWC max **2,000** requested; `--pay` needs a written go. Autopay / Autoloop **off**.
+**Current product policy (2026-08-15, `main` after v.26.0.0):** requested Lightning amount **≥ 1,000 sats**; **no platform fee** (BOLT11 = requested **X**); no `/send-fee` / `collect_transaction_fee`. Mainnet NWC max **2,000** requested; `--pay` needs a written go. Autopay / Autoloop **off**.
 
 ## Primary docs
 

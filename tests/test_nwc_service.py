@@ -103,10 +103,8 @@ def test_service_get_info_and_balance(service_client) -> None:
 
 def test_service_make_and_pay_invoice(service_client) -> None:
     _svc, client, lnd = service_client
-    from agent_bitcoin.constants import fee_amount_sats
-
     inv = client.make_invoice(2000, description="n4-test")
-    billed = 2000 + fee_amount_sats()
+    billed = 2000
     assert inv["invoice"] == f"lnbcrt_fake_{billed}"
     assert inv["amount"] == billed * 1000
     assert lnd.invoices[-1] == ("n4-test", billed)

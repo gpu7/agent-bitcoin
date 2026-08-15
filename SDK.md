@@ -64,12 +64,11 @@ The Python client loads environment variables via `python-dotenv` (typically a `
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `FEE_AMOUNT_SATS` | `21` | Platform fee bundled into each payee invoice |
 | `MIN_PAYMENT_SATS` | `1000` | Minimum `amount_sats` for `create_invoice()` |
 | `MAX_PAYMENT_SATS` | `1000000` (lab) / `50000` (mainnet default) | Shared max for invoices and pays |
 | `MAX_DAILY_PAYMENT_SATS` | `0` lab (off) / `100000` mainnet | UTC daily spend cap; ledger file |
 | `AGENT_BITCOIN_ALLOW_AUTOPAY` | on in lab; **off on mainnet** | Mainnet requires `=1` to pay |
-| `AGENT_BITCOIN_ALLOW_MAINNET_FEE` | n/a lab; **off on mainnet** | Must be `=1` for generic `send_onchain` (not the platform fee) |
+| `AGENT_BITCOIN_ALLOW_MAINNET_FEE` | n/a lab; **off on mainnet** | Must be `=1` for generic `send_onchain` |
 | `AGENT_BITCOIN_SPEND_LEDGER` | `~/.config/agent-bitcoin/spend-ledger.json` | Daily spend tracking path |
 | `LND_TRANSPORT` | `docker` | Or `grpc` — see [docs/lnd-client.md](docs/lnd-client.md) |
 | `MAX_INVOICE_SATS` | same as max | Optional override for backend only |
@@ -105,7 +104,7 @@ You can also pass `api_key=` into the agent constructors.
 
 ### HTTP backend (separate process)
 
-`backend/main.py` uses the same SDK client. Platform fee is **bundled into** `POST /invoices` (no `/send-fee`). Base URL is typically `http://localhost:8000` or `http://<aws-public-ip>:8000`.
+`backend/main.py` uses the same SDK client. `POST /invoices` returns a quote for the requested amount (no platform fee; no `/send-fee`). Base URL is typically `http://localhost:8000` or `http://<aws-public-ip>:8000`.
 
 ---
 
@@ -117,7 +116,7 @@ from agent_bitcoin import create_client
 client = create_client()
 
 # Requested amount must be >= MIN_PAYMENT_SATS (default 1000).
-# BOLT11 is requested + 21 sat platform fee (5021 in this example).
+# BOLT11 is exactly the requested amount (5000 in this example).
 invoice = client.create_invoice(memo="Test payment", amount_sats=5000)
 
 result = client.pay_invoice(invoice.payment_request)
@@ -148,13 +147,13 @@ client = create_client()  # -> AgentBitcoinClient
 
 | Method | Returns | Description |
 |--------|---------|-------------|
-| `create_invoice(memo, amount_sats, expiry_seconds=3600)` | `Invoice` | Creates a Lightning invoice for **amount + platform fee**. Raises `ValueError` if requested `amount_sats` is out of min/max. |
-| `create_invoice_quote(memo, amount_sats, …)` | `InvoiceQuote` | **Payee:** one BOLT11 for requested + fee; `collection=lightning_bundled`. |
-| `validate_invoice_quote(quote)` | `InvoiceQuote` | **Payer:** checks total and BOLT11 amount match. |
+| `create_invoice(memo, amount_sats, expiry_seconds=3600)` | `Invoice` | Creates a Lightning invoice for **the requested amount**. Raises `ValueError` if `amount_sats` is out of min/max. |
+| `create_invoice_quote(memo, amount_sats, …)` | `InvoiceQuote` | **Payee:** one BOLT11 for the requested amount (`total_cost_sats` equals `amount_sats`). |
+| `validate_invoice_quote(quote)` | `InvoiceQuote` | **Payer:** checks `total_cost_sats` equals `amount_sats` and matches BOLT11. |
 | `build_payer_decision_inputs(quote, routing_fee_limit_sats=200)` | `PayerDecisionInputs` | Decision/budget fields; `quote_valid` flag. |
 | `pay_invoice(payment_request)` | `PaymentResult` | Pays a BOLT11 invoice. Raises `ValueError` if request is empty. |
-| `pay_invoice_quote(quote, …)` | `PaymentResult` | Validate quote, budget `total_cost_sats`, pay LN amount (optional fee collect). |
-| `send_onchain(address, amount_sats)` | `OnChainSendResult` | Generic on-chain send (not used for the platform fee). |
+| `pay_invoice_quote(quote, …)` | `PaymentResult` | Validate quote, budget `total_cost_sats`, pay LN amount. |
+| `send_onchain(address, amount_sats)` | `OnChainSendResult` | Generic on-chain send (mainnet latch `AGENT_BITCOIN_ALLOW_MAINNET_FEE`). |
 | `get_balance()` | `LightningBalance` | On-chain wallet balances (string fields from LND). |
 | `get_channel_balance()` | `ChannelBalance` | Local/remote channel balances (ints). |
 
@@ -224,31 +223,33 @@ from agent_bitcoin.agents.payment_decision import (
 
 ## Transaction fees and limits
 
+There is **no platform / transaction fee**. Lightning **routing** fees are a separate payer-side cap.
+
 | Rule | Default | Configurable via |
 |------|---------|------------------|
-| Fixed fee | **21 sats** (inside BOLT11) | `FEE_AMOUNT_SATS` |
+| Platform / transaction fee | **None** | — |
 | Minimum invoice/payment amount | **1,000 sats** | `MIN_PAYMENT_SATS` |
 | Maximum invoice/payment amount | **1,000,000 sats** | `MAX_PAYMENT_SATS` (shared) |
 
 ### Semantics
 
-1. When a payment of **X** sats is requested, **21 sats** is bundled as the platform fee.
-2. The payee issues **one** BOLT11 for **X + 21**. The payer pays that invoice.
-3. The full **X + 21** is Lightning inbound on the payee. No separate Bitcoin fee payment.
+1. When a payment of **X** sats is requested, the payee issues **one** BOLT11 for **X**.
+2. The payer pays that invoice. Optional `routing_fee_limit_sats` caps Lightning routing fees.
+3. The full **X** is Lightning inbound on the payee. There is no separate Bitcoin fee payment.
 
 ### Example (2,000 sats requested)
 
 | | Sats |
 |--|------|
 | Requested / service amount | 2,000 |
-| Platform fee (in the same invoice) | 21 |
-| BOLT11 / total Lightning pay | 2,021 |
+| Platform fee | 0 |
+| BOLT11 / total Lightning pay | 2,000 |
 
 ### Implementer notes
 
 - `create_invoice` enforces the minimum at the client.
-- The platform fee is **inside the BOLT11**. There is no `collect_transaction_fee` / `/send-fee` path.
-- HTTP agents often call the **Backend API** so fee policy is enforced in one place.
+- There is no `collect_transaction_fee` / `/send-fee` path.
+- HTTP agents often call the **Backend API** so amount policy is enforced in one place.
 
 ### Explicit quote (independent payee / payer agents)
 
@@ -257,17 +258,16 @@ For agents that do **not** share env/config, the **payee** should send an **invo
 ```python
 # Payee
 quote = client.create_invoice_quote(memo="service", amount_sats=2000)
-# quote.payment_request, amount_sats, platform_fee_sats / transaction_fee_sats,
-# total_cost_sats, collection="lightning_bundled"
+# quote.payment_request, amount_sats, total_cost_sats (equals amount)
 
 # Payer
 inputs = client.build_payer_decision_inputs(quote, routing_fee_limit_sats=200)
-# inputs.amount_sats, platform_fee_sats, total_cost_sats, routing_fee_limit_sats, quote_valid
+# inputs.amount_sats, total_cost_sats, routing_fee_limit_sats, quote_valid
 if inputs.quote_valid:
     result = client.pay_invoice_quote(quote, routing_fee_limit_sats=200)
 ```
 
-`POST /invoices` returns the same quote fields. BOLT11 amount is only the Lightning amount to the payee; platform fee is disclosed in the package for budgeting.
+`POST /invoices` returns the same quote fields. BOLT11 amount equals the requested amount.
 
 ---
 
@@ -452,7 +452,7 @@ Generate (example): `openssl rand -hex 32` — store in a password manager and h
 ### Why use it
 
 - Single control point for Lightning ops
-- Platform fee bundled into `/invoices` BOLT11 (`FEE_AMOUNT_SATS`)
+- `/invoices` BOLT11 equals the requested amount (no platform fee)
 - API key gate on balances and payments
 - Easy for any language / HTTP agent
 
@@ -484,14 +484,12 @@ Example response fields:
 {
   "payment_request": "lnbcrt...",
   "amount_sats": 5000,
-  "platform_fee_sats": 21,
-  "total_cost_sats": 5021,
-  "collection": "lightning_bundled",
+  "total_cost_sats": 5000,
   "memo": "Payment for service"
 }
 ```
 
-BOLT11 amount is **5021** (requested 5000 + 21).
+BOLT11 amount is **5000** (the requested amount).
 
 ### Pay invoice
 
