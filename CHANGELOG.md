@@ -8,7 +8,7 @@
 - `examples/l402_pay.py`, `startup-l402-aws.sh`, [docs/l402-aperture.md](docs/l402-aperture.md)
 - Security group default port **8081** (Mac IP `/32`)
 
-Signet and mainnet overlays are later PRs.
+Live regtest Mac→AWS paid GET **PASS** (2026-08-15). Signet and mainnet overlays are later PRs.
 
 ---
 

@@ -1,6 +1,6 @@
 # Aperture L402 paid gateway
 
-**Status (regtest):** code + compose in-repo. Live Mac→AWS paid GET is the merge gate for this PR. Signet and mainnet are later PRs.
+**Status (regtest):** Mac→AWS paid GET **PASS** (2026-08-15): `/health` 200, `/paid/hello` 402 then 200 after 1,000 sat pay. Signet and mainnet are later PRs.
 **Not** Lightning Loop’s container named `aperture` (`aperture:11018`). That is Loop L402 auth. This gateway is **`agent-l402-aperture`** on **`:8081`**.
 
 ## What it is

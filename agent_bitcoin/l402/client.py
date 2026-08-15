@@ -74,12 +74,24 @@ def authorization_value(macaroon: str, preimage_hex: str) -> str:
 
 
 def _header_map(headers: Any) -> dict[str, str]:
+    """Lower-case header names; join duplicate values (Aperture sends two 402s)."""
     if headers is None:
         return {}
     items = getattr(headers, "items", None)
-    if callable(items):
-        return {str(k): str(v) for k, v in items()}
-    return {str(k): str(v) for k, v in dict(headers).items()}
+    pairs = list(items()) if callable(items) else list(dict(headers).items())
+    out: dict[str, str] = {}
+    for key, value in pairs:
+        name = str(key).lower()
+        text = str(value)
+        if name in out:
+            out[name] = f"{out[name]}, {text}"
+        else:
+            out[name] = text
+    return out
+
+
+def _www_authenticate(headers: dict[str, str]) -> str | None:
+    return headers.get("www-authenticate") or headers.get("WWW-Authenticate")
 
 
 def _read_http_error(exc: HTTPError) -> tuple[int, dict[str, str], bytes]:
@@ -117,9 +129,7 @@ class L402Client:
                 status_code=status, headers=headers, body=body, paid=False
             )
 
-        challenge = parse_www_authenticate(
-            headers.get("WWW-Authenticate") or headers.get("www-authenticate")
-        )
+        challenge = parse_www_authenticate(_www_authenticate(headers))
         self._assert_invoice_price(challenge.invoice)
         result = self.payer.pay_invoice(
             challenge.invoice, fee_limit_sats=self.fee_limit_sats

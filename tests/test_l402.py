@@ -53,6 +53,21 @@ def test_parse_www_authenticate_lsat_alias() -> None:
     assert challenge.invoice.startswith("lnbcrt")
 
 
+def test_header_map_joins_duplicate_www_authenticate() -> None:
+    from email.message import Message
+
+    from agent_bitcoin.l402.client import _header_map, _www_authenticate
+
+    msg = Message()
+    msg.add_header("Www-Authenticate", 'LSAT macaroon="m", invoice="ln1"')
+    msg.add_header("Www-Authenticate", 'L402 macaroon="m", invoice="ln1"')
+    mapped = _header_map(msg)
+    header = _www_authenticate(mapped)
+    assert header
+    challenge = parse_www_authenticate(header)
+    assert challenge.invoice == "ln1"
+
+
 def test_parse_www_authenticate_rejects_junk() -> None:
     with pytest.raises(ValueError, match="unrecognized"):
         parse_www_authenticate("Bearer token")
