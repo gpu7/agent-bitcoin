@@ -14,8 +14,9 @@
 # Env:
 #   AWS_REGION  default: us-east-1
 #   SG_ID       default: sg-04e9e86b18199e18f
-#   PORTS       default: 22 8000 18443 18444 28332 28333 9735 19735
-#               (9735 = regtest LND P2P, 19735 = signet LND P2P on AWS)
+#   PORTS       default: 22 8000 8081 18443 18444 28332 28333 9735 19735
+#               (9735 = regtest LND P2P, 19735 = signet LND P2P on AWS,
+#                8081 = Aperture L402 HTTP gateway)
 #   MY_IP       default: auto-detect via checkip.amazonaws.com
 #
 # Run this first on the Mac each day (or after ISP IP change) before
@@ -46,7 +47,7 @@ AWS_REGION=${AWS_REGION:-us-east-1}
 SG_ID=${SG_ID:-sg-04e9e86b18199e18f}
 # Include 18444 so leftover world-open bitcoind P2P/RPC rules get removed.
 # 19735 = AWS signet LND host port (docker-compose.signet.aws.yml).
-PORTS_STR=${PORTS:-"22 8000 18443 18444 28332 28333 9735 19735"}
+PORTS_STR=${PORTS:-"22 8000 8081 18443 18444 28332 28333 9735 19735"}
 
 # Prevent aws CLI from opening `less` and stopping on (END)
 export AWS_PAGER=""

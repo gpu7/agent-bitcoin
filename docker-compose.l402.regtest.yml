@@ -1,0 +1,49 @@
+# Aperture L402 HTTP gateway + dummy origin (regtest).
+# Joins the existing Loop/regtest network; does not start LND or Loop.
+#
+# Requires: agent-payment-decision-lnd Up on network regtest_regtest
+#   docker compose -f docker-compose.l402.regtest.yml up -d --build
+#
+# Public listener: host :8081 (restrict via security group to your Mac IP).
+# Do not name this container `aperture` — that name is Lightning Loop.
+
+services:
+  agent-l402-origin:
+    build:
+      context: ./l402
+      dockerfile: Dockerfile.origin
+    image: agent-bitcoin/l402-origin:regtest
+    container_name: agent-l402-origin
+    restart: unless-stopped
+    environment:
+      L402_NETWORK: regtest
+    networks:
+      - l402-net
+
+  agent-l402-aperture:
+    image: lightninglabs/aperture:v0.5.0
+    container_name: agent-l402-aperture
+    restart: unless-stopped
+    depends_on:
+      - agent-l402-origin
+    ports:
+      - "8081:8081"
+    command: ["--configfile=/config/aperture.yaml"]
+    volumes:
+      - ./l402/aperture.regtest.yaml:/config/aperture.yaml:ro
+      - lnd-data:/lnd:ro
+      - l402-aperture-data:/root/.aperture
+    networks:
+      - l402-net
+
+networks:
+  l402-net:
+    external: true
+    name: regtest_regtest
+
+volumes:
+  lnd-data:
+    external: true
+    name: agent-bitcoin_lnd-data
+  l402-aperture-data:
+    name: agent-bitcoin_l402-aperture-regtest

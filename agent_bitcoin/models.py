@@ -45,6 +45,7 @@ class PayerDecisionInputs(BaseModel):
 class PaymentResult(BaseModel):
     success: bool
     payment_hash: Optional[str] = None
+    preimage: Optional[str] = None
     amount: int = 0
     status: str = "UNKNOWN"
 

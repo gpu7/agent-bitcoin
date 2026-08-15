@@ -33,7 +33,9 @@ Keep this file actionable. Prefer links to `README.md`, `docs/`, and `SECURITY.m
 | `agent_bitcoin/agents/` | LLM agents (`PaymentDecisionAgent`, `BitcoinLNDAgent`) |
 | `agent_bitcoin/prompts.py` | **Only** place to edit agent system prompts by default |
 | `backend/main.py` | FastAPI backend (invoices, pay, balance) |
-| `examples/` | Runnable demos (Grok, Ollama, full flows) |
+| `agent_bitcoin/l402/` | L402 HTTP client (Aperture 402 → pay → retry) |
+| `l402/` | Dummy origin + Aperture YAML (not Loop `aperture`) |
+| `examples/` | Runnable demos (Grok, Ollama, L402, full flows) |
 | `tests/` | Unit/integration tests + `test-suite.md` workflow cases |
 | `docker-compose.regtest.aws.yml` / `docker-compose.regtest.mac.yml` | Node stacks |
 | `startup-*.sh` / `shutdown-*.sh` / `watch-lnd-sync.sh` | Ops scripts |
@@ -363,6 +365,7 @@ Always consider:
 - **No platform / transaction fee.** BOLT11 is the requested amount **X**.
 - Minimum **requested** amount: **1,000 sats** (`MIN_PAYMENT_SATS` / `NWC_MIN_PAYMENT_SATS`).
 - Lightning **routing** fees remain a separate payer-side cap (`fee_limit_sats` / `routing_fee_limit_sats`).
+- Aperture L402 demo price is **1,000 sats** (`DEFAULT_L402_PRICE_SATS`). Not Loop's `aperture` container.
 - On-chain: only generic `send_onchain` (mainnet needs `AGENT_BITCOIN_ALLOW_MAINNET_FEE=1`).
 - Update client, backend, README, and examples together if the model changes.
 

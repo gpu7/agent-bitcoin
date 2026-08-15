@@ -168,6 +168,7 @@ Invoice:
 PaymentResult:
   success: bool
   payment_hash: Optional[str]
+  preimage: Optional[str]
   amount: int = 0
   status: str = "UNKNOWN"
 
@@ -268,6 +269,17 @@ if inputs.quote_valid:
 ```
 
 `POST /invoices` returns the same quote fields. BOLT11 amount equals the requested amount.
+
+### L402 (Aperture)
+
+`L402Client` pays an HTTP 402 challenge and retries. Price default **1,000 sats**. Operator runbook: [docs/l402-aperture.md](docs/l402-aperture.md).
+
+```python
+from agent_bitcoin import L402Client, create_client
+
+resp = L402Client(create_client()).fetch("http://<host>:8081/paid/hello")
+# resp.status_code, resp.paid, resp.json()
+```
 
 ---
 

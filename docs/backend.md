@@ -60,8 +60,8 @@ Your home/Mac IP can change. From the **Mac** (with AWS CLI credentials that can
 ```
 
 Defaults: region `us-east-1`, SG `sg-04e9e86b18199e18f`, ports
-`22 8000 18443 18444 28332 28333 9735 19735`
-(`9735` regtest LND P2P, `19735` signet LND P2P on AWS).
+`22 8000 8081 18443 18444 28332 28333 9735 19735`
+(`9735` regtest LND P2P, `19735` signet LND P2P on AWS, `8081` Aperture L402).
 Override with `AWS_REGION`, `SG_ID`, `PORTS`, or `MY_IP` if needed.
 
 **Daily:** run `./update-aws-sg-my-ip.sh` on the Mac first when resuming (home IP often changes).
@@ -113,7 +113,7 @@ These rules reduce the chance of accidental real-network or high-risk misconfigu
 | **RPC credentials** | Compose uses simple bitcoind RPC user/pass for **isolated regtest only** — never reuse on public networks. |
 | **Wallet** | Unlock only when operating; store password/seed in a password manager; treat seeds shown in chat/logs as unfit for real funds. |
 | **Macaroons** | Keep inside Docker volumes; do not commit or publish admin macaroons. Prefer least-privilege macaroons if exporting for remote tools. |
-| **Published ports** | P2P/RPC/ZMQ/API gated by security group (Step 2). Do not open LND gRPC (`10009`) to the internet. |
+| **Published ports** | P2P/RPC/ZMQ/API/L402 `:8081` gated by security group (Step 2). Do not open LND gRPC (`10009`) to the internet. |
 | **Mainnet** | Separate design, credentials, and hosts — not a flag flip on this stack. |
 
 Verify the live AWS node is still on regtest (after unlock):

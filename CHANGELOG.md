@@ -1,3 +1,17 @@
+## Add — Aperture L402 HTTP gateway (regtest) (2026-08-15)
+
+### Added
+
+- Dummy origin + Aperture sidecar (`agent-l402-aperture` on `:8081`, **not** Loop `aperture`)
+- `L402Client` pays a 1,000 sat challenge and retries with `Authorization: L402 …`
+- `PaymentResult.preimage` from `lncli` / gRPC
+- `examples/l402_pay.py`, `startup-l402-aws.sh`, [docs/l402-aperture.md](docs/l402-aperture.md)
+- Security group default port **8081** (Mac IP `/32`)
+
+Live regtest Mac→AWS paid GET **PASS** (2026-08-15). Signet and mainnet overlays are later PRs.
+
+---
+
 ## Remove — platform / transaction fee (2026-08-15)
 
 ### Removed
