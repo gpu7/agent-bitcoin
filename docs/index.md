@@ -28,7 +28,7 @@
 | [nwc-automatic-wallets.md](./nwc-automatic-wallets.md) | **NWC / NIP-47:** automatic wallets (client+service+decision flow); mainnet invoice smoke closed |
 | [m3-production-swarm.md](./m3-production-swarm.md) | **M3 v1:** relays, NIP-46, NIP-17, swarm registry (autopay still off) |
 | [nip44-nwc-relays.md](./nip44-nwc-relays.md) | **NIP-44** + public-relay NWC; dual-host `get_info` / `get_balance` PASS |
-| [l402-aperture.md](./l402-aperture.md) | **Aperture L402** HTTP gateway (regtest PoC; not Loop `aperture`) |
+| [l402-aperture.md](./l402-aperture.md) | **Aperture L402** HTTP gateway (regtest + signet PASS; not Loop `aperture`) |
 | [setup.md](./setup.md) | Short setup pointers |
 
 ## Also

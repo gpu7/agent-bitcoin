@@ -28,6 +28,7 @@
 | `docker-compose.signet.aws.yml` | Neutrino LND on AWS signet; volume `agent-bitcoin_lnd-signet-data` |
 | `docker-compose.signet.mac.yml` | **bitcoind + LND** on Mac signet (dual-node peer) |
 | `startup-signet-aws.sh` / `shutdown-signet-aws.sh` | AWS start/stop (keep volume) |
+| `./startup-l402-aws.sh signet` | Aperture L402 on `:8081` (see [l402-aperture.md](./l402-aperture.md)) |
 | `startup-signet-mac.sh` / `shutdown-signet-mac.sh` | Mac start/stop (keep volumes) |
 | `LND_NETWORK=signet` | SDK / `LNDClient` |
 | `LND_CONTAINER=...` | e.g. `agent-payment-decision-lnd-signet` |
