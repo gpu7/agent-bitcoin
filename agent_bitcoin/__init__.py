@@ -10,9 +10,11 @@ __version__ = "26.0.0"
 # Core
 from .client import AgentBitcoinClient, create_client
 from .constants import (
+    DEFAULT_L402_PRICE_SATS,
     DEFAULT_MAX_PAYMENT_SATS,
     DEFAULT_MIN_PAYMENT_SATS,
 )
+from .l402 import L402Client, L402Challenge, parse_www_authenticate
 from .models import LightningConfig, Invoice, InvoiceQuote, PayerDecisionInputs
 
 # Exceptions
@@ -44,6 +46,10 @@ __all__ = [
     "create_client",
     "DEFAULT_MIN_PAYMENT_SATS",
     "DEFAULT_MAX_PAYMENT_SATS",
+    "DEFAULT_L402_PRICE_SATS",
+    "L402Client",
+    "L402Challenge",
+    "parse_www_authenticate",
     # Exceptions
     "AgentBitcoinError",
     "InvoiceCreationError",

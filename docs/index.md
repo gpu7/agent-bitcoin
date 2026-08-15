@@ -2,7 +2,7 @@
 
 **Lightning Bitcoin payments for autonomous AI Agents.**
 
-**Current product policy (2026-08-15, `main` after v.26.0.0):** requested Lightning amount **≥ 1,000 sats**; **no platform fee** (BOLT11 = requested **X**); no `/send-fee` / `collect_transaction_fee`. Mainnet NWC max **2,000** requested; `--pay` needs a written go. Autopay / Autoloop **off**.
+**Current product policy (2026-08-15, `main` after v.26.0.0):** requested Lightning amount **≥ 1,000 sats**; **no platform fee** (BOLT11 = requested **X**); no `/send-fee` / `collect_transaction_fee`. Aperture L402 demo price is **1,000 sats**. Mainnet NWC max **2,000** requested; `--pay` needs a written go. Autopay / Autoloop **off**.
 
 ## Primary docs
 
@@ -28,6 +28,7 @@
 | [nwc-automatic-wallets.md](./nwc-automatic-wallets.md) | **NWC / NIP-47:** automatic wallets (client+service+decision flow); mainnet invoice smoke closed |
 | [m3-production-swarm.md](./m3-production-swarm.md) | **M3 v1:** relays, NIP-46, NIP-17, swarm registry (autopay still off) |
 | [nip44-nwc-relays.md](./nip44-nwc-relays.md) | **NIP-44** + public-relay NWC; dual-host `get_info` / `get_balance` PASS |
+| [l402-aperture.md](./l402-aperture.md) | **Aperture L402** HTTP gateway (regtest PoC; not Loop `aperture`) |
 | [setup.md](./setup.md) | Short setup pointers |
 
 ## Also

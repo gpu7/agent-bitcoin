@@ -91,9 +91,15 @@ def _payment_result_from_lncli_dict(resp: dict) -> PaymentResult:
         if status == "UNKNOWN":
             status = "SUCCEEDED"
 
+    preimage = (
+        resp.get("payment_preimage")
+        or resp.get("preimage")
+        or resp.get("payment_preimage_str")
+    )
     return PaymentResult(
         success=success,
         payment_hash=resp.get("payment_hash") or resp.get("payment_hash_str"),
+        preimage=str(preimage) if preimage else None,
         amount=amount_int,
         status=status,
     )
@@ -386,9 +392,13 @@ class GrpcLNDClient:
                     amount_int = int(d["payment_route"].get("total_amt", 0))
                 except (TypeError, ValueError, AttributeError):
                     amount_int = 0
+            preimage = _bytes_to_hex(
+                getattr(resp, "payment_preimage", None) or d.get("payment_preimage")
+            )
             return PaymentResult(
                 success=bool(payment_hash) and not err,
                 payment_hash=payment_hash or None,
+                preimage=preimage or None,
                 amount=amount_int,
                 status="SUCCEEDED" if payment_hash and not err else "FAILED",
             )

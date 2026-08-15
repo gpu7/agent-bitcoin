@@ -40,6 +40,8 @@ Dual-node **pay** tests require **both** containers on the same Docker host. Typ
 | **ABT-002** | Below minimum | Client/API/agent reject | — |
 | **ABT-003** | Above maximum (1,000,000 sats) | Client/API/agent reject | — |
 | **ABT-004** | No platform fee | Invoice quote `total_cost_sats = amount_sats`; BOLT11 == requested | — |
+| **ABT-L402-001** | L402 402 challenge parse | `parse_www_authenticate` + origin `/health` | curl `/paid/hello` → 402 |
+| **ABT-L402-002** | L402 pay + retry | Mock 402 → pay → 200 | Mac `l402_pay.py` → origin JSON |
 
 ## Shared limits
 
@@ -60,7 +62,8 @@ Defined in `agent_bitcoin/constants.py`:
 |------|------|
 | `test_payment_amounts.py` | ABT-001–003 client + API |
 | `test_payment_decision_policy.py` | ABT agent policy |
-| `test_fee_collection.py` | ABT-004 fee unit |
+| `test_fee_collection.py` | ABT-004 no platform fee |
+| `test_l402.py` | ABT-L402-001 / 002 header + mock pay |
 | `test_client.py` | Factory / basic client |
 | `test_lnd_sdk_integration.py` | Live SDK regtest/signet |
 | `test_aws_integration.py` | Live HTTP backend script (network-aware) |
