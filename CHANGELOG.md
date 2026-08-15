@@ -5,7 +5,7 @@
 - `docker-compose.l402.mainnet.yml` + `l402/aperture.mainnet.yaml`
 - `./startup-l402-aws.sh mainnet` / `./shutdown-l402-aws.sh mainnet`
 
-Price remains **1,000 sats**. Payer needs mainnet + autopay latches. Autoloop stays off.
+Price remains **1,000 sats**. Payer needs mainnet + autopay latches. Autoloop stays off. Live Mac→AWS paid GET **PASS** (2026-08-15).
 
 ---
 

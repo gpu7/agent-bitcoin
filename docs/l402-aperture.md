@@ -1,6 +1,6 @@
 # Aperture L402 paid gateway
 
-**Status:** Regtest and signet Mac→AWS paid GET **PASS** (2026-08-15). Mainnet overlay is this PR (one 1,000 sat pay with written go).
+**Status:** Regtest, signet, and mainnet Mac→AWS paid GET **PASS** (2026-08-15). One mainnet pay was 1,000 sats.
 **Not** Lightning Loop’s container named `aperture` (`aperture:11018`). That is Loop L402 auth. This gateway is **`agent-l402-aperture`** on **`:8081`**.
 
 ## What it is
