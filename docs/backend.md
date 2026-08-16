@@ -524,18 +524,18 @@ echo "   (Volumes are intentionally kept for faster restarts)"
 
 ---
 
-## Publish to TestPyPi
+## Publish to PyPI
 
-- Update pyproject.toml as appropriate.
+Releases upload via **GitHub Trusted Publishing** (no TestPyPI). After version/CHANGELOG updates:
 
 ```bash
-# Build and upload to TestPyPI
-cd ~/agent-bitcoin
-rm -rf dist/ build/ *.egg-info/
-uv tool install twine
-uv build
-twine upload --repository testpypi dist/*
+git tag v26.0.0
+git push origin v26.0.0
 ```
+
+The `Release` workflow builds with `uv build` and publishes to https://pypi.org/project/agent-bitcoin/.
+
+Pending publisher on pypi.org (once): project `agent-bitcoin`, owner `gpu7`, repo `agent-bitcoin`, workflow `release.yml`, environment `pypi`.
 
 ---
 

@@ -18,7 +18,7 @@ Use this before every release.
 - [ ] Commit and push changes
 - [ ] Create and push git tag: `git tag vX.Y.Z && git push origin vX.Y.Z`
 - [ ] Verify GitHub Actions passed
-- [ ] Check TestPyPI: https://test.pypi.org/project/agent-bitcoin/
+- [ ] Check PyPI: https://pypi.org/project/agent-bitcoin/
 - [ ] Announce release
 
 ## Post-Release

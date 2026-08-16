@@ -31,10 +31,10 @@
 - A reachable Lightning setup for your environment (typically LND via the project’s Docker-based regtest stack, or your own node wiring)
 - Optional: [Ollama](https://ollama.com/) or an [xAI](https://x.ai/) API key for LLM agents
 
-### From TestPyPI
+### From PyPI
 
 ```bash
-pip install -i https://test.pypi.org/simple/ agent-bitcoin==26.0.0
+pip install agent-bitcoin
 ```
 
 ### From source

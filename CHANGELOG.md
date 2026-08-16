@@ -1,3 +1,12 @@
+## Publish — agent-bitcoin on PyPI (2026-08-16)
+
+### Changed
+
+- Release workflow publishes to **pypi.org** with GitHub Trusted Publishing (`environment: pypi`)
+- Install docs use `pip install agent-bitcoin` (TestPyPI is no longer the install target)
+
+---
+
 ## Add — Aperture L402 HTTP gateway (mainnet) (2026-08-15)
 
 ### Added

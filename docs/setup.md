@@ -10,7 +10,7 @@ Short pointers only. Full detail lives in the primary docs.
 
 ## Install the SDK
 
-See **[SDK.md — Installation](../SDK.md#installation)** (TestPyPI or source with `uv sync`).
+See **[SDK.md — Installation](../SDK.md#installation)** (PyPI or source with `uv sync`).
 
 ## Quick start (library)
 
