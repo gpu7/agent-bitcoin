@@ -1,3 +1,9 @@
+## v26.2.0 — 2026-08-16
+
+First **pypi.org** release. Package metadata aligned with GitHub release **v.26.2.0** (L402 gateway + prior 26.x work). Install: `pip install agent-bitcoin==26.2.0`.
+
+---
+
 ## Publish — agent-bitcoin on PyPI (2026-08-16)
 
 ### Changed

@@ -529,8 +529,8 @@ echo "   (Volumes are intentionally kept for faster restarts)"
 Releases upload via **GitHub Trusted Publishing** (no TestPyPI). After version/CHANGELOG updates:
 
 ```bash
-git tag v26.0.0
-git push origin v26.0.0
+git tag v26.2.0
+git push origin v26.2.0
 ```
 
 The `Release` workflow builds with `uv build` and publishes to https://pypi.org/project/agent-bitcoin/.

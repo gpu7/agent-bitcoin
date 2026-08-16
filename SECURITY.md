@@ -17,7 +17,7 @@ https://github.com/gpu7/agent-bitcoin/security/code-scanning (maintainers).
 
 | Version  | Supported          |
 |:-------- |:------------------ |
-| 26.0.0   | :white_check_mark: |
+| 26.2.0   | :white_check_mark: |
 | 24.0.0+  | :white_check_mark: |
 | < 24.0.0 | :x:                |
 
