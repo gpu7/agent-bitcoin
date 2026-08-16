@@ -301,7 +301,7 @@ Keep these in sync on every tagged release (`RELEASE_CHECKLIST.md`):
 
 - `pyproject.toml` `version`
 - `agent_bitcoin/__init__.__version__`
-- Git tag (`v.26.0.0` style) and CHANGELOG heading
+- Git tag for PyPI (`v26.2.0`; older GitHub tags used `v.26.x.x`) and CHANGELOG heading
 
 Do not change version numbers casually mid-feature.
 
