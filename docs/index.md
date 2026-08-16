@@ -51,5 +51,5 @@
 ## Repository
 
 - GitHub: https://github.com/gpu7/agent-bitcoin
-- TestPyPI: https://test.pypi.org/project/agent-bitcoin/
+- PyPI: https://pypi.org/project/agent-bitcoin/
 - License: MIT

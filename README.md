@@ -6,7 +6,7 @@
 
 <br>
 
-[![Test PyPI](https://img.shields.io/badge/Test%20PyPI-26.0.0-blue)](https://test.pypi.org/project/agent-bitcoin/)
+[![PyPI](https://img.shields.io/pypi/v/agent-bitcoin)](https://pypi.org/project/agent-bitcoin/)
 [![Python](https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Release](https://img.shields.io/github/v/release/gpu7/agent-bitcoin)](https://github.com/gpu7/agent-bitcoin/releases/latest)
@@ -71,10 +71,10 @@ There is no `collect_transaction_fee` / `POST /send-fee`. Mainnet **pays** stay 
 
 ## Installation
 
-### From TestPyPI
+### From PyPI
 
 ```bash
-pip install -i https://test.pypi.org/simple/ agent-bitcoin==26.0.0
+pip install agent-bitcoin
 ```
 
 ### From source
@@ -153,8 +153,7 @@ Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)**. Do not 
 ## Repository
 
 - GitHub: https://github.com/gpu7/agent-bitcoin
-- TestPyPI: https://test.pypi.org/project/agent-bitcoin/
-- PyPI: Coming soon
+- PyPI: https://pypi.org/project/agent-bitcoin/
 
 ---
 

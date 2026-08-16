@@ -8,10 +8,13 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/agent-bitcoin/
 
     permissions:
       contents: write   # Needed for GitHub Releases
-      id-token: write   # Needed for Trusted Publishing (recommended)
+      id-token: write   # Trusted Publishing to pypi.org
 
     steps:
       - name: Checkout code
@@ -30,11 +33,8 @@ jobs:
       - name: Build package
         run: uv build
 
-      - name: Publish to TestPyPI
+      - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
-        with:
-          repository-url: https://test.pypi.org/legacy/
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
 
       # Optional: Also create a GitHub Release with changelog
       - name: Create GitHub Release
