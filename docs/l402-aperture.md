@@ -17,6 +17,7 @@ AWS  agent-l402-aperture :8081
               GET /health           free
               GET /paid/hello       1,000 sats (JSON)
               GET /paid/report.pdf  1,000 sats (PDF file)
+              GET /paid/badge.png   1,000 sats (PNG image)
 ```
 
 There is **no platform fee**. The L402 price **is** the Lightning amount (1,000 sats = `MIN_PAYMENT_SATS`).
@@ -85,6 +86,9 @@ Paid PDF (same price; origin writes a one-page Helvetica demo):
 ```bash
 uv run python examples/l402_pay.py --url http://<AWS_EIP>:8081/paid/report.pdf --out report.pdf
 # open report.pdf — text: "agent-bitcoin L402 demo report"
+
+uv run python examples/l402_pay.py --url http://<AWS_EIP>:8081/paid/badge.png --out badge.png
+# open badge.png — gold "L402 PAID" on a dark badge
 ```
 
 ## SDK
