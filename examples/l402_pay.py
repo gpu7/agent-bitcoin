@@ -20,9 +20,10 @@ Mainnet (real sats; latches required):
       uv run python examples/l402_pay.py \\
       --url http://<AWS_EIP>:8081/paid/hello
 
-Paid PDF (same 1,000 sat price):
+Paid PDF / PNG (same 1,000 sat price):
 
     ... l402_pay.py --url http://<AWS_EIP>:8081/paid/report.pdf --out report.pdf
+    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/badge.png --out badge.png
 """
 
 from __future__ import annotations
@@ -52,7 +53,7 @@ def main() -> int:
     parser.add_argument(
         "--out",
         default=os.getenv("L402_OUT", ""),
-        help="Write body to this file (default: stdout; PDFs use report.pdf if unset)",
+        help="Write body to this file (default: stdout; PDF/PNG pick a filename if unset)",
     )
     args = parser.parse_args()
 
@@ -65,6 +66,8 @@ def main() -> int:
     out_path = args.out
     if not out_path and ctype == "application/pdf":
         out_path = "report.pdf"
+    if not out_path and ctype == "image/png":
+        out_path = "badge.png"
     if out_path:
         with open(out_path, "wb") as fh:
             fh.write(resp.body)

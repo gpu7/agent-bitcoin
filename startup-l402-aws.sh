@@ -65,6 +65,7 @@ docker compose -f "$COMPOSE" up -d --build
 echo
 echo "Health (free):     curl -sS http://127.0.0.1:8081/health"
 echo "Paid challenge:    curl -sSi http://127.0.0.1:8081/paid/hello"
+echo "Paid PDF / PNG:    /paid/report.pdf  /paid/badge.png"
 echo "From Mac:          ./update-aws-sg-my-ip.sh   # include port 8081"
 echo "                   LND_NETWORK=$NETWORK LND_CONTAINER=<mac-lnd> \\"
 echo "                     uv run python examples/l402_pay.py --url http://<AWS_EIP>:8081/paid/hello"

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import os
+import struct
+import zlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 
@@ -63,6 +65,115 @@ def demo_pdf_bytes(network: str) -> bytes:
     )
 
 
+# 5x7 glyphs, bit 4 = leftmost pixel. Enough for the badge caption.
+_GLYPHS: dict[str, tuple[int, ...]] = {
+    " ": (0, 0, 0, 0, 0, 0, 0),
+    "-": (0, 0, 0, 0b01110, 0, 0, 0),
+    ":": (0, 0, 0b00100, 0, 0b00100, 0, 0),
+    "0": (0b01110, 0b10001, 0b10011, 0b10101, 0b11001, 0b10001, 0b01110),
+    "1": (0b00100, 0b01100, 0b00100, 0b00100, 0b00100, 0b00100, 0b01110),
+    "2": (0b01110, 0b10001, 0b00001, 0b00010, 0b00100, 0b01000, 0b11111),
+    "3": (0b11110, 0b00001, 0b00001, 0b01110, 0b00001, 0b00001, 0b11110),
+    "4": (0b00010, 0b00110, 0b01010, 0b10010, 0b11111, 0b00010, 0b00010),
+    "5": (0b11111, 0b10000, 0b11110, 0b00001, 0b00001, 0b10001, 0b01110),
+    "6": (0b01110, 0b10000, 0b10000, 0b11110, 0b10001, 0b10001, 0b01110),
+    "7": (0b11111, 0b00001, 0b00010, 0b00100, 0b01000, 0b01000, 0b01000),
+    "8": (0b01110, 0b10001, 0b10001, 0b01110, 0b10001, 0b10001, 0b01110),
+    "9": (0b01110, 0b10001, 0b10001, 0b01111, 0b00001, 0b00001, 0b01110),
+    "A": (0b01110, 0b10001, 0b10001, 0b11111, 0b10001, 0b10001, 0b10001),
+    "B": (0b11110, 0b10001, 0b10001, 0b11110, 0b10001, 0b10001, 0b11110),
+    "C": (0b01110, 0b10001, 0b10000, 0b10000, 0b10000, 0b10001, 0b01110),
+    "D": (0b11110, 0b10001, 0b10001, 0b10001, 0b10001, 0b10001, 0b11110),
+    "E": (0b11111, 0b10000, 0b10000, 0b11110, 0b10000, 0b10000, 0b11111),
+    "F": (0b11111, 0b10000, 0b10000, 0b11110, 0b10000, 0b10000, 0b10000),
+    "G": (0b01110, 0b10001, 0b10000, 0b10111, 0b10001, 0b10001, 0b01110),
+    "H": (0b10001, 0b10001, 0b10001, 0b11111, 0b10001, 0b10001, 0b10001),
+    "I": (0b01110, 0b00100, 0b00100, 0b00100, 0b00100, 0b00100, 0b01110),
+    "K": (0b10001, 0b10010, 0b10100, 0b11000, 0b10100, 0b10010, 0b10001),
+    "L": (0b10000, 0b10000, 0b10000, 0b10000, 0b10000, 0b10000, 0b11111),
+    "M": (0b10001, 0b11011, 0b10101, 0b10001, 0b10001, 0b10001, 0b10001),
+    "N": (0b10001, 0b11001, 0b10101, 0b10011, 0b10001, 0b10001, 0b10001),
+    "O": (0b01110, 0b10001, 0b10001, 0b10001, 0b10001, 0b10001, 0b01110),
+    "P": (0b11110, 0b10001, 0b10001, 0b11110, 0b10000, 0b10000, 0b10000),
+    "R": (0b11110, 0b10001, 0b10001, 0b11110, 0b10100, 0b10010, 0b10001),
+    "S": (0b01111, 0b10000, 0b10000, 0b01110, 0b00001, 0b00001, 0b11110),
+    "T": (0b11111, 0b00100, 0b00100, 0b00100, 0b00100, 0b00100, 0b00100),
+    "W": (0b10001, 0b10001, 0b10001, 0b10001, 0b10101, 0b11011, 0b10001),
+}
+
+
+def _png_chunk(tag: bytes, data: bytes) -> bytes:
+    crc = zlib.crc32(tag + data) & 0xFFFFFFFF
+    return struct.pack(">I", len(data)) + tag + data + struct.pack(">I", crc)
+
+
+def _rgb_png(width: int, height: int, pixels: bytearray) -> bytes:
+    raw = bytearray()
+    row = width * 3
+    for y in range(height):
+        raw.append(0)
+        raw.extend(pixels[y * row : (y + 1) * row])
+    ihdr = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + _png_chunk(b"IHDR", ihdr)
+        + _png_chunk(b"IDAT", zlib.compress(bytes(raw), 9))
+        + _png_chunk(b"IEND", b"")
+    )
+
+
+def _fill(
+    pixels: bytearray, width: int, x0: int, y0: int, x1: int, y1: int, rgb: bytes
+) -> None:
+    for y in range(y0, y1):
+        start = (y * width + x0) * 3
+        end = (y * width + x1) * 3
+        pixels[start:end] = rgb * (x1 - x0)
+
+
+def _draw_text(
+    pixels: bytearray,
+    width: int,
+    height: int,
+    x: int,
+    y: int,
+    text: str,
+    rgb: bytes,
+    scale: int,
+) -> None:
+    for ch in text.upper():
+        glyph = _GLYPHS.get(ch, _GLYPHS[" "])
+        for row, bits in enumerate(glyph):
+            for col in range(5):
+                if not bits & (1 << (4 - col)):
+                    continue
+                px0 = x + col * scale
+                py0 = y + row * scale
+                for dy in range(scale):
+                    py = py0 + dy
+                    if py < 0 or py >= height:
+                        continue
+                    for dx in range(scale):
+                        px = px0 + dx
+                        if 0 <= px < width:
+                            i = (py * width + px) * 3
+                            pixels[i : i + 3] = rgb
+        x += 6 * scale
+
+
+def demo_png_bytes(network: str) -> bytes:
+    """Readable badge: gold bar + L402 PAID + network name. No third-party libs."""
+    width, height = 560, 200
+    pixels = bytearray(b"\x1a\x1a\x2e" * (width * height))
+    _fill(pixels, width, 0, 0, 16, height, b"\xe8\xb8\x6d")
+    _draw_text(pixels, width, height, 36, 28, "L402 PAID", b"\xe8\xb8\x6d", 6)
+    _draw_text(pixels, width, height, 36, 86, "agent-bitcoin", b"\xf0\xf0\xf0", 4)
+    _draw_text(
+        pixels, width, height, 36, 140, f"network: {network}", b"\xb0\xb0\xc0", 3
+    )
+    return _rgb_png(width, height, pixels)
+
+
 def _payload(path: str) -> tuple[int, dict]:
     """JSON routes used by existing unit tests."""
     network = os.environ.get("L402_NETWORK", "regtest").strip() or "regtest"
@@ -85,6 +196,8 @@ def dispatch(path: str) -> tuple[int, str, bytes]:
     route = path.split("?", 1)[0]
     if route == "/paid/report.pdf":
         return 200, "application/pdf", demo_pdf_bytes(network)
+    if route == "/paid/badge.png":
+        return 200, "image/png", demo_png_bytes(network)
     status, obj = _payload(path)
     return status, "application/json", json.dumps(obj).encode("utf-8")
 
@@ -97,6 +210,10 @@ class OriginHandler(BaseHTTPRequestHandler):
         if content_type == "application/pdf":
             self.send_header(
                 "Content-Disposition", 'attachment; filename="l402-demo-report.pdf"'
+            )
+        elif content_type == "image/png":
+            self.send_header(
+                "Content-Disposition", 'attachment; filename="l402-demo-badge.png"'
             )
         self.send_header("Content-Length", str(len(raw)))
         self.end_headers()

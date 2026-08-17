@@ -13,7 +13,7 @@ from agent_bitcoin.l402.client import (
     authorization_value,
     parse_www_authenticate,
 )
-from l402.origin import _payload, demo_pdf_bytes, dispatch
+from l402.origin import _payload, demo_pdf_bytes, demo_png_bytes, dispatch
 
 
 def test_payment_result_captures_preimage() -> None:
@@ -107,6 +107,24 @@ def test_origin_pdf_report() -> None:
 def test_demo_pdf_includes_network() -> None:
     pdf = demo_pdf_bytes("mainnet")
     assert b"network: mainnet" in pdf
+
+
+def test_origin_png_badge() -> None:
+    status, content_type, body = dispatch("/paid/badge.png")
+    assert status == 200
+    assert content_type == "image/png"
+    assert body.startswith(b"\x89PNG\r\n\x1a\n")
+    assert b"IEND" in body[-12:]
+    assert body[12:16] == b"IHDR"
+    width = int.from_bytes(body[16:20], "big")
+    height = int.from_bytes(body[20:24], "big")
+    assert width == 560
+    assert height == 200
+
+
+def test_demo_png_changes_with_network() -> None:
+    assert demo_png_bytes("mainnet") != demo_png_bytes("regtest")
+    assert demo_png_bytes("mainnet").startswith(b"\x89PNG")
 
 
 def test_origin_network_from_env(monkeypatch) -> None:

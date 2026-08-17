@@ -1,3 +1,14 @@
+## Add — L402 origin can return a demo PNG (2026-08-17)
+
+### Added
+
+- `GET /paid/badge.png` on the dummy origin (`image/png`, readable "L402 PAID" badge)
+- `examples/l402_pay.py --out` defaults to `badge.png` for PNG responses
+
+Same 1,000 sat Aperture price as `/paid/hello`. Rebuild `agent-l402-origin` to pick this up.
+
+---
+
 ## Add — L402 origin can return a demo PDF (2026-08-17)
 
 ### Added
