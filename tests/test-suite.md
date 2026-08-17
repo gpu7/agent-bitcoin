@@ -42,6 +42,7 @@ Dual-node **pay** tests require **both** containers on the same Docker host. Typ
 | **ABT-004** | No platform fee | Invoice quote `total_cost_sats = amount_sats`; BOLT11 == requested | — |
 | **ABT-L402-001** | L402 402 challenge parse | `parse_www_authenticate` + origin `/health` | curl `/paid/hello` → 402 |
 | **ABT-L402-002** | L402 pay + retry | Mock 402 → pay → 200 | Mac `l402_pay.py` → origin JSON |
+| **ABT-L402-003** | L402 PDF body | Origin `/paid/report.pdf` is `%PDF` | Mac `l402_pay.py --out report.pdf` |
 
 ## Shared limits
 

@@ -19,6 +19,10 @@ Mainnet (real sats; latches required):
     LND_NETWORK=mainnet LND_CONTAINER=agent-bitcoin-lnd-mainnet \\
       uv run python examples/l402_pay.py \\
       --url http://<AWS_EIP>:8081/paid/hello
+
+Paid PDF (same 1,000 sat price):
+
+    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/report.pdf --out report.pdf
 """
 
 from __future__ import annotations
@@ -45,6 +49,11 @@ def main() -> int:
         default=int(os.getenv("L402_PRICE_SATS", str(DEFAULT_L402_PRICE_SATS))),
         help="Expected invoice amount in sats (default: %(default)s)",
     )
+    parser.add_argument(
+        "--out",
+        default=os.getenv("L402_OUT", ""),
+        help="Write body to this file (default: stdout; PDFs use report.pdf if unset)",
+    )
     args = parser.parse_args()
 
     payer = create_client()
@@ -52,9 +61,20 @@ def main() -> int:
     print(f"GET {args.url}", flush=True)
     resp = client.fetch(args.url)
     print(f"status={resp.status_code} paid={resp.paid}", flush=True)
-    try:
-        print(json.dumps(resp.json(), indent=2))
-    except Exception:
+    ctype = (resp.headers.get("content-type") or "").split(";")[0].strip().lower()
+    out_path = args.out
+    if not out_path and ctype == "application/pdf":
+        out_path = "report.pdf"
+    if out_path:
+        with open(out_path, "wb") as fh:
+            fh.write(resp.body)
+        print(f"wrote {len(resp.body)} bytes to {out_path} ({ctype or 'unknown'})")
+    elif ctype == "application/json" or resp.body[:1] == b"{":
+        try:
+            print(json.dumps(resp.json(), indent=2))
+        except Exception:
+            print(resp.text())
+    else:
         print(resp.text())
     return 0 if resp.status_code == 200 else 1
 

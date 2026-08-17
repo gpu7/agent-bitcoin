@@ -14,8 +14,9 @@ Mac  examples/l402_pay.py
 AWS  agent-l402-aperture :8081
         ├─ LND gRPC  <aws-lnd>:10009  (invoice.macaroon)
         └─ origin    agent-l402-origin:8090
-              GET /health      free
-              GET /paid/hello  1,000 sats
+              GET /health           free
+              GET /paid/hello       1,000 sats (JSON)
+              GET /paid/report.pdf  1,000 sats (PDF file)
 ```
 
 There is **no platform fee**. The L402 price **is** the Lightning amount (1,000 sats = `MIN_PAYMENT_SATS`).
@@ -77,7 +78,14 @@ export LND_NETWORK=regtest LND_CONTAINER=agent-bitcoin-lnd
 uv run python examples/l402_pay.py --url http://<AWS_EIP>:8081/paid/hello
 ```
 
-Expect `status=200 paid=True` and JSON `{"ok": true, "service": "l402-demo", "network": "<regtest|signet>", "msg": "hello"}`.
+Expect `status=200 paid=True` and JSON `{"ok": true, "service": "l402-demo", "network": "<regtest|signet|mainnet>", "msg": "hello"}`.
+
+Paid PDF (same price; origin writes a one-page Helvetica demo):
+
+```bash
+uv run python examples/l402_pay.py --url http://<AWS_EIP>:8081/paid/report.pdf --out report.pdf
+# open report.pdf — text: "agent-bitcoin L402 demo report"
+```
 
 ## SDK
 
