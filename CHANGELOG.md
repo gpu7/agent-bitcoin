@@ -1,3 +1,14 @@
+## Add — L402 origin can return a demo PDF (2026-08-17)
+
+### Added
+
+- `GET /paid/report.pdf` on the dummy origin (`application/pdf`, one page of readable text)
+- `examples/l402_pay.py --out` writes the file (defaults to `report.pdf` for PDFs)
+
+Same 1,000 sat Aperture price as `/paid/hello`. Rebuild `agent-l402-origin` to pick this up.
+
+---
+
 ## v26.2.0 — 2026-08-16
 
 First **pypi.org** release. Package metadata aligned with GitHub release **v.26.2.0** (L402 gateway + prior 26.x work). Install: `pip install agent-bitcoin==26.2.0`.

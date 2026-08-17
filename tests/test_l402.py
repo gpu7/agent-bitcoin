@@ -13,7 +13,7 @@ from agent_bitcoin.l402.client import (
     authorization_value,
     parse_www_authenticate,
 )
-from l402.origin import _payload
+from l402.origin import _payload, demo_pdf_bytes, dispatch
 
 
 def test_payment_result_captures_preimage() -> None:
@@ -92,6 +92,21 @@ def test_origin_paths() -> None:
     assert body["msg"] == "hello"
     status, _ = _payload("/other")
     assert status == 404
+
+
+def test_origin_pdf_report() -> None:
+    status, content_type, body = dispatch("/paid/report.pdf")
+    assert status == 200
+    assert content_type == "application/pdf"
+    assert body.startswith(b"%PDF-1.4")
+    assert b"%%EOF" in body
+    assert b"agent-bitcoin L402 demo report" in body
+    assert b"paid file download worked" in body
+
+
+def test_demo_pdf_includes_network() -> None:
+    pdf = demo_pdf_bytes("mainnet")
+    assert b"network: mainnet" in pdf
 
 
 def test_origin_network_from_env(monkeypatch) -> None:
