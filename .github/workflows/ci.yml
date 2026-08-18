@@ -22,7 +22,7 @@ jobs:
           echo "   They are running on Node 24. This warning is harmless."
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Python
         uses: actions/setup-python@v7
