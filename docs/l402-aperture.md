@@ -17,6 +17,7 @@ AWS  agent-l402-aperture :8081
               GET /health           free
               GET /paid/hello       1,000 sats (JSON)
               GET /paid/report.pdf  1,000 sats (PDF file)
+              GET /paid/script.pdf  1,000 sats (PDF from generate_script_pdf.py)
               GET /paid/badge.png   1,000 sats (PNG image)
 ```
 
@@ -89,6 +90,9 @@ uv run python examples/l402_pay.py --url http://<AWS_EIP>:8081/paid/report.pdf -
 
 uv run python examples/l402_pay.py --url http://<AWS_EIP>:8081/paid/badge.png --out badge.png
 # open badge.png — gold "L402 PAID" on a dark badge
+
+uv run python examples/l402_pay.py --url http://<AWS_EIP>:8081/paid/script.pdf --out script.pdf
+# open script.pdf — text from l402/generate_script_pdf.py
 ```
 
 ## SDK

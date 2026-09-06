@@ -1,3 +1,14 @@
+## Add — L402 origin launches a script for a paid PDF (2026-09-06)
+
+### Added
+
+- `GET /paid/script.pdf` — origin runs `l402/generate_script_pdf.py` and returns the PDF
+- `tests/test_l402_script_pdf.py` covers the script CLI and origin dispatch
+
+Same 1,000 sat Aperture price as `/paid/hello`. Rebuild `agent-l402-origin` to pick this up.
+
+---
+
 ## Change — minimum Lightning payment is 100 sats (2026-09-06)
 
 ### Changed
