@@ -14,7 +14,7 @@ Keep this file actionable. Prefer links to `README.md`, `docs/`, and `SECURITY.m
 - Provide a simple, agent-friendly API for invoices, payments, and balances.
 - Support intelligent payment decisions via LLMs (Grok by default; Ollama optional).
 - Run a split **AWS payment-decision node + Mac counterparty node** architecture on **Bitcoin regtest**.
-- Keep payments transparent: **no platform fee**; minimum payment **1,000 sats**.
+- Keep payments transparent: **no platform fee**; minimum payment **100 sats**.
 - Stay secure by default: no real funds in automated flows unless the user explicitly opts into testnet/mainnet.
 
 ### Non-goals (unless explicitly requested)
@@ -333,8 +333,8 @@ uv run python tests/test_aws_integration.py --backend-url http://<aws-ip>:8000
 
 Always consider:
 
-1. Amount &lt; minimum (1,000 sats) → reject / error.
-2. Nominal payment ≥ 1,000 sats → success path.
+1. Amount &lt; minimum (100 sats) → reject / error.
+2. Nominal payment ≥ 100 sats → success path.
 3. No platform fee: BOLT11 amount equals the requested amount.
 4. Decision agent PAY/REJECT parsing still works with prompt changes.
 
@@ -363,7 +363,7 @@ Always consider:
 ### Fee model (do not silently change)
 
 - **No platform / transaction fee.** BOLT11 is the requested amount **X**.
-- Minimum **requested** amount: **1,000 sats** (`MIN_PAYMENT_SATS` / `NWC_MIN_PAYMENT_SATS`).
+- Minimum **requested** amount: **100 sats** (`MIN_PAYMENT_SATS` / `NWC_MIN_PAYMENT_SATS`).
 - Lightning **routing** fees remain a separate payer-side cap (`fee_limit_sats` / `routing_fee_limit_sats`).
 - Aperture L402 demo price is **1,000 sats** (`DEFAULT_L402_PRICE_SATS`). Not Loop's `aperture` container. Mainnet L402 pay needs a written go.
 - On-chain: only generic `send_onchain` (mainnet needs `AGENT_BITCOIN_ALLOW_MAINNET_FEE=1`).

@@ -1,3 +1,13 @@
+## Change — minimum Lightning payment is 100 sats (2026-09-06)
+
+### Changed
+
+- `DEFAULT_MIN_PAYMENT_SATS` **1,000 → 100** (`MIN_PAYMENT_SATS`)
+- NWC min follows the same default (`NWC_MIN_PAYMENT_SATS` unset → `min_payment_sats()`)
+- Aperture L402 demo price remains **1,000 sats** (`DEFAULT_L402_PRICE_SATS`)
+
+---
+
 ## Add — L402 origin can return a demo PNG (2026-08-17)
 
 ### Added

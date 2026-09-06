@@ -36,7 +36,8 @@ def test_default_l402_price_matches_min_pay() -> None:
     from agent_bitcoin.constants import DEFAULT_MIN_PAYMENT_SATS
 
     assert DEFAULT_L402_PRICE_SATS == 1_000
-    assert DEFAULT_L402_PRICE_SATS == DEFAULT_MIN_PAYMENT_SATS
+    assert DEFAULT_MIN_PAYMENT_SATS == 100
+    assert DEFAULT_L402_PRICE_SATS >= DEFAULT_MIN_PAYMENT_SATS
 
 
 def test_parse_www_authenticate_aperture() -> None:

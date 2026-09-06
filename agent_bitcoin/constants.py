@@ -13,13 +13,13 @@ from __future__ import annotations
 import os
 
 # --- Canonical defaults (sats) ---
-DEFAULT_MIN_PAYMENT_SATS = 1_000
+DEFAULT_MIN_PAYMENT_SATS = 100
 DEFAULT_MAX_PAYMENT_SATS = 1_000_000
 # When LND_NETWORK=mainnet and MAX_PAYMENT_SATS unset (pilot ceiling)
 DEFAULT_MAINNET_MAX_PAYMENT_SATS = 50_000
 DEFAULT_MAX_DAILY_PAYMENT_SATS = 100_000
 DEFAULT_MAX_FEE_SEND_SATS = 100_000
-# Aperture L402 price per paid request (matches MIN_PAYMENT_SATS)
+# Aperture L402 price per paid request (must be >= MIN_PAYMENT_SATS)
 DEFAULT_L402_PRICE_SATS = 1_000
 
 
