@@ -23,6 +23,7 @@ Mainnet (real sats; latches required):
 Paid PDF / PNG (same 1,000 sat price):
 
     ... l402_pay.py --url http://<AWS_EIP>:8081/paid/report.pdf --out report.pdf
+    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/script.pdf --out script.pdf
     ... l402_pay.py --url http://<AWS_EIP>:8081/paid/badge.png --out badge.png
 """
 
@@ -65,7 +66,9 @@ def main() -> int:
     ctype = (resp.headers.get("content-type") or "").split(";")[0].strip().lower()
     out_path = args.out
     if not out_path and ctype == "application/pdf":
-        out_path = "report.pdf"
+        out_path = (
+            "script.pdf" if "script.pdf" in args.url.split("?", 1)[0] else "report.pdf"
+        )
     if not out_path and ctype == "image/png":
         out_path = "badge.png"
     if out_path:

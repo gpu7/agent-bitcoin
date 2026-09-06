@@ -5,8 +5,13 @@ from __future__ import annotations
 import json
 import os
 import struct
+import subprocess
+import sys
 import zlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+
+_SCRIPT_PDF = Path(__file__).resolve().parent / "generate_script_pdf.py"
 
 
 def _simple_pdf(lines: list[str]) -> bytes:
@@ -190,12 +195,31 @@ def _payload(path: str) -> tuple[int, dict]:
     return 404, {"ok": False, "error": "not found"}
 
 
+def script_pdf_bytes(network: str) -> bytes:
+    """Launch generate_script_pdf.py; PDF is on stdout."""
+    proc = subprocess.run(
+        [sys.executable, str(_SCRIPT_PDF), "--network", network],
+        capture_output=True,
+        timeout=10,
+        check=False,
+    )
+    if proc.returncode != 0 or not proc.stdout.startswith(b"%PDF"):
+        err = proc.stderr.decode("utf-8", errors="replace").strip()
+        raise RuntimeError(err or "generate_script_pdf.py failed")
+    return proc.stdout
+
+
 def dispatch(path: str) -> tuple[int, str, bytes]:
     """status, Content-Type, body."""
     network = os.environ.get("L402_NETWORK", "regtest").strip() or "regtest"
     route = path.split("?", 1)[0]
     if route == "/paid/report.pdf":
         return 200, "application/pdf", demo_pdf_bytes(network)
+    if route == "/paid/script.pdf":
+        try:
+            return 200, "application/pdf", script_pdf_bytes(network)
+        except (OSError, RuntimeError, subprocess.TimeoutExpired):
+            return 500, "text/plain", b"script pdf generation failed\n"
     if route == "/paid/badge.png":
         return 200, "image/png", demo_png_bytes(network)
     status, obj = _payload(path)
@@ -208,9 +232,12 @@ class OriginHandler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         if content_type == "application/pdf":
-            self.send_header(
-                "Content-Disposition", 'attachment; filename="l402-demo-report.pdf"'
+            name = (
+                "l402-script.pdf"
+                if "script.pdf" in self.path.split("?", 1)[0]
+                else "l402-demo-report.pdf"
             )
+            self.send_header("Content-Disposition", f'attachment; filename="{name}"')
         elif content_type == "image/png":
             self.send_header(
                 "Content-Disposition", 'attachment; filename="l402-demo-badge.png"'
