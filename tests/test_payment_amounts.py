@@ -61,7 +61,7 @@ def test_abt003_client_above_maximum(clear_payment_env, payment_limits):
 
 
 def test_shared_defaults_one_million_max(clear_payment_env):
-    assert DEFAULT_MIN_PAYMENT_SATS == 1_000
+    assert DEFAULT_MIN_PAYMENT_SATS == 100
     assert DEFAULT_MAX_PAYMENT_SATS == 1_000_000
     from agent_bitcoin.constants import max_invoice_sats, payment_decision_max_sats
 
@@ -122,7 +122,10 @@ def test_abt002_api_below_minimum(api_client, payment_limits):
         headers={"X-API-Key": "test-key-for-unit-tests"},
     )
     assert r.status_code == 400
-    assert "amount_sats" in r.json()["detail"].lower() or "2000" in r.json()["detail"]
+    assert (
+        "amount_sats" in r.json()["detail"].lower()
+        or str(payment_limits["min"]) in r.json()["detail"]
+    )
     backend_main.client.create_invoice_quote.assert_not_called()
 
 

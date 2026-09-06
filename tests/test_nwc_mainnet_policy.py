@@ -20,7 +20,7 @@ def test_mainnet_budget_default_is_tight(monkeypatch: pytest.MonkeyPatch) -> Non
     monkeypatch.delenv("MIN_PAYMENT_SATS", raising=False)
     monkeypatch.delenv("MAX_PAYMENT_SATS", raising=False)
     pol = NWCBudgetPolicy.from_env()
-    assert pol.min_sats == 1_000
+    assert pol.min_sats == 100
     assert pol.max_sats == DEFAULT_NWC_MAINNET_MAX_SATS
     assert pol.max_sats == 2_000
 

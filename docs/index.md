@@ -2,7 +2,7 @@
 
 **Lightning Bitcoin payments for autonomous AI Agents.**
 
-**Current product policy (2026-08-15, `main` after v.26.0.0):** requested Lightning amount **≥ 1,000 sats**; **no platform fee** (BOLT11 = requested **X**); no `/send-fee` / `collect_transaction_fee`. Aperture L402 demo price is **1,000 sats**. Mainnet NWC max **2,000** requested; `--pay` needs a written go. Autopay / Autoloop **off**.
+**Current product policy (2026-09-06):** requested Lightning amount **≥ 100 sats**; **no platform fee** (BOLT11 = requested **X**); no `/send-fee` / `collect_transaction_fee`. Aperture L402 demo price is **1,000 sats**. Mainnet NWC max **2,000** requested; `--pay` needs a written go. Autopay / Autoloop **off**.
 
 ## Primary docs
 

@@ -111,7 +111,7 @@ class NWCBudgetPolicy:
 
     @classmethod
     def mainnet_tight(cls) -> NWCBudgetPolicy:
-        """N6 default: project min (1,000 sats) up to max 2k."""
+        """N6 default: project min (100 sats) up to max 2k."""
         return cls(
             min_sats=min_payment_sats(),
             max_sats=DEFAULT_NWC_MAINNET_MAX_SATS,

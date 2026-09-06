@@ -64,7 +64,7 @@ The Python client loads environment variables via `python-dotenv` (typically a `
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `MIN_PAYMENT_SATS` | `1000` | Minimum `amount_sats` for `create_invoice()` |
+| `MIN_PAYMENT_SATS` | `100` | Minimum `amount_sats` for `create_invoice()` |
 | `MAX_PAYMENT_SATS` | `1000000` (lab) / `50000` (mainnet default) | Shared max for invoices and pays |
 | `MAX_DAILY_PAYMENT_SATS` | `0` lab (off) / `100000` mainnet | UTC daily spend cap; ledger file |
 | `AGENT_BITCOIN_ALLOW_AUTOPAY` | on in lab; **off on mainnet** | Mainnet requires `=1` to pay |
@@ -115,7 +115,7 @@ from agent_bitcoin import create_client
 
 client = create_client()
 
-# Requested amount must be >= MIN_PAYMENT_SATS (default 1000).
+# Requested amount must be >= MIN_PAYMENT_SATS (default 100).
 # BOLT11 is exactly the requested amount (5000 in this example).
 invoice = client.create_invoice(memo="Test payment", amount_sats=5000)
 
@@ -229,7 +229,7 @@ There is **no platform / transaction fee**. Lightning **routing** fees are a sep
 | Rule | Default | Configurable via |
 |------|---------|------------------|
 | Platform / transaction fee | **None** | — |
-| Minimum invoice/payment amount | **1,000 sats** | `MIN_PAYMENT_SATS` |
+| Minimum invoice/payment amount | **100 sats** | `MIN_PAYMENT_SATS` |
 | Maximum invoice/payment amount | **1,000,000 sats** | `MAX_PAYMENT_SATS` (shared) |
 
 ### Semantics
@@ -332,7 +332,7 @@ The agent **never executes payments**. It only returns a decision. Callers must 
 
 | Env / constructor | Default | Effect |
 |-------------------|---------|--------|
-| `MIN_PAYMENT_SATS` / `min_sats` | 1000 | Reject below minimum |
+| `MIN_PAYMENT_SATS` / `min_sats` | 100 | Reject below minimum |
 | `PAYMENT_DECISION_MAX_SATS` / `max_sats` | **1000000** (shared default) | Hard reject above max |
 | `PAYMENT_DECISION_CONFIRM_ABOVE_SATS` / `confirm_above_sats` | unset | If set, amounts above return `CONFIRM_REQUIRED` (human must approve) |
 
@@ -457,7 +457,7 @@ Generate (example): `openssl rand -hex 32` — store in a password manager and h
 
 | Env | Default | Applies to |
 |-----|---------|------------|
-| `MIN_PAYMENT_SATS` | 1000 | `POST /invoices` |
+| `MIN_PAYMENT_SATS` | 100 | `POST /invoices` |
 | `MAX_INVOICE_SATS` / `MAX_PAYMENT_SATS` | 1000000 | `POST /invoices` |
 
 
@@ -681,7 +681,7 @@ uv run --python 3.12 python examples/nwc_mainnet_smoke.py --yes-mainnet --amount
 
 | Symptom | Likely cause | What to do |
 |---------|--------------|------------|
-| `Minimum payment is 1000 sats` | Amount below `MIN_PAYMENT_SATS` | Use ≥ 1000 or set `MIN_PAYMENT_SATS` |
+| `Minimum payment is 100 sats` | Amount below `MIN_PAYMENT_SATS` | Use ≥ 100 or set `MIN_PAYMENT_SATS` |
 
 | `Payment request is required` | Empty BOLT11 | Pass full `payment_request` |
 | Import errors for `langchain_xai` / `langchain_ollama` | Optional stack missing | `uv add` / `pip install` those packages |

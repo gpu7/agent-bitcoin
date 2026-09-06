@@ -61,7 +61,7 @@ There is **no platform / transaction fee**. A requested payment of **X** sats cr
 | Rule | Default |
 |------|--------|
 | Platform / transaction fee | **None** |
-| Minimum Lightning invoice amount | **1,000 sats** (`MIN_PAYMENT_SATS`) |
+| Minimum Lightning invoice amount | **100 sats** (`MIN_PAYMENT_SATS`) |
 
 For independent agents, prefer **`create_invoice_quote`** so the payer sees `amount_sats` / `total_cost_sats` without shared env. Details: **[SDK.md](SDK.md#transaction-fees-and-limits)**.
 

@@ -20,7 +20,7 @@ AWS  agent-l402-aperture :8081
               GET /paid/badge.png   1,000 sats (PNG image)
 ```
 
-There is **no platform fee**. The L402 price **is** the Lightning amount (1,000 sats = `MIN_PAYMENT_SATS`).
+There is **no platform fee**. The L402 price **is** the Lightning amount (1,000 sats; must be ≥ `MIN_PAYMENT_SATS`, default 100).
 
 Do **not** put Aperture in front of `/pay`, `/invoices`, or `/balance`.
 
