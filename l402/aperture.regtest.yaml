@@ -63,6 +63,13 @@ services:
     protocol: "http"
     price: 100
     timeout: 3600
+  - name: "ln-path-fee-hint"
+    hostregexp: ".*"
+    pathregexp: "^/paid/finance/ln-path-fee-hint$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
   - name: "l402-demo"
     hostregexp: ".*"
     pathregexp: "^/.*$"

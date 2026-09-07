@@ -24,11 +24,12 @@ AWS  agent-l402-aperture :8081
               GET /paid/finance/fee-for-vsize?vsize=  100 sats (JSON total fee sats)
               GET /paid/finance/confirm-target?       100 sats (JSON wait → sat/vB)
               GET /paid/finance/btc-usd               100 sats (JSON BTC/USD pass-through)
+              POST /paid/finance/ln-path-fee-hint     100 sats (JSON Lightning route-fee hint)
 ```
 
-There is **no platform fee**. The L402 price **is** the Lightning amount (must be ≥ `MIN_PAYMENT_SATS`, default 100). Demo files are **1,000 sats**; finance paths (feerate, backlog, fee-for-vsize, confirm-target, btc-usd) are **100 sats**.
+There is **no platform fee**. The L402 price **is** the Lightning amount (must be ≥ `MIN_PAYMENT_SATS`, default 100). Demo files are **1,000 sats**; finance paths (feerate, backlog, fee-for-vsize, confirm-target, btc-usd, ln-path-fee-hint) are **100 sats**.
 
-This is **not** a mempool.space replacement, FX oracle, or CoinGecko substitute. **mempool-feerate** is fee bands (sat/vB). **mempool-backlog** is fullness. **fee-for-vsize** multiplies those bands by a **vbyte** size. **confirm-target** maps a wait window (minutes) or named band onto `sat_vb` from the feerate cache. **btc-usd** is a **pass-through mark, not our index** — USD per 1 BTC from one public JSON URL. Useful before an **on-chain** send or a USD↔sats sanity check; not needed for Lightning-only invoice pays.
+This is **not** a mempool.space replacement, FX oracle, or CoinGecko substitute. **mempool-feerate** is fee bands (sat/vB). **mempool-backlog** is fullness. **fee-for-vsize** multiplies those bands by a **vbyte** size. **confirm-target** maps a wait window (minutes) or named band onto `sat_vb` from the feerate cache. **btc-usd** is a **pass-through mark, not our index** — USD per 1 BTC from one public JSON URL. **ln-path-fee-hint** is what the **AWS agent LND** sees for a dest+amount (or bolt11) via readonly **QueryRoutes** — not Terminal, not RTL, not a route dump. Useful before an **on-chain** send or a USD↔sats sanity check; not needed for Lightning-only invoice pays.
 
 Do **not** put Aperture in front of `/pay`, `/invoices`, or `/balance`.
 
@@ -122,6 +123,12 @@ uv run python examples/l402_pay.py \
 # BTC/USD pass-through (100 sats). Not an FX index — one public JSON URL.
 uv run python examples/l402_pay.py \
   --url http://<AWS_EIP>:8081/paid/finance/btc-usd --price 100
+
+# Lightning path-fee hint (100 sats). POST JSON; do not put BOLT11 in the URL.
+uv run python examples/l402_pay.py \
+  --url http://<AWS_EIP>:8081/paid/finance/ln-path-fee-hint \
+  --price 100 --method POST \
+  --json '{"dest_pubkey":"<66 hex>","amount_sats":1000}'
 ```
 
 `GET /paid/finance/mempool-feerate` JSON (after pay): `ok`, `service` (`mempool-feerate`), `version` (`v1`), `as_of`, `ttl_s`, `unit` (`sat_per_vbyte`), `fast` / `medium` / `slow` (integers ≥ 1), `source`, `source_as_of`, `stale`.
@@ -154,6 +161,26 @@ Upstream default: `https://mempool.space/api/mempool` (`count`, `vsize`, `total_
 ```
 
 Upstream default: `https://mempool.space/api/v1/prices`. Accepted schema: JSON object with **`USD`** a positive number (int or float). Optional unix **`time`** becomes `source_as_of`. Other fields (EUR, …) are ignored. Override URL with `BTC_USD_URL`; cache TTL with `BTC_USD_TTL_S` (default **30**, clamp **30–60**). Separate in-memory cache from feerate/backlog. Lazy refresh on GET; one in-flight fetch. Fail + cache → `stale: true`. Fail / missing / `USD` ≤ 0 + no cache → HTTP **503** `{ "ok": false, "error": "upstream_unavailable" }`. Pass-through mark, not our index.
+
+`POST /paid/finance/ln-path-fee-hint` JSON body (XOR): `{ "bolt11": "lnbc..." }` **or** `{ "dest_pubkey": "<66 hex>", "amount_sats": 1000 }`. Both or neither → origin **400** `bad_input`. GET → **405**. Do **not** put BOLT11 in query strings. `amount_sats` integer **100–50000**. Dest form requires `amount_sats`. Zero-amount invoices require `amount_sats`; if the invoice has an amount it must match when `amount_sats` is also sent.
+
+After pay, 200 envelope: `ok`, `service` (`ln-path-fee-hint`), `version`, `as_of`, `ttl_s` (default **15**, clamp **10–30**, `LN_PATH_HINT_TTL_S`), `source` (`aws_agent_lnd`), `stale`, `amount_sats`, `fee_sats` (`ceil(total_fees_msat/1000)` from the first QueryRoutes path), `total_sats`, `hop_count`. `success_hint` only if LND returns `success_prob`. Full bolt11 is not echoed. No route dump, channel list, or policy.
+
+LND errors: no path → **404** `no_route`. Missing cert/macaroon, timeout, or LND down → **503** `lnd_unavailable`. Origin uses **readonly QueryRoutes + DecodePayReq only** — never SendPayment, AddInvoice, OpenChannel, or BakeMacaroon. **Not Terminal/RTL.**
+
+Probe node is **AWS agent LND**. Origin compose mounts the same LND volume Aperture uses (`/lnd:ro`) and dials `LND_GRPC_HOST` (container hostname, TLS SAN). Mac as an option is env-only (`LND_GRPC_HOST` / macaroon path); this PR does not wire a Mac origin. Never mount `admin.macaroon` or `invoice.macaroon` on origin. 8081 stays operator `/32`.
+
+Owner bake (wallet unlocked; do not clobber LND’s built-in `readonly.macaroon`):
+
+```bash
+docker exec agent-payment-decision-lnd-mainnet lncli \
+  --lnddir=/home/lnd/.lnd --network=mainnet bakemacaroon \
+  uri:/lnrpc.Lightning/QueryRoutes \
+  uri:/lnrpc.Lightning/DecodePayReq \
+  --save_to /home/lnd/.lnd/data/chain/bitcoin/mainnet/l402-readonly.macaroon
+```
+
+Compose default: `LND_READONLY_MACAROON_PATH=/lnd/data/chain/bitcoin/mainnet/l402-readonly.macaroon`. Smoke shortcut: point that env at LND’s existing `readonly.macaroon` (still not invoice/admin). Then `./startup-l402-aws.sh mainnet` and `docker restart agent-l402-aperture`. Unpaid POST → 402 + `lnbc1u`. Paid POST → 200 scalars or 404 `no_route`.
 
 Rebuild origin + Aperture after pull: `./startup-l402-aws.sh mainnet` (do **not** `--remove-orphans`). Do **not** world-open 8081. Mainnet payer still needs `AGENT_BITCOIN_ALLOW_MAINNET=1` and `AGENT_BITCOIN_ALLOW_AUTOPAY=1`. Autoloop stays off. Payer needs enough local channel sats for a **100 sat** invoice plus routing.
 

@@ -33,6 +33,8 @@ On-chain fee bands (100 sats; pass --price because the client default is 1000):
     ... l402_pay.py --url 'http://<AWS_EIP>:8081/paid/finance/fee-for-vsize?vsize=250' --price 100
     ... l402_pay.py --url 'http://<AWS_EIP>:8081/paid/finance/confirm-target?minutes=30' --price 100
     ... l402_pay.py --url http://<AWS_EIP>:8081/paid/finance/btc-usd --price 100
+    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/finance/ln-path-fee-hint \\
+          --price 100 --method POST --json '{"dest_pubkey":"<66 hex>","amount_sats":1000}'
 """
 
 from __future__ import annotations
@@ -64,12 +66,35 @@ def main() -> int:
         default=os.getenv("L402_OUT", ""),
         help="Write body to this file (default: stdout; PDF/PNG pick a filename if unset)",
     )
+    parser.add_argument(
+        "--method",
+        default="GET",
+        choices=("GET", "POST"),
+        help="HTTP method (default: GET). POST for ln-path-fee-hint.",
+    )
+    parser.add_argument(
+        "--json",
+        dest="json_body",
+        default="",
+        help="JSON object string for POST body (not logged)",
+    )
     args = parser.parse_args()
+
+    payload = None
+    if args.json_body.strip():
+        try:
+            payload = json.loads(args.json_body)
+        except json.JSONDecodeError:
+            print("invalid --json", file=sys.stderr)
+            return 2
+        if not isinstance(payload, dict):
+            print("--json must be an object", file=sys.stderr)
+            return 2
 
     payer = create_client()
     client = L402Client(payer, expected_price_sats=args.price)
-    print(f"GET {args.url}", flush=True)
-    resp = client.fetch(args.url)
+    print(f"{args.method} {args.url}", flush=True)
+    resp = client.fetch(args.url, method=args.method, json_body=payload)
     print(f"status={resp.status_code} paid={resp.paid}", flush=True)
     ctype = (resp.headers.get("content-type") or "").split(";")[0].strip().lower()
     out_path = args.out

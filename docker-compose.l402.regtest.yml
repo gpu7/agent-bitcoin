@@ -17,6 +17,12 @@ services:
     restart: unless-stopped
     environment:
       L402_NETWORK: regtest
+      LND_GRPC_HOST: agent-payment-decision-lnd
+      LND_GRPC_PORT: "10009"
+      LND_TLS_CERT_PATH: /lnd/tls.cert
+      LND_READONLY_MACAROON_PATH: /lnd/data/chain/bitcoin/regtest/l402-readonly.macaroon
+    volumes:
+      - lnd-data:/lnd:ro
     networks:
       - l402-net
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -203,6 +204,31 @@ def test_fetch_rejects_below_minimum(clear_payment_env) -> None:
         with pytest.raises(ValueError, match="below minimum"):
             client.fetch("http://example.test/paid/hello")
     payer.pay_invoice.assert_not_called()
+
+
+def test_fetch_post_retries_same_body(clear_payment_env) -> None:
+    payer = _payer()
+    header = 'L402 macaroon="MAC", invoice="lnbcrt1inv"'
+    client = L402Client(payer, expected_price_sats=1000)
+    payload = {"dest_pubkey": "02" + ("ab" * 32), "amount_sats": 1000}
+
+    with patch("agent_bitcoin.l402.client.L402Client._get") as mock_get:
+        mock_get.side_effect = [
+            (402, {"WWW-Authenticate": header}, b"pay"),
+            (200, {"Content-Type": "application/json"}, b'{"ok": true}'),
+        ]
+        resp = client.fetch(
+            "http://example.test/paid/finance/ln-path-fee-hint",
+            method="POST",
+            json_body=payload,
+        )
+
+    assert resp.status_code == 200
+    assert resp.paid is True
+    assert mock_get.call_count == 2
+    for call in mock_get.call_args_list:
+        assert call.kwargs.get("method") == "POST"
+        assert call.kwargs.get("data") == json.dumps(payload).encode("utf-8")
 
 
 def test_fetch_rejects_failed_pay(clear_payment_env) -> None:
