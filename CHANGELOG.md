@@ -1,3 +1,15 @@
+## Add — L402 mempool-backlog (mempool fullness) (2026-09-07)
+
+### Added
+
+- `GET /paid/finance/mempool-backlog` — JSON `tx_count` / `vsize` / `total_fee_sats` / `vsize_per_block_equiv`
+- Aperture service **100 sats** for that path (first-match YAML)
+- Fixture tests (no live scrape)
+
+Fullness, not fee bands. Rebuild origin + **restart Aperture** so the 100-sat route loads. Payer: `l402_pay.py --price 100`.
+
+---
+
 ## Add — L402 mempool-feerate (on-chain sat/vB bands) (2026-09-07)
 
 ### Added

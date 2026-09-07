@@ -29,6 +29,7 @@ Paid PDF / PNG (same 1,000 sat price):
 On-chain fee bands (100 sats; pass --price because the client default is 1000):
 
     ... l402_pay.py --url http://<AWS_EIP>:8081/paid/finance/mempool-feerate --price 100
+    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/finance/mempool-backlog --price 100
 """
 
 from __future__ import annotations
