@@ -18,11 +18,13 @@ try:
     from l402 import mempool_backlog as _mempool_backlog
     from l402 import fee_for_vsize as _fee_for_vsize
     from l402 import confirm_target as _confirm_target
+    from l402 import btc_usd as _btc_usd
 except ImportError:  # Docker WORKDIR /app
     import mempool_feerate as _mempool_feerate  # type: ignore[no-redef]
     import mempool_backlog as _mempool_backlog  # type: ignore[no-redef]
     import fee_for_vsize as _fee_for_vsize  # type: ignore[no-redef]
     import confirm_target as _confirm_target  # type: ignore[no-redef]
+    import btc_usd as _btc_usd  # type: ignore[no-redef]
 
 
 def _simple_pdf(lines: list[str]) -> bytes:
@@ -259,6 +261,13 @@ def dispatch(path: str) -> tuple[int, str, bytes]:
             err = {"ok": False, "error": "bad_confirm_target"}
             return 400, "application/json", json.dumps(err).encode("utf-8")
         except _mempool_feerate.UpstreamUnavailable:
+            err = {"ok": False, "error": "upstream_unavailable"}
+            return 503, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/finance/btc-usd":
+        try:
+            payload = _btc_usd.get_quote()
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _btc_usd.UpstreamUnavailable:
             err = {"ok": False, "error": "upstream_unavailable"}
             return 503, "application/json", json.dumps(err).encode("utf-8")
     if route == "/paid/report.pdf":

@@ -32,6 +32,7 @@ On-chain fee bands (100 sats; pass --price because the client default is 1000):
     ... l402_pay.py --url http://<AWS_EIP>:8081/paid/finance/mempool-backlog --price 100
     ... l402_pay.py --url 'http://<AWS_EIP>:8081/paid/finance/fee-for-vsize?vsize=250' --price 100
     ... l402_pay.py --url 'http://<AWS_EIP>:8081/paid/finance/confirm-target?minutes=30' --price 100
+    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/finance/btc-usd --price 100
 """
 
 from __future__ import annotations

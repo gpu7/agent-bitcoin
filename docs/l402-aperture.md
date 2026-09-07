@@ -23,11 +23,12 @@ AWS  agent-l402-aperture :8081
               GET /paid/finance/mempool-backlog  100 sats (JSON mempool fullness)
               GET /paid/finance/fee-for-vsize?vsize=  100 sats (JSON total fee sats)
               GET /paid/finance/confirm-target?       100 sats (JSON wait → sat/vB)
+              GET /paid/finance/btc-usd               100 sats (JSON BTC/USD pass-through)
 ```
 
-There is **no platform fee**. The L402 price **is** the Lightning amount (must be ≥ `MIN_PAYMENT_SATS`, default 100). Demo files are **1,000 sats**; finance paths (feerate, backlog, fee-for-vsize, confirm-target) are **100 sats**.
+There is **no platform fee**. The L402 price **is** the Lightning amount (must be ≥ `MIN_PAYMENT_SATS`, default 100). Demo files are **1,000 sats**; finance paths (feerate, backlog, fee-for-vsize, confirm-target, btc-usd) are **100 sats**.
 
-This is **not** a mempool.space replacement. **mempool-feerate** is fee bands (sat/vB). **mempool-backlog** is fullness. **fee-for-vsize** multiplies those bands by a **vbyte** size. **confirm-target** maps a wait window (minutes) or named band onto `sat_vb` from the feerate cache. Useful before an **on-chain** send; not needed for Lightning-only invoice pays.
+This is **not** a mempool.space replacement, FX oracle, or CoinGecko substitute. **mempool-feerate** is fee bands (sat/vB). **mempool-backlog** is fullness. **fee-for-vsize** multiplies those bands by a **vbyte** size. **confirm-target** maps a wait window (minutes) or named band onto `sat_vb` from the feerate cache. **btc-usd** is a **pass-through mark, not our index** — USD per 1 BTC from one public JSON URL. Useful before an **on-chain** send or a USD↔sats sanity check; not needed for Lightning-only invoice pays.
 
 Do **not** put Aperture in front of `/pay`, `/invoices`, or `/balance`.
 
@@ -117,6 +118,10 @@ uv run python examples/l402_pay.py \
   --url 'http://<AWS_EIP>:8081/paid/finance/confirm-target?minutes=30' --price 100
 uv run python examples/l402_pay.py \
   --url 'http://<AWS_EIP>:8081/paid/finance/confirm-target?target=fast&vsize=250' --price 100
+
+# BTC/USD pass-through (100 sats). Not an FX index — one public JSON URL.
+uv run python examples/l402_pay.py \
+  --url http://<AWS_EIP>:8081/paid/finance/btc-usd --price 100
 ```
 
 `GET /paid/finance/mempool-feerate` JSON (after pay): `ok`, `service` (`mempool-feerate`), `version` (`v1`), `as_of`, `ttl_s`, `unit` (`sat_per_vbyte`), `fast` / `medium` / `slow` (integers ≥ 1), `source`, `source_as_of`, `stale`.
@@ -130,6 +135,25 @@ Upstream default: `https://mempool.space/api/mempool` (`count`, `vsize`, `total_
 `GET /paid/finance/fee-for-vsize?vsize=<int>` JSON (after pay): envelope from the **feerate cache** (`as_of`, `ttl_s`, `source`, `source_as_of`, `stale`) plus `vsize` and `fee_sats_fast` / `fee_sats_medium` / `fee_sats_slow` (`ceil(vsize * sat_vb)`). Query `vsize` is **virtual bytes**, not weight; range **110–100000**. Missing/non-integer/out of range or a `weight` param → origin **400** `{ "ok": false, "error": "bad_vsize" }`. No second upstream; uses feerate rates (including stale). Empty feerate cache → **503**.
 
 `GET /paid/finance/confirm-target` JSON (after pay): envelope from the **feerate cache** plus `target`, `sat_vb`. Echo `minutes` only if the client sent it. Optional `vsize` (110–100000 vbytes) adds `vsize` and `fee_sats = ceil(vsize * sat_vb)`. At least one of `minutes` (1–60) or `target` (`fast`|`medium`|`slow`). If both, snapped minutes must match `target` or **400** `bad_confirm_target`. `weight=` or bad `vsize` → **400** `bad_vsize`. Snap: 1–20 fast, 21–45 medium, 46–60 slow (no 61–180). No second upstream.
+
+`GET /paid/finance/btc-usd` JSON (after pay): `ok`, `service` (`btc-usd`), `version` (`v1`), `as_of`, `ttl_s`, `source` (`public_price_api` — this is **not** mempool fee data), `source_as_of`, `stale`, `btc_usd` (JSON number, USD per 1 BTC), `sats_per_usd` (integer, `floor(100_000_000 / btc_usd)`). No query params. Constant `btc_sats` is omitted. Raw vendor JSON is not attached.
+
+```json
+{
+  "ok": true,
+  "service": "btc-usd",
+  "version": "v1",
+  "as_of": "2026-09-07T17:50:00Z",
+  "ttl_s": 30,
+  "source": "public_price_api",
+  "source_as_of": "2026-09-07T17:49:50Z",
+  "stale": false,
+  "btc_usd": 97450.12,
+  "sats_per_usd": 1026
+}
+```
+
+Upstream default: `https://mempool.space/api/v1/prices`. Accepted schema: JSON object with **`USD`** a positive number (int or float). Optional unix **`time`** becomes `source_as_of`. Other fields (EUR, …) are ignored. Override URL with `BTC_USD_URL`; cache TTL with `BTC_USD_TTL_S` (default **30**, clamp **30–60**). Separate in-memory cache from feerate/backlog. Lazy refresh on GET; one in-flight fetch. Fail + cache → `stale: true`. Fail / missing / `USD` ≤ 0 + no cache → HTTP **503** `{ "ok": false, "error": "upstream_unavailable" }`. Pass-through mark, not our index.
 
 Rebuild origin + Aperture after pull: `./startup-l402-aws.sh mainnet` (do **not** `--remove-orphans`). Do **not** world-open 8081. Mainnet payer still needs `AGENT_BITCOIN_ALLOW_MAINNET=1` and `AGENT_BITCOIN_ALLOW_AUTOPAY=1`. Autoloop stays off. Payer needs enough local channel sats for a **100 sat** invoice plus routing.
 

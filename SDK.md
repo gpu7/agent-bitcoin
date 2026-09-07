@@ -272,7 +272,7 @@ if inputs.quote_valid:
 
 ### L402 (Aperture)
 
-`L402Client` pays an HTTP 402 challenge and retries. Demo file paths default **1,000 sats**. On-chain hints at **100 sats**: fee bands, fullness, fee-for-vsize, and confirm-target (`expected_price_sats=100`). Operator runbook: [docs/l402-aperture.md](docs/l402-aperture.md). Not a mempool.space replacement. `vsize` is virtual bytes, not weight.
+`L402Client` pays an HTTP 402 challenge and retries. Demo file paths default **1,000 sats**. On-chain hints at **100 sats**: fee bands, fullness, fee-for-vsize, confirm-target, and BTC/USD pass-through (`expected_price_sats=100`). Operator runbook: [docs/l402-aperture.md](docs/l402-aperture.md). Not a mempool.space replacement or FX oracle. `vsize` is virtual bytes, not weight.
 
 ```python
 from agent_bitcoin import L402Client, create_client
@@ -292,6 +292,9 @@ fees_tx = L402Client(payer, expected_price_sats=100).fetch(
 )
 wait = L402Client(payer, expected_price_sats=100).fetch(
     "http://<host>:8081/paid/finance/confirm-target?minutes=30"
+)
+fx = L402Client(payer, expected_price_sats=100).fetch(
+    "http://<host>:8081/paid/finance/btc-usd"
 )
 ```
 
