@@ -66,6 +66,7 @@ echo
 echo "Health (free):     curl -sS http://127.0.0.1:8081/health"
 echo "Paid challenge:    curl -sSi http://127.0.0.1:8081/paid/hello"
 echo "Paid PDF / PNG:    /paid/report.pdf  /paid/script.pdf  /paid/badge.png"
+echo "Paid feerate:      /paid/finance/mempool-feerate  (100 sats; l402_pay.py --price 100)"
 echo "From Mac:          ./update-aws-sg-my-ip.sh   # include port 8081"
 echo "                   LND_NETWORK=$NETWORK LND_CONTAINER=<mac-lnd> \\"
 echo "                     uv run python examples/l402_pay.py --url http://<AWS_EIP>:8081/paid/hello"
