@@ -1,3 +1,15 @@
+## Add — L402 btc-usd (BTC/USD pass-through) (2026-09-07)
+
+### Added
+
+- `GET /paid/finance/btc-usd` — JSON `btc_usd` (USD per 1 BTC) and `sats_per_usd` (`floor(1e8 / btc_usd)`)
+- Aperture **100 sats**; default source `https://mempool.space/api/v1/prices` field `USD`
+- Separate in-memory cache (`BTC_USD_URL`, `BTC_USD_TTL_S` 30–60s, default 30)
+
+Pass-through mark, not an FX index. Rebuild origin + restart Aperture. Payer: `l402_pay.py --price 100`.
+
+---
+
 ## Add — L402 confirm-target (wait window → sat/vB) (2026-09-07)
 
 ### Added

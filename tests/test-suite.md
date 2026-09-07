@@ -49,6 +49,7 @@ Dual-node **pay** tests require **both** containers on the same Docker host. Typ
 | **ABT-L402-007** | L402 mempool-backlog | Origin JSON `tx_count`/`vsize`; no fee bands | Mac `l402_pay.py --price 100` |
 | **ABT-L402-008** | L402 fee-for-vsize | `ceil(vsize×sat/vB)`; 400 on bad vsize | Mac `l402_pay.py --price 100` |
 | **ABT-L402-009** | L402 confirm-target | Helix minutes snap; optional fee_sats | Mac `l402_pay.py --price 100` |
+| **ABT-L402-010** | L402 btc-usd | Origin JSON `btc_usd`/`sats_per_usd`; cache; 503 | Mac `l402_pay.py --price 100` |
 
 ## Shared limits
 
