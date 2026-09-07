@@ -20,6 +20,7 @@ try:
     from l402 import confirm_target as _confirm_target
     from l402 import btc_usd as _btc_usd
     from l402 import ln_path_fee_hint as _ln_path_fee_hint
+    from l402 import ln_invoice_decode as _ln_invoice_decode
 except ImportError:  # Docker WORKDIR /app
     import mempool_feerate as _mempool_feerate  # type: ignore[no-redef]
     import mempool_backlog as _mempool_backlog  # type: ignore[no-redef]
@@ -27,6 +28,7 @@ except ImportError:  # Docker WORKDIR /app
     import confirm_target as _confirm_target  # type: ignore[no-redef]
     import btc_usd as _btc_usd  # type: ignore[no-redef]
     import ln_path_fee_hint as _ln_path_fee_hint  # type: ignore[no-redef]
+    import ln_invoice_decode as _ln_invoice_decode  # type: ignore[no-redef]
 
 
 def _simple_pdf(lines: list[str]) -> bytes:
@@ -291,6 +293,16 @@ def dispatch(
         except _ln_path_fee_hint.LndUnavailable:
             err = {"ok": False, "error": "lnd_unavailable"}
             return 503, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/finance/ln-invoice-decode":
+        if verb != "POST":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _ln_invoice_decode.handle_request(body)
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _ln_invoice_decode.BadInvoice:
+            err = {"ok": False, "error": "bad_invoice"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
     if route == "/paid/report.pdf":
         return 200, "application/pdf", demo_pdf_bytes(network)
     if route == "/paid/script.pdf":

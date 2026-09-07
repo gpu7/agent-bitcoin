@@ -25,11 +25,12 @@ AWS  agent-l402-aperture :8081
               GET /paid/finance/confirm-target?       100 sats (JSON wait → sat/vB)
               GET /paid/finance/btc-usd               100 sats (JSON BTC/USD pass-through)
               POST /paid/finance/ln-path-fee-hint     100 sats (JSON Lightning route-fee hint)
+              POST /paid/finance/ln-invoice-decode    100 sats (JSON BOLT11 inspect, no LND)
 ```
 
-There is **no platform fee**. The L402 price **is** the Lightning amount (must be ≥ `MIN_PAYMENT_SATS`, default 100). Demo files are **1,000 sats**; finance paths (feerate, backlog, fee-for-vsize, confirm-target, btc-usd, ln-path-fee-hint) are **100 sats**.
+There is **no platform fee**. The L402 price **is** the Lightning amount (must be ≥ `MIN_PAYMENT_SATS`, default 100). Demo files are **1,000 sats**; finance paths (feerate, backlog, fee-for-vsize, confirm-target, btc-usd, ln-path-fee-hint, ln-invoice-decode) are **100 sats**.
 
-This is **not** a mempool.space replacement, FX oracle, or CoinGecko substitute. **mempool-feerate** is fee bands (sat/vB). **mempool-backlog** is fullness. **fee-for-vsize** multiplies those bands by a **vbyte** size. **confirm-target** maps a wait window (minutes) or named band onto `sat_vb` from the feerate cache. **btc-usd** is a **pass-through mark, not our index** — USD per 1 BTC from one public JSON URL. **ln-path-fee-hint** is what the **AWS agent LND** sees for a dest+amount (or bolt11) via readonly **QueryRoutes** — not Terminal, not RTL, not a route dump. Useful before an **on-chain** send or a USD↔sats sanity check; not needed for Lightning-only invoice pays.
+This is **not** a mempool.space replacement, FX oracle, or CoinGecko substitute. **mempool-feerate** is fee bands (sat/vB). **mempool-backlog** is fullness. **fee-for-vsize** multiplies those bands by a **vbyte** size. **confirm-target** maps a wait window (minutes) or named band onto `sat_vb` from the feerate cache. **btc-usd** is a **pass-through mark, not our index** — USD per 1 BTC from one public JSON URL. **ln-path-fee-hint** is what the **AWS agent LND** sees for a dest+amount (or bolt11) via readonly **QueryRoutes** — not Terminal, not RTL, not a route dump. **ln-invoice-decode** parses BOLT11 **in-process** (no LND) so an agent can inspect amount / dest / expiry / network before pay or path-hint.
 
 Do **not** put Aperture in front of `/pay`, `/invoices`, or `/balance`.
 
@@ -129,6 +130,12 @@ uv run python examples/l402_pay.py \
   --url http://<AWS_EIP>:8081/paid/finance/ln-path-fee-hint \
   --price 100 --method POST \
   --json '{"dest_pubkey":"<66 hex>","amount_sats":1000}'
+
+# BOLT11 inspect (100 sats). In-process; no LND. Use a test invoice, not a live mainnet pay req.
+uv run python examples/l402_pay.py \
+  --url http://<AWS_EIP>:8081/paid/finance/ln-invoice-decode \
+  --price 100 --method POST \
+  --json '{"bolt11":"<test invoice>"}'
 ```
 
 `GET /paid/finance/mempool-feerate` JSON (after pay): `ok`, `service` (`mempool-feerate`), `version` (`v1`), `as_of`, `ttl_s`, `unit` (`sat_per_vbyte`), `fast` / `medium` / `slow` (integers ≥ 1), `source`, `source_as_of`, `stale`.
@@ -181,6 +188,12 @@ docker exec agent-payment-decision-lnd-mainnet lncli \
 ```
 
 Compose default: `LND_READONLY_MACAROON_PATH=/lnd/data/chain/bitcoin/mainnet/l402-readonly.macaroon`. Smoke shortcut: point that env at LND’s existing `readonly.macaroon` (still not invoice/admin). Then `./startup-l402-aws.sh mainnet` and `docker restart agent-l402-aperture`. Unpaid POST → 402 + `lnbc1u`. Paid POST → 200 scalars or 404 `no_route`.
+
+`POST /paid/finance/ln-invoice-decode` JSON body: `{ "bolt11": "lnbc..." }`. GET → **405**. Missing/empty/garbage → origin **400** `{ "ok": false, "error": "bad_invoice" }`. **No LND** (no QueryRoutes, SendPayment, or DecodePayReq). `ttl_s` is **0**; no cache.
+
+After pay, 200: `ok`, `service` (`ln-invoice-decode`), `version`, `as_of`, `ttl_s` (0), `source` (`local_bolt11`), `stale` (false), `network`, `amount_sats` (integer, or `null` if zero-amount), `dest_pubkey` (66 hex lowercase), `payment_hash` (64 hex lowercase), `expiry_unix` (created + expiry seconds, default 3600), `expired` (`now ≥ expiry_unix`, UTC). `description` only if present and ≤ 200 chars (otherwise omitted, not truncated). No route hints, TLV dump, or full bolt11.
+
+Network mapping (longest prefix first): `lnbcrt` / currency `bcrt` → `regtest`; `lntbs` / `tbs` → `signet`; `lnbc` / `bc` → `bitcoin`; `lntb` / `tb` → `testnet`.
 
 Rebuild origin + Aperture after pull: `./startup-l402-aws.sh mainnet` (do **not** `--remove-orphans`). Do **not** world-open 8081. Mainnet payer still needs `AGENT_BITCOIN_ALLOW_MAINNET=1` and `AGENT_BITCOIN_ALLOW_AUTOPAY=1`. Autoloop stays off. Payer needs enough local channel sats for a **100 sat** invoice plus routing.
 

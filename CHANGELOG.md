@@ -1,3 +1,14 @@
+## Add — L402 ln-invoice-decode (BOLT11 inspect) (2026-09-07)
+
+### Added
+
+- `POST /paid/finance/ln-invoice-decode` — in-process BOLT11 (`network`, `amount_sats` or null, dest, hash, expiry)
+- Aperture **100 sats**; no LND. GET → 405. Bad invoice → 400 `bad_invoice`
+
+Rebuild origin + restart Aperture. Payer: `l402_pay.py --price 100 --method POST --json '{"bolt11":"<test invoice>"}'`.
+
+---
+
 ## Add — L402 ln-path-fee-hint (Lightning route-fee hint) (2026-09-07)
 
 ### Added
