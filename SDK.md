@@ -272,7 +272,7 @@ if inputs.quote_valid:
 
 ### L402 (Aperture)
 
-`L402Client` pays an HTTP 402 challenge and retries. Demo file paths default **1,000 sats**. On-chain hints at **100 sats**: fee bands, fullness, fee-for-vsize, confirm-target, BTC/USD pass-through, Lightning path-fee hint, and BOLT11 inspect (`expected_price_sats=100`). Operator runbook: [docs/l402-aperture.md](docs/l402-aperture.md). Not a mempool.space replacement, FX oracle, or Terminal/RTL. `vsize` is virtual bytes, not weight. Path-fee hint and invoice-decode are **POST** JSON (not a query string). Invoice-decode is in-process (no LND).
+`L402Client` pays an HTTP 402 challenge and retries. Demo file paths default **1,000 sats**. On-chain hints at **100 sats**: fee bands, fullness, fee-for-vsize, confirm-target, BTC/USD pass-through, Lightning path-fee hint, and BOLT11 inspect / preflight (`expected_price_sats=100`). Operator runbook: [docs/l402-aperture.md](docs/l402-aperture.md). Not a mempool.space replacement, FX oracle, or Terminal/RTL. `vsize` is virtual bytes, not weight. Path-fee hint, invoice-decode, and preflight are **POST** JSON (not a query string). Invoice-decode and preflight are in-process (no LND).
 
 ```python
 from agent_bitcoin import L402Client, create_client
@@ -305,6 +305,15 @@ inv = L402Client(payer, expected_price_sats=100).fetch(
     "http://<host>:8081/paid/finance/ln-invoice-decode",
     method="POST",
     json_body={"bolt11": "<test invoice>"},
+)
+gate = L402Client(payer, expected_price_sats=100).fetch(
+    "http://<host>:8081/paid/finance/ln-invoice-preflight",
+    method="POST",
+    json_body={
+        "bolt11": "<test invoice>",
+        "max_sats": 50000,
+        "network": "bitcoin",
+    },
 )
 ```
 

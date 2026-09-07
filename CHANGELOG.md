@@ -1,3 +1,14 @@
+## Add — L402 ln-invoice-preflight (BOLT11 policy gate) (2026-09-07)
+
+### Added
+
+- `POST /paid/finance/ln-invoice-preflight` — `allow` plus reason codes; reuses invoice-decode
+- Aperture **100 sats**; no LND. Missing bolt11 → 400; garbage invoice → 200 `bad_invoice`
+
+Rebuild origin + restart Aperture. Payer: `l402_pay.py --price 100 --method POST --json '...'`.
+
+---
+
 ## Fix — bolt11 is a dev extra, not an SDK runtime dep (2026-09-07)
 
 `l402_pay.py` / `uv run` on Python 3.14 does not need `coincurve`. Origin image still installs `bolt11`. Tests use the dev extra.

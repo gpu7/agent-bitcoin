@@ -39,7 +39,7 @@ A lightweight Python SDK that enables AI agents to send and receive Lightning/Bi
 - Optional LLM **payment decision** agent (PAY / REJECT / CONFIRM — never executes pays)
 - Balance checks (Lightning and on-chain)
 - Operator tooling: dual-node health, SCB backup, daily ops ([docs/index.md](docs/index.md))
-- Optional **Aperture L402** HTTP gateway (Mac pays AWS `:8081`) including paid on-chain fee bands, mempool fullness, fee-for-vsize, confirm-target, a BTC/USD pass-through, a Lightning path-fee hint, and in-process BOLT11 inspect — [docs/l402-aperture.md](docs/l402-aperture.md)
+- Optional **Aperture L402** HTTP gateway (Mac pays AWS `:8081`) including paid on-chain fee bands, mempool fullness, fee-for-vsize, confirm-target, a BTC/USD pass-through, a Lightning path-fee hint, and in-process BOLT11 inspect / preflight — [docs/l402-aperture.md](docs/l402-aperture.md)
 
 ---
 

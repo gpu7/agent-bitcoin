@@ -37,6 +37,9 @@ On-chain fee bands (100 sats; pass --price because the client default is 1000):
           --price 100 --method POST --json '{"dest_pubkey":"<66 hex>","amount_sats":1000}'
     ... l402_pay.py --url http://<AWS_EIP>:8081/paid/finance/ln-invoice-decode \\
           --price 100 --method POST --json '{"bolt11":"<test invoice>"}'
+    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/finance/ln-invoice-preflight \\
+          --price 100 --method POST \\
+          --json '{"bolt11":"<test invoice>","max_sats":50000,"network":"bitcoin"}'
 """
 
 from __future__ import annotations
