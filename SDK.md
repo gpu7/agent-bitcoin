@@ -272,7 +272,7 @@ if inputs.quote_valid:
 
 ### L402 (Aperture)
 
-`L402Client` pays an HTTP 402 challenge and retries. Demo file paths default **1,000 sats**. On-chain fee bands: `GET /paid/finance/mempool-feerate` at **100 sats** (`expected_price_sats=100`). Operator runbook: [docs/l402-aperture.md](docs/l402-aperture.md). Not a mempool.space replacement.
+`L402Client` pays an HTTP 402 challenge and retries. Demo file paths default **1,000 sats**. On-chain hints at **100 sats**: fee bands `GET /paid/finance/mempool-feerate` and fullness `GET /paid/finance/mempool-backlog` (`expected_price_sats=100`). Operator runbook: [docs/l402-aperture.md](docs/l402-aperture.md). Not a mempool.space replacement.
 
 ```python
 from agent_bitcoin import L402Client, create_client
@@ -280,8 +280,12 @@ from agent_bitcoin import L402Client, create_client
 resp = L402Client(create_client()).fetch("http://<host>:8081/paid/hello")
 # resp.status_code, resp.paid, resp.json()
 
-fees = L402Client(create_client(), expected_price_sats=100).fetch(
+payer = create_client()
+fees = L402Client(payer, expected_price_sats=100).fetch(
     "http://<host>:8081/paid/finance/mempool-feerate"
+)
+backlog = L402Client(payer, expected_price_sats=100).fetch(
+    "http://<host>:8081/paid/finance/mempool-backlog"
 )
 ```
 
