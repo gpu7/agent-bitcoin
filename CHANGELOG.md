@@ -1,3 +1,14 @@
+## Add — L402 ln-invoice-preflight (BOLT11 policy gate) (2026-09-07)
+
+### Added
+
+- `POST /paid/finance/ln-invoice-preflight` — `allow` plus reason codes; reuses invoice-decode
+- Aperture **100 sats**; no LND. Missing bolt11 → 400; garbage invoice → 200 `bad_invoice`
+
+Rebuild origin + restart Aperture. Payer: `l402_pay.py --price 100 --method POST --json '...'`.
+
+---
+
 ## Add — L402 ln-invoice-decode (BOLT11 inspect) (2026-09-07)
 
 ### Added

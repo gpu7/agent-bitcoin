@@ -73,6 +73,7 @@ echo "Paid confirm:      /paid/finance/confirm-target?minutes=  (100 sats; l402_
 echo "Paid btc-usd:      /paid/finance/btc-usd  (100 sats; l402_pay.py --price 100)"
 echo "Paid path-hint:    POST /paid/finance/ln-path-fee-hint  (100 sats; --method POST --json)"
 echo "Paid inv-decode:   POST /paid/finance/ln-invoice-decode  (100 sats; --method POST --json)"
+echo "Paid preflight:    POST /paid/finance/ln-invoice-preflight  (100 sats; --method POST --json)"
 echo "From Mac:          ./update-aws-sg-my-ip.sh   # include port 8081"
 echo "                   LND_NETWORK=$NETWORK LND_CONTAINER=<mac-lnd> \\"
 echo "                     uv run python examples/l402_pay.py --url http://<AWS_EIP>:8081/paid/hello"
