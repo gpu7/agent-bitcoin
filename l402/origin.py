@@ -19,12 +19,14 @@ try:
     from l402 import fee_for_vsize as _fee_for_vsize
     from l402 import confirm_target as _confirm_target
     from l402 import btc_usd as _btc_usd
+    from l402 import ln_path_fee_hint as _ln_path_fee_hint
 except ImportError:  # Docker WORKDIR /app
     import mempool_feerate as _mempool_feerate  # type: ignore[no-redef]
     import mempool_backlog as _mempool_backlog  # type: ignore[no-redef]
     import fee_for_vsize as _fee_for_vsize  # type: ignore[no-redef]
     import confirm_target as _confirm_target  # type: ignore[no-redef]
     import btc_usd as _btc_usd  # type: ignore[no-redef]
+    import ln_path_fee_hint as _ln_path_fee_hint  # type: ignore[no-redef]
 
 
 def _simple_pdf(lines: list[str]) -> bytes:
@@ -222,10 +224,13 @@ def script_pdf_bytes(network: str) -> bytes:
     return proc.stdout
 
 
-def dispatch(path: str) -> tuple[int, str, bytes]:
+def dispatch(
+    path: str, method: str = "GET", body: bytes = b""
+) -> tuple[int, str, bytes]:
     """status, Content-Type, body."""
     network = os.environ.get("L402_NETWORK", "regtest").strip() or "regtest"
     route = path.split("?", 1)[0]
+    verb = (method or "GET").upper()
     if route == "/paid/finance/mempool-feerate":
         try:
             payload = _mempool_feerate.get_quote()
@@ -270,6 +275,22 @@ def dispatch(path: str) -> tuple[int, str, bytes]:
         except _btc_usd.UpstreamUnavailable:
             err = {"ok": False, "error": "upstream_unavailable"}
             return 503, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/finance/ln-path-fee-hint":
+        if verb != "POST":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _ln_path_fee_hint.handle_request(body)
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _ln_path_fee_hint.BadInput:
+            err = {"ok": False, "error": "bad_input"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _ln_path_fee_hint.NoRoute:
+            err = {"ok": False, "error": "no_route"}
+            return 404, "application/json", json.dumps(err).encode("utf-8")
+        except _ln_path_fee_hint.LndUnavailable:
+            err = {"ok": False, "error": "lnd_unavailable"}
+            return 503, "application/json", json.dumps(err).encode("utf-8")
     if route == "/paid/report.pdf":
         return 200, "application/pdf", demo_pdf_bytes(network)
     if route == "/paid/script.pdf":
@@ -284,8 +305,7 @@ def dispatch(path: str) -> tuple[int, str, bytes]:
 
 
 class OriginHandler(BaseHTTPRequestHandler):
-    def do_GET(self) -> None:  # noqa: N802
-        status, content_type, raw = dispatch(self.path)
+    def _send(self, status: int, content_type: str, raw: bytes) -> None:
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         if content_type == "application/pdf":
@@ -302,6 +322,25 @@ class OriginHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(raw)))
         self.end_headers()
         self.wfile.write(raw)
+
+    def do_GET(self) -> None:  # noqa: N802
+        status, content_type, raw = dispatch(self.path, method="GET")
+        self._send(status, content_type, raw)
+
+    def do_POST(self) -> None:  # noqa: N802
+        try:
+            length = int(self.headers.get("Content-Length") or "0")
+        except ValueError:
+            length = 0
+        if length < 0:
+            length = 0
+        if length > 65_536:
+            err = json.dumps({"ok": False, "error": "bad_input"}).encode("utf-8")
+            self._send(400, "application/json", err)
+            return
+        raw_body = self.rfile.read(length) if length else b""
+        status, content_type, raw = dispatch(self.path, method="POST", body=raw_body)
+        self._send(status, content_type, raw)
 
     def log_message(self, fmt: str, *args: object) -> None:
         sys_stderr = __import__("sys").stderr

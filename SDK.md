@@ -272,7 +272,7 @@ if inputs.quote_valid:
 
 ### L402 (Aperture)
 
-`L402Client` pays an HTTP 402 challenge and retries. Demo file paths default **1,000 sats**. On-chain hints at **100 sats**: fee bands, fullness, fee-for-vsize, confirm-target, and BTC/USD pass-through (`expected_price_sats=100`). Operator runbook: [docs/l402-aperture.md](docs/l402-aperture.md). Not a mempool.space replacement or FX oracle. `vsize` is virtual bytes, not weight.
+`L402Client` pays an HTTP 402 challenge and retries. Demo file paths default **1,000 sats**. On-chain hints at **100 sats**: fee bands, fullness, fee-for-vsize, confirm-target, BTC/USD pass-through, and Lightning path-fee hint (`expected_price_sats=100`). Operator runbook: [docs/l402-aperture.md](docs/l402-aperture.md). Not a mempool.space replacement, FX oracle, or Terminal/RTL. `vsize` is virtual bytes, not weight. Path-fee hint is **POST** JSON (not a query string).
 
 ```python
 from agent_bitcoin import L402Client, create_client
@@ -295,6 +295,11 @@ wait = L402Client(payer, expected_price_sats=100).fetch(
 )
 fx = L402Client(payer, expected_price_sats=100).fetch(
     "http://<host>:8081/paid/finance/btc-usd"
+)
+path = L402Client(payer, expected_price_sats=100).fetch(
+    "http://<host>:8081/paid/finance/ln-path-fee-hint",
+    method="POST",
+    json_body={"dest_pubkey": "<66 hex>", "amount_sats": 1000},
 )
 ```
 

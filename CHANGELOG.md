@@ -1,3 +1,15 @@
+## Add — L402 ln-path-fee-hint (Lightning route-fee hint) (2026-09-07)
+
+### Added
+
+- `POST /paid/finance/ln-path-fee-hint` — AWS agent LND QueryRoutes scalars (`fee_sats`, `hop_count`, `total_sats`)
+- Aperture **100 sats**; JSON XOR `bolt11` or `dest_pubkey`+`amount_sats` (100–50000)
+- Origin mounts readonly `l402-readonly.macaroon` (never admin/invoice). GET → 405
+
+Not Terminal/RTL. Rebuild origin, bake the URI macaroon, restart Aperture. Payer: `l402_pay.py --price 100 --method POST --json '...'`.
+
+---
+
 ## Add — L402 btc-usd (BTC/USD pass-through) (2026-09-07)
 
 ### Added

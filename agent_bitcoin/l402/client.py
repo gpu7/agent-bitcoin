@@ -122,8 +122,23 @@ class L402Client:
         self.fee_limit_sats = int(fee_limit_sats)
         self.timeout_seconds = float(timeout_seconds)
 
-    def fetch(self, url: str) -> L402Response:
-        status, headers, body = self._get(url, auth=None)
+    def fetch(
+        self,
+        url: str,
+        *,
+        method: str = "GET",
+        data: bytes | None = None,
+        json_body: Any = None,
+    ) -> L402Response:
+        extra_headers: dict[str, str] = {}
+        payload = data
+        if json_body is not None:
+            payload = json.dumps(json_body).encode("utf-8")
+            extra_headers["Content-Type"] = "application/json"
+        verb = (method or "GET").upper()
+        status, headers, body = self._get(
+            url, auth=None, method=verb, data=payload, extra_headers=extra_headers
+        )
         if status != 402:
             return L402Response(
                 status_code=status, headers=headers, body=body, paid=False
@@ -145,7 +160,9 @@ class L402Client:
             )
 
         auth = authorization_value(challenge.macaroon, str(preimage))
-        status2, headers2, body2 = self._get(url, auth=auth)
+        status2, headers2, body2 = self._get(
+            url, auth=auth, method=verb, data=payload, extra_headers=extra_headers
+        )
         return L402Response(
             status_code=status2,
             headers=headers2,
@@ -171,11 +188,21 @@ class L402Client:
                 f"{self.expected_price_sats}"
             )
 
-    def _get(self, url: str, auth: str | None) -> tuple[int, dict[str, str], bytes]:
+    def _get(
+        self,
+        url: str,
+        auth: str | None,
+        *,
+        method: str = "GET",
+        data: bytes | None = None,
+        extra_headers: dict[str, str] | None = None,
+    ) -> tuple[int, dict[str, str], bytes]:
         headers = {"Accept": "application/json"}
+        if extra_headers:
+            headers.update(extra_headers)
         if auth:
             headers["Authorization"] = auth
-        req = Request(url, method="GET", headers=headers)
+        req = Request(url, data=data, method=(method or "GET").upper(), headers=headers)
         try:
             with urlopen(req, timeout=self.timeout_seconds) as resp:
                 return int(resp.status), _header_map(resp.headers), resp.read() or b""
