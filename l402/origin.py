@@ -16,9 +16,11 @@ _SCRIPT_PDF = Path(__file__).resolve().parent / "generate_script_pdf.py"
 try:
     from l402 import mempool_feerate as _mempool_feerate
     from l402 import mempool_backlog as _mempool_backlog
+    from l402 import fee_for_vsize as _fee_for_vsize
 except ImportError:  # Docker WORKDIR /app
     import mempool_feerate as _mempool_feerate  # type: ignore[no-redef]
     import mempool_backlog as _mempool_backlog  # type: ignore[no-redef]
+    import fee_for_vsize as _fee_for_vsize  # type: ignore[no-redef]
 
 
 def _simple_pdf(lines: list[str]) -> bytes:
@@ -232,6 +234,16 @@ def dispatch(path: str) -> tuple[int, str, bytes]:
             payload = _mempool_backlog.get_quote()
             return 200, "application/json", json.dumps(payload).encode("utf-8")
         except _mempool_backlog.UpstreamUnavailable:
+            err = {"ok": False, "error": "upstream_unavailable"}
+            return 503, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/finance/fee-for-vsize":
+        try:
+            payload = _fee_for_vsize.quote_for_request(path)
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _fee_for_vsize.BadVsize:
+            err = {"ok": False, "error": "bad_vsize"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _mempool_feerate.UpstreamUnavailable:
             err = {"ok": False, "error": "upstream_unavailable"}
             return 503, "application/json", json.dumps(err).encode("utf-8")
     if route == "/paid/report.pdf":
