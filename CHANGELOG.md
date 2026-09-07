@@ -1,3 +1,15 @@
+## Add — L402 mempool-feerate (on-chain sat/vB bands) (2026-09-07)
+
+### Added
+
+- `GET /paid/finance/mempool-feerate` on the dummy origin (JSON `fast` / `medium` / `slow` sats/vB)
+- Aperture service **100 sats** for that path (other demos stay 1,000); first-match YAML
+- In-process cache (15–60s); tests use a fixture (no live scrape required)
+
+Not a mempool.space replacement. Rebuild origin + Aperture (`./startup-l402-aws.sh`) to pick this up. Payer: `examples/l402_pay.py --price 100`.
+
+---
+
 ## Add — L402 origin launches a script for a paid PDF (2026-09-06)
 
 ### Added

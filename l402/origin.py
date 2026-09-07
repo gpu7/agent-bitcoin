@@ -13,6 +13,11 @@ from pathlib import Path
 
 _SCRIPT_PDF = Path(__file__).resolve().parent / "generate_script_pdf.py"
 
+try:
+    from l402 import mempool_feerate as _mempool_feerate
+except ImportError:  # Docker WORKDIR /app
+    import mempool_feerate as _mempool_feerate  # type: ignore[no-redef]
+
 
 def _simple_pdf(lines: list[str]) -> bytes:
     """Minimal PDF 1.4 with Helvetica text (no third-party libs)."""
@@ -213,6 +218,13 @@ def dispatch(path: str) -> tuple[int, str, bytes]:
     """status, Content-Type, body."""
     network = os.environ.get("L402_NETWORK", "regtest").strip() or "regtest"
     route = path.split("?", 1)[0]
+    if route == "/paid/finance/mempool-feerate":
+        try:
+            payload = _mempool_feerate.get_quote()
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _mempool_feerate.UpstreamUnavailable:
+            err = {"ok": False, "error": "upstream_unavailable"}
+            return 503, "application/json", json.dumps(err).encode("utf-8")
     if route == "/paid/report.pdf":
         return 200, "application/pdf", demo_pdf_bytes(network)
     if route == "/paid/script.pdf":

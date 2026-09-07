@@ -25,6 +25,10 @@ Paid PDF / PNG (same 1,000 sat price):
     ... l402_pay.py --url http://<AWS_EIP>:8081/paid/report.pdf --out report.pdf
     ... l402_pay.py --url http://<AWS_EIP>:8081/paid/script.pdf --out script.pdf
     ... l402_pay.py --url http://<AWS_EIP>:8081/paid/badge.png --out badge.png
+
+On-chain fee bands (100 sats; pass --price because the client default is 1000):
+
+    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/finance/mempool-feerate --price 100
 """
 
 from __future__ import annotations

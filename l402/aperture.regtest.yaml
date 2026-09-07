@@ -27,6 +27,14 @@ prometheus:
   enabled: false
 
 services:
+  # First match wins. This path is 100 sats (L402 invoice; SDK MIN_PAYMENT_SATS default is 100).
+  - name: "mempool-feerate"
+    hostregexp: ".*"
+    pathregexp: "^/paid/finance/mempool-feerate$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
   - name: "l402-demo"
     hostregexp: ".*"
     pathregexp: "^/.*$"
