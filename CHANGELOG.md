@@ -1,3 +1,14 @@
+## Add — L402 confirm-target (wait window → sat/vB) (2026-09-07)
+
+### Added
+
+- `GET /paid/finance/confirm-target` — Helix snap minutes 1–60 to fast/medium/slow; optional `vsize` → `fee_sats`
+- Aperture **100 sats**; reuses feerate cache (no second upstream)
+
+Rebuild origin + restart Aperture. Payer: `l402_pay.py --price 100`.
+
+---
+
 ## Add — L402 fee-for-vsize (total fee sats for a tx size) (2026-09-07)
 
 ### Added

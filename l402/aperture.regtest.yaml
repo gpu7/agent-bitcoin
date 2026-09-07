@@ -49,6 +49,13 @@ services:
     protocol: "http"
     price: 100
     timeout: 3600
+  - name: "confirm-target"
+    hostregexp: ".*"
+    pathregexp: "^/paid/finance/confirm-target$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
   - name: "l402-demo"
     hostregexp: ".*"
     pathregexp: "^/.*$"
