@@ -1,3 +1,15 @@
+## Add — L402 fee-for-vsize (total fee sats for a tx size) (2026-09-07)
+
+### Added
+
+- `GET /paid/finance/fee-for-vsize?vsize=` — `ceil(vsize * sat/vB)` per feerate band
+- Aperture **100 sats**; vsize range 110–100000 (virtual bytes, not weight)
+- Reuses the mempool-feerate cache (no second upstream)
+
+Rebuild origin + restart Aperture. Payer: `l402_pay.py --price 100`.
+
+---
+
 ## Add — L402 mempool-backlog (mempool fullness) (2026-09-07)
 
 ### Added

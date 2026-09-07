@@ -47,6 +47,7 @@ Dual-node **pay** tests require **both** containers on the same Docker host. Typ
 | **ABT-L402-005** | L402 script PDF | Origin `/paid/script.pdf` runs `generate_script_pdf.py` | Mac `l402_pay.py --out script.pdf` |
 | **ABT-L402-006** | L402 mempool-feerate | Origin JSON `fast`/`medium`/`slow`; cache; 503 | Mac `l402_pay.py --price 100` |
 | **ABT-L402-007** | L402 mempool-backlog | Origin JSON `tx_count`/`vsize`; no fee bands | Mac `l402_pay.py --price 100` |
+| **ABT-L402-008** | L402 fee-for-vsize | `ceil(vsize×sat/vB)`; 400 on bad vsize | Mac `l402_pay.py --price 100` |
 
 ## Shared limits
 

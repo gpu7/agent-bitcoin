@@ -21,11 +21,12 @@ AWS  agent-l402-aperture :8081
               GET /paid/badge.png   1,000 sats (PNG image)
               GET /paid/finance/mempool-feerate  100 sats (JSON fee bands)
               GET /paid/finance/mempool-backlog  100 sats (JSON mempool fullness)
+              GET /paid/finance/fee-for-vsize?vsize=  100 sats (JSON total fee sats)
 ```
 
-There is **no platform fee**. The L402 price **is** the Lightning amount (must be ≥ `MIN_PAYMENT_SATS`, default 100). Demo files are **1,000 sats**; mempool-feerate and mempool-backlog are **100 sats**.
+There is **no platform fee**. The L402 price **is** the Lightning amount (must be ≥ `MIN_PAYMENT_SATS`, default 100). Demo files are **1,000 sats**; mempool-feerate, mempool-backlog, and fee-for-vsize are **100 sats**.
 
-This is **not** a mempool.space replacement. **mempool-feerate** is fee bands (sat/vB). **mempool-backlog** is fullness (pending tx count, vbytes, fees in the mempool). Both cache 15–60s. Useful before an **on-chain** send; not needed for Lightning-only invoice pays.
+This is **not** a mempool.space replacement. **mempool-feerate** is fee bands (sat/vB). **mempool-backlog** is fullness. **fee-for-vsize** multiplies those bands by a **vbyte** size (`ceil(vsize * sat/vB)`). Useful before an **on-chain** send; not needed for Lightning-only invoice pays.
 
 Do **not** put Aperture in front of `/pay`, `/invoices`, or `/balance`.
 
@@ -105,6 +106,10 @@ uv run python examples/l402_pay.py \
 # Mempool fullness (100 sats) — tx count / vbytes, not fee bands
 uv run python examples/l402_pay.py \
   --url http://<AWS_EIP>:8081/paid/finance/mempool-backlog --price 100
+
+# Total fee for a tx size in **vbytes** (not weight). Range 110–100000.
+uv run python examples/l402_pay.py \
+  --url 'http://<AWS_EIP>:8081/paid/finance/fee-for-vsize?vsize=250' --price 100
 ```
 
 `GET /paid/finance/mempool-feerate` JSON (after pay): `ok`, `service` (`mempool-feerate`), `version` (`v1`), `as_of`, `ttl_s`, `unit` (`sat_per_vbyte`), `fast` / `medium` / `slow` (integers ≥ 1), `source`, `source_as_of`, `stale`.
@@ -114,6 +119,8 @@ Upstream default: `https://mempool.space/api/v1/fees/recommended`. Mapping: `fas
 `GET /paid/finance/mempool-backlog` JSON (after pay): `ok`, `service` (`mempool-backlog`), `version` (`v1`), `as_of`, `ttl_s`, `tx_count`, `vsize` (virtual bytes), `total_fee_sats` (from upstream `total_fee`, same payload), `vsize_per_block_equiv` (`vsize / 1e6`; ~one full block), `source`, `source_as_of`, `stale`. **No** `fast` / `medium` / `slow`.
 
 Upstream default: `https://mempool.space/api/mempool` (`count`, `vsize`, `total_fee`). Override `MEMPOOL_BACKLOG_URL`; TTL `MEMPOOL_BACKLOG_TTL_S` (same clamp). Same 503 / `stale` rules as feerate. After `./startup-l402-aws.sh`, **`docker restart agent-l402-aperture`** so YAML prices load.
+
+`GET /paid/finance/fee-for-vsize?vsize=<int>` JSON (after pay): envelope from the **feerate cache** (`as_of`, `ttl_s`, `source`, `source_as_of`, `stale`) plus `vsize` and `fee_sats_fast` / `fee_sats_medium` / `fee_sats_slow` (`ceil(vsize * sat_vb)`). Query `vsize` is **virtual bytes**, not weight; range **110–100000**. Missing/non-integer/out of range or a `weight` param → origin **400** `{ "ok": false, "error": "bad_vsize" }`. No second upstream; uses feerate rates (including stale). Empty feerate cache → **503**.
 
 Rebuild origin + Aperture after pull: `./startup-l402-aws.sh mainnet` (do **not** `--remove-orphans`). Do **not** world-open 8081. Mainnet payer still needs `AGENT_BITCOIN_ALLOW_MAINNET=1` and `AGENT_BITCOIN_ALLOW_AUTOPAY=1`. Autoloop stays off. Payer needs enough local channel sats for a **100 sat** invoice plus routing.
 

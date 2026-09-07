@@ -42,6 +42,13 @@ services:
     protocol: "http"
     price: 100
     timeout: 3600
+  - name: "fee-for-vsize"
+    hostregexp: ".*"
+    pathregexp: "^/paid/finance/fee-for-vsize$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
   - name: "l402-demo"
     hostregexp: ".*"
     pathregexp: "^/.*$"
