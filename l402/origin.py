@@ -17,10 +17,12 @@ try:
     from l402 import mempool_feerate as _mempool_feerate
     from l402 import mempool_backlog as _mempool_backlog
     from l402 import fee_for_vsize as _fee_for_vsize
+    from l402 import confirm_target as _confirm_target
 except ImportError:  # Docker WORKDIR /app
     import mempool_feerate as _mempool_feerate  # type: ignore[no-redef]
     import mempool_backlog as _mempool_backlog  # type: ignore[no-redef]
     import fee_for_vsize as _fee_for_vsize  # type: ignore[no-redef]
+    import confirm_target as _confirm_target  # type: ignore[no-redef]
 
 
 def _simple_pdf(lines: list[str]) -> bytes:
@@ -242,6 +244,19 @@ def dispatch(path: str) -> tuple[int, str, bytes]:
             return 200, "application/json", json.dumps(payload).encode("utf-8")
         except _fee_for_vsize.BadVsize:
             err = {"ok": False, "error": "bad_vsize"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _mempool_feerate.UpstreamUnavailable:
+            err = {"ok": False, "error": "upstream_unavailable"}
+            return 503, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/finance/confirm-target":
+        try:
+            payload = _confirm_target.quote_for_request(path)
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _fee_for_vsize.BadVsize:
+            err = {"ok": False, "error": "bad_vsize"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _confirm_target.BadConfirmTarget:
+            err = {"ok": False, "error": "bad_confirm_target"}
             return 400, "application/json", json.dumps(err).encode("utf-8")
         except _mempool_feerate.UpstreamUnavailable:
             err = {"ok": False, "error": "upstream_unavailable"}

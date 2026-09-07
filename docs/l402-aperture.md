@@ -22,11 +22,12 @@ AWS  agent-l402-aperture :8081
               GET /paid/finance/mempool-feerate  100 sats (JSON fee bands)
               GET /paid/finance/mempool-backlog  100 sats (JSON mempool fullness)
               GET /paid/finance/fee-for-vsize?vsize=  100 sats (JSON total fee sats)
+              GET /paid/finance/confirm-target?       100 sats (JSON wait → sat/vB)
 ```
 
-There is **no platform fee**. The L402 price **is** the Lightning amount (must be ≥ `MIN_PAYMENT_SATS`, default 100). Demo files are **1,000 sats**; mempool-feerate, mempool-backlog, and fee-for-vsize are **100 sats**.
+There is **no platform fee**. The L402 price **is** the Lightning amount (must be ≥ `MIN_PAYMENT_SATS`, default 100). Demo files are **1,000 sats**; finance paths (feerate, backlog, fee-for-vsize, confirm-target) are **100 sats**.
 
-This is **not** a mempool.space replacement. **mempool-feerate** is fee bands (sat/vB). **mempool-backlog** is fullness. **fee-for-vsize** multiplies those bands by a **vbyte** size (`ceil(vsize * sat/vB)`). Useful before an **on-chain** send; not needed for Lightning-only invoice pays.
+This is **not** a mempool.space replacement. **mempool-feerate** is fee bands (sat/vB). **mempool-backlog** is fullness. **fee-for-vsize** multiplies those bands by a **vbyte** size. **confirm-target** maps a wait window (minutes) or named band onto `sat_vb` from the feerate cache. Useful before an **on-chain** send; not needed for Lightning-only invoice pays.
 
 Do **not** put Aperture in front of `/pay`, `/invoices`, or `/balance`.
 
@@ -110,6 +111,12 @@ uv run python examples/l402_pay.py \
 # Total fee for a tx size in **vbytes** (not weight). Range 110–100000.
 uv run python examples/l402_pay.py \
   --url 'http://<AWS_EIP>:8081/paid/finance/fee-for-vsize?vsize=250' --price 100
+
+# Wait window → sat/vB (Helix: 1–20 fast, 21–45 medium, 46–60 slow)
+uv run python examples/l402_pay.py \
+  --url 'http://<AWS_EIP>:8081/paid/finance/confirm-target?minutes=30' --price 100
+uv run python examples/l402_pay.py \
+  --url 'http://<AWS_EIP>:8081/paid/finance/confirm-target?target=fast&vsize=250' --price 100
 ```
 
 `GET /paid/finance/mempool-feerate` JSON (after pay): `ok`, `service` (`mempool-feerate`), `version` (`v1`), `as_of`, `ttl_s`, `unit` (`sat_per_vbyte`), `fast` / `medium` / `slow` (integers ≥ 1), `source`, `source_as_of`, `stale`.
@@ -121,6 +128,8 @@ Upstream default: `https://mempool.space/api/v1/fees/recommended`. Mapping: `fas
 Upstream default: `https://mempool.space/api/mempool` (`count`, `vsize`, `total_fee`). Override `MEMPOOL_BACKLOG_URL`; TTL `MEMPOOL_BACKLOG_TTL_S` (same clamp). Same 503 / `stale` rules as feerate. After `./startup-l402-aws.sh`, **`docker restart agent-l402-aperture`** so YAML prices load.
 
 `GET /paid/finance/fee-for-vsize?vsize=<int>` JSON (after pay): envelope from the **feerate cache** (`as_of`, `ttl_s`, `source`, `source_as_of`, `stale`) plus `vsize` and `fee_sats_fast` / `fee_sats_medium` / `fee_sats_slow` (`ceil(vsize * sat_vb)`). Query `vsize` is **virtual bytes**, not weight; range **110–100000**. Missing/non-integer/out of range or a `weight` param → origin **400** `{ "ok": false, "error": "bad_vsize" }`. No second upstream; uses feerate rates (including stale). Empty feerate cache → **503**.
+
+`GET /paid/finance/confirm-target` JSON (after pay): envelope from the **feerate cache** plus `target`, `sat_vb`. Echo `minutes` only if the client sent it. Optional `vsize` (110–100000 vbytes) adds `vsize` and `fee_sats = ceil(vsize * sat_vb)`. At least one of `minutes` (1–60) or `target` (`fast`|`medium`|`slow`). If both, snapped minutes must match `target` or **400** `bad_confirm_target`. `weight=` or bad `vsize` → **400** `bad_vsize`. Snap: 1–20 fast, 21–45 medium, 46–60 slow (no 61–180). No second upstream.
 
 Rebuild origin + Aperture after pull: `./startup-l402-aws.sh mainnet` (do **not** `--remove-orphans`). Do **not** world-open 8081. Mainnet payer still needs `AGENT_BITCOIN_ALLOW_MAINNET=1` and `AGENT_BITCOIN_ALLOW_AUTOPAY=1`. Autoloop stays off. Payer needs enough local channel sats for a **100 sat** invoice plus routing.
 
