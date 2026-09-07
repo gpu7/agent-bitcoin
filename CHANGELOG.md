@@ -1,3 +1,9 @@
+## Fix — bolt11 is not a default uv group (2026-09-07)
+
+`uv run python examples/l402_pay.py` no longer installs `bolt11`/`coincurve`. Invoice tests: `uv sync --group bolt11`. Origin image still pip-installs `bolt11`.
+
+---
+
 ## Add — L402 ln-invoice-preflight (BOLT11 policy gate) (2026-09-07)
 
 ### Added

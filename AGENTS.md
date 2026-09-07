@@ -316,6 +316,8 @@ uv sync
 uv run pytest tests/test_client.py tests/test_sdk.py -q
 ```
 
+Invoice-decode / preflight fixtures need `uv sync --group bolt11` (not a default group; avoids coincurve on Python 3.14). `l402_pay.py` does not need it.
+
 - Prefer pure unit tests that do not need Docker.
 - Mock `LNDClient` / subprocess where possible.
 
