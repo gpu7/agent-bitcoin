@@ -37,7 +37,8 @@ jobs:
       - name: Install dependencies
         # Pin 3.12: pynostr/coincurve lack reliable 3.14 wheels; uv may otherwise
         # pick latest CPython. Include nostr extra for NWC client tests.
-        run: uv sync --python 3.12 --dev --extra nostr
+        # --group bolt11: invoice fixture encode (not a default uv group; 3.14 has no coincurve wheel)
+        run: uv sync --python 3.12 --dev --extra nostr --group bolt11
 
       - name: Run Ruff
         run: uv run --python 3.12 ruff check .
