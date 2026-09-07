@@ -1,3 +1,9 @@
+## Fix — bolt11 is a dev extra, not an SDK runtime dep (2026-09-07)
+
+`l402_pay.py` / `uv run` on Python 3.14 does not need `coincurve`. Origin image still installs `bolt11`. Tests use the dev extra.
+
+---
+
 ## Add — L402 ln-invoice-decode (BOLT11 inspect) (2026-09-07)
 
 ### Added
