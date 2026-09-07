@@ -70,6 +70,13 @@ services:
     protocol: "http"
     price: 100
     timeout: 3600
+  - name: "ln-invoice-decode"
+    hostregexp: ".*"
+    pathregexp: "^/paid/finance/ln-invoice-decode$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
   - name: "l402-demo"
     hostregexp: ".*"
     pathregexp: "^/.*$"

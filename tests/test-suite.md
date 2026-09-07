@@ -51,6 +51,7 @@ Dual-node **pay** tests require **both** containers on the same Docker host. Typ
 | **ABT-L402-009** | L402 confirm-target | Helix minutes snap; optional fee_sats | Mac `l402_pay.py --price 100` |
 | **ABT-L402-010** | L402 btc-usd | Origin JSON `btc_usd`/`sats_per_usd`; cache; 503 | Mac `l402_pay.py --price 100` |
 | **ABT-L402-011** | L402 ln-path-fee-hint | POST XOR; mocked QueryRoutes; 404/503 | Mac `l402_pay.py --price 100 --method POST` |
+| **ABT-L402-012** | L402 ln-invoice-decode | In-process BOLT11; no LND; 400/405 | Mac `l402_pay.py --price 100 --method POST` |
 
 ## Shared limits
 
