@@ -91,6 +91,13 @@ services:
     protocol: "http"
     price: 100
     timeout: 3600
+  - name: "nostr-npub-decode"
+    hostregexp: ".*"
+    pathregexp: "^/paid/nostr/npub-decode$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
   - name: "l402-demo"
     hostregexp: ".*"
     pathregexp: "^/.*$"
