@@ -29,9 +29,10 @@ AWS  agent-l402-aperture :8081
               POST /paid/finance/ln-invoice-preflight 100 sats (JSON allow/reject reasons)
               POST /paid/nostr/event-verify            100 sats (JSON NIP-01 id+sig check)
               POST /paid/nostr/npub-decode             100 sats (JSON NIP-19 bech32 → hex)
+              POST /paid/nostr/zap-receipt-inspect     100 sats (JSON NIP-57 kind-9735 inspect)
 ```
 
-There is **no platform fee**. The L402 price **is** the Lightning amount (must be ≥ `MIN_PAYMENT_SATS`, default 100). Demo files are **1,000 sats**; finance and Nostr paths (feerate, backlog, fee-for-vsize, confirm-target, btc-usd, ln-path-fee-hint, ln-invoice-decode, ln-invoice-preflight, event-verify, npub-decode) are **100 sats**.
+There is **no platform fee**. The L402 price **is** the Lightning amount (must be ≥ `MIN_PAYMENT_SATS`, default 100). Demo files are **1,000 sats**; finance and Nostr paths (feerate, backlog, fee-for-vsize, confirm-target, btc-usd, ln-path-fee-hint, ln-invoice-decode, ln-invoice-preflight, event-verify, npub-decode, zap-receipt-inspect) are **100 sats**.
 
 This is **not** a mempool.space replacement, FX oracle, or CoinGecko substitute. **mempool-feerate** is fee bands (sat/vB). **mempool-backlog** is fullness. **fee-for-vsize** multiplies those bands by a **vbyte** size. **confirm-target** maps a wait window (minutes) or named band onto `sat_vb` from the feerate cache. **btc-usd** is a **pass-through mark, not our index** — USD per 1 BTC from one public JSON URL. **ln-path-fee-hint** is what the **AWS agent LND** sees for a dest+amount (or bolt11) via readonly **QueryRoutes** — not Terminal, not RTL, not a route dump. **ln-invoice-decode** parses BOLT11 **in-process** (no LND) so an agent can inspect amount / dest / expiry / network before pay or path-hint. **ln-invoice-preflight** reuses that parse and returns `allow` plus reason codes (expired, zero_amount, below_floor, above_max_sats, network_mismatch). Not a route check.
 
@@ -157,6 +158,12 @@ uv run python examples/l402_pay.py \
   --url http://<AWS_EIP>:8081/paid/nostr/npub-decode \
   --price 100 --method POST \
   --json '{"entity":"npub1..."}'
+
+# NIP-57 zap receipt inspect (100 sats). Bare event JSON. Not a zap wallet.
+uv run python examples/l402_pay.py \
+  --url http://<AWS_EIP>:8081/paid/nostr/zap-receipt-inspect \
+  --price 100 --method POST \
+  --json '{"id":"...","pubkey":"...","created_at":1,"kind":9735,"tags":[],"content":"","sig":"..."}'
 ```
 
 `GET /paid/finance/mempool-feerate` JSON (after pay): `ok`, `service` (`mempool-feerate`), `version` (`v1`), `as_of`, `ttl_s`, `unit` (`sat_per_vbyte`), `fast` / `medium` / `slow` (integers ≥ 1), `source`, `source_as_of`, `stale`.
@@ -223,6 +230,10 @@ After pay, 200: `allow`, `reasons` (all matches, stable order: `expired`, `zero_
 `POST /paid/nostr/event-verify` JSON body is a **bare NIP-01 event** (`id`, `pubkey`, `created_at`, `kind`, `tags`, `content`, `sig`) — not wrapped in `{ "event": ... }`. GET → **405**. Empty / non-object body → **400** `missing_event`. Shape/id/sig problems → **200** `valid: false` plus `reasons` (`bad_shape`, `bad_id`, `bad_sig`; all that apply). **No relay.** `ttl_s` 0. Response never includes `content`, `tags`, or `sig`. `source` is `local_nostr`. Finance L402 paths do not use Nostr.
 
 `POST /paid/nostr/npub-decode` JSON: `{ "entity": "npub1..." }`. GET → **405**. Missing/empty `entity` → **400** `missing_entity`. **No relay.** `ttl_s` 0. Supported HRPs: `npub` / `note` (32-byte hex), `nprofile` / `nevent` (TLV special + optional `relays`, cap 8). `nsec` → **200** `valid: false`, `reasons: ["nsec_rejected"]` (hex omitted; secret never returned). Garbage bech32 → `bad_bech32`. Other HRPs (`naddr`, `nrelay`, …) → `unsupported_hrp`. Do not echo `entity`.
+
+`POST /paid/nostr/zap-receipt-inspect` JSON body is a **bare NIP-01 event** (same shape as event-verify). GET → **405**. Empty / non-object body → **400** `missing_event`. Reuses event-verify **in-process** (no second paid hop). **Not a zap wallet.** Amount comes from the **bolt11 tag only** (millisats → sats); do not use an `amount` tag. This is **structural inspect + event sig**, not full NIP-57 Appendix F wallet validation (no LNURL `nostrPubkey` check, no preimage check, no description-hash check). **No relay.** `ttl_s` 0. Response never includes `content`, `tags`, `sig`, bolt11, preimage, or description-tag JSON.
+
+After pay, 200: `valid_event`, `is_zap_receipt`, `amount_sats` (integer or `null`), `zapper_pubkey` (tag `P`, or `null`), `target_pubkey` (tag `p`, or `null`), `target_event_id` (tag `e`, or `null`), `reasons`. Unused target fields are always present as JSON `null`. `is_zap_receipt` is true only when `valid_event` is true, `kind` is **9735**, and required tags `p` (64 hex) and `bolt11` (non-empty) exist. Zero-amount or unparsable bolt11 → `amount_sats: null` and `amount_unknown` (the event may still be a receipt). Kind 1 that verifies → 200, `is_zap_receipt: false`, reasons include `not_kind_9735`. Other reasons: `bad_shape` / `bad_id` / `bad_sig` (from verify), `missing_p`, `missing_bolt11`.
 
 Rebuild origin + Aperture after pull: `./startup-l402-aws.sh mainnet` (do **not** `--remove-orphans`). Do **not** world-open 8081. Mainnet payer still needs `AGENT_BITCOIN_ALLOW_MAINNET=1` and `AGENT_BITCOIN_ALLOW_AUTOPAY=1`. Autoloop stays off. Payer needs enough local channel sats for a **100 sat** invoice plus routing.
 

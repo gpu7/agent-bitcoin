@@ -98,6 +98,13 @@ services:
     protocol: "http"
     price: 100
     timeout: 3600
+  - name: "nostr-zap-receipt-inspect"
+    hostregexp: ".*"
+    pathregexp: "^/paid/nostr/zap-receipt-inspect$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
   - name: "l402-demo"
     hostregexp: ".*"
     pathregexp: "^/.*$"
