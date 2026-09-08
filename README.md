@@ -72,7 +72,7 @@ There is no `collect_transaction_fee` / `POST /send-fee`. Mainnet **pays** stay 
 
 ## Nostr (agent identity)
 
-Lightning invoice/pay does **not** require Nostr. L402 finance tools do not use it. Nostr is an optional layer so agents can have a public identity and, if you opt in, a limited wallet connection.
+Lightning invoice/pay does **not** require Nostr. L402 **finance** tools do not use it. A paid NIP-01 id+sig check lives at `POST /paid/nostr/event-verify` (100 sats) — [docs/l402-aperture.md](docs/l402-aperture.md). Nostr is an optional layer so agents can have a public identity and, if you opt in, a limited wallet connection.
 
 **Identity.** An agent can hold a Nostr keypair as a stable public ID (a username that is a cryptographic key). Two agents can recognize each other without a central account server.
 

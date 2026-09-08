@@ -1,3 +1,14 @@
+## Add — L402 nostr event-verify (NIP-01 id+sig) (2026-09-08)
+
+### Added
+
+- `POST /paid/nostr/event-verify` — local id hash + Schnorr check; `valid` plus `bad_shape` / `bad_id` / `bad_sig`
+- Aperture **100 sats**; no relay; response omits content/tags/sig
+
+Rebuild origin + restart Aperture. Payer: `l402_pay.py --price 100 --method POST --json '<bare event>'`.
+
+---
+
 ## Docs — README Nostr identity / NWC (2026-09-08)
 
 README now points at existing Nostr Phases A–C, NWC, and the optional `.[nostr]` extra. Not a new feature.
