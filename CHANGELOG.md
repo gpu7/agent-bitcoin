@@ -1,3 +1,9 @@
+## Docs — README Nostr identity / NWC (2026-09-08)
+
+README now points at existing Nostr Phases A–C, NWC, and the optional `.[nostr]` extra. Not a new feature.
+
+---
+
 ## Fix — bolt11 is not a default uv group (2026-09-07)
 
 `uv run python examples/l402_pay.py` no longer installs `bolt11`/`coincurve`. Invoice tests: `uv sync --group bolt11`. Origin image still pip-installs `bolt11`.
