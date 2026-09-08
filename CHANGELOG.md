@@ -1,3 +1,14 @@
+## Add — L402 nostr zap-receipt-inspect (NIP-57 kind 9735) (2026-09-08)
+
+### Added
+
+- `POST /paid/nostr/zap-receipt-inspect` — structural zap-receipt check; `is_zap_receipt` plus amount from bolt11; not a zap wallet
+- Reuses event-verify in-process; Aperture **100 sats**; no relay; no Appendix F LNURL check
+
+Rebuild origin + restart Aperture. Payer: `l402_pay.py --price 100 --method POST --json` with a bare NIP-01 event.
+
+---
+
 ## Add — L402 nostr npub-decode (NIP-19 bech32) (2026-09-08)
 
 ### Added
