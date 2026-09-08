@@ -1,3 +1,14 @@
+## Add — L402 nostr npub-decode (NIP-19 bech32) (2026-09-08)
+
+### Added
+
+- `POST /paid/nostr/npub-decode` — `npub`/`note`/`nprofile`/`nevent` → type + hex; `nsec` rejected with no secret hex
+- Aperture **100 sats**; no relay
+
+Rebuild origin + restart Aperture. Payer: `l402_pay.py --price 100 --method POST --json '{"entity":"npub1..."}'`.
+
+---
+
 ## Add — L402 nostr event-verify (NIP-01 id+sig) (2026-09-08)
 
 ### Added

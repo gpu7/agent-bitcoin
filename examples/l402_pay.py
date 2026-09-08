@@ -43,6 +43,8 @@ On-chain fee bands (100 sats; pass --price because the client default is 1000):
     ... l402_pay.py --url http://<AWS_EIP>:8081/paid/nostr/event-verify \\
           --price 100 --method POST \\
           --json '{"id":"...","pubkey":"...","created_at":1,"kind":1,"tags":[],"content":"","sig":"..."}'
+    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/nostr/npub-decode \\
+          --price 100 --method POST --json '{"entity":"npub1..."}'
 
 Does not need the bolt11 extra (that is origin + invoice tests only).
 """

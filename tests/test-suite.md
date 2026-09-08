@@ -54,6 +54,7 @@ Dual-node **pay** tests require **both** containers on the same Docker host. Typ
 | **ABT-L402-012** | L402 ln-invoice-decode | In-process BOLT11; no LND; 400/405 | Mac `l402_pay.py --price 100 --method POST` |
 | **ABT-L402-013** | L402 ln-invoice-preflight | allow/reasons; reuses decode | Mac `l402_pay.py --price 100 --method POST` |
 | **ABT-L402-014** | L402 nostr event-verify | NIP-01 id+sig; no relay | Mac `l402_pay.py --price 100 --method POST` |
+| **ABT-L402-015** | L402 nostr npub-decode | NIP-19 bech32; nsec rejected | Mac `l402_pay.py --price 100 --method POST` |
 
 ## Shared limits
 
