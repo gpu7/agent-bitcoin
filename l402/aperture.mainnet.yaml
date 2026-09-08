@@ -85,6 +85,13 @@ services:
     protocol: "http"
     price: 100
     timeout: 3600
+  - name: "nostr-event-verify"
+    hostregexp: ".*"
+    pathregexp: "^/paid/nostr/event-verify$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
   - name: "l402-demo"
     hostregexp: ".*"
     pathregexp: "^/.*$"
