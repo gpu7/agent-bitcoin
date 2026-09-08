@@ -40,6 +40,7 @@ A lightweight Python SDK that enables AI agents to send and receive Lightning/Bi
 - Balance checks (Lightning and on-chain)
 - Operator tooling: dual-node health, SCB backup, daily ops ([docs/index.md](docs/index.md))
 - Optional **Aperture L402** HTTP gateway (Mac pays AWS `:8081`) including paid on-chain fee bands, mempool fullness, fee-for-vsize, confirm-target, a BTC/USD pass-through, a Lightning path-fee hint, and in-process BOLT11 inspect / preflight — [docs/l402-aperture.md](docs/l402-aperture.md)
+- Optional **Nostr** agent identity and **NWC** wallets (not required for Lightning pays) — [Nostr (agent identity)](#nostr-agent-identity)
 
 ---
 
@@ -66,6 +67,28 @@ There is **no platform / transaction fee**. A requested payment of **X** sats cr
 For independent agents, prefer **`create_invoice_quote`** so the payer sees `amount_sats` / `total_cost_sats` without shared env. Details: **[SDK.md](SDK.md#transaction-fees-and-limits)**.
 
 There is no `collect_transaction_fee` / `POST /send-fee`. Mainnet **pays** stay latch-gated — see [docs/mainnet-pilot.md](docs/mainnet-pilot.md).
+
+---
+
+## Nostr (agent identity)
+
+Lightning invoice/pay does **not** require Nostr. L402 finance tools do not use it. Nostr is an optional layer so agents can have a public identity and, if you opt in, a limited wallet connection.
+
+**Identity.** An agent can hold a Nostr keypair as a stable public ID (a username that is a cryptographic key). Two agents can recognize each other without a central account server.
+
+**Phase A.** Proof-of-concept: two agents talk over Nostr only. No Lightning node required. See [`examples/nostr_agent_poc.py`](examples/nostr_agent_poc.py) and [docs/nostr-agent-identity.md](docs/nostr-agent-identity.md).
+
+**Phase B.** Agents can send signed payment requests and offers on that same bus, then use Lightning invoices/pay when LND is in the picture. See [`examples/nostr_phase_b_payment.py`](examples/nostr_phase_b_payment.py).
+
+**Phase C.** Signing policy lives in a separate local signer process. The agent itself is not supposed to hold the secret key (`nsec`). See [`examples/nostr_phase_c_signer.py`](examples/nostr_phase_c_signer.py).
+
+**NWC (NIP-47).** For automatic wallets, the agent holds a Nostr Wallet Connect URI rather than an LND admin macaroon. The payment-decision agent still only says PAY / REJECT; settlement goes through NWC after PAY. See [docs/nwc-automatic-wallets.md](docs/nwc-automatic-wallets.md).
+
+**NIP-46.** Optional bunker demo for remote signing: [`examples/nip46_bunker_demo.py`](examples/nip46_bunker_demo.py).
+
+**Install.** Optional extra (`pynostr`): `uv sync --extra nostr` or `pip install 'agent-bitcoin[nostr]'`. Prefer **Python 3.12** for wheels ([SDK.md](SDK.md#nostr-agent-identity-phase-a-poc)).
+
+More: [SDK.md](SDK.md#examples) (Nostr examples list), [docs/nostr-agent-identity.md](docs/nostr-agent-identity.md), [docs/nwc-automatic-wallets.md](docs/nwc-automatic-wallets.md).
 
 ---
 
@@ -144,6 +167,8 @@ Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)**. Do not 
 | [docs/signet.md](docs/signet.md) | Signet dual-node lab |
 | [docs/mainnet-pilot.md](docs/mainnet-pilot.md) | Mainnet pilot Phases 0–8 (ops complete; ≤50k dual-node) |
 | [docs/public-routing-loop.md](docs/public-routing-loop.md) | Public routing + Loop on AWS (topology A′; HOLD) |
+| [docs/nostr-agent-identity.md](docs/nostr-agent-identity.md) | Nostr identity (Phases A–C) |
+| [docs/nwc-automatic-wallets.md](docs/nwc-automatic-wallets.md) | NWC / NIP-47 automatic wallets |
 | [examples/](examples/) | Runnable sample scripts (incl. signet product path) |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 | [SECURITY.md](SECURITY.md) | Security policy and vulnerability reporting |
