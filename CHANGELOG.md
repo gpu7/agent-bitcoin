@@ -1,3 +1,9 @@
+## Docs — expand NWC on first use in l402-tools.md (2026-09-09)
+
+First **NWC** in [docs/l402-tools.md](docs/l402-tools.md) is now Nostr Wallet Connect plus one sentence of meaning. Not a new endpoint.
+
+---
+
 ## Docs — L402 pay-flow infographic (2026-09-09)
 
 Figure on [docs/l402-tools.md](docs/l402-tools.md): unpaid request → Lightning pay → JSON. Not a new endpoint.

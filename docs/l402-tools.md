@@ -113,7 +113,7 @@ uv run python examples/l402_pay.py \
 
 ## Nostr suite
 
-**Function:** **local** identity checks. These three do **not** talk to a relay (no 503 from relays). They are not Damus, not a zap wallet, and not NWC.
+**Function:** **local** identity checks. These three do **not** talk to a relay (no 503 from relays). They are not Damus, not a zap wallet, and not **NWC (Nostr Wallet Connect)**. NWC is a way for an agent to talk to a Lightning wallet over Nostr using a URI, instead of holding an LND admin macaroon.
 
 Agent identity, NWC, and NIP-46 live elsewhere: [README — Nostr](../README.md#nostr-agent-identity), [nostr-agent-identity.md](./nostr-agent-identity.md), [nwc-automatic-wallets.md](./nwc-automatic-wallets.md).
 
