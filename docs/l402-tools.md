@@ -23,6 +23,8 @@ This is **not** a public catalog. The operator’s security group is **`/32`**. 
 5. Read `ttl_s` and cache. Do not poll every second. Local inspect tools (`ttl_s` 0) are still not a hot loop.
 6. Wiring, SG, and restart: [l402-aperture.md](./l402-aperture.md). Mainnet pays still need the usual latches on the payer.
 
+Sequence (402 → pay → retry): [architecture.md — L402 request sequence](./architecture.md#l402-request-sequence).
+
 Placeholder host below is `http://<L402_HOST>:8081`. Use a **test** invoice for decode/preflight examples, not a live mainnet pay request.
 
 ## Bitcoin suite
