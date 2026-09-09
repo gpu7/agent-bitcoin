@@ -1,3 +1,9 @@
+## Docs — README top table links l402-tools.md (2026-09-09)
+
+Hub table under Lightning Bitcoin payments now includes [docs/l402-tools.md](docs/l402-tools.md). Not a new endpoint.
+
+---
+
 ## Docs — expand NWC on first use in l402-tools.md (2026-09-09)
 
 First **NWC** in [docs/l402-tools.md](docs/l402-tools.md) is now Nostr Wallet Connect plus one sentence of meaning. Not a new endpoint.

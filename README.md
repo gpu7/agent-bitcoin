@@ -21,6 +21,7 @@ A lightweight Python SDK that enables AI agents to send and receive Lightning/Bi
 | Doc | Who it's for |
 |-----|----------------|
 | **[SDK.md](SDK.md)** | App & agent developers (install, API, fees, quotes, LLM agents, HTTP API) |
+| **[docs/l402-tools.md](docs/l402-tools.md)** | Agent developers: L402 Bitcoin / Lightning / Nostr paid JSON tools |
 | **[docs/backend.md](docs/backend.md)** | Operators: AWS/Mac **regtest** dual-node lab |
 | **[docs/signet.md](docs/signet.md)** | Operators: dual-node **signet** (current pre-mainnet lab) |
 | **[docs/mainnet-pilot.md](docs/mainnet-pilot.md)** | Mainnet pilot **Phases 0–8** (ops complete; ≤50k dual-node) |
