@@ -1,3 +1,9 @@
+## Docs — L402 request sequence (2026-09-09)
+
+[docs/architecture.md](docs/architecture.md): Mermaid sequence (402 → pay → retry → origin). Not a new endpoint.
+
+---
+
 ## Docs — L402 deployment diagram (2026-09-09)
 
 [docs/architecture.md](docs/architecture.md): Mermaid deployment (Mac → 8081 /32 → Aperture; LND 10009 private). Not a new endpoint.
