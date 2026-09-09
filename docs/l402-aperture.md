@@ -3,6 +3,8 @@
 **Status:** Regtest, signet, and mainnet Mac→AWS paid GET **PASS** (2026-08-15). One mainnet pay was 1,000 sats.
 **Not** Lightning Loop’s container named `aperture` (`aperture:11018`). That is Loop L402 auth. This gateway is **`agent-l402-aperture`** on **`:8081`**.
 
+**Agent tools:** what each paid JSON path is for, and one example call — [l402-tools.md](./l402-tools.md). This page is the operator runbook (startup, SG, YAML).
+
 ## What it is
 
 Aperture sits in front of a dummy HTTP origin on AWS. A client that has not paid gets **HTTP 402** plus a macaroon and a 1,000 sat BOLT11. After the Mac LND node pays, the client retries with `Authorization: L402 <macaroon>:<preimage>` and Aperture proxies to the origin.

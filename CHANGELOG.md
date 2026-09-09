@@ -1,3 +1,9 @@
+## Docs — L402 tool suites overview (2026-09-09)
+
+README suite lists plus [docs/l402-tools.md](docs/l402-tools.md) for external agents. Not a new endpoint.
+
+---
+
 ## Add — L402 nostr zap-receipt-inspect (NIP-57 kind 9735) (2026-09-08)
 
 ### Added
