@@ -39,7 +39,7 @@ A lightweight Python SDK that enables AI agents to send and receive Lightning/Bi
 - Optional LLM **payment decision** agent (PAY / REJECT / CONFIRM — never executes pays)
 - Balance checks (Lightning and on-chain)
 - Operator tooling: dual-node health, SCB backup, daily ops ([docs/index.md](docs/index.md))
-- Optional **Aperture L402** HTTP gateway (Mac pays AWS `:8081`) including paid on-chain fee bands, mempool fullness, fee-for-vsize, confirm-target, a BTC/USD pass-through, a Lightning path-fee hint, and in-process BOLT11 inspect / preflight — [docs/l402-aperture.md](docs/l402-aperture.md)
+- Optional **Aperture L402** paid JSON tool suites (Bitcoin / Lightning / Nostr, typically **100 sats**) — [docs/l402-tools.md](docs/l402-tools.md) (operators: [docs/l402-aperture.md](docs/l402-aperture.md))
 - Optional **Nostr** agent identity and **NWC** wallets (not required for Lightning pays) — [Nostr (agent identity)](#nostr-agent-identity)
 
 ---
@@ -70,9 +70,21 @@ There is no `collect_transaction_fee` / `POST /send-fee`. Mainnet **pays** stay 
 
 ---
 
+## L402 tool suites
+
+Paid JSON on Aperture `:8081`. Unpaid calls return **402**; finance/Nostr paths are typically **100 sats** (`l402_pay.py --price 100`). Not a public catalog (operator `/32`). Agent guide: **[docs/l402-tools.md](docs/l402-tools.md)**. Operators: [docs/l402-aperture.md](docs/l402-aperture.md).
+
+**Bitcoin** (L1 fee / fullness / FX; skip if Lightning-only): `GET /paid/finance/mempool-feerate` — on-chain sat/vB fee bands; `mempool-backlog` — mempool tx count and fullness; `fee-for-vsize` — total fee for vbyte size; `confirm-target` — wait window to sat/vB; `btc-usd` — BTC/USD pass-through mark.
+
+**Lightning** (decode → preflight → path-hint → pay): `POST /paid/finance/ln-invoice-decode` — inspect BOLT11 amount and dest; `ln-invoice-preflight` — allow/reject invoice policy reasons; `ln-path-fee-hint` — AWS LND QueryRoutes fee hint.
+
+**Nostr** (local, no relay): `POST /paid/nostr/event-verify` — check NIP-01 id and sig; `npub-decode` — bech32 npub/note to hex (`nsec` rejected); `zap-receipt-inspect` — inspect kind-9735 zap receipt.
+
+---
+
 ## Nostr (agent identity)
 
-Lightning invoice/pay does **not** require Nostr. L402 **finance** tools do not use it. Paid local checks: `POST /paid/nostr/event-verify` (NIP-01 id+sig), `POST /paid/nostr/npub-decode` (NIP-19 bech32 → hex; `nsec` rejected), and `POST /paid/nostr/zap-receipt-inspect` (NIP-57 kind 9735 inspect; amount from bolt11; not a zap wallet) at 100 sats — [docs/l402-aperture.md](docs/l402-aperture.md). Nostr is an optional layer so agents can have a public identity and, if you opt in, a limited wallet connection.
+Lightning invoice/pay does **not** require Nostr. L402 **finance** tools do not use it. Paid local checks (event-verify, npub-decode, zap-receipt-inspect) are in the [L402 Nostr suite](docs/l402-tools.md#nostr-suite) at 100 sats. Nostr is an optional layer so agents can have a public identity and, if you opt in, a limited wallet connection.
 
 **Identity.** An agent can hold a Nostr keypair as a stable public ID (a username that is a cryptographic key). Two agents can recognize each other without a central account server.
 
@@ -167,6 +179,8 @@ Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)**. Do not 
 | [docs/signet.md](docs/signet.md) | Signet dual-node lab |
 | [docs/mainnet-pilot.md](docs/mainnet-pilot.md) | Mainnet pilot Phases 0–8 (ops complete; ≤50k dual-node) |
 | [docs/public-routing-loop.md](docs/public-routing-loop.md) | Public routing + Loop on AWS (topology A′; HOLD) |
+| [docs/l402-tools.md](docs/l402-tools.md) | L402 paid JSON tools for agents (Bitcoin / Lightning / Nostr) |
+| [docs/l402-aperture.md](docs/l402-aperture.md) | Aperture L402 operator runbook |
 | [docs/nostr-agent-identity.md](docs/nostr-agent-identity.md) | Nostr identity (Phases A–C) |
 | [docs/nwc-automatic-wallets.md](docs/nwc-automatic-wallets.md) | NWC / NIP-47 automatic wallets |
 | [examples/](examples/) | Runnable sample scripts (incl. signet product path) |
@@ -190,6 +204,6 @@ MIT License — see [LICENSE](LICENSE).
 
 ## Support
 
-Richard Casey  
-richardcaseyhpc@protonmail.com  
-+1 970-980-5975  
+Richard Casey<br>
+richardcaseyhpc@protonmail.com<br>
++1 970-980-5975
