@@ -29,6 +29,7 @@
 | [m3-production-swarm.md](./m3-production-swarm.md) | **M3 v1:** relays, NIP-46, NIP-17, swarm registry (autopay still off) |
 | [nip44-nwc-relays.md](./nip44-nwc-relays.md) | **NIP-44** + public-relay NWC; dual-host `get_info` / `get_balance` PASS |
 | [l402-aperture.md](./l402-aperture.md) | **Aperture L402** HTTP gateway (regtest + signet + mainnet PASS) |
+| [architecture.md](./architecture.md) | Engineers: L402 deployment diagram (Mermaid) |
 | [l402-tools.md](./l402-tools.md) | L402 paid JSON tools for agents (Bitcoin / Lightning / Nostr) |
 | [setup.md](./setup.md) | Short setup pointers |
 

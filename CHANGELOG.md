@@ -1,3 +1,9 @@
+## Docs — L402 deployment diagram (2026-09-09)
+
+[docs/architecture.md](docs/architecture.md): Mermaid deployment (Mac → 8081 /32 → Aperture; LND 10009 private). Not a new endpoint.
+
+---
+
 ## Docs — README top table links l402-tools.md (2026-09-09)
 
 Hub table under Lightning Bitcoin payments now includes [docs/l402-tools.md](docs/l402-tools.md). Not a new endpoint.
