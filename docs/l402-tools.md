@@ -12,6 +12,10 @@ This is **not** a public catalog. The operator’s security group is **`/32`**. 
 
 ## How an external agent uses any tool
 
+![L402: pay then JSON](images/l402-pay-flow.png)
+
+*Unpaid request → Lightning pay → JSON. Typical tool price 100 sats.*
+
 1. Get a reachable base URL from the operator (`http://<L402_HOST>:8081`).
 2. Call with `L402Client(..., expected_price_sats=100)` or `l402_pay.py --price 100` (the SDK default expected price is **1000**, so 100-sat paths need `--price 100`).
 3. **GET** for Bitcoin-suite query tools. **POST** JSON for Lightning and Nostr tools (GET → **405**).

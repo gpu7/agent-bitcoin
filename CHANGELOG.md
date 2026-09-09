@@ -1,3 +1,9 @@
+## Docs — L402 pay-flow infographic (2026-09-09)
+
+Figure on [docs/l402-tools.md](docs/l402-tools.md): unpaid request → Lightning pay → JSON. Not a new endpoint.
+
+---
+
 ## Docs — L402 tool suites overview (2026-09-09)
 
 README suite lists plus [docs/l402-tools.md](docs/l402-tools.md) for external agents. Not a new endpoint.
