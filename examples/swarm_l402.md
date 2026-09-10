@@ -25,6 +25,12 @@ Aperture invoices are created on **AWS LND**. `examples/l402_pay.py` pays them f
 
 ## 4. Setup
 
+Do **not** use `uv run python` for this demo on 3.13/3.14: it recreates `.venv`, skips `.[nostr]`, then `import pynostr` fails. Use `./examples/swarm_l402.sh` or `.venv-nostr/bin/python examples/swarm_l402_negotiate.py`.
+
+Typical live payer is **Mac LND** (outbound to the AWS Aperture invoice). Copy **one** network block below. On-box agents on AWS may use `http://127.0.0.1:8081/...` for HTTP; paying that invoice with AWS LND can self-pay (see §3).
+
+### First time (no `.venv-nostr` yet)
+
 ```bash
 cd ~/agent-bitcoin   # or the Mac clone
 git pull
@@ -35,9 +41,24 @@ export NOSTR_PASSPHRASE='choose-a-local-passphrase'
 export NOSTR_POC_DIR=.nostr-poc
 ```
 
-Do **not** use `uv run python` for this demo on 3.13/3.14: it recreates `.venv`, skips `.[nostr]`, then `import pynostr` fails. Use `./examples/swarm_l402.sh` or `.venv-nostr/bin/python`.
+Then copy **one** of Regtest / Signet / Mainnet. First run can use `--force-new-keys` once. Reuse the same dir so alice/bob keep their npubs.
 
-Typical live payer is **Mac LND** (outbound to the AWS Aperture invoice). Copy **one** block. On-box agents on AWS may use `http://127.0.0.1:8081/...` for HTTP; paying that invoice with AWS LND can self-pay (see §3).
+Start agents with `./examples/swarm_l402.sh` (see §5) or `.venv-nostr/bin/python examples/swarm_l402_negotiate.py`.
+
+### Every later run
+
+```bash
+cd ~/agent-bitcoin   # or the Mac clone
+# git pull   # optional
+# skip uv venv if .venv-nostr exists
+# uv pip install --python .venv-nostr/bin/python -e '.[nostr]'
+#   only after dependency changes (pyproject extras / pull)
+
+export NOSTR_PASSPHRASE='choose-a-local-passphrase'
+export NOSTR_POC_DIR=.nostr-poc
+```
+
+Same network block as last time. Same wrapper / `.venv-nostr` python (§5). Do not recreate the venv.
 
 ### Regtest
 
@@ -71,9 +92,9 @@ export AGENT_BITCOIN_ALLOW_AUTOPAY=1
 
 Real sats. Autoloop stays off. Only if you intend a live 100-sat pay.
 
-First run can use `--force-new-keys` once. Reuse the same dir so alice/bob keep their npubs.
-
 ## 5. Run
+
+Same commands for first time and later runs.
 
 Engineer path — **two terminals**, shared bus directory:
 
