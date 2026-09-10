@@ -27,7 +27,15 @@ Aperture invoices are created on **AWS LND**. `examples/l402_pay.py` pays them f
 
 Do **not** use `uv run python` for this demo on 3.13/3.14: it recreates `.venv`, skips `.[nostr]`, then `import pynostr` fails. Use `./examples/swarm_l402.sh` or `.venv-nostr/bin/python examples/swarm_l402_negotiate.py`.
 
-Typical live payer is **Mac LND** (outbound to the AWS Aperture invoice). Copy **one** network block below. On-box agents on AWS may use `http://127.0.0.1:8081/...` for HTTP; paying that invoice with AWS LND can self-pay (see §3).
+If both swarm processes run on AWS, use the AWS container; if the script pays from the Mac, use the Mac container. Copy **one** block. On-box agents on AWS may use `http://127.0.0.1:8081/...` for HTTP; paying that invoice with AWS LND can self-pay (see §3).
+
+Before a **new live** run, if `.nostr-poc/bus/` already has files for this URL’s `invoice_id`, clear them:
+
+```bash
+rm -f .nostr-poc/bus/*.json
+```
+
+(`invoice_id` is derived from `--url`; leftover `*_result.json` will confuse a second pay.)
 
 ### First time (no `.venv-nostr` yet)
 
@@ -62,9 +70,19 @@ Same network block as last time. Same wrapper / `.venv-nostr` python (§5). Do n
 
 ### Regtest
 
+**Mac payer**
+
 ```bash
 export LND_NETWORK=regtest
 export LND_CONTAINER=agent-bitcoin-lnd
+export LND_TRANSPORT=docker
+```
+
+**AWS payer (this demo on EC2)**
+
+```bash
+export LND_NETWORK=regtest
+export LND_CONTAINER=agent-payment-decision-lnd
 export LND_TRANSPORT=docker
 ```
 
@@ -72,9 +90,19 @@ No mainnet latches. On-box L402 URL `http://127.0.0.1:8081/...` if agents run on
 
 ### Signet
 
+**Mac payer**
+
 ```bash
 export LND_NETWORK=signet
 export LND_CONTAINER=agent-bitcoin-lnd-signet
+export LND_TRANSPORT=docker
+```
+
+**AWS payer (this demo on EC2)**
+
+```bash
+export LND_NETWORK=signet
+export LND_CONTAINER=agent-payment-decision-lnd-signet
 export LND_TRANSPORT=docker
 ```
 
@@ -82,9 +110,21 @@ No mainnet latches. Confirm L402 started with `./startup-l402-aws.sh signet`.
 
 ### Mainnet
 
+**Mac payer**
+
 ```bash
 export LND_NETWORK=mainnet
 export LND_CONTAINER=agent-bitcoin-lnd-mainnet
+export LND_TRANSPORT=docker
+export AGENT_BITCOIN_ALLOW_MAINNET=1
+export AGENT_BITCOIN_ALLOW_AUTOPAY=1
+```
+
+**AWS payer (this demo on EC2)**
+
+```bash
+export LND_NETWORK=mainnet
+export LND_CONTAINER=agent-payment-decision-lnd-mainnet
 export LND_TRANSPORT=docker
 export AGENT_BITCOIN_ALLOW_MAINNET=1
 export AGENT_BITCOIN_ALLOW_AUTOPAY=1
