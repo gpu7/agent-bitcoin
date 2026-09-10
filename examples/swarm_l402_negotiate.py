@@ -9,8 +9,8 @@ the payer; optional Grok only explains. --offline-bus skips live Lightning.
 Engineer path (two terminals):
 
   export NOSTR_PASSPHRASE='...'
-  uv run python examples/swarm_l402_negotiate.py --role alice --offline-bus --no-llm
-  uv run python examples/swarm_l402_negotiate.py --role bob --offline-bus --no-llm
+  ./examples/swarm_l402.sh --role alice --offline-bus --no-llm
+  ./examples/swarm_l402.sh --role bob --offline-bus --no-llm
 
 See examples/swarm_l402.md
 """
@@ -36,6 +36,8 @@ except ImportError as e:  # pragma: no cover
         "Missing pynostr. Use Python 3.12:\n"
         "  uv venv -p 3.12 .venv-nostr\n"
         "  uv pip install --python .venv-nostr/bin/python -e '.[nostr]'\n"
+        "  ./examples/swarm_l402.sh --role alice --offline-bus --no-llm\n"
+        "Do not use: uv run python  (3.13/3.14 skips .[nostr])\n"
         f"{e}",
         file=sys.stderr,
     )
