@@ -15,7 +15,7 @@ Each agent prints its **npub** (never nsec), a deterministic score, then who pay
 - Unlocked LND on the **payer** host
 - Channel **local** liquidity ≥ price + routing (100 sats + fee cap)
 - `XAI_API_KEY` optional (Grok one-liners). Without it, use `--no-llm`
-- Python **3.12** + nostr extra — [SDK.md](../SDK.md) (`uv venv -p 3.12` / `uv sync --python 3.12 --extra nostr --group dev`)
+- Python **3.12** + nostr extra — [SDK.md](../SDK.md) (`uv venv -p 3.12 .venv-nostr` / `uv pip install -e '.[nostr]'`). Do **not** use `uv run python` on 3.13/3.14.
 
 ## 3. Security
 
@@ -28,11 +28,14 @@ Aperture invoices are created on **AWS LND**. `examples/l402_pay.py` pays them f
 ```bash
 cd ~/agent-bitcoin   # or the Mac clone
 git pull
-uv sync --python 3.12 --extra nostr --group dev
+uv venv -p 3.12 .venv-nostr
+uv pip install --python .venv-nostr/bin/python -e '.[nostr]'
 
 export NOSTR_PASSPHRASE='choose-a-local-passphrase'
 export NOSTR_POC_DIR=.nostr-poc
 ```
+
+Do **not** use `uv run python` for this demo on 3.13/3.14: it recreates `.venv`, skips `.[nostr]`, then `import pynostr` fails. Use `./examples/swarm_l402.sh` or `.venv-nostr/bin/python`.
 
 Typical live payer is **Mac LND** (outbound to the AWS Aperture invoice). Copy **one** block. On-box agents on AWS may use `http://127.0.0.1:8081/...` for HTTP; paying that invoice with AWS LND can self-pay (see §3).
 
@@ -76,25 +79,22 @@ Engineer path — **two terminals**, shared bus directory:
 
 ```bash
 # Terminal A
-uv run python examples/swarm_l402_negotiate.py --role alice \
-  --offline-bus --no-llm
+./examples/swarm_l402.sh --role alice --offline-bus --no-llm
 
 # Terminal B
-uv run python examples/swarm_l402_negotiate.py --role bob \
-  --offline-bus --no-llm
+./examples/swarm_l402.sh --role bob --offline-bus --no-llm
 ```
 
 One process (two threads):
 
 ```bash
-uv run python examples/swarm_l402_negotiate.py --role both \
-  --offline-bus --no-llm
+./examples/swarm_l402.sh --role both --offline-bus --no-llm
 ```
 
 Live L402 (after offline works). Typical: Mac, URL is the AWS EIP, price 100:
 
 ```bash
-uv run python examples/swarm_l402_negotiate.py --role alice \
+./examples/swarm_l402.sh --role alice \
   --url http://<AWS_EIP>:8081/paid/finance/mempool-feerate --price 100 --no-llm
 # other terminal: --role bob, same --url --price
 ```
@@ -141,6 +141,6 @@ Printed: `npub=npub1…`. Encrypted nsec stays in `.nostr-poc/alice.enc.json` an
 | Amount below floor | Min invoice is **100 sats** (`MIN_PAYMENT_SATS`) |
 | `self payment` / `no route` | Paying AWS Aperture with AWS LND. Run the two agents on the Mac with `--url http://<EIP>:8081/…` |
 | Timeout waiting for peer | Same `--dir`, same `--url`, both processes running; bus is `$NOSTR_POC_DIR/bus/` |
-| Missing pynostr | Python 3.12 + `uv sync --python 3.12 --extra nostr --group dev` |
+| Missing pynostr | Do not use `uv run python`. `uv venv -p 3.12 .venv-nostr` then `uv pip install --python .venv-nostr/bin/python -e '.[nostr]'`. Run `./examples/swarm_l402.sh` |
 
 Sequence of a paid GET: [docs/architecture.md — L402 request sequence](../docs/architecture.md#l402-request-sequence). Operator gateway: [docs/l402-aperture.md](../docs/l402-aperture.md).
