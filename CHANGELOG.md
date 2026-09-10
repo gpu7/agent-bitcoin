@@ -1,3 +1,9 @@
+## Examples — two-agent swarm negotiates one L402 pay (2026-09-10)
+
+[examples/swarm_l402_negotiate.py](examples/swarm_l402_negotiate.py) + [examples/swarm_l402.md](examples/swarm_l402.md): Alice/Bob signed file-bus negotiate; higher score pays one `mempool-feerate` GET (100 sats). `--offline-bus` for CI. Not a new endpoint.
+
+---
+
 ## Docs — L402 request sequence (2026-09-09)
 
 [docs/architecture.md](docs/architecture.md): Mermaid sequence (402 → pay → retry → origin). Not a new endpoint.
