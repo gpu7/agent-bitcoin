@@ -1,46 +1,80 @@
 # Two-agent swarm: who pays one L402 tool
 
-Engineer demo on the **existing** AWS box (or any host already allowed to `:8081`). Two Nostr identities, signed file-bus messages, one winner pays `GET /paid/finance/mempool-feerate` (100 sats). Coded policy picks the payer. Optional Grok explains in one sentence each and **never** pays.
+Two Nostr identities, signed file-bus messages, one winner pays `GET /paid/finance/mempool-feerate` (100 sats). Coded policy picks the payer. Optional Grok explains in one sentence each and **never** pays.
 
-Identity is Phase A/B encrypted keys (same as `examples/nostr_phase_b_payment.py`). Not a second stack. Phase C signer daemons are optional later; this demo is **two processes**, not four.
+**Two modes — do not mix them:**
+
+| Mode | Where | Lightning |
+|------|--------|-----------|
+| **A. Mock** | Any one host (AWS or Mac) | None (`--offline-bus`) |
+| **B. Live L402** | **Both swarm processes on the Mac**; Aperture + invoice LND on **AWS** | Mac `agent-bitcoin-lnd*` pays the AWS invoice |
+
+Live pay is **Mac → AWS**, not two processes on AWS using AWS LND (that is self-pay).
+
+Identity is Phase A/B encrypted keys (same as `examples/nostr_phase_b_payment.py`). This demo is **two processes** sharing one disk bus, not four (no Phase C daemons).
 
 ## 1. What you will see
 
-Each agent prints its **npub** (never nsec), a deterministic score, then who pays. The winner runs the L402 handshake (402 → pay → retry) or a mock if `--offline-bus`. Both log `paid=True`, `amount_sats=100`, and fee bands `{fast, medium, slow}` only. The loser reads that from a signed `result` event on the bus.
+Each agent prints its **npub** (never nsec), a deterministic score, then who pays.
+
+- **Mock:** `paid=True` and fee bands **3/2/1** (fixture). No sats move.
+- **Live:** `paid=True` and real `fast` / `medium` / `slow` bands — **not** 3/2/1 unless the origin really returned that.
+
+The loser reads the signed `result` on the bus.
 
 ## 2. Prerequisites
 
-- Existing **AWS** `agent-bitcoin` checkout (or Mac already on the 8081 `/32`)
-- L402 stack up: `./startup-l402-aws.sh <regtest|signet|mainnet>`
-- Unlocked LND on the **payer** host
-- Channel **local** liquidity ≥ price + routing (100 sats + fee cap)
-- `XAI_API_KEY` optional (Grok one-liners). Without it, use `--no-llm`
-- Python **3.12** + nostr extra — [SDK.md](../SDK.md) (`uv venv -p 3.12 .venv-nostr` / `uv pip install -e '.[nostr]'`). Do **not** use `uv run python` on 3.13/3.14.
+- L402 stack up on AWS: `./startup-l402-aws.sh <regtest|signet|mainnet>`
+- **Live:** Mac clone on the 8081 `/32`; Mac LND unlocked; channel **Mac → AWS** with **local** (outbound) ≫ 100 sats + routing
+- `XAI_API_KEY` optional. Without it, `--no-llm`
+- Python **3.12** + `.venv-nostr` + `.[nostr]` — [SDK.md](../SDK.md). Do **not** use `uv run python` on 3.13/3.14
 
 ## 3. Security
 
-Run on the instance (`http://127.0.0.1:8081`) **or** any host already allowed to TCP **8081**. **Do not** world-open 8081 or 10009. Do not put nsec, NWC URIs, macaroons, or `XAI_API_KEY` in git. `.nostr-poc/` is gitignored.
+**Do not** world-open 8081 or 10009. Do not put nsec, NWC URIs, macaroons, or `XAI_API_KEY` in git. `.nostr-poc/` is gitignored.
 
-Aperture invoices are created on **AWS LND**. `examples/l402_pay.py` pays them from the **Mac** node. Two processes on AWS talking to `127.0.0.1:8081` may hit **self-pay / no route** on that same LND. If live pay fails that way, run the two terminals on the Mac (already `/32`) with `--url http://<EIP>:8081/paid/finance/mempool-feerate`. Do not open the SG.
+Live HTTP is from the **Mac** to `http://<AWS_EIP>:8081`. On-box `http://127.0.0.1:8081` is for **mock** or for a client whose payer LND is **not** the Aperture invoice node (AWS LND).
 
-## 4. Setup
+## 4. Two demo modes
+
+### A. Mock (any one host, including AWS)
+
+```bash
+./examples/swarm_l402.sh --role alice --offline-bus --no-llm
+./examples/swarm_l402.sh --role bob --offline-bus --no-llm
+```
+
+No LND pay. Fine for Nostr ids + negotiate. Both processes must share the **same** `.nostr-poc/bus` on **one disk**.
+
+### B. Live L402 (required topology)
+
+| Piece | Where |
+|-------|--------|
+| Aperture + invoice LND | **AWS** |
+| Payer LND | **Mac** `agent-bitcoin-lnd*` |
+| Both swarm processes | **Mac** (shared `.nostr-poc/bus`) |
+| URL | `http://<AWS_EIP>:8081/paid/finance/mempool-feerate` |
+| Flags | **No** `--offline-bus`; `--price 100` |
+| Do **not** | Use `LND_CONTAINER=agent-payment-decision-lnd*` as the live payer |
+
+Splitting Alice on AWS and Bob on Mac breaks the file bus unless they rsync (**out of scope**).
+
+## 5. Setup
 
 Do **not** use `uv run python` for this demo on 3.13/3.14: it recreates `.venv`, skips `.[nostr]`, then `import pynostr` fails. Use `./examples/swarm_l402.sh` or `.venv-nostr/bin/python examples/swarm_l402_negotiate.py`.
 
-If both swarm processes run on AWS, use the AWS container; if the script pays from the Mac, use the Mac container. Copy **one** block. On-box agents on AWS may use `http://127.0.0.1:8081/...` for HTTP; paying that invoice with AWS LND can self-pay (see §3).
+If both swarm processes run on the **Mac** (live), use the **Mac** container. The AWS column is for invoicing or debugging on the instance, **not** paying the local Aperture invoice.
 
-Before a **new live** run, if `.nostr-poc/bus/` already has files for this URL’s `invoice_id`, clear them:
+Before a **new live** run (or any rerun of the same `--url`), clear the bus — `invoice_id` is derived from the URL; leftover `*_result.json` reuses the old pay:
 
 ```bash
 rm -f .nostr-poc/bus/*.json
 ```
 
-(`invoice_id` is derived from `--url`; leftover `*_result.json` will confuse a second pay.)
-
 ### First time (no `.venv-nostr` yet)
 
 ```bash
-cd ~/agent-bitcoin   # or the Mac clone
+cd ~/agent-bitcoin   # Mac clone for live; AWS clone is fine for mock
 git pull
 uv venv -p 3.12 .venv-nostr
 uv pip install --python .venv-nostr/bin/python -e '.[nostr]'
@@ -49,14 +83,12 @@ export NOSTR_PASSPHRASE='choose-a-local-passphrase'
 export NOSTR_POC_DIR=.nostr-poc
 ```
 
-Then copy **one** of Regtest / Signet / Mainnet. First run can use `--force-new-keys` once. Reuse the same dir so alice/bob keep their npubs.
-
-Start agents with `./examples/swarm_l402.sh` (see §5) or `.venv-nostr/bin/python examples/swarm_l402_negotiate.py`.
+Then copy **one** network block. First run can use `--force-new-keys` once. Reuse the same dir so alice/bob keep their npubs.
 
 ### Every later run
 
 ```bash
-cd ~/agent-bitcoin   # or the Mac clone
+cd ~/agent-bitcoin
 # git pull   # optional
 # skip uv venv if .venv-nostr exists
 # uv pip install --python .venv-nostr/bin/python -e '.[nostr]'
@@ -66,11 +98,11 @@ export NOSTR_PASSPHRASE='choose-a-local-passphrase'
 export NOSTR_POC_DIR=.nostr-poc
 ```
 
-Same network block as last time. Same wrapper / `.venv-nostr` python (§5). Do not recreate the venv.
+Same network block as last time. Same wrapper. Do not recreate the venv.
 
 ### Regtest
 
-**Mac payer**
+**Mac payer (live swarm)**
 
 ```bash
 export LND_NETWORK=regtest
@@ -78,7 +110,7 @@ export LND_CONTAINER=agent-bitcoin-lnd
 export LND_TRANSPORT=docker
 ```
 
-**AWS payer (this demo on EC2)**
+**AWS LND (invoice / debug — not live swarm payer)**
 
 ```bash
 export LND_NETWORK=regtest
@@ -86,11 +118,11 @@ export LND_CONTAINER=agent-payment-decision-lnd
 export LND_TRANSPORT=docker
 ```
 
-No mainnet latches. On-box L402 URL `http://127.0.0.1:8081/...` if agents run on AWS.
+No mainnet latches. Mock may use `http://127.0.0.1:8081/...` on either host.
 
 ### Signet
 
-**Mac payer**
+**Mac payer (live swarm)**
 
 ```bash
 export LND_NETWORK=signet
@@ -98,7 +130,7 @@ export LND_CONTAINER=agent-bitcoin-lnd-signet
 export LND_TRANSPORT=docker
 ```
 
-**AWS payer (this demo on EC2)**
+**AWS LND (invoice / debug — not live swarm payer)**
 
 ```bash
 export LND_NETWORK=signet
@@ -110,7 +142,7 @@ No mainnet latches. Confirm L402 started with `./startup-l402-aws.sh signet`.
 
 ### Mainnet
 
-**Mac payer**
+**Mac payer (live swarm)** — latches only here:
 
 ```bash
 export LND_NETWORK=mainnet
@@ -120,23 +152,42 @@ export AGENT_BITCOIN_ALLOW_MAINNET=1
 export AGENT_BITCOIN_ALLOW_AUTOPAY=1
 ```
 
-**AWS payer (this demo on EC2)**
+**AWS LND (invoice / debug — not live swarm payer)**
 
 ```bash
 export LND_NETWORK=mainnet
 export LND_CONTAINER=agent-payment-decision-lnd-mainnet
 export LND_TRANSPORT=docker
-export AGENT_BITCOIN_ALLOW_MAINNET=1
-export AGENT_BITCOIN_ALLOW_AUTOPAY=1
 ```
 
-Real sats. Autoloop stays off. Only if you intend a live 100-sat pay.
+Real sats. Autoloop stays off. Only if you intend a live 100-sat pay from the **Mac**.
 
-## 5. Run
+## 6. Live preflight (Mac)
 
-Same commands for first time and later runs.
+Mainnet names shown. Regtest/signet: `agent-bitcoin-lnd` / `agent-bitcoin-lnd-signet` and `--network=regtest|signet`. No secrets.
 
-Engineer path — **two terminals**, shared bus directory:
+```bash
+docker exec agent-bitcoin-lnd-mainnet lncli --lnddir=/home/lnd/.lnd \
+  --network=mainnet getinfo
+docker exec agent-bitcoin-lnd-mainnet lncli --lnddir=/home/lnd/.lnd \
+  --network=mainnet listchannels
+# want: unlocked, synced; a channel active with local_balance >> 100
+
+curl -sS -o /dev/null -w '%{http_code}\n' http://<AWS_EIP>:8081/health
+# 200
+curl -sS -o /dev/null -w '%{http_code}\n' \
+  http://<AWS_EIP>:8081/paid/finance/mempool-feerate
+# 402
+
+rm -f .nostr-poc/bus/*.json
+# if health times out: ./update-aws-sg-my-ip.sh   # do not world-open 8081
+```
+
+## 7. Run
+
+Same wrapper for first time and later runs. `--relay` is accepted and ignored; happy path is `.nostr-poc/bus/`.
+
+### Mock (any one host)
 
 ```bash
 # Terminal A
@@ -152,56 +203,61 @@ One process (two threads):
 ./examples/swarm_l402.sh --role both --offline-bus --no-llm
 ```
 
-Live L402 (after offline works). Typical: Mac, URL is the AWS EIP, price 100:
+### Live (Mac, two terminals, empty bus)
+
+Alice or Bob first is fine after `rm -f .nostr-poc/bus/*.json`. **No** `--offline-bus`.
 
 ```bash
-./examples/swarm_l402.sh --role alice \
-  --url http://<AWS_EIP>:8081/paid/finance/mempool-feerate --price 100 --no-llm
-# other terminal: --role bob, same --url --price
+# Terminal A
+./examples/swarm_l402.sh --role alice --no-llm \
+  --url http://<AWS_EIP>:8081/paid/finance/mempool-feerate --price 100
+
+# Terminal B
+./examples/swarm_l402.sh --role bob --no-llm \
+  --url http://<AWS_EIP>:8081/paid/finance/mempool-feerate --price 100
 ```
 
-`--relay` is accepted and ignored; public relays often filter new keys. Happy path is `.nostr-poc/bus/`.
-
-Expected log lines (npubs will differ):
+Expected log lines (npubs will differ). Mock bands are **3/2/1**; live bands come from the origin:
 
 ```text
 [alice] npub=npub1… invoice_id=… score=…
 [bob]   npub=npub1… invoice_id=… score=…
-[alice] winner_npub=npub1… i_pay=True reason=lower_score
-[alice] l402 status=200 paid=True amount_sats=100 summary={'fast': 3, 'medium': 2, 'slow': 1}
-[bob]   result payer_npub=npub1… paid=True summary={'fast': 3, 'medium': 2, 'slow': 1}
+[alice] winner_npub=npub1… i_pay=True reason=higher_score
+[alice] l402 status=200 paid=True amount_sats=100 summary={'fast': …, 'medium': …, 'slow': …}
+[bob]   result payer_npub=npub1… paid=True summary={'fast': …, 'medium': …, 'slow': …}
 ```
 
 With `XAI_API_KEY` and without `--no-llm`, each agent may print `[alice] grok: …` / `[bob] grok: …`.
 
-## 6. How to check the Lightning pay
+## 8. How to check the Lightning pay
 
 - Client: `status=200` and `paid=True` on the winner line
-- Origin JSON: integers `fast` / `medium` / `slow` only in the summary (not the full envelope)
-- LND (payer container; redacted):
+- Origin JSON: integers `fast` / `medium` / `slow` only in the summary
+- **Mock:** skip `listpayments` (no sats)
+- **Live:** on the **Mac** node (redacted):
 
 ```bash
-docker exec "$LND_CONTAINER" lncli --lnddir=/home/lnd/.lnd \
-  --network="$LND_NETWORK" listpayments --max_payments 3
-# Look at value_sat ≈ 100 and a payment_hash (hex). Do not paste preimages.
+docker exec agent-bitcoin-lnd-mainnet lncli --lnddir=/home/lnd/.lnd \
+  --network=mainnet listpayments --max_payments 3
+# ~100 sat SUCCEEDED. Do not paste preimages.
 ```
 
-`--offline-bus` does **not** move sats; skip `listpayments`.
-
-## 7. How IDs show up
+## 9. How IDs show up
 
 Printed: `npub=npub1…`. Encrypted nsec stays in `.nostr-poc/alice.enc.json` and `bob.enc.json` (mode 0600). Never print or commit nsec.
 
-## 8. Troubleshooting
+## 10. Troubleshooting
 
 | Symptom | What to do |
 |---------|------------|
 | 402 loop / `paid=False` | Price mismatch: pass `--price 100` for feerate. Client default elsewhere is 1000. |
-| Connection refused :8081 | L402 not up, or you are not on the instance / not on the `/32`. **Do not open SG.** `./startup-l402-aws.sh <network>` |
-| LND locked / macaroon errors | Unlock the **payer** wallet; `LND_CONTAINER` / `LND_NETWORK` match compose |
+| Connection refused / health timeout :8081 | Not on the `/32`. `./update-aws-sg-my-ip.sh`. **Do not open SG.** L402: `./startup-l402-aws.sh <network>` |
+| LND locked / macaroon errors | Unlock the **Mac payer** wallet; `LND_CONTAINER` is `agent-bitcoin-lnd*` |
 | Amount below floor | Min invoice is **100 sats** (`MIN_PAYMENT_SATS`) |
-| `self payment` / `no route` | Paying AWS Aperture with AWS LND. Run the two agents on the Mac with `--url http://<EIP>:8081/…` |
-| Timeout waiting for peer | Same `--dir`, same `--url`, both processes running; bus is `$NOSTR_POC_DIR/bus/` |
-| Missing pynostr | Do not use `uv run python`. `uv venv -p 3.12 .venv-nostr` then `uv pip install --python .venv-nostr/bin/python -e '.[nostr]'`. Run `./examples/swarm_l402.sh` |
+| `No such container: agent-bitcoin-lnd-mainnet` on AWS | Wrong host. Live payer is the **Mac** |
+| `self-payments not allowed` | Payer == invoice node. Use Mac `agent-bitcoin-lnd*` + `--url http://<AWS_EIP>:8081/…`. Do not enable LND self-pay |
+| Alice exits instantly with bands 3/2/1 | Stale bus and/or `--offline-bus`. `rm -f .nostr-poc/bus/*.json` |
+| Timeout waiting for peer | Same `--dir`, same `--url`, both processes on **one** Mac; bus is `$NOSTR_POC_DIR/bus/` |
+| Missing pynostr / uv 3.14 | Do not use `uv run python`. `uv venv -p 3.12 .venv-nostr` then `uv pip install --python .venv-nostr/bin/python -e '.[nostr]'`. Run `./examples/swarm_l402.sh` |
 
 Sequence of a paid GET: [docs/architecture.md — L402 request sequence](../docs/architecture.md#l402-request-sequence). Operator gateway: [docs/l402-aperture.md](../docs/l402-aperture.md).

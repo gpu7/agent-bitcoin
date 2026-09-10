@@ -187,3 +187,84 @@ def test_offline_both_cli_no_live_pay(
     assert payload["paid"] is True
     assert "preimage" not in payload
     assert "macaroon" not in json.dumps(payload)
+
+
+def _cli_env(
+    monkeypatch: pytest.MonkeyPatch, extra: dict[str, str] | None = None
+) -> dict[str, str]:
+    monkeypatch.delenv("XAI_API_KEY", raising=False)
+    monkeypatch.delenv("AGENT_BITCOIN_ALLOW_MAINNET", raising=False)
+    env = {
+        **os.environ,
+        "NOSTR_PASSPHRASE": "test-offline-passphrase-not-a-secret",
+        "PYTHONPATH": str(ROOT) + os.pathsep + os.environ.get("PYTHONPATH", ""),
+    }
+    if extra:
+        env.update(extra)
+    return env
+
+
+def test_stale_result_refuses_rerun(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pytest.importorskip("pynostr")
+    from agent_bitcoin.nostr.negotiate import invoice_id_for_url
+
+    iid = invoice_id_for_url("http://127.0.0.1:8081/paid/finance/mempool-feerate")
+    bus = tmp_path / "bus"
+    bus.mkdir()
+    (bus / f"{iid}_result.json").write_text("{}\n", encoding="utf-8")
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(EXAMPLE),
+            "--role",
+            "both",
+            "--offline-bus",
+            "--no-llm",
+            "--dir",
+            str(tmp_path),
+            "--timeout",
+            "5",
+        ],
+        cwd=str(ROOT),
+        env=_cli_env(monkeypatch),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    out = proc.stdout + proc.stderr
+    assert proc.returncode != 0, out
+    assert "Stale bus result" in out
+    assert "rm -f" in out
+
+
+def test_live_aws_container_is_self_pay(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pytest.importorskip("pynostr")
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(EXAMPLE),
+            "--role",
+            "alice",
+            "--no-llm",
+            "--dir",
+            str(tmp_path),
+            "--timeout",
+            "2",
+        ],
+        cwd=str(ROOT),
+        env=_cli_env(
+            monkeypatch,
+            {"LND_CONTAINER": "agent-payment-decision-lnd-mainnet"},
+        ),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    out = proc.stdout + proc.stderr
+    assert proc.returncode != 0, out
+    assert "self-pay" in out
+    assert "create_client" not in out

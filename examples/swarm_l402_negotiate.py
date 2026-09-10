@@ -4,7 +4,12 @@
 Identity: Phase A/B encrypted keys under .nostr-poc/ (same as nostr_phase_b_payment.py).
 Transport: file bus (.nostr-poc/bus/). --relay is documented but unused.
 Pay: L402Client (same 402 → pay → retry as l402_pay.py). Coded policy picks
-the payer; optional Grok only explains. --offline-bus skips live Lightning.
+the payer; optional Grok only explains.
+
+Mock (any one host): --offline-bus (no sats; fixture bands 3/2/1).
+Live: both processes on the Mac; Mac LND agent-bitcoin-lnd* pays AWS Aperture.
+  --url http://<AWS_EIP>:8081/paid/finance/mempool-feerate --price 100
+Do not live-pay with LND_CONTAINER=agent-payment-decision-lnd* (self-pay).
 
 Engineer path (two terminals):
 
@@ -228,8 +233,9 @@ def run_role(args: argparse.Namespace, role: str) -> int:
         winner_npub, reason = choose_payer(peer_npub, peer_score, npub, score)
 
     i_pay = winner_npub == npub
+    log_reason = "higher_score" if i_pay and reason == "lower_score" else reason
     print(
-        f"[{role}] winner_npub={winner_npub} i_pay={i_pay} reason={reason} "
+        f"[{role}] winner_npub={winner_npub} i_pay={i_pay} reason={log_reason} "
         f"peer_score={peer_score}"
     )
 
@@ -295,7 +301,12 @@ def run_role(args: argparse.Namespace, role: str) -> int:
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Two-agent Nostr swarm: negotiate who pays one L402 GET"
+        description=(
+            "Two-agent Nostr swarm: who pays one L402 GET. "
+            "Mock: --offline-bus. Live: Mac payer agent-bitcoin-lnd* + "
+            "--url http://<AWS_EIP>:8081/paid/finance/mempool-feerate "
+            "(not 127.0.0.1 on AWS; that is self-pay)."
+        )
     )
     parser.add_argument(
         "--role",
@@ -316,7 +327,10 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--url",
         default=os.getenv("L402_URL", DEFAULT_L402_URL),
-        help="Paid L402 URL (default: %(default)s)",
+        help=(
+            "Paid L402 URL (default mock/on-box: %(default)s). "
+            "Live from the Mac: http://<AWS_EIP>:8081/paid/finance/mempool-feerate"
+        ),
     )
     parser.add_argument(
         "--price",
@@ -344,7 +358,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--offline-bus",
         action="store_true",
-        help="Sign bus events and mock L402 (no live pay)",
+        help="Mock L402 (fixture bands 3/2/1; no sats). Omit for live Mac→AWS pay",
     )
     parser.add_argument(
         "--no-llm",
@@ -387,8 +401,35 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return args
 
 
+def _assert_live_payer_not_invoice_node(offline: bool) -> None:
+    """Aperture always invoices AWS LND; paying with that node is self-pay."""
+    if offline:
+        return
+    container = (os.environ.get("LND_CONTAINER") or "").strip()
+    if "agent-payment-decision-lnd" in container:
+        raise SystemExit(
+            "Live L402 pay with LND_CONTAINER="
+            f"{container} is self-pay: Aperture invoices AWS LND. "
+            "Use Mac agent-bitcoin-lnd* and "
+            "--url http://<AWS_EIP>:8081/… or --offline-bus. "
+            "See examples/swarm_l402.md."
+        )
+
+
+def _assert_no_stale_result(bus: Path, iid: str) -> None:
+    path = bus / f"{iid}_result.json"
+    if path.is_file():
+        raise SystemExit(
+            f"Stale bus result {path}. Clear before a new run:\n"
+            "  rm -f .nostr-poc/bus/*.json"
+        )
+
+
 def main(argv: list[str] | None = None) -> int:
     args = _parse_args(argv)
+    _assert_live_payer_not_invoice_node(args.offline_bus)
+    iid = invoice_id_for_url(args.url)
+    _assert_no_stale_result(_bus_dir(Path(args.dir)), iid)
     if args.role == "both":
         with ThreadPoolExecutor(max_workers=2) as pool:
             fa = pool.submit(run_role, args, "alice")

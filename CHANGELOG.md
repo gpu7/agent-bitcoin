@@ -1,3 +1,9 @@
+## Docs — swarm L402 live pay is Mac → AWS (2026-09-10)
+
+[examples/swarm_l402.md](examples/swarm_l402.md): mock vs live; live topology is Mac payer + AWS Aperture. Script refuses AWS `agent-payment-decision-lnd*` live pay and stale bus `*_result.json`. Not a new endpoint.
+
+---
+
 ## Docs — swarm L402 LND_CONTAINER Mac vs AWS (2026-09-10)
 
 [examples/swarm_l402.md](examples/swarm_l402.md): each network has Mac (`agent-bitcoin-lnd*`) and AWS (`agent-payment-decision-lnd*`) copy-paste blocks. Not a new endpoint.
