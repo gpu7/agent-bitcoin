@@ -1,3 +1,9 @@
+## Docs — swarm L402 LND_CONTAINER Mac vs AWS (2026-09-10)
+
+[examples/swarm_l402.md](examples/swarm_l402.md): each network has Mac (`agent-bitcoin-lnd*`) and AWS (`agent-payment-decision-lnd*`) copy-paste blocks. Not a new endpoint.
+
+---
+
 ## Docs — swarm L402 first-time vs repeat setup (2026-09-10)
 
 [examples/swarm_l402.md](examples/swarm_l402.md) §4: create `.venv-nostr` once; later runs skip `uv venv`. Not a new endpoint.
