@@ -1,3 +1,9 @@
+## Docs — swarm L402 first-time vs repeat setup (2026-09-10)
+
+[examples/swarm_l402.md](examples/swarm_l402.md) §4: create `.venv-nostr` once; later runs skip `uv venv`. Not a new endpoint.
+
+---
+
 ## Docs/DX — swarm L402 uses .venv-nostr wrapper (2026-09-10)
 
 [examples/swarm_l402.sh](examples/swarm_l402.sh) runs the demo on Python 3.12 + `.[nostr]`. Do not use `uv run python` on 3.13/3.14. Not a new endpoint.
