@@ -33,7 +33,7 @@ The loser reads the signed `result` on the bus.
 
 **Do not** world-open 8081 or 10009. Do not put nsec, NWC URIs, macaroons, or `XAI_API_KEY` in git. `.nostr-poc/` is gitignored.
 
-Live HTTP is from the **Mac** to `http://<AWS_EIP>:8081`. On-box `http://127.0.0.1:8081` is for **mock** or for a client whose payer LND is **not** the Aperture invoice node (AWS LND).
+Live HTTP is from the **Mac** to `http://3.90.159.146:8081`. On-box `http://127.0.0.1:8081` is for **mock** or for a client whose payer LND is **not** the Aperture invoice node (AWS LND).
 
 ## 4. Two demo modes
 
@@ -173,10 +173,10 @@ docker exec agent-bitcoin-lnd-mainnet lncli --lnddir=/home/lnd/.lnd \
   --network=mainnet listchannels
 # want: unlocked, synced; a channel active with local_balance >> 100
 
-curl -sS -o /dev/null -w '%{http_code}\n' http://<AWS_EIP>:8081/health
+curl -sS -o /dev/null -w '%{http_code}\n' http://3.90.159.146:8081/health
 # 200
 curl -sS -o /dev/null -w '%{http_code}\n' \
-  http://<AWS_EIP>:8081/paid/finance/mempool-feerate
+  http://3.90.159.146:8081/paid/finance/mempool-feerate
 # 402
 
 rm -f .nostr-poc/bus/*.json
@@ -210,11 +210,11 @@ Alice or Bob first is fine after `rm -f .nostr-poc/bus/*.json`. **No** `--offlin
 ```bash
 # Terminal A
 ./examples/swarm_l402.sh --role alice --no-llm \
-  --url http://<AWS_EIP>:8081/paid/finance/mempool-feerate --price 100
+  --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
 
 # Terminal B
 ./examples/swarm_l402.sh --role bob --no-llm \
-  --url http://<AWS_EIP>:8081/paid/finance/mempool-feerate --price 100
+  --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
 ```
 
 Expected log lines (npubs will differ). Mock bands are **3/2/1**; live bands come from the origin:
@@ -255,7 +255,7 @@ Printed: `npub=npub1…`. Encrypted nsec stays in `.nostr-poc/alice.enc.json` an
 | LND locked / macaroon errors | Unlock the **Mac payer** wallet; `LND_CONTAINER` is `agent-bitcoin-lnd*` |
 | Amount below floor | Min invoice is **100 sats** (`MIN_PAYMENT_SATS`) |
 | `No such container: agent-bitcoin-lnd-mainnet` on AWS | Wrong host. Live payer is the **Mac** |
-| `self-payments not allowed` | Payer == invoice node. Use Mac `agent-bitcoin-lnd*` + `--url http://<AWS_EIP>:8081/…`. Do not enable LND self-pay |
+| `self-payments not allowed` | Payer == invoice node. Use Mac `agent-bitcoin-lnd*` + `--url http://3.90.159.146:8081/…`. Do not enable LND self-pay |
 | Alice exits instantly with bands 3/2/1 | Stale bus and/or `--offline-bus`. `rm -f .nostr-poc/bus/*.json` |
 | Timeout waiting for peer | Same `--dir`, same `--url`, both processes on **one** Mac; bus is `$NOSTR_POC_DIR/bus/` |
 | Missing pynostr / uv 3.14 | Do not use `uv run python`. `uv venv -p 3.12 .venv-nostr` then `uv pip install --python .venv-nostr/bin/python -e '.[nostr]'`. Run `./examples/swarm_l402.sh` |
