@@ -32,13 +32,41 @@ uv sync --python 3.12 --extra nostr --group dev
 
 export NOSTR_PASSPHRASE='choose-a-local-passphrase'
 export NOSTR_POC_DIR=.nostr-poc
-# Payer LND (Mac, typical live path):
-export LND_NETWORK=regtest          # or signet / mainnet
-export LND_CONTAINER=agent-bitcoin-lnd   # *-signet / *-mainnet on those nets
-export LND_TRANSPORT=docker
-# Mainnet live pay also needs:
-# export AGENT_BITCOIN_ALLOW_MAINNET=1 AGENT_BITCOIN_ALLOW_AUTOPAY=1
 ```
+
+Typical live payer is **Mac LND** (outbound to the AWS Aperture invoice). Copy **one** block. On-box agents on AWS may use `http://127.0.0.1:8081/...` for HTTP; paying that invoice with AWS LND can self-pay (see §3).
+
+### Regtest
+
+```bash
+export LND_NETWORK=regtest
+export LND_CONTAINER=agent-bitcoin-lnd
+export LND_TRANSPORT=docker
+```
+
+No mainnet latches. On-box L402 URL `http://127.0.0.1:8081/...` if agents run on AWS.
+
+### Signet
+
+```bash
+export LND_NETWORK=signet
+export LND_CONTAINER=agent-bitcoin-lnd-signet
+export LND_TRANSPORT=docker
+```
+
+No mainnet latches. Confirm L402 started with `./startup-l402-aws.sh signet`.
+
+### Mainnet
+
+```bash
+export LND_NETWORK=mainnet
+export LND_CONTAINER=agent-bitcoin-lnd-mainnet
+export LND_TRANSPORT=docker
+export AGENT_BITCOIN_ALLOW_MAINNET=1
+export AGENT_BITCOIN_ALLOW_AUTOPAY=1
+```
+
+Real sats. Autoloop stays off. Only if you intend a live 100-sat pay.
 
 First run can use `--force-new-keys` once. Reuse the same dir so alice/bob keep their npubs.
 
