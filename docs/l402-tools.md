@@ -24,6 +24,7 @@ This is **not** a public catalog. The operator’s security group is **`/32`**. 
 6. Wiring, SG, and restart: [l402-aperture.md](./l402-aperture.md). Mainnet pays still need the usual latches on the payer.
 
 Sequence (402 → pay → retry): [architecture.md — L402 request sequence](./architecture.md#l402-request-sequence).
+Two agents negotiate who pays one GET: [examples/swarm_l402.md](../examples/swarm_l402.md).
 
 Placeholder host below is `http://<L402_HOST>:8081`. Use a **test** invoice for decode/preflight examples, not a live mainnet pay request.
 
