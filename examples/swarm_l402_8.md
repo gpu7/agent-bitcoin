@@ -28,6 +28,8 @@ Each agent’s score is SHA-256 of this UTF-8 string, with **no separators**: lo
 
 Same keys, same URL (`invoice_id`), and same `--round` → the same winner. One L402 pay per successful run.
 
+The eight-agent demo stays **`--resolve hash`**. Puzzle (`fee-sats`) is documented for two agents in [swarm_l402.md](./swarm_l402.md).
+
 ## 2. Prerequisites
 
 - L402 stack up on AWS: `./startup-l402-aws.sh <regtest|signet|mainnet>`
