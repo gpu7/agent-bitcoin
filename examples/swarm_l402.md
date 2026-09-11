@@ -22,6 +22,14 @@ Each agent prints its **npub** (never nsec), a deterministic score, then who pay
 
 The loser reads the signed `result` on the bus.
 
+## How the winner is chosen
+
+Not Grok and not Lightning. `--no-llm` only skips an optional one-sentence explanation. Coded policy picks the payer.
+
+Each agent’s score is SHA-256 of this UTF-8 string, with **no separators**: lowercase hex pubkey + `invoice_id` + decimal `round`. `invoice_id` is the first 16 hex characters of SHA-256 of the paid URL. The score is the first **8 hex characters** of that digest, read as an integer. **Highest score pays.** If scores tie, the lexicographically larger npub pays.
+
+Same keys, same URL (`invoice_id`), and same `--round` → the same winner. One L402 pay per successful run.
+
 ## 2. Prerequisites
 
 - L402 stack up on AWS: `./startup-l402-aws.sh <regtest|signet|mainnet>`
