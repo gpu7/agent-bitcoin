@@ -1,3 +1,9 @@
+## Docs — swarm_l402_8.md matches two-agent setup style (2026-09-11)
+
+[examples/swarm_l402_8.md](examples/swarm_l402_8.md): first-time vs later `.venv-nostr`; copy-paste regtest / signet / mainnet Mac payer blocks. Live still Mac → AWS. Not a new endpoint.
+
+---
+
 ## Docs — lab EIP 3.90.159.146 (2026-09-11)
 
 Copy-paste URLs and example startup argv use `3.90.159.146`. SG `/32` unchanged. Not a new endpoint.
