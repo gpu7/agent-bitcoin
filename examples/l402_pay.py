@@ -5,47 +5,47 @@ Example (regtest, Mac → AWS):
 
     LND_NETWORK=regtest LND_CONTAINER=agent-bitcoin-lnd \\
       uv run python examples/l402_pay.py \\
-      --url http://<AWS_EIP>:8081/paid/hello
+      --url http://3.90.159.146:8081/paid/hello
 
 Signet:
 
     LND_NETWORK=signet LND_CONTAINER=agent-bitcoin-lnd-signet \\
       uv run python examples/l402_pay.py \\
-      --url http://<AWS_EIP>:8081/paid/hello
+      --url http://3.90.159.146:8081/paid/hello
 
 Mainnet (real sats; latches required):
 
     AGENT_BITCOIN_ALLOW_MAINNET=1 AGENT_BITCOIN_ALLOW_AUTOPAY=1 \\
     LND_NETWORK=mainnet LND_CONTAINER=agent-bitcoin-lnd-mainnet \\
       uv run python examples/l402_pay.py \\
-      --url http://<AWS_EIP>:8081/paid/hello
+      --url http://3.90.159.146:8081/paid/hello
 
 Paid PDF / PNG (same 1,000 sat price):
 
-    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/report.pdf --out report.pdf
-    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/script.pdf --out script.pdf
-    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/badge.png --out badge.png
+    ... l402_pay.py --url http://3.90.159.146:8081/paid/report.pdf --out report.pdf
+    ... l402_pay.py --url http://3.90.159.146:8081/paid/script.pdf --out script.pdf
+    ... l402_pay.py --url http://3.90.159.146:8081/paid/badge.png --out badge.png
 
 On-chain fee bands (100 sats; pass --price because the client default is 1000):
 
-    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/finance/mempool-feerate --price 100
-    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/finance/mempool-backlog --price 100
-    ... l402_pay.py --url 'http://<AWS_EIP>:8081/paid/finance/fee-for-vsize?vsize=250' --price 100
-    ... l402_pay.py --url 'http://<AWS_EIP>:8081/paid/finance/confirm-target?minutes=30' --price 100
-    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/finance/btc-usd --price 100
-    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/finance/ln-path-fee-hint \\
+    ... l402_pay.py --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
+    ... l402_pay.py --url http://3.90.159.146:8081/paid/finance/mempool-backlog --price 100
+    ... l402_pay.py --url 'http://3.90.159.146:8081/paid/finance/fee-for-vsize?vsize=250' --price 100
+    ... l402_pay.py --url 'http://3.90.159.146:8081/paid/finance/confirm-target?minutes=30' --price 100
+    ... l402_pay.py --url http://3.90.159.146:8081/paid/finance/btc-usd --price 100
+    ... l402_pay.py --url http://3.90.159.146:8081/paid/finance/ln-path-fee-hint \\
           --price 100 --method POST --json '{"dest_pubkey":"<66 hex>","amount_sats":1000}'
-    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/finance/ln-invoice-decode \\
+    ... l402_pay.py --url http://3.90.159.146:8081/paid/finance/ln-invoice-decode \\
           --price 100 --method POST --json '{"bolt11":"<test invoice>"}'
-    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/finance/ln-invoice-preflight \\
+    ... l402_pay.py --url http://3.90.159.146:8081/paid/finance/ln-invoice-preflight \\
           --price 100 --method POST \\
           --json '{"bolt11":"<test invoice>","max_sats":50000,"network":"bitcoin"}'
-    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/nostr/event-verify \\
+    ... l402_pay.py --url http://3.90.159.146:8081/paid/nostr/event-verify \\
           --price 100 --method POST \\
           --json '{"id":"...","pubkey":"...","created_at":1,"kind":1,"tags":[],"content":"","sig":"..."}'
-    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/nostr/npub-decode \\
+    ... l402_pay.py --url http://3.90.159.146:8081/paid/nostr/npub-decode \\
           --price 100 --method POST --json '{"entity":"npub1..."}'
-    ... l402_pay.py --url http://<AWS_EIP>:8081/paid/nostr/zap-receipt-inspect \\
+    ... l402_pay.py --url http://3.90.159.146:8081/paid/nostr/zap-receipt-inspect \\
           --price 100 --method POST \\
           --json '{"id":"...","pubkey":"...","created_at":1,"kind":9735,"tags":[],"content":"","sig":"..."}'
 

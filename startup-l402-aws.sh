@@ -79,6 +79,6 @@ echo "Paid npub-decode:  POST /paid/nostr/npub-decode  (100 sats; --method POST 
 echo "Paid zap-inspect:  POST /paid/nostr/zap-receipt-inspect  (100 sats; --method POST --json)"
 echo "From Mac:          ./update-aws-sg-my-ip.sh   # include port 8081"
 echo "                   LND_NETWORK=$NETWORK LND_CONTAINER=<mac-lnd> \\"
-echo "                     uv run python examples/l402_pay.py --url http://<AWS_EIP>:8081/paid/hello"
+echo "                     uv run python examples/l402_pay.py --url http://3.90.159.146:8081/paid/hello"
 echo
 docker compose -f "$COMPOSE" ps

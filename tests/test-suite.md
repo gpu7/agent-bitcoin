@@ -20,7 +20,7 @@ export AGENT_BITCOIN_API_KEY=...
 uv run python tests/test_aws_integration.py --network signet \
   --backend-url http://127.0.0.1:8000
 uv run python tests/test_aws_integration.py --network regtest \
-  --backend-url http://<AWS_EIP>:8000
+  --backend-url http://3.90.159.146:8000
 ```
 
 ## Networks

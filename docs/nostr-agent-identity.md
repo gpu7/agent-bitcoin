@@ -480,7 +480,7 @@ export NOSTR_PASSPHRASE='…same passphrase…'
 rsync -az -e "ssh -i ~/.ssh/aws/agent-bitcoin-key.pem -o IdentitiesOnly=yes" \
   --exclude 'PASSPHRASE.local' \
   .nostr-poc-mainnet/ \
-  ubuntu@<AWS_EIP>:~/agent-bitcoin/.nostr-poc-mainnet/
+  ubuntu@3.90.159.146:~/agent-bitcoin/.nostr-poc-mainnet/
 ```
 
 ### Stage 5 — Dry-run (no money movement) — **run first**
@@ -527,7 +527,7 @@ export NOSTR_PASSPHRASE='…'
 # Sync keys + bus to AWS (if not already)
 rsync -az -e "ssh -i ~/.ssh/aws/agent-bitcoin-key.pem -o IdentitiesOnly=yes" \
   --exclude 'PASSPHRASE.local' \
-  "$NOSTR_POC_DIR"/ ubuntu@<AWS_EIP>:~/agent-bitcoin/.nostr-poc-mainnet/
+  "$NOSTR_POC_DIR"/ ubuntu@3.90.159.146:~/agent-bitcoin/.nostr-poc-mainnet/
 
 # --- AWS: invoice (real addinvoice) ---
 # ssh to AWS, then:
@@ -543,7 +543,7 @@ export NOSTR_PASSPHRASE='…'
 
 # --- Mac: pull bus offer, then pay ---
 rsync -az -e "ssh -i ~/.ssh/aws/agent-bitcoin-key.pem -o IdentitiesOnly=yes" \
-  ubuntu@<AWS_EIP>:~/agent-bitcoin/.nostr-poc-mainnet/bus/ "$NOSTR_POC_DIR/bus/"
+  ubuntu@3.90.159.146:~/agent-bitcoin/.nostr-poc-mainnet/bus/ "$NOSTR_POC_DIR/bus/"
 
 .venv-nostr/bin/python examples/nostr_phase_b_payment.py \
   --dir "$NOSTR_POC_DIR" --passphrase "$NOSTR_PASSPHRASE" pay

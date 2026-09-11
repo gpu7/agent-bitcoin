@@ -59,7 +59,7 @@ Two-agent swarm (who pays one GET): [examples/swarm_l402.md](../examples/swarm_l
 
 ## Wallets and chain backends
 
-Mainnet names; signet/regtest are analogous ([l402-aperture.md](./l402-aperture.md) table).
+Lab EIP is `3.90.159.146` (stable). Mainnet names; signet/regtest are analogous ([l402-aperture.md](./l402-aperture.md) table).
 
 Each host has its own **bitcoind** (blocks) and its own **LND wallet** (keys, on-chain sats, channel sats). bitcoind does not hold spend keys in this lab — LND `wallet.db` does.
 

@@ -6,6 +6,7 @@
 **Agent tools:** what each paid JSON path is for, and one example call — [l402-tools.md](./l402-tools.md). This page is the operator runbook (startup, SG, YAML).
 
 Deployment diagram: [architecture.md](./architecture.md).
+Lab EIP is `3.90.159.146` (stable).
 
 ## What it is
 
@@ -94,7 +95,7 @@ export LND_NETWORK=regtest LND_CONTAINER=agent-bitcoin-lnd
 # export LND_NETWORK=signet LND_CONTAINER=agent-bitcoin-lnd-signet
 # Mainnet (also AGENT_BITCOIN_ALLOW_MAINNET=1 AGENT_BITCOIN_ALLOW_AUTOPAY=1)
 
-uv run python examples/l402_pay.py --url http://<AWS_EIP>:8081/paid/hello
+uv run python examples/l402_pay.py --url http://3.90.159.146:8081/paid/hello
 ```
 
 Expect `status=200 paid=True` and JSON `{"ok": true, "service": "l402-demo", "network": "<regtest|signet|mainnet>", "msg": "hello"}`.
@@ -102,70 +103,70 @@ Expect `status=200 paid=True` and JSON `{"ok": true, "service": "l402-demo", "ne
 Paid PDF (same price; origin writes a one-page Helvetica demo):
 
 ```bash
-uv run python examples/l402_pay.py --url http://<AWS_EIP>:8081/paid/report.pdf --out report.pdf
+uv run python examples/l402_pay.py --url http://3.90.159.146:8081/paid/report.pdf --out report.pdf
 # open report.pdf — text: "agent-bitcoin L402 demo report"
 
-uv run python examples/l402_pay.py --url http://<AWS_EIP>:8081/paid/badge.png --out badge.png
+uv run python examples/l402_pay.py --url http://3.90.159.146:8081/paid/badge.png --out badge.png
 # open badge.png — gold "L402 PAID" on a dark badge
 
-uv run python examples/l402_pay.py --url http://<AWS_EIP>:8081/paid/script.pdf --out script.pdf
+uv run python examples/l402_pay.py --url http://3.90.159.146:8081/paid/script.pdf --out script.pdf
 # open script.pdf — text from l402/generate_script_pdf.py
 
 # On-chain fee bands (100 sats). L402Client default expected price is 1000 — pass --price 100.
 uv run python examples/l402_pay.py \
-  --url http://<AWS_EIP>:8081/paid/finance/mempool-feerate --price 100
+  --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
 
 # Mempool fullness (100 sats) — tx count / vbytes, not fee bands
 uv run python examples/l402_pay.py \
-  --url http://<AWS_EIP>:8081/paid/finance/mempool-backlog --price 100
+  --url http://3.90.159.146:8081/paid/finance/mempool-backlog --price 100
 
 # Total fee for a tx size in **vbytes** (not weight). Range 110–100000.
 uv run python examples/l402_pay.py \
-  --url 'http://<AWS_EIP>:8081/paid/finance/fee-for-vsize?vsize=250' --price 100
+  --url 'http://3.90.159.146:8081/paid/finance/fee-for-vsize?vsize=250' --price 100
 
 # Wait window → sat/vB (Helix: 1–20 fast, 21–45 medium, 46–60 slow)
 uv run python examples/l402_pay.py \
-  --url 'http://<AWS_EIP>:8081/paid/finance/confirm-target?minutes=30' --price 100
+  --url 'http://3.90.159.146:8081/paid/finance/confirm-target?minutes=30' --price 100
 uv run python examples/l402_pay.py \
-  --url 'http://<AWS_EIP>:8081/paid/finance/confirm-target?target=fast&vsize=250' --price 100
+  --url 'http://3.90.159.146:8081/paid/finance/confirm-target?target=fast&vsize=250' --price 100
 
 # BTC/USD pass-through (100 sats). Not an FX index — one public JSON URL.
 uv run python examples/l402_pay.py \
-  --url http://<AWS_EIP>:8081/paid/finance/btc-usd --price 100
+  --url http://3.90.159.146:8081/paid/finance/btc-usd --price 100
 
 # Lightning path-fee hint (100 sats). POST JSON; do not put BOLT11 in the URL.
 uv run python examples/l402_pay.py \
-  --url http://<AWS_EIP>:8081/paid/finance/ln-path-fee-hint \
+  --url http://3.90.159.146:8081/paid/finance/ln-path-fee-hint \
   --price 100 --method POST \
   --json '{"dest_pubkey":"<66 hex>","amount_sats":1000}'
 
 # BOLT11 inspect (100 sats). In-process; no LND. Use a test invoice, not a live mainnet pay req.
 uv run python examples/l402_pay.py \
-  --url http://<AWS_EIP>:8081/paid/finance/ln-invoice-decode \
+  --url http://3.90.159.146:8081/paid/finance/ln-invoice-decode \
   --price 100 --method POST \
   --json '{"bolt11":"<test invoice>"}'
 
 # BOLT11 policy gate (100 sats). Reuses decode; no LND.
 uv run python examples/l402_pay.py \
-  --url http://<AWS_EIP>:8081/paid/finance/ln-invoice-preflight \
+  --url http://3.90.159.146:8081/paid/finance/ln-invoice-preflight \
   --price 100 --method POST \
   --json '{"bolt11":"<test invoice>","max_sats":50000,"network":"bitcoin"}'
 
 # NIP-01 id+sig check (100 sats). Bare event JSON. No relay. Do not log content/sig.
 uv run python examples/l402_pay.py \
-  --url http://<AWS_EIP>:8081/paid/nostr/event-verify \
+  --url http://3.90.159.146:8081/paid/nostr/event-verify \
   --price 100 --method POST \
   --json '{"id":"<64 hex>","pubkey":"<64 hex>","created_at":1,"kind":1,"tags":[],"content":"","sig":"<128 hex>"}'
 
 # NIP-19 bech32 → hex (100 sats). nsec is rejected (no secret hex).
 uv run python examples/l402_pay.py \
-  --url http://<AWS_EIP>:8081/paid/nostr/npub-decode \
+  --url http://3.90.159.146:8081/paid/nostr/npub-decode \
   --price 100 --method POST \
   --json '{"entity":"npub1..."}'
 
 # NIP-57 zap receipt inspect (100 sats). Bare event JSON. Not a zap wallet.
 uv run python examples/l402_pay.py \
-  --url http://<AWS_EIP>:8081/paid/nostr/zap-receipt-inspect \
+  --url http://3.90.159.146:8081/paid/nostr/zap-receipt-inspect \
   --price 100 --method POST \
   --json '{"id":"...","pubkey":"...","created_at":1,"kind":9735,"tags":[],"content":"","sig":"..."}'
 ```
@@ -247,7 +248,7 @@ Rebuild origin + Aperture after pull: `./startup-l402-aws.sh mainnet` (do **not*
 from agent_bitcoin import L402Client, create_client
 
 client = L402Client(create_client(), expected_price_sats=1000)
-resp = client.fetch("http://<AWS_EIP>:8081/paid/hello")
+resp = client.fetch("http://3.90.159.146:8081/paid/hello")
 ```
 
 `PaymentResult.preimage` is filled from `lncli sendpayment` / gRPC so the L402 retry can succeed.

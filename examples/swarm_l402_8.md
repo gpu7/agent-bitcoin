@@ -18,7 +18,7 @@ Eight **npubs** (never nsec), eight scores, one `i_pay=True`. That winner runs L
 | Eight swarm processes | **Mac** (shared `.nostr-poc/bus`) |
 | Payer LND | **Mac** `agent-bitcoin-lnd*` |
 | Aperture + invoice LND | **AWS** |
-| URL | `http://<AWS_EIP>:8081/paid/finance/mempool-feerate` |
+| URL | `http://3.90.159.146:8081/paid/finance/mempool-feerate` |
 
 Live pay is **Mac → AWS**. Splitting agents across Mac and AWS breaks the file bus unless they rsync (**out of scope**). Details: [swarm_l402.md](./swarm_l402.md).
 
@@ -46,7 +46,7 @@ Use `./examples/swarm_l402_8.sh` (not `uv run python`).
 | Mode | Flags | Host |
 |------|--------|------|
 | **A. Mock** | `--offline-bus --no-llm` | Any one machine |
-| **B. Live** | **No** `--offline-bus`; `--url http://<AWS_EIP>:8081/… --price 100` | All eight on the **Mac** |
+| **B. Live** | **No** `--offline-bus`; `--url http://3.90.159.146:8081/… --price 100` | All eight on the **Mac** |
 
 Do **not** live-pay with `LND_CONTAINER=agent-payment-decision-lnd*` (Aperture invoices that node → self-pay). The script refuses it.
 
@@ -88,10 +88,10 @@ docker exec agent-bitcoin-lnd-mainnet lncli --lnddir=/home/lnd/.lnd \
 docker exec agent-bitcoin-lnd-mainnet lncli --lnddir=/home/lnd/.lnd \
   --network=mainnet listchannels
 
-curl -sS -o /dev/null -w '%{http_code}\n' http://<AWS_EIP>:8081/health
+curl -sS -o /dev/null -w '%{http_code}\n' http://3.90.159.146:8081/health
 # 200
 curl -sS -o /dev/null -w '%{http_code}\n' \
-  http://<AWS_EIP>:8081/paid/finance/mempool-feerate
+  http://3.90.159.146:8081/paid/finance/mempool-feerate
 # 402
 
 rm -f .nostr-poc/bus/*.json
@@ -124,7 +124,7 @@ Live (Mac, empty bus, **no** `--offline-bus`):
 
 ```bash
 ./examples/swarm_l402_8_all.sh --no-llm \
-  --url http://<AWS_EIP>:8081/paid/finance/mempool-feerate --price 100
+  --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
 ```
 
 `--relay` is ignored. Happy path is `.nostr-poc/bus/`.

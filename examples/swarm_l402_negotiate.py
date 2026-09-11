@@ -8,7 +8,7 @@ the payer; optional Grok only explains.
 
 Mock (any one host): --offline-bus (no sats; fixture bands 3/2/1).
 Live: both processes on the Mac; Mac LND agent-bitcoin-lnd* pays AWS Aperture.
-  --url http://<AWS_EIP>:8081/paid/finance/mempool-feerate --price 100
+  --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
 Do not live-pay with LND_CONTAINER=agent-payment-decision-lnd* (self-pay).
 
 Engineer path (two terminals):
@@ -325,7 +325,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "Nostr swarm: who pays one L402 GET (2 or 8 agents). "
             "Mock: --offline-bus. Live: all processes on the Mac, "
             "payer agent-bitcoin-lnd* + "
-            "--url http://<AWS_EIP>:8081/paid/finance/mempool-feerate "
+            "--url http://3.90.159.146:8081/paid/finance/mempool-feerate "
             "(not 127.0.0.1 on AWS; that is self-pay)."
         )
     )
@@ -358,7 +358,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=os.getenv("L402_URL", DEFAULT_L402_URL),
         help=(
             "Paid L402 URL (default mock/on-box: %(default)s). "
-            "Live from the Mac: http://<AWS_EIP>:8081/paid/finance/mempool-feerate"
+            "Live from the Mac: http://3.90.159.146:8081/paid/finance/mempool-feerate"
         ),
     )
     parser.add_argument(
@@ -454,7 +454,7 @@ def _assert_live_payer_not_invoice_node(offline: bool) -> None:
             "Live L402 pay with LND_CONTAINER="
             f"{container} is self-pay: Aperture invoices AWS LND. "
             "Use Mac agent-bitcoin-lnd* and "
-            "--url http://<AWS_EIP>:8081/… or --offline-bus. "
+            "--url http://3.90.159.146:8081/… or --offline-bus. "
             "See examples/swarm_l402.md."
         )
 
