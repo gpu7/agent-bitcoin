@@ -35,8 +35,7 @@ Example commands with the current EIP:
 uv run python tests/test_aws_integration.py --backend-url http://3.90.159.146:8000
 ```
 
-Elsewhere in this doc, `<AWS_EIP>` means this address (update this section if the EIP ever changes).
-Do **not** put the EIP in README/SDK; keep it here for operators.
+Lab EIP is `3.90.159.146` (stable). Update this section if it ever changes.
 
 After attaching or changing the EIP, restart AWS LND so `--externalip` matches:
 
@@ -299,16 +298,16 @@ export LOOP_CLI='docker exec -i agent-loopd loop'
 
 The current workflow is shown here. This is the test workflow on regtest.
 
-Use **`<AWS_EIP>`** = current Elastic IP (see [Current environment](#current-environment-operator) above; today `3.90.159.146`).
+Lab EIP is `3.90.159.146` (see [Current environment](#current-environment-operator)).
 
-- 1) On AWS: `./startup-aws.sh regtest <AWS_EIP>`
+- 1) On AWS: `./startup-aws.sh regtest 3.90.159.146`
 - 2) On AWS: Fund LND node. See below.
-- 3) On Mac: `./startup-mac.sh regtest <AWS_EIP>`
+- 3) On Mac: `./startup-mac.sh regtest 3.90.159.146`
 - 4) On Mac: `./wait-mac-lnd.sh` (auto-detects regtest/signet)
-- 5) On Mac: `./connect-mac-to-aws.sh <AWS_EIP> <pubkey-from-aws-getinfo>` See below.
+- 5) On Mac: `./connect-mac-to-aws.sh 3.90.159.146 <pubkey-from-aws-getinfo>` See below.
 - 6) On Mac: Verify peer connection Mac <-> AWS. See below.
 - 7) On Mac: Open Lightning channel Mac <-> AWS. See below.
-- 8) On Mac: `uv run python tests/test_aws_integration.py --backend-url http://<AWS_EIP>:8000`
+- 8) On Mac: `uv run python tests/test_aws_integration.py --backend-url http://3.90.159.146:8000`
 - 9) On AWS: `./shutdown-aws.sh`
 - 10) On Mac: `./shutdown-mac.sh`
 
@@ -456,7 +455,7 @@ Use AWS agent-payment-decision-lnd pubkey.
 ```bash
 docker compose -f docker-compose.regtest.mac.yml exec -T agent-bitcoin-lnd \
   lncli --lnddir=/home/lnd/.lnd --network=regtest connect \
-  <AWS_LND_PUBKEY>@<AWS_EIP>:9735
+  <AWS_LND_PUBKEY>@3.90.159.146:9735
 ```
 
 - STEP #7. On Mac:

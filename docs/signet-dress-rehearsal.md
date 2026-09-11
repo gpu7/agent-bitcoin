@@ -181,7 +181,7 @@ inv = c.create_invoice('dress-rehearsal', 2000)
 Path('/tmp/signet-bolt11.txt').write_text(inv.payment_request + '\n')
 print(inv.payment_request[:40], '...')
 "
-scp -i ~/.ssh/aws/agent-bitcoin-key.pem /tmp/signet-bolt11.txt ubuntu@<AWS_EIP>:/tmp/signet-bolt11.txt
+scp -i ~/.ssh/aws/agent-bitcoin-key.pem /tmp/signet-bolt11.txt ubuntu@3.90.159.146:/tmp/signet-bolt11.txt
 
 # AWS — pay via gRPC + pilot limits + spend ledger
 export AGENT_BITCOIN_ALLOW_AUTOPAY=1

@@ -6,7 +6,7 @@
 #   - mining loops
 #
 # Usage:
-#   ./startup-signet-aws.sh <AWS_EIP>
+#   ./startup-signet-aws.sh 3.90.159.146
 #   ./startup-signet-aws.sh 3.90.159.146
 #
 # After start: create or unlock wallet, wait for synced_to_chain, fund via faucet.
@@ -29,7 +29,7 @@ fi
 
 if [[ -z "${AWS_IP}" ]]; then
   echo "ERROR: AWS public IP / EIP is required (LND --externalip)."
-  echo "Usage: $0 <AWS_EIP>"
+  echo "Usage: $0 3.90.159.146"
   exit 1
 fi
 

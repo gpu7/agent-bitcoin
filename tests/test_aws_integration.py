@@ -8,7 +8,7 @@ Examples:
   # Regtest (historical): backend on AWS, pay from Mac peer container
   export AGENT_BITCOIN_API_KEY=...
   uv run python tests/test_aws_integration.py \\
-    --network regtest --backend-url http://<AWS_EIP>:8000
+    --network regtest --backend-url http://3.90.159.146:8000
 
   # Signet: backend must use LND_NETWORK=signet
   uv run python tests/test_aws_integration.py \\

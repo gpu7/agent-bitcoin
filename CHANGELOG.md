@@ -1,3 +1,9 @@
+## Docs — lab EIP 3.90.159.146 (2026-09-11)
+
+Copy-paste URLs and example startup argv use `3.90.159.146`. SG `/32` unchanged. Not a new endpoint.
+
+---
+
 ## Examples — eight-agent swarm, one L402 pay (2026-09-11)
 
 [examples/swarm_l402_8.md](examples/swarm_l402_8.md): `a1`…`a8` on one Mac LND / one channel; highest score pays one 100-sat GET. Mock `--offline-bus`. Not a new endpoint.

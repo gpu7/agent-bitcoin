@@ -5,7 +5,7 @@
 #   export AWS_IP=<eip>
 #   docker compose -f docker-compose.signet.aws.yml up -d
 #
-# Or: ./startup-signet-aws.sh <AWS_EIP>
+# Or: ./startup-signet-aws.sh 3.90.159.146
 #
 # Does NOT start Loop, local bitcoind, or regtest services.
 # Neutrino syncs public signet (first sync can take a long time).

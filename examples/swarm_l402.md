@@ -53,7 +53,7 @@ No LND pay. Fine for Nostr ids + negotiate. Both processes must share the **same
 | Aperture + invoice LND | **AWS** |
 | Payer LND | **Mac** `agent-bitcoin-lnd*` |
 | Both swarm processes | **Mac** (shared `.nostr-poc/bus`) |
-| URL | `http://<AWS_EIP>:8081/paid/finance/mempool-feerate` |
+| URL | `http://3.90.159.146:8081/paid/finance/mempool-feerate` |
 | Flags | **No** `--offline-bus`; `--price 100` |
 | Do **not** | Use `LND_CONTAINER=agent-payment-decision-lnd*` as the live payer |
 

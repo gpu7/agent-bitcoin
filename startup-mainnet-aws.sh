@@ -4,7 +4,7 @@
 # Usage:
 #   export MAINNET_BITCOIND_RPCUSER='…'
 #   export MAINNET_BITCOIND_RPCPASS='…'
-#   ./startup-mainnet-aws.sh <AWS_EIP>
+#   ./startup-mainnet-aws.sh 3.90.159.146
 #
 # Does NOT create wallet funds or open channels. See docs/mainnet-infra.md.
 
@@ -24,7 +24,7 @@ fi
 
 if [[ -z "${AWS_IP}" ]]; then
   echo "ERROR: AWS public IP / EIP required (LND --externalip)."
-  echo "Usage: $0 <AWS_EIP>"
+  echo "Usage: $0 3.90.159.146"
   exit 1
 fi
 if [[ -z "${MAINNET_BITCOIND_RPCUSER:-}" || -z "${MAINNET_BITCOIND_RPCPASS:-}" ]]; then

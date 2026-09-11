@@ -16,7 +16,7 @@ This is **not** a public catalog. The operator’s security group is **`/32`**. 
 
 *Unpaid request → Lightning pay → JSON. Typical tool price 100 sats.*
 
-1. Get a reachable base URL from the operator (`http://<L402_HOST>:8081`).
+1. Get a reachable base URL from the operator (`http://3.90.159.146:8081` in this lab).
 2. Call with `L402Client(..., expected_price_sats=100)` or `l402_pay.py --price 100` (the SDK default expected price is **1000**, so 100-sat paths need `--price 100`).
 3. **GET** for Bitcoin-suite query tools. **POST** JSON for Lightning and Nostr tools (GET → **405**).
 4. Do **not** put BOLT11 in query strings. POST it in JSON (`--json`).
@@ -26,7 +26,7 @@ This is **not** a public catalog. The operator’s security group is **`/32`**. 
 Sequence (402 → pay → retry): [architecture.md — L402 request sequence](./architecture.md#l402-request-sequence).
 Two agents negotiate who pays one GET: [examples/swarm_l402.md](../examples/swarm_l402.md) (live demo pays from the Mac).
 
-Placeholder host below is `http://<L402_HOST>:8081`. Use a **test** invoice for decode/preflight examples, not a live mainnet pay request.
+Lab host below is `http://3.90.159.146:8081`. Use a **test** invoice for decode/preflight examples, not a live mainnet pay request.
 
 ## Bitcoin suite
 
@@ -38,7 +38,7 @@ Job: sat/vB bands (`fast` / `medium` / `slow`) from a public fee API cache. Use 
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url http://<L402_HOST>:8081/paid/finance/mempool-feerate --price 100
+  --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
 ```
 
 ### GET `/paid/finance/mempool-backlog`
@@ -47,7 +47,7 @@ Job: how full the mempool is (`tx_count`, `vsize`, `total_fee_sats`) — not fee
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url http://<L402_HOST>:8081/paid/finance/mempool-backlog --price 100
+  --url http://3.90.159.146:8081/paid/finance/mempool-backlog --price 100
 ```
 
 ### GET `/paid/finance/fee-for-vsize?vsize=`
@@ -56,7 +56,7 @@ Job: `ceil(vsize × sat/vB)` for a tx size in **virtual bytes** (not weight). Ra
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url 'http://<L402_HOST>:8081/paid/finance/fee-for-vsize?vsize=250' --price 100
+  --url 'http://3.90.159.146:8081/paid/finance/fee-for-vsize?vsize=250' --price 100
 ```
 
 ### GET `/paid/finance/confirm-target`
@@ -65,7 +65,7 @@ Job: map a wait window (`minutes` 1–60) or named band (`fast`|`medium`|`slow`)
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url 'http://<L402_HOST>:8081/paid/finance/confirm-target?minutes=30' --price 100
+  --url 'http://3.90.159.146:8081/paid/finance/confirm-target?minutes=30' --price 100
 ```
 
 ### GET `/paid/finance/btc-usd`
@@ -74,7 +74,7 @@ Job: USD per 1 BTC from one public JSON URL, plus `sats_per_usd`. Pass-through m
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url http://<L402_HOST>:8081/paid/finance/btc-usd --price 100
+  --url http://3.90.159.146:8081/paid/finance/btc-usd --price 100
 ```
 
 ## Lightning suite
@@ -87,7 +87,7 @@ Job: parse a BOLT11 for network, `amount_sats`, dest, payment hash, expiry. No L
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url http://<L402_HOST>:8081/paid/finance/ln-invoice-decode \
+  --url http://3.90.159.146:8081/paid/finance/ln-invoice-decode \
   --price 100 --method POST \
   --json '{"bolt11":"<test invoice>"}'
 ```
@@ -98,7 +98,7 @@ Job: reuse that parse and return `allow` plus reason codes (`expired`, `zero_amo
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url http://<L402_HOST>:8081/paid/finance/ln-invoice-preflight \
+  --url http://3.90.159.146:8081/paid/finance/ln-invoice-preflight \
   --price 100 --method POST \
   --json '{"bolt11":"<test invoice>","max_sats":50000,"network":"bitcoin"}'
 ```
@@ -109,7 +109,7 @@ Job: first-path fee hint (`fee_sats`, `hop_count`) from AWS agent LND QueryRoute
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url http://<L402_HOST>:8081/paid/finance/ln-path-fee-hint \
+  --url http://3.90.159.146:8081/paid/finance/ln-path-fee-hint \
   --price 100 --method POST \
   --json '{"dest_pubkey":"<66 hex>","amount_sats":1000}'
 ```
@@ -126,7 +126,7 @@ Job: NIP-01 id hash + Schnorr check on a **bare** event JSON. Response omits `co
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url http://<L402_HOST>:8081/paid/nostr/event-verify \
+  --url http://3.90.159.146:8081/paid/nostr/event-verify \
   --price 100 --method POST \
   --json '{"id":"<64 hex>","pubkey":"<64 hex>","created_at":1,"kind":1,"tags":[],"content":"","sig":"<128 hex>"}'
 ```
@@ -137,7 +137,7 @@ Job: NIP-19 bech32 → `type` + hex (`npub` / `note` / `nprofile` / `nevent`). *
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url http://<L402_HOST>:8081/paid/nostr/npub-decode \
+  --url http://3.90.159.146:8081/paid/nostr/npub-decode \
   --price 100 --method POST \
   --json '{"entity":"npub1..."}'
 ```
@@ -148,7 +148,7 @@ Job: decide whether an event is a NIP-57 **zap receipt** (kind **9735**) and rea
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url http://<L402_HOST>:8081/paid/nostr/zap-receipt-inspect \
+  --url http://3.90.159.146:8081/paid/nostr/zap-receipt-inspect \
   --price 100 --method POST \
   --json '{"id":"...","pubkey":"...","created_at":1,"kind":9735,"tags":[],"content":"","sig":"..."}'
 ```

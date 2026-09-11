@@ -23,7 +23,7 @@ case "$NETWORK" in
 esac
 
 if [ -z "$AWS_IP" ]; then
-  echo "Usage: $0 regtest <AWS_EIP>"
+  echo "Usage: $0 regtest 3.90.159.146"
   exit 1
 fi
 

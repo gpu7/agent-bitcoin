@@ -105,7 +105,7 @@ def cmd_create(args: argparse.Namespace) -> int:
     print("")
     print("Next (AWS payer) — prefer file so the terminal cannot wrap the bolt11:")
     print("  # copy file to AWS, e.g.:")
-    print(f"  #   scp {out} ubuntu@<AWS_EIP>:/tmp/signet-bolt11.txt")
+    print(f"  #   scp {out} ubuntu@3.90.159.146:/tmp/signet-bolt11.txt")
     print(
         "  export LND_NETWORK=signet LND_CONTAINER=agent-payment-decision-lnd-signet LND_DIR=/home/lnd/.lnd"
     )
