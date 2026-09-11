@@ -60,7 +60,7 @@ from agent_bitcoin.nostr.negotiate import (  # noqa: E402
     COORD_TAG,
     DEFAULT_L402_URL,
     DEFAULT_PRICE_SATS,
-    choose_payer,
+    choose_payer_n,
     fee_band_summary,
     invoice_id_for_url,
     negotiate_score_hex,
@@ -68,7 +68,16 @@ from agent_bitcoin.nostr.negotiate import (  # noqa: E402
 
 DEFAULT_DIR = Path(os.environ.get("NOSTR_POC_DIR", ".nostr-poc")).resolve()
 DEFAULT_PASSPHRASE = os.environ.get("NOSTR_PASSPHRASE", "")
-PEER = {"alice": "bob", "bob": "alice"}
+ROLES_2 = ("alice", "bob")
+ROLES_8 = tuple(f"a{i}" for i in range(1, 9))
+
+
+def _roles_for(expect_peers: int) -> tuple[str, ...]:
+    if expect_peers == 2:
+        return ROLES_2
+    if expect_peers == 8:
+        return ROLES_8
+    raise SystemExit(f"--expect-peers must be 2 or 8, not {expect_peers}")
 
 
 class _OfflineL402:
@@ -180,10 +189,13 @@ def _pay_l402(url: str, price: int, offline: bool) -> tuple[int, bool, dict[str,
 
 def run_role(args: argparse.Namespace, role: str) -> int:
     role = role.lower()
-    if role not in ("alice", "bob"):
-        raise SystemExit(f"unknown role {role!r}")
+    roles = _roles_for(int(args.expect_peers))
+    if role not in roles:
+        raise SystemExit(
+            f"unknown role {role!r} for --expect-peers {args.expect_peers}; "
+            f"expected one of {', '.join(roles)}"
+        )
     passphrase = _require_passphrase(args.passphrase)
-    peer = PEER[role]
     root = Path(args.dir)
     bus = _bus_dir(root)
     url = args.url
@@ -213,30 +225,35 @@ def run_role(args: argparse.Namespace, role: str) -> int:
     }
     write_bus_event(bus, f"{iid}_{role}_negotiate.json", _sign(sk, neg))
 
-    peer_path = bus / f"{iid}_{peer}_negotiate.json"
-    print(f"[{role}] waiting for {peer} negotiate …")
-    _wait_bus_file(peer_path, args.timeout)
-    peer_event = read_bus_event(peer_path)
-    if not peer_event.verify():
-        raise SystemExit(f"[{role}] peer negotiate signature invalid")
-    peer_payload = parse_payload(peer_event)
-    if peer_payload.get("type") != "negotiate":
-        raise SystemExit(f"[{role}] unexpected type {peer_payload.get('type')!r}")
-    if peer_payload.get("invoice_id") != iid:
-        raise SystemExit(f"[{role}] invoice_id mismatch")
+    others = [r for r in roles if r != role]
+    print(f"[{role}] waiting for {len(others)} peer negotiate file(s) …")
+    for peer in others:
+        _wait_bus_file(bus / f"{iid}_{peer}_negotiate.json", args.timeout)
 
-    peer_score, _ = negotiate_score_hex(peer_event.pubkey, iid, round_n)
-    peer_npub = str(peer_payload.get("npub") or "")
-    if role == "alice":
-        winner_npub, reason = choose_payer(npub, score, peer_npub, peer_score)
-    else:
-        winner_npub, reason = choose_payer(peer_npub, peer_score, npub, score)
+    candidates: list[tuple[str, int]] = []
+    peer_scores: list[int] = []
+    for r in roles:
+        path = bus / f"{iid}_{r}_negotiate.json"
+        ev = read_bus_event(path)
+        if not ev.verify():
+            raise SystemExit(f"[{role}] {r} negotiate signature invalid")
+        payload = parse_payload(ev)
+        if payload.get("type") != "negotiate":
+            raise SystemExit(f"[{role}] unexpected type {payload.get('type')!r}")
+        if payload.get("invoice_id") != iid:
+            raise SystemExit(f"[{role}] invoice_id mismatch from {r}")
+        sc, _ = negotiate_score_hex(ev.pubkey, iid, round_n)
+        n = str(payload.get("npub") or "")
+        candidates.append((n, sc))
+        if r != role:
+            peer_scores.append(sc)
 
+    winner_npub, reason = choose_payer_n(candidates)
     i_pay = winner_npub == npub
     log_reason = "higher_score" if i_pay and reason == "lower_score" else reason
     print(
         f"[{role}] winner_npub={winner_npub} i_pay={i_pay} reason={log_reason} "
-        f"peer_score={peer_score}"
+        f"peers={len(others)} peer_scores={peer_scores}"
     )
 
     if not args.no_llm:
@@ -245,7 +262,7 @@ def run_role(args: argparse.Namespace, role: str) -> int:
                 role=role,
                 npub=npub,
                 score=score,
-                peer_score=peer_score,
+                peer_score=max(peer_scores) if peer_scores else 0,
                 winner_npub=winner_npub,
                 i_pay=i_pay,
             )
@@ -264,7 +281,10 @@ def run_role(args: argparse.Namespace, role: str) -> int:
             "loser_npub": npub,
             "reason": reason,
         }
-        write_bus_event(bus, f"{iid}_concede.json", _sign(sk, concede))
+        concede_name = (
+            f"{iid}_concede.json" if len(roles) == 2 else f"{iid}_{role}_concede.json"
+        )
+        write_bus_event(bus, concede_name, _sign(sk, concede))
         result_path = bus / f"{iid}_result.json"
         print(f"[{role}] waiting for signed result …")
         _wait_bus_file(result_path, args.timeout)
@@ -302,17 +322,26 @@ def run_role(args: argparse.Namespace, role: str) -> int:
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Two-agent Nostr swarm: who pays one L402 GET. "
-            "Mock: --offline-bus. Live: Mac payer agent-bitcoin-lnd* + "
+            "Nostr swarm: who pays one L402 GET (2 or 8 agents). "
+            "Mock: --offline-bus. Live: all processes on the Mac, "
+            "payer agent-bitcoin-lnd* + "
             "--url http://<AWS_EIP>:8081/paid/finance/mempool-feerate "
             "(not 127.0.0.1 on AWS; that is self-pay)."
         )
     )
     parser.add_argument(
         "--role",
-        choices=("alice", "bob", "both"),
         default="",
-        help="Agent role (engineer path: alice in one terminal, bob in the other)",
+        help=(
+            "alice|bob|both (two-agent) or a1…a8|all (eight-agent). "
+            "Engineer path: one role per terminal"
+        ),
+    )
+    parser.add_argument(
+        "--expect-peers",
+        type=int,
+        default=0,
+        help="2 or 8. Inferred from --role if omitted",
     )
     parser.add_argument(
         "--alice",
@@ -373,7 +402,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--force-new-keys",
         action="store_true",
-        help="Rotate alice/bob encrypted key files",
+        help="Rotate encrypted key files for this role",
     )
     parser.add_argument(
         "--timeout",
@@ -382,7 +411,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Seconds to wait for peer bus files (default: 60)",
     )
     args = parser.parse_args(argv)
-    role = args.role
+    role = (args.role or "").strip().lower()
     if args.alice and args.bob:
         raise SystemExit("Use --role both, not both --alice and --bob")
     if args.alice:
@@ -390,8 +419,22 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     elif args.bob:
         role = "bob"
     if not role:
-        raise SystemExit("Pass --role alice|bob|both (or --alice / --bob)")
+        raise SystemExit("Pass --role alice|bob|both or a1…a8|all (or --alice / --bob)")
+    expect = int(args.expect_peers or 0)
+    if role in ROLES_8 or role == "all":
+        expect = expect or 8
+    elif role in ("alice", "bob", "both"):
+        expect = expect or 2
+    else:
+        raise SystemExit(f"unknown --role {role!r}")
+    if expect not in (2, 8):
+        raise SystemExit("--expect-peers must be 2 or 8")
+    if role in ROLES_8 and expect != 8:
+        raise SystemExit("roles a1…a8 require --expect-peers 8")
+    if role in ("alice", "bob") and expect != 2:
+        raise SystemExit("alice/bob require --expect-peers 2")
     args.role = role
+    args.expect_peers = expect
     if args.relay:
         print(
             "[relay] --relay is documented but not used; "
@@ -430,14 +473,13 @@ def main(argv: list[str] | None = None) -> int:
     _assert_live_payer_not_invoice_node(args.offline_bus)
     iid = invoice_id_for_url(args.url)
     _assert_no_stale_result(_bus_dir(Path(args.dir)), iid)
-    if args.role == "both":
-        with ThreadPoolExecutor(max_workers=2) as pool:
-            fa = pool.submit(run_role, args, "alice")
-            fb = pool.submit(run_role, args, "bob")
-            ra = fa.result()
-            rb = fb.result()
-        print(f"[both] alice_exit={ra} bob_exit={rb}")
-        return ra or rb
+    if args.role in ("both", "all"):
+        batch = _roles_for(int(args.expect_peers))
+        with ThreadPoolExecutor(max_workers=len(batch)) as pool:
+            futs = [pool.submit(run_role, args, r) for r in batch]
+            codes = [f.result() for f in futs]
+        print(f"[{args.role}] exits={codes}")
+        return 0 if all(c == 0 for c in codes) else 1
     return run_role(args, args.role)
 
 

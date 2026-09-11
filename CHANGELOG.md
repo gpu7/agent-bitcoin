@@ -1,3 +1,9 @@
+## Examples — eight-agent swarm, one L402 pay (2026-09-11)
+
+[examples/swarm_l402_8.md](examples/swarm_l402_8.md): `a1`…`a8` on one Mac LND / one channel; highest score pays one 100-sat GET. Mock `--offline-bus`. Not a new endpoint.
+
+---
+
 ## Docs — wallets and chain backends (2026-09-10)
 
 [docs/architecture.md](docs/architecture.md): two LND wallets vs two bitcoinds; Mermaid deployment + live L402 sequence; infographic `docs/images/wallets-mac-aws.jpg`. Not a new endpoint.
