@@ -11,7 +11,7 @@ Two Nostr identities, signed file-bus messages, one winner pays `GET /paid/finan
 
 Live pay is **Mac → AWS**, not two processes on AWS using AWS LND (that is self-pay).
 
-Identity is Phase A/B encrypted keys (same as `examples/nostr_phase_b_payment.py`). This demo is **two processes** sharing one disk bus, not four (no Phase C daemons).
+Identity is Phase A/B encrypted keys (same as `examples/nostr_phase_b_payment.py`). This demo is **two processes** sharing one disk bus, not four (no Phase C daemons). Eight-agent variant: [swarm_l402_8.md](./swarm_l402_8.md).
 
 ## 1. What you will see
 

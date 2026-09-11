@@ -33,21 +33,29 @@ def negotiate_score(pubkey_hex: str, invoice_id: str, round_n: int) -> int:
     return negotiate_score_hex(pubkey_hex, invoice_id, round_n)[0]
 
 
+def choose_payer_n(candidates: list[tuple[str, int]]) -> tuple[str, str]:
+    """Return (winner_npub, concede_reason) for two or more agents.
+
+    Highest score pays. Tie on that score: lexicographically greater npub.
+    concede_reason is ``lower_score`` or ``tie_npub``.
+    """
+    if len(candidates) < 2:
+        raise ValueError("need at least two (npub, score) pairs")
+    max_score = max(score for _npub, score in candidates)
+    tied = [npub for npub, score in candidates if score == max_score]
+    if len(tied) == 1:
+        return tied[0], "lower_score"
+    return max(tied), "tie_npub"
+
+
 def choose_payer(
     alice_npub: str,
     alice_score: int,
     bob_npub: str,
     bob_score: int,
 ) -> tuple[str, str]:
-    """Return (winner_npub, concede_reason).
-
-    Higher score pays. Tie: lexicographically greater npub pays.
-    concede_reason is ``lower_score`` or ``tie_npub``.
-    """
-    if alice_score != bob_score:
-        winner = alice_npub if alice_score > bob_score else bob_npub
-        return winner, "lower_score"
-    return max(alice_npub, bob_npub), "tie_npub"
+    """Two-agent wrapper around :func:`choose_payer_n`."""
+    return choose_payer_n([(alice_npub, alice_score), (bob_npub, bob_score)])
 
 
 def fee_band_summary(payload: Any) -> dict[str, int]:
