@@ -1,3 +1,9 @@
+## v26.6.0 — 2026-09-11
+
+PyPI version for GitHub tag **v.26.6.0**. Install: `pip install agent-bitcoin==26.6.0`.
+
+---
+
 ## Docs — swarm negotiate score (2026-09-11)
 
 [examples/swarm_l402.md](examples/swarm_l402.md) and [examples/swarm_l402_8.md](examples/swarm_l402_8.md): how the winner is chosen (`negotiate_score_hex`). Not a new endpoint.
