@@ -23,6 +23,7 @@ See examples/swarm_l402.md
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 import time
@@ -64,6 +65,15 @@ from agent_bitcoin.nostr.negotiate import (  # noqa: E402
     fee_band_summary,
     invoice_id_for_url,
     negotiate_score_hex,
+)
+from agent_bitcoin.nostr.resolve import (  # noqa: E402
+    DEFAULT_SAT_VB,
+    DEFAULT_VSIZE,
+    PUZZLE_FEE_SATS,
+    check_solved,
+    fee_sats_expected,
+    fee_sats_problem,
+    pick_first_correct,
 )
 
 DEFAULT_DIR = Path(os.environ.get("NOSTR_POC_DIR", ".nostr-poc")).resolve()
@@ -187,9 +197,196 @@ def _pay_l402(url: str, price: int, offline: bool) -> tuple[int, bool, dict[str,
     return status, paid, fee_band_summary(body)
 
 
+def _ensure_problem(bus: Path, iid: str, problem: dict) -> dict[str, Any]:
+    path = bus / f"{iid}_problem.json"
+    bus.mkdir(parents=True, exist_ok=True)
+    canonical = json.dumps(problem, sort_keys=True, indent=2) + "\n"
+    if path.is_file() and path.stat().st_size > 0:
+        existing = json.loads(path.read_text(encoding="utf-8"))
+        if json.dumps(existing, sort_keys=True, indent=2) + "\n" != canonical:
+            raise SystemExit(f"problem mismatch on bus {path}")
+        return existing
+    path.write_text(canonical, encoding="utf-8")
+    return problem
+
+
+def _puzzle_answer(args: argparse.Namespace, problem: dict[str, Any]) -> int:
+    expected = fee_sats_expected(int(problem["vsize"]), int(problem["sat_vb"]))
+    if args.no_llm or not (os.environ.get("XAI_API_KEY") or "").strip():
+        return expected
+    try:
+        from langchain_core.messages import HumanMessage, SystemMessage
+        from langchain_xai import ChatXAI
+
+        llm = ChatXAI(model="grok-4-1-fast-reasoning", temperature=0)
+        msg = llm.invoke(
+            [
+                SystemMessage(
+                    content="Reply with one integer only. The fee in sats is ceil(vsize * sat_vb)."
+                ),
+                HumanMessage(content=str(problem.get("text") or "")),
+            ]
+        )
+        guess = str(getattr(msg, "content", "") or "").strip().split()[0]
+        print(f"[puzzle] grok suggested {guess!r} (win check uses {expected})")
+    except Exception as exc:
+        print(f"[puzzle] grok skipped: {exc}", file=sys.stderr)
+    return expected
+
+
+def _wait_puzzle_winner(
+    bus: Path, iid: str, problem: dict[str, Any], timeout: float
+) -> str:
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        rows: list[tuple[float, str, dict[str, Any]]] = []
+        for path in bus.glob(f"{iid}_*_solved.json"):
+            try:
+                ev = read_bus_event(path)
+            except (OSError, ValueError, json.JSONDecodeError, SystemExit):
+                continue
+            if not ev.verify():
+                continue
+            payload = parse_payload(ev)
+            npub = str(payload.get("npub") or "")
+            rows.append((path.stat().st_mtime, npub, payload))
+        winner = pick_first_correct(rows, problem)
+        if winner:
+            return winner
+        time.sleep(0.25)
+    raise SystemExit(f"timeout waiting for a correct solved event under {bus}")
+
+
+def _finish_pay_or_wait(
+    *,
+    args: argparse.Namespace,
+    role: str,
+    sk: Any,
+    npub: str,
+    iid: str,
+    round_n: int,
+    url: str,
+    price: int,
+    bus: Path,
+    roles: tuple[str, ...],
+    i_pay: bool,
+    winner_npub: str,
+    reason: str,
+) -> int:
+    if not i_pay:
+        concede = {
+            "type": "concede",
+            "v": 1,
+            "invoice_id": iid,
+            "round": round_n,
+            "winner_npub": winner_npub,
+            "loser_npub": npub,
+            "reason": reason,
+        }
+        concede_name = (
+            f"{iid}_concede.json" if len(roles) == 2 else f"{iid}_{role}_concede.json"
+        )
+        write_bus_event(bus, concede_name, _sign(sk, concede))
+        result_path = bus / f"{iid}_result.json"
+        print(f"[{role}] waiting for signed result …")
+        _wait_bus_file(result_path, args.timeout)
+        result_event = read_bus_event(result_path)
+        if not result_event.verify():
+            raise SystemExit(f"[{role}] result signature invalid")
+        result = parse_payload(result_event)
+        print(
+            f"[{role}] result payer_npub={result.get('payer_npub')} "
+            f"amount_sats={result.get('amount_sats')} "
+            f"http_status={result.get('http_status')} paid={result.get('paid')} "
+            f"summary={result.get('summary')}"
+        )
+        return 0 if result.get("paid") else 1
+
+    status, paid, summary = _pay_l402(url, price, args.offline_bus)
+    print(
+        f"[{role}] l402 status={status} paid={paid} amount_sats={price} "
+        f"summary={summary}"
+    )
+    result_payload = {
+        "type": "result",
+        "v": 1,
+        "invoice_id": iid,
+        "payer_npub": npub,
+        "amount_sats": price,
+        "http_status": status,
+        "paid": paid,
+        "summary": summary,
+    }
+    write_bus_event(bus, f"{iid}_result.json", _sign(sk, result_payload))
+    return 0 if paid and status == 200 else 1
+
+
+def run_puzzle_role(args: argparse.Namespace, role: str, roles: tuple[str, ...]) -> int:
+    if args.puzzle_type != PUZZLE_FEE_SATS:
+        raise SystemExit(
+            f"unknown --puzzle-type {args.puzzle_type!r} (only {PUZZLE_FEE_SATS} in this release)"
+        )
+    passphrase = _require_passphrase(args.passphrase)
+    root = Path(args.dir)
+    bus = _bus_dir(root)
+    url = args.url
+    price = int(args.price)
+    round_n = int(args.round)
+    iid = invoice_id_for_url(url)
+    problem = _ensure_problem(
+        bus, iid, fee_sats_problem(int(args.vsize), int(args.sat_vb))
+    )
+    sk = load_or_create_agent(root, role, passphrase, force_new=args.force_new_keys)
+    npub = sk.public_key.bech32()
+    answer = _puzzle_answer(args, problem)
+    print(
+        f"[{role}] npub={npub} invoice_id={iid} resolve=puzzle "
+        f"type={PUZZLE_FEE_SATS} vsize={problem['vsize']} sat_vb={problem['sat_vb']} "
+        f"answer={answer}"
+    )
+    solved = {
+        "type": "solved",
+        "v": 1,
+        "invoice_id": iid,
+        "puzzle_type": PUZZLE_FEE_SATS,
+        "vsize": int(problem["vsize"]),
+        "sat_vb": int(problem["sat_vb"]),
+        "answer": int(answer),
+        "npub": npub,
+    }
+    if not check_solved(solved, problem):
+        raise SystemExit(f"[{role}] local answer failed the coded check")
+    write_bus_event(bus, f"{iid}_{role}_solved.json", _sign(sk, solved))
+    winner_npub = _wait_puzzle_winner(bus, iid, problem, args.timeout)
+    i_pay = winner_npub == npub
+    print(f"[{role}] winner_npub={winner_npub} i_pay={i_pay} reason=first_correct")
+    return _finish_pay_or_wait(
+        args=args,
+        role=role,
+        sk=sk,
+        npub=npub,
+        iid=iid,
+        round_n=round_n,
+        url=url,
+        price=price,
+        bus=bus,
+        roles=roles,
+        i_pay=i_pay,
+        winner_npub=winner_npub,
+        reason="first_correct",
+    )
+
+
 def run_role(args: argparse.Namespace, role: str) -> int:
     role = role.lower()
     roles = _roles_for(int(args.expect_peers))
+    if getattr(args, "resolve", "hash") == "puzzle":
+        if role not in roles:
+            raise SystemExit(
+                f"unknown role {role!r} for --expect-peers {args.expect_peers}; "
+                f"expected one of {', '.join(roles)}"
+            )
+        return run_puzzle_role(args, role, roles)
     if role not in roles:
         raise SystemExit(
             f"unknown role {role!r} for --expect-peers {args.expect_peers}; "
@@ -271,52 +468,21 @@ def run_role(args: argparse.Namespace, role: str) -> int:
         except Exception as exc:
             print(f"[{role}] grok skipped: {exc}", file=sys.stderr)
 
-    if not i_pay:
-        concede = {
-            "type": "concede",
-            "v": 1,
-            "invoice_id": iid,
-            "round": round_n,
-            "winner_npub": winner_npub,
-            "loser_npub": npub,
-            "reason": reason,
-        }
-        concede_name = (
-            f"{iid}_concede.json" if len(roles) == 2 else f"{iid}_{role}_concede.json"
-        )
-        write_bus_event(bus, concede_name, _sign(sk, concede))
-        result_path = bus / f"{iid}_result.json"
-        print(f"[{role}] waiting for signed result …")
-        _wait_bus_file(result_path, args.timeout)
-        result_event = read_bus_event(result_path)
-        if not result_event.verify():
-            raise SystemExit(f"[{role}] result signature invalid")
-        result = parse_payload(result_event)
-        print(
-            f"[{role}] result payer_npub={result.get('payer_npub')} "
-            f"amount_sats={result.get('amount_sats')} "
-            f"http_status={result.get('http_status')} paid={result.get('paid')} "
-            f"summary={result.get('summary')}"
-        )
-        return 0 if result.get("paid") else 1
-
-    status, paid, summary = _pay_l402(url, price, args.offline_bus)
-    print(
-        f"[{role}] l402 status={status} paid={paid} amount_sats={price} "
-        f"summary={summary}"
+    return _finish_pay_or_wait(
+        args=args,
+        role=role,
+        sk=sk,
+        npub=npub,
+        iid=iid,
+        round_n=round_n,
+        url=url,
+        price=price,
+        bus=bus,
+        roles=roles,
+        i_pay=i_pay,
+        winner_npub=winner_npub,
+        reason=reason,
     )
-    result_payload = {
-        "type": "result",
-        "v": 1,
-        "invoice_id": iid,
-        "payer_npub": npub,
-        "amount_sats": price,
-        "http_status": status,
-        "paid": paid,
-        "summary": summary,
-    }
-    write_bus_event(bus, f"{iid}_result.json", _sign(sk, result_payload))
-    return 0 if paid and status == 200 else 1
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -410,6 +576,29 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=60.0,
         help="Seconds to wait for peer bus files (default: 60)",
     )
+    parser.add_argument(
+        "--resolve",
+        choices=("hash", "puzzle"),
+        default="hash",
+        help="Winner rule: hash (default) or puzzle (first correct solve)",
+    )
+    parser.add_argument(
+        "--puzzle-type",
+        default=PUZZLE_FEE_SATS,
+        help=f"Puzzle kind when --resolve puzzle (default: {PUZZLE_FEE_SATS})",
+    )
+    parser.add_argument(
+        "--vsize",
+        type=int,
+        default=DEFAULT_VSIZE,
+        help="fee-sats vsize (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--sat-vb",
+        type=int,
+        default=DEFAULT_SAT_VB,
+        help="fee-sats sat/vB (default: %(default)s)",
+    )
     args = parser.parse_args(argv)
     role = (args.role or "").strip().lower()
     if args.alice and args.bob:
@@ -435,6 +624,11 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         raise SystemExit("alice/bob require --expect-peers 2")
     args.role = role
     args.expect_peers = expect
+    args.resolve = (args.resolve or "hash").strip().lower()
+    if args.resolve == "puzzle" and args.puzzle_type != PUZZLE_FEE_SATS:
+        raise SystemExit(
+            f"unknown --puzzle-type {args.puzzle_type!r} (only {PUZZLE_FEE_SATS})"
+        )
     if args.relay:
         print(
             "[relay] --relay is documented but not used; "

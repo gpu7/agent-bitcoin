@@ -1,3 +1,9 @@
+## Examples — swarm --resolve puzzle fee-sats (2026-09-11)
+
+[examples/swarm_l402.md](examples/swarm_l402.md): `--resolve hash` (default) or `puzzle` (`ceil(vsize * sat_vb)`; 141×4=564). First correct signed solve pays one L402. Not a new endpoint.
+
+---
+
 ## v26.6.0 — 2026-09-11
 
 PyPI version for GitHub tag **v.26.6.0**. Install: `pip install agent-bitcoin==26.6.0`.

@@ -30,6 +30,24 @@ Each agent’s score is SHA-256 of this UTF-8 string, with **no separators**: lo
 
 Same keys, same URL (`invoice_id`), and same `--round` → the same winner. One L402 pay per successful run.
 
+Default is **`--resolve hash`**. `./examples/swarm_l402.sh --role alice --no-llm` still uses hash.
+
+### Puzzle (fee-sats)
+
+`--resolve puzzle --puzzle-type fee-sats`: both agents get the same problem (`ceil(vsize * sat_vb)` integer sats). Default `vsize=141`, `sat_vb=4` → **564**. First **correct** signed `solved` on the bus pays L402. Wrong answers are ignored. The win check is coded — Grok may suggest a number when `XAI_API_KEY` is set; `--no-llm` still solves locally so the race works offline.
+
+```bash
+# mock
+./examples/swarm_l402.sh --role alice --resolve puzzle --puzzle-type fee-sats --offline-bus --no-llm
+./examples/swarm_l402.sh --role bob --resolve puzzle --puzzle-type fee-sats --offline-bus --no-llm
+
+# live (Mac)
+./examples/swarm_l402.sh --role alice --resolve puzzle --puzzle-type fee-sats --no-llm \
+  --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
+./examples/swarm_l402.sh --role bob --resolve puzzle --puzzle-type fee-sats --no-llm \
+  --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
+```
+
 ## 2. Prerequisites
 
 - L402 stack up on AWS: `./startup-l402-aws.sh <regtest|signet|mainnet>`
