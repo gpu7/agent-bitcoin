@@ -55,7 +55,7 @@ sequenceDiagram
 - 8081 allowlist is separate from payment.
 - Origin does not charge; Aperture is the cash register.
 
-Two-agent swarm (who pays one GET): [examples/swarm_l402.md](../examples/swarm_l402.md) (live demo pays from the Mac).
+Two-agent swarm (who pays one GET): [examples/swarm_l402.md](../examples/swarm_l402.md) (live demo pays from the Mac; [how the winner is chosen](../examples/swarm_l402.md#how-the-winner-is-chosen)).
 
 ## Wallets and chain backends
 

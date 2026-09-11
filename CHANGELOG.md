@@ -1,3 +1,9 @@
+## Docs — swarm negotiate score (2026-09-11)
+
+[examples/swarm_l402.md](examples/swarm_l402.md) and [examples/swarm_l402_8.md](examples/swarm_l402_8.md): how the winner is chosen (`negotiate_score_hex`). Not a new endpoint.
+
+---
+
 ## Docs — swarm_l402_8.md matches two-agent setup style (2026-09-11)
 
 [examples/swarm_l402_8.md](examples/swarm_l402_8.md): first-time vs later `.venv-nostr`; copy-paste regtest / signet / mainnet Mac payer blocks. Live still Mac → AWS. Not a new endpoint.
