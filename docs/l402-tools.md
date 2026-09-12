@@ -25,6 +25,7 @@ This is **not** a public catalog. The operator’s security group is **`/32`**. 
 
 Sequence (402 → pay → retry): [architecture.md — L402 request sequence](./architecture.md#l402-request-sequence).
 Two agents negotiate who pays one GET: [examples/swarm_l402.md](../examples/swarm_l402.md) (live demo pays from the Mac).
+Connect a **client** agent (their node, our `/32`): [l402-external-agent.md](./l402-external-agent.md).
 
 Lab host below is `http://3.90.159.146:8081`. Use a **test** invoice for decode/preflight examples, not a live mainnet pay request.
 

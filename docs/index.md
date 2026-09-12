@@ -31,6 +31,7 @@
 | [l402-aperture.md](./l402-aperture.md) | **Aperture L402** HTTP gateway (regtest + signet + mainnet PASS) |
 | [architecture.md](./architecture.md) | Engineers: L402 deployment diagram (Mermaid) |
 | [l402-tools.md](./l402-tools.md) | L402 paid JSON tools for agents (Bitcoin / Lightning / Nostr) |
+| [l402-external-agent.md](./l402-external-agent.md) | Connect a client agent to L402 (8081 `/32`, their payer) |
 | [setup.md](./setup.md) | Short setup pointers |
 
 ## Also
