@@ -1,3 +1,9 @@
+## Docs — connect an external agent to L402 (2026-09-12)
+
+[docs/l402-external-agent.md](docs/l402-external-agent.md): known client, 8081 `/32`, prefer a private channel, their LND pays. Not a new endpoint.
+
+---
+
 ## Examples — swarm --resolve puzzle fee-sats (2026-09-11)
 
 [examples/swarm_l402.md](examples/swarm_l402.md): `--resolve hash` (default) or `puzzle` (`ceil(vsize * sat_vb)`; 141×4=564). First correct signed solve pays one L402. Not a new endpoint.

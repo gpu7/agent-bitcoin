@@ -181,6 +181,7 @@ Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)**. Do not 
 | [docs/mainnet-pilot.md](docs/mainnet-pilot.md) | Mainnet pilot Phases 0–8 (ops complete; ≤50k dual-node) |
 | [docs/public-routing-loop.md](docs/public-routing-loop.md) | Public routing + Loop on AWS (topology A′; HOLD) |
 | [docs/l402-tools.md](docs/l402-tools.md) | L402 paid JSON tools for agents (Bitcoin / Lightning / Nostr) |
+| [docs/l402-external-agent.md](docs/l402-external-agent.md) | Connect a client agent to L402 (8081 `/32`) |
 | [docs/l402-aperture.md](docs/l402-aperture.md) | Aperture L402 operator runbook |
 | [docs/nostr-agent-identity.md](docs/nostr-agent-identity.md) | Nostr identity (Phases A–C) |
 | [docs/nwc-automatic-wallets.md](docs/nwc-automatic-wallets.md) | NWC / NIP-47 automatic wallets |
