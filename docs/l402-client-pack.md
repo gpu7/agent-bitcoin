@@ -47,6 +47,26 @@ You want Python 3.12.x. If that command is missing, try python3 --version. If th
 ```bash
 sudo apt update
 sudo apt install -y python3.12 python3.12-venv
+python3.12 --version
+```
+
+That should print Python 3.12.x. If it does, you are done. Then use:
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+python --version    # now 3.12 inside the venv
+```
+
+If python3.12 --version is not found:
+
+```bash
+sudo apt update
+sudo apt install -y software-properties-common
+sudo add-apt-repository -y ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install -y python3.12 python3.12-venv python3.12-dev
+python3.12 --version
 ```
 
 ```bash
