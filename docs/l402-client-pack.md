@@ -36,6 +36,19 @@ docker version
 docker compose version
 ```
 
+Install **Python 3.12** from [https://www.python.org](https://www.python.org) (or your OS package manager). Check:
+
+```bash
+python3.12 --version
+```
+
+You want Python 3.12.x. If that command is missing, try python3 --version. If that prints 3.10 or 3.11, still install 3.12; the pack is written for 3.12.On Ubuntu you can also use:
+
+```bash
+sudo apt update
+sudo apt install -y python3.12 python3.12-venv
+```
+
 ```bash
 cd examples/client-pack
 docker compose up -d          # or ./setup.sh does this
