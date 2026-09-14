@@ -83,11 +83,17 @@ Then run these commands
 ```bash
 cd examples/client-pack
 ./setup.sh
-# If no wallet yet: docker exec -it l402-client-lnd lncli --network=mainnet create
-# Save the seed offline. Never send it to us or AWS. Re-run ./setup.sh
+docker exec -it l402-client-lnd lncli --lnddir=/home/lnd/.lnd --network=mainnet create
+# Input a wallet password
+# Save the cipher seed offline. Never send it to anyone.
 ```
 
-`setup.sh` writes `client-hello.json` (`egress_ip`, `identity_pubkey`). Send that file to the operator. Neutrino first sync can take a while; peers in compose can go stale.
+Then run this command again:
+```bash
+./setup.sh
+```
+
+This time, `setup.sh` writes `client-hello.json` (`egress_ip`, `identity_pubkey`). Send that file to the operator. Neutrino first sync can take a while; peers in compose can go stale.
 
 Optional private channel (after confirmed coins, and after 9735 is allowlisted):
 
