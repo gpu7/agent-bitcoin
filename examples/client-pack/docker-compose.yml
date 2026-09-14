@@ -27,5 +27,6 @@ services:
       - "--restlisten=127.0.0.1:8080"
       - "--debuglevel=info"
       - "--tlsextradomain=l402-client-lnd"
+      - "--feeurl=https://nodes.lightning.computer/fees/v1/btc-fee-estimates.json"
     volumes:
       - ./data/lnd:/home/lnd/.lnd
