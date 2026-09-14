@@ -27,6 +27,15 @@ This is not automatic. Allowlist, funding, and the private channel each need a h
 
 Needs: Docker, Python 3.12, this repo (or `pip install agent-bitcoin` plus `examples/l402_pay.py`).
 
+Install **Docker Desktop** (or Docker Engine + Compose) from [https://www.docker.com](https://www.docker.com).
+On Ubuntu you can use Docker Engine: see [Install Docker Engine on Ubuntu](https://docs.docker.com/engine/install/ubuntu/).
+Confirm:
+
+```bash
+docker version
+docker compose version
+```
+
 ```bash
 cd examples/client-pack
 docker compose up -d          # or ./setup.sh does this
