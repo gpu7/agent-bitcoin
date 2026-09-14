@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "L402 client-hello",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["egress_ip", "identity_pubkey"],
+  "properties": {
+    "egress_ip": {
+      "type": "string",
+      "description": "Public IPv4 of the agent host (operator adds /32 on 8081 and 9735)"
+    },
+    "identity_pubkey": {
+      "type": "string",
+      "minLength": 66,
+      "maxLength": 66,
+      "pattern": "^[0-9a-fA-F]{66}$"
+    },
+    "p2p": {
+      "type": "string",
+      "description": "Optional pubkey@host:9735 if the client publishes P2P"
+    },
+    "l402_host": {
+      "type": "string"
+    }
+  }
+}

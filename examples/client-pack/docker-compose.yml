@@ -1,0 +1,31 @@
+# Client-side LND for a known L402 agent. Neutrino mainnet — no local bitcoind.
+# gRPC is localhost only. Do not world-open 10009. Do not copy this volume to AWS.
+#
+# Neutrino peers can go stale; update neutrino.addpeer if sync stalls.
+#
+# Usage (from this directory):
+#   docker compose up -d
+
+services:
+  l402-client-lnd:
+    image: lightninglabs/lnd:v0.18.5-beta
+    container_name: l402-client-lnd
+    restart: unless-stopped
+    ports:
+      - "9735:9735"
+      - "127.0.0.1:10009:10009"
+    command:
+      - "--bitcoin.mainnet"
+      - "--bitcoin.active"
+      - "--bitcoin.node=neutrino"
+      - "--neutrino.addpeer=btcd-mainnet.lightning.computer"
+      - "--neutrino.addpeer=mainnet1-btcd.zaphq.io"
+      - "--neutrino.addpeer=mainnet2-btcd.zaphq.io"
+      - "--lnddir=/home/lnd/.lnd"
+      - "--listen=0.0.0.0:9735"
+      - "--rpclisten=0.0.0.0:10009"
+      - "--restlisten=127.0.0.1:8080"
+      - "--debuglevel=info"
+      - "--tlsextradomain=l402-client-lnd"
+    volumes:
+      - ./data/lnd:/home/lnd/.lnd

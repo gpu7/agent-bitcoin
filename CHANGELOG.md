@@ -1,3 +1,9 @@
+## Docs+scripts — L402 client pack (2026-09-14)
+
+[docs/l402-client-pack.md](docs/l402-client-pack.md) + [examples/client-pack/](examples/client-pack/): Neutrino mainnet LND on the client, hello JSON (IP+pubkey), private channel, 100-sat smoke. 8081 stays `/32`. Not a new endpoint.
+
+---
+
 ## Docs — connect an external agent to L402 (2026-09-12)
 
 [docs/l402-external-agent.md](docs/l402-external-agent.md): known client, 8081 `/32`, prefer a private channel, their LND pays. Not a new endpoint.

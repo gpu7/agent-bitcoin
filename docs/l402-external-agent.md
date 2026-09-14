@@ -59,6 +59,8 @@ An external agent pays **our AWS Aperture** for existing JSON tools. Aperture is
 - Card checkout (no Lightning ⇒ no path)
 - Required: Nostr, swarm, or Grok
 
+Installer sketch (Neutrino LND on their box): [l402-client-pack.md](./l402-client-pack.md).
+
 ## Pointers
 
 - Routes: [l402-tools.md](./l402-tools.md)
