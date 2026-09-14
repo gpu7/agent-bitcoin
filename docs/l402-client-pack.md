@@ -93,6 +93,11 @@ Then run this command again:
 ./setup.sh
 ```
 
+If the wallet is locked, unlock it:
+```bash
+docker exec -it l402-client-lnd lncli --lnddir=/home/lnd/.lnd --network=mainnet unlock
+```
+
 This time, `setup.sh` writes `client-hello.json` (`egress_ip`, `identity_pubkey`). Send that file to the operator. Neutrino first sync can take a while; peers in compose can go stale.
 
 Optional private channel (after confirmed coins, and after 9735 is allowlisted):
