@@ -98,6 +98,11 @@ gitleaks-report.*
 .docker/
 .dockerignore
 
+# L402 client pack (local LND volume + hello; never commit seed/password)
+examples/client-pack/data/
+examples/client-pack/client-hello.json
+examples/client-pack/.wallet-password
+
 # n8n / workflow files
 n8n-data/
 
