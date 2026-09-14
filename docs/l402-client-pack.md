@@ -69,6 +69,17 @@ sudo apt install -y python3.12 python3.12-venv python3.12-dev
 python3.12 --version
 ```
 
+Get this repository (Git from your package manager if needed):
+
+```bash
+sudo apt install -y git
+git clone https://github.com/gpu7/agent-bitcoin.git
+cd agent-bitcoin
+git pull origin main
+```
+
+Then run these commands
+
 ```bash
 cd examples/client-pack
 docker compose up -d          # or ./setup.sh does this
