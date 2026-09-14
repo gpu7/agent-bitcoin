@@ -27,7 +27,7 @@ This is not automatic. Allowlist, funding, and the private channel each need a h
 
 Needs: Docker, Python 3.12, this repo (or `pip install agent-bitcoin` plus `examples/l402_pay.py`).
 
-Install **Docker Desktop** (or Docker Engine + Compose) from [https://www.docker.com](https://www.docker.com).
+Install **Docker Desktop** from [https://www.docker.com](https://www.docker.com).
 On Ubuntu you can use Docker Engine: see [Install Docker Engine on Ubuntu](https://docs.docker.com/engine/install/ubuntu/).
 Confirm:
 
@@ -82,7 +82,6 @@ Then run these commands
 
 ```bash
 cd examples/client-pack
-docker compose up -d          # or ./setup.sh does this
 ./setup.sh
 # If no wallet yet: docker exec -it l402-client-lnd lncli --network=mainnet create
 # Save the seed offline. Never send it to us or AWS. Re-run ./setup.sh
