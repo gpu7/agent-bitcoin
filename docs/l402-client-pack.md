@@ -98,6 +98,11 @@ If the wallet is locked, unlock it:
 docker exec -it l402-client-lnd lncli --lnddir=/home/lnd/.lnd --network=mainnet unlock
 ```
 
+Then run this command again:
+```bash
+./setup.sh
+```
+
 This time, `setup.sh` will write the file `client-hello.json`. Send that file to us.
 
 Optional private channel (after confirmed coins, and after 9735 is allowlisted):
