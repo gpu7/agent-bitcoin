@@ -93,3 +93,47 @@ def test_open_refused_below_sats() -> None:
     )
     assert code == 4
     assert opened == []
+
+
+def test_channel_spendable_and_aws_peer() -> None:
+    aws = cp.AWS_PUB
+    other = "03" + ("cd" * 32)
+    rows = cp.channel_status_rows(
+        [
+            {
+                "remote_pubkey": other,
+                "active": True,
+                "private": False,
+                "local_balance": "999",
+                "remote_balance": "1",
+                "local_chan_reserve_sat": "1",
+                "total_satoshis_sent": "0",
+            },
+            {
+                "remote_pubkey": aws,
+                "active": True,
+                "private": True,
+                "local_balance": "500",
+                "remote_balance": "200",
+                "local_chan_reserve_sat": "100",
+                "total_satoshis_sent": "42",
+            },
+        ]
+    )
+    assert len(rows) == 1
+    assert rows[0]["remote_pubkey"] == aws
+    assert rows[0]["approx_spendable"] == 400
+    assert rows[0]["private"] is True
+    assert rows[0]["total_satoshis_sent"] == 42
+    tight = cp.channel_status_rows(
+        [
+            {
+                "remote_pubkey": other,
+                "local_balance": "50",
+                "local_chan_reserve_sat": "80",
+                "remote_balance": "0",
+                "total_satoshis_sent": "0",
+            }
+        ]
+    )
+    assert tight[0]["approx_spendable"] == 0

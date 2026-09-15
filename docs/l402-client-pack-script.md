@@ -41,6 +41,7 @@ After they admit you and Neutrino is synced:
 
 ```bash
 python3.12 examples/client-pack/client_pack.py status
+# on-chain confirmed_balance; per channel: active, private, local/remote, reserve, approx_spendable, sent
 python3.12 examples/client-pack/client_pack.py address
 # fund ≥ ~50,000 sats (not 1000); wait for confirm
 python3.12 examples/client-pack/client_pack.py open --sats 50000
