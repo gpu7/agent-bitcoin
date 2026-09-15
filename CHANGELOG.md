@@ -1,3 +1,9 @@
+## Examples — Ubuntu client_pack.py CLI (2026-09-15)
+
+[docs/l402-client-pack-script.md](docs/l402-client-pack-script.md) + [examples/client-pack/client_pack.py](examples/client-pack/client_pack.py). Bash pack unchanged. Not a new endpoint.
+
+---
+
 ## Fix — SG script keeps client pack /32s (2026-09-15)
 
 [`update-aws-sg-my-ip.sh`](update-aws-sg-my-ip.sh) adds the Mac `/32` and only revokes older admin/Mac CIDRs. Client pack rules stay. Never 0.0.0.0/0 or 10009.

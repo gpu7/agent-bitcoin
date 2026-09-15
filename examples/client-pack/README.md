@@ -3,6 +3,7 @@
 Neutrino mainnet LND on **your** machine. Pay our Aperture at 100 sats over a **private** channel.
 
 Full steps (client + operator admit): **[docs/l402-client-pack.md](../../docs/l402-client-pack.md)**.
+Ubuntu Python CLI: **[docs/l402-client-pack-script.md](../../docs/l402-client-pack-script.md)** (`python3.12 examples/client-pack/client_pack.py`).
 
 ```bash
 cd examples/client-pack
