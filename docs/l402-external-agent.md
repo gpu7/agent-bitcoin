@@ -19,7 +19,7 @@ An external agent pays **our AWS Aperture** for existing JSON tools. Aperture is
 
 2. **Client gives egress /32** of the **agent host**. A VPS is more stable than a home ISP (home IPv4 often changes).
 
-3. **We add that /32 on TCP 8081** (same idea as [`update-aws-sg-my-ip.sh`](../update-aws-sg-my-ip.sh), with **their** IP — not ours). **10009 stays closed** (LND gRPC is not public). Optionally allow **9735** if they will open a channel.
+3. **We add that /32 on TCP 8081** with Description `client pack` (not `MY_IP=<client> ./update-aws-sg-my-ip.sh` — that script is **additive for the Mac** and no longer wipes other `/32`s). **10009 stays closed**. Optionally allow **9735** the same way.
 
 4. **They probe** from that host:
 
