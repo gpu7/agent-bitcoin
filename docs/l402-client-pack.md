@@ -105,23 +105,6 @@ Then run this command again:
 
 This time, `setup.sh` will write the file `client-hello.json`. Send that file to us.
 
-Optional private channel (after confirmed coins, and after 9735 is allowlisted):
-
-```bash
-./setup.sh --open-channel 20000
-```
-
-Smoke (real sats; mainnet latches):
-
-```bash
-./smoke-l402.sh
-```
-
-That uses container **`l402-client-lnd`**, not our Mac `agent-bitcoin-lnd-mainnet`, and not AWS `agent-payment-decision-lnd-mainnet` (self-pay).
-
-## Fund Client Machine
-
-
 
 ## Operator admit
 
@@ -188,11 +171,43 @@ docker exec l402-client-lnd \
   lncli --lnddir=/home/lnd/.lnd --network=mainnet newaddress p2wkh
 ```
 
-Send mainnet BTC to that address from an exchange or wallet you control.
-Amount: channel size + miner fee (example: 50,000–100,000 sats).
+Send mainnet BTC to that address from an exchange or wallet you control. 
+Amount: channel size + miner fee (for example: 50,000 sats). 
 Wait until walletbalance shows a confirmed balance (typically ca. 10 minutes but can vary somewhat).
+After walletbalance shows a confirmed balance, open a private channel to AWS:
+```bash
+docker exec l402-client-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=mainnet connect \
+  0290ec8b1733192e5dcbc5d32f8fec5ae345ff777fc48dafed757c2d14781d4967@3.90.159.146:9735
 
+docker exec l402-client-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=mainnet openchannel \
+  --private \
+  --node_key=0290ec8b1733192e5dcbc5d32f8fec5ae345ff777fc48dafed757c2d14781d4967 \
+  --local_amt=50000
+```
+--local_amt must be less than confirmed balance minus fee. Adjust if walletbalance is smaller.
 
+Wait for the private channel to be active:
+```bash
+docker exec l402-client-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=mainnet pendingchannels
+
+docker exec l402-client-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=mainnet listchannels
+```
+You want "pending_open_channels" is empty, "active": true, "private": true and local_balance enough for 100 sats + reserve.
+
+Run smoke test on client machine:
+```bash
+export LND_NETWORK=mainnet
+export LND_TRANSPORT=docker
+export LND_CONTAINER=l402-client-lnd
+export AGENT_BITCOIN_ALLOW_MAINNET=1
+export AGENT_BITCOIN_ALLOW_AUTOPAY=1
+
+./smoke-l402.sh
+```
 
 
 ## What this is not
