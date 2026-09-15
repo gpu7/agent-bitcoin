@@ -1,3 +1,9 @@
+## Examples — client_pack status shows channel outbound (2026-09-15)
+
+`status` prints on-chain confirmed balance plus per-channel local/reserve/`approx_spendable`. Not a new endpoint.
+
+---
+
 ## Chore — client_pack.py executable in git (2026-09-15)
 
 [examples/client-pack/client_pack.py](examples/client-pack/client_pack.py) mode 100755. Behavior unchanged.

@@ -228,14 +228,58 @@ def cmd_hello(_args: argparse.Namespace) -> int:
     return 0
 
 
+def channel_status_rows(
+    channels: list[dict[str, Any]] | None,
+    *,
+    aws_pub: str = AWS_PUB,
+) -> list[dict[str, Any]]:
+    """Summarize channels for status. Prefer the AWS peer if present."""
+    chans = list(channels or [])
+    aws = [c for c in chans if str(c.get("remote_pubkey") or "") == aws_pub]
+    use = aws if aws else chans
+    rows: list[dict[str, Any]] = []
+    for c in use:
+        local = int(c.get("local_balance") or 0)
+        reserve = int(c.get("local_chan_reserve_sat") or 0)
+        rows.append(
+            {
+                "remote_pubkey": str(c.get("remote_pubkey") or ""),
+                "active": c.get("active"),
+                "private": c.get("private"),
+                "local_balance": local,
+                "remote_balance": int(c.get("remote_balance") or 0),
+                "local_chan_reserve_sat": reserve,
+                "approx_spendable": max(0, local - reserve),
+                "total_satoshis_sent": int(c.get("total_satoshis_sent") or 0),
+            }
+        )
+    return rows
+
+
 def cmd_status(_args: argparse.Namespace) -> int:
     info = lncli_json("getinfo")
     bal = lncli_json("walletbalance")
     chans = lncli_json("listchannels")
+    all_ch = chans.get("channels") or []
     print("synced_to_chain:", info.get("synced_to_chain"))
     print("num_peers:", info.get("num_peers"))
-    print("confirmed_balance:", bal.get("confirmed_balance"))
-    print("num_channels:", len(chans.get("channels") or []))
+    print("on-chain confirmed_balance:", bal.get("confirmed_balance"))
+    print("num_channels:", len(all_ch))
+    rows = channel_status_rows(all_ch)
+    if not rows:
+        print("channels: none")
+        return 0
+    for i, row in enumerate(rows, 1):
+        pub = row["remote_pubkey"]
+        tag = " AWS" if pub == AWS_PUB else ""
+        print(f"channel {i}{tag} remote={pub[:16]}…")
+        print("  active:", row["active"])
+        print("  private:", row["private"])
+        print("  local_balance:", row["local_balance"])
+        print("  remote_balance:", row["remote_balance"])
+        print("  local_chan_reserve_sat:", row["local_chan_reserve_sat"])
+        print("  approx_spendable:", row["approx_spendable"])
+        print("  total_satoshis_sent:", row["total_satoshis_sent"])
     return 0
 
 
