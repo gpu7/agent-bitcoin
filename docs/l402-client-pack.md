@@ -139,6 +139,8 @@ aws ec2 describe-security-groups --group-ids "$SG" \
   --query 'SecurityGroups[0].IpPermissions[?FromPort==`8081` || FromPort==`9735`]'
 ```
 
+`./update-aws-sg-my-ip.sh` on the Mac is **additive** (adds the operator `/32`; it no longer wipes other CIDRs such as client pack). Do not pass `MY_IP=<client>` to that script. Admit clients with `Description` containing `client pack` as above.
+
 Do **not** open 8081 to `0.0.0.0/0`. Do **not** publish 10009.
 
 ## Fund Client Machine

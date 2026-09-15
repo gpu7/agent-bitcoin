@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # update-aws-sg-my-ip.sh
 #
-# Detect this machine's public IPv4 and update the AWS security group so
-# admin/Mac ports allow that IP. Order: authorize NEW first, then revoke others
-# (avoids locking yourself out).
+# Detect this machine's public IPv4 and ADD that /32 on admin/Mac ports.
+# Additive: does not wipe client-pack /32s. Revokes only older rules whose
+# Description is Mac/admin and whose CIDR is not the current IP (ISP change).
+# Never 0.0.0.0/0. Never 10009.
 #
 # Usage (typically on your Mac when home IP changes):
 #   ./update-aws-sg-my-ip.sh
@@ -21,6 +22,7 @@
 #
 # Run this first on the Mac each day (or after ISP IP change) before
 # Mac→AWS connect / openchannel. Home IPv4 often changes overnight.
+# Do not pass MY_IP=<client>; admit clients with Description "client pack".
 #
 # Requires: aws CLI, credentials with ec2:Authorize/Revoke/Describe on the SG, python3, curl
 
@@ -33,7 +35,7 @@ for arg in "$@"; do
     --dry-run) DRY_RUN=1 ;;
     --keep-world-p2p) KEEP_WORLD_P2P=1 ;;
     -h|--help)
-      sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'
+      sed -n '2,27p' "$0" | sed 's/^# \{0,1\}//'
       exit 0
       ;;
     *)
@@ -48,6 +50,11 @@ SG_ID=${SG_ID:-sg-04e9e86b18199e18f}
 # Include 18444 so leftover world-open bitcoind P2P/RPC rules get removed.
 # 19735 = AWS signet LND host port (docker-compose.signet.aws.yml).
 PORTS_STR=${PORTS:-"22 8000 8081 18443 18444 28332 28333 9735 19735"}
+if [[ " $PORTS_STR " == *" 10009 "* ]]; then
+  echo "Refuse PORTS containing 10009 (LND gRPC stays closed)." >&2
+  exit 1
+fi
+ROOT="$(cd "$(dirname "$0")" && pwd)"
 
 # Prevent aws CLI from opening `less` and stopping on (END)
 export AWS_PAGER=""
@@ -95,63 +102,42 @@ aws ec2 describe-security-groups \
   --output json >"$SG_JSON"
 
 KEEP_WORLD_P2P="$KEEP_WORLD_P2P" MY_CIDR="$MY_CIDR" PORTS_STR="$PORTS_STR" \
-  python3 - "$SG_JSON" "$PLAN_JSON" <<'PY'
+  PYTHONPATH="$ROOT" python3 - "$SG_JSON" "$PLAN_JSON" <<'PY'
 import json, os, sys
-from collections import defaultdict
+from scripts.sg_ingress_plan import plan
 
 sg_path, plan_path = sys.argv[1], sys.argv[2]
 ports = {int(p) for p in os.environ["PORTS_STR"].split()}
-my_cidr = os.environ["MY_CIDR"]
-keep_world = os.environ.get("KEEP_WORLD_P2P", "0") == "1"
-
-with open(sg_path) as f:
-    data = json.load(f)
-
-existing = defaultdict(set)
-for g in data.get("SecurityGroups", []):
-    for perm in g.get("IpPermissions", []):
-        if perm.get("IpProtocol") != "tcp":
-            continue
-        fp, tp = perm.get("FromPort"), perm.get("ToPort")
-        if fp is None:
-            continue
-        for r in perm.get("IpRanges", []):
-            cidr = r.get("CidrIp")
-            if not cidr:
-                continue
-            for port in range(int(fp), int(tp) + 1):
-                if port in ports:
-                    existing[port].add(cidr)
-
-to_add, to_revoke = [], []
-for port in sorted(ports):
-    cidrs = existing.get(port, set())
-    if my_cidr not in cidrs:
-        to_add.append(port)
-    for c in sorted(cidrs):
-        if c == my_cidr:
-            continue
-        # Optional: leave world-open LN P2P (regtest 9735 or signet 19735)
-        if keep_world and port in (9735, 19735) and c == "0.0.0.0/0":
-            continue
-        to_revoke.append({"port": port, "cidr": c})
-
-with open(plan_path, "w") as f:
-    json.dump({"add": to_add, "revoke": to_revoke}, f, indent=2)
+doc = json.load(open(sg_path))
+out = plan(
+    doc,
+    ports=ports,
+    my_cidr=os.environ["MY_CIDR"],
+    keep_world_p2p=os.environ.get("KEEP_WORLD_P2P", "0") == "1",
+)
+json.dump(out, open(plan_path, "w"), indent=2)
 PY
 
 python3 - "$PLAN_JSON" "$MY_CIDR" <<'PY'
 import json, sys
 plan = json.load(open(sys.argv[1]))
 my = sys.argv[2]
-print("Plan:")
+print("Plan (additive; keeps client pack /32s):")
 if not plan["add"] and not plan["revoke"]:
     print("  No changes needed.")
 else:
     for p in plan["add"]:
-        print(f"  + authorize tcp/{p} from {my}")
+        print(f"  + authorize tcp/{p} from {my}  (agent-bitcoin admin/Mac)")
     for r in plan["revoke"]:
-        print(f"  - revoke   tcp/{r['port']} from {r['cidr']}")
+        print(f"  - revoke   tcp/{r['port']} from {r['cidr']}  ({r.get('description','')})")
+print("Remaining 8081/9735 after this plan:")
+for port in ("8081", "9735"):
+    rows = plan.get("remaining", {}).get(port) or []
+    if not rows:
+        print(f"  tcp/{port}: (none tracked)")
+        continue
+    for r in rows:
+        print(f"  tcp/{port} {r['cidr']}  {r.get('description','')}")
 PY
 
 if [[ "$DRY_RUN" -eq 1 ]]; then
@@ -209,6 +195,7 @@ echo "$MY_IP" >"$STATE_DIR/last-sg-ip"
 echo ""
 echo "Done. Recorded IP in $STATE_DIR/last-sg-ip"
 echo ""
+echo "Remaining 8081 / 9735:"
 aws ec2 describe-security-groups --region "$AWS_REGION" --group-ids "$SG_ID" \
-  --query 'SecurityGroups[].IpPermissions[].{From:FromPort,To:ToPort,Cidrs:IpRanges[].CidrIp}' \
+  --query 'SecurityGroups[0].IpPermissions[?FromPort==`8081` || FromPort==`9735`].{Port:FromPort,Ranges:IpRanges[].{Cidr:CidrIp,Desc:Description}}' \
   --output table
