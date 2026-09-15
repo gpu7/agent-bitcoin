@@ -119,6 +119,10 @@ Smoke (real sats; mainnet latches):
 
 That uses container **`l402-client-lnd`**, not our Mac `agent-bitcoin-lnd-mainnet`, and not AWS `agent-payment-decision-lnd-mainnet` (self-pay).
 
+## Fund Client Machine
+
+
+
 ## Operator admit
 
 After receiving the file `client-hello.json`, note the `egress_ip` and `identity_pubkey`.  On AWS get the security group ID associated with the running agent-bitcoin EC2 instance:
@@ -152,9 +156,42 @@ aws ec2 describe-security-groups --group-ids "$SG" \
   --query 'SecurityGroups[0].IpPermissions[?FromPort==`8081` || FromPort==`9735`]'
 ```
 
-Do **not** run that script from the client box (no auto-SG). Do **not** open 8081 to `0.0.0.0/0`. Do **not** publish 10009.
+Do **not** open 8081 to `0.0.0.0/0`. Do **not** publish 10009.
 
-Unlock **AWS** LND (`agent-payment-decision-lnd-mainnet`). `listchannels` / `listinvoices` as usual. Revoke access by deleting their `/32` on 8081 and 9735.
+## Fund Client Machine
+
+See whether a channel exists.  Run on client machine:
+
+```bash
+docker exec l402-client-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=mainnet getinfo
+
+docker exec l402-client-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=mainnet listpeers
+
+docker exec l402-client-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=mainnet listchannels
+```
+Check Lightning wallet balance on client machine. Run:
+
+ ```bash
+docker exec l402-client-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=mainnet walletbalance
+```
+
+If confirmed_balance is 0, get a deposit address:
+
+```bash
+docker exec l402-client-lnd \
+  lncli --lnddir=/home/lnd/.lnd --network=mainnet newaddress p2wkh
+```
+
+Send mainnet BTC to that address from an exchange or wallet you control. 
+Amount: channel size + miner fee (example: 50,000–100,000 sats). 
+Wait until walletbalance shows a confirmed balance (typically ca. 10 minutes but can vary somewhat).
+
+
+
 
 ## What this is not
 
