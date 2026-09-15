@@ -121,12 +121,35 @@ That uses container **`l402-client-lnd`**, not our Mac `agent-bitcoin-lnd-mainne
 
 ## Operator admit
 
-When you have their `egress_ip` from hello JSON:
+After receiving the file `client-hello.json`, note the `egress_ip` and `identity_pubkey`.  On AWS get the security group ID associated with the running agent-bitcoin EC2 instance:
 
 ```bash
-# On an operator machine with aws CLI — their IP, not yours
-MY_IP=<client-egress-ip> PORTS="8081 9735" ./update-aws-sg-my-ip.sh --dry-run
-# then without --dry-run if the CIDRs look right
+# run on AWS
+
+# get security group ID
+TOKEN=$(curl -sS -X PUT http://169.254.169.254/latest/api/token \
+  -H "X-aws-ec2-metadata-token-ttl-seconds: 60")
+MAC=$(curl -sS -H "X-aws-ec2-metadata-token: $TOKEN" \
+  http://169.254.169.254/latest/meta-data/mac)
+curl -sS -H "X-aws-ec2-metadata-token: $TOKEN" \
+  http://169.254.169.254/latest/meta-data/network/interfaces/macs/$MAC/security-group-ids
+
+SG=security_group_id
+IP=egress_ip
+
+aws ec2 authorize-security-group-ingress \
+  --group-id "$SG" \
+  --region us-east-1 \
+  --ip-permissions "[
+    {\"IpProtocol\":\"tcp\",\"FromPort\":8081,\"ToPort\":8081,
+     \"IpRanges\":[{\"CidrIp\":\"${IP}/32\",\"Description\":\"l402 client pack 8081\"}]},
+    {\"IpProtocol\":\"tcp\",\"FromPort\":9735,\"ToPort\":9735,
+     \"IpRanges\":[{\"CidrIp\":\"${IP}/32\",\"Description\":\"l402 client pack 9735\"}]}
+  ]"
+
+# verify
+aws ec2 describe-security-groups --group-ids "$SG" \
+  --query 'SecurityGroups[0].IpPermissions[?FromPort==`8081` || FromPort==`9735`]'
 ```
 
 Do **not** run that script from the client box (no auto-SG). Do **not** open 8081 to `0.0.0.0/0`. Do **not** publish 10009.
