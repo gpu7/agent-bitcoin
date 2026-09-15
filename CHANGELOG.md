@@ -1,3 +1,9 @@
+## Chore — client_pack.py executable in git (2026-09-15)
+
+[examples/client-pack/client_pack.py](examples/client-pack/client_pack.py) mode 100755. Behavior unchanged.
+
+---
+
 ## Examples — Ubuntu client_pack.py CLI (2026-09-15)
 
 [docs/l402-client-pack-script.md](docs/l402-client-pack-script.md) + [examples/client-pack/client_pack.py](examples/client-pack/client_pack.py). Bash pack unchanged. Not a new endpoint.
