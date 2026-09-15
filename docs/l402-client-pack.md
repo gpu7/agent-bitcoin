@@ -156,6 +156,8 @@ aws ec2 describe-security-groups --group-ids "$SG" \
   --query 'SecurityGroups[0].IpPermissions[?FromPort==`8081` || FromPort==`9735`]'
 ```
 
+`./update-aws-sg-my-ip.sh` on the Mac is **additive** (adds the operator `/32`; it no longer wipes other CIDRs such as client pack). Do not pass `MY_IP=<client>` to that script. Admit clients with `Description` containing `client pack` as above.
+
 Do **not** open 8081 to `0.0.0.0/0`. Do **not** publish 10009.
 
 ## Fund Client Machine
@@ -186,8 +188,8 @@ docker exec l402-client-lnd \
   lncli --lnddir=/home/lnd/.lnd --network=mainnet newaddress p2wkh
 ```
 
-Send mainnet BTC to that address from an exchange or wallet you control. 
-Amount: channel size + miner fee (example: 50,000–100,000 sats). 
+Send mainnet BTC to that address from an exchange or wallet you control.
+Amount: channel size + miner fee (example: 50,000–100,000 sats).
 Wait until walletbalance shows a confirmed balance (typically ca. 10 minutes but can vary somewhat).
 
 

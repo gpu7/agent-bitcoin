@@ -1,3 +1,9 @@
+## Fix — SG script keeps client pack /32s (2026-09-15)
+
+[`update-aws-sg-my-ip.sh`](update-aws-sg-my-ip.sh) adds the Mac `/32` and only revokes older admin/Mac CIDRs. Client pack rules stay. Never 0.0.0.0/0 or 10009.
+
+---
+
 ## Docs+scripts — L402 client pack (2026-09-14)
 
 [docs/l402-client-pack.md](docs/l402-client-pack.md) + [examples/client-pack/](examples/client-pack/): Neutrino mainnet LND on the client, hello JSON (IP+pubkey), private channel, 100-sat smoke. 8081 stays `/32`. Not a new endpoint.
