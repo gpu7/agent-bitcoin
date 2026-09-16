@@ -74,3 +74,26 @@ def pick_first_correct(
         return None
     ok.sort(key=lambda row: (row[0], row[1]))
     return ok[0][1]
+
+
+def parse_yes_no(text: str) -> str:
+    """First line, stripped, uppercased. Only exact YES counts; else NO."""
+    line = (text or "").strip().split("\n", 1)[0].strip().upper()
+    # drop trailing punctuation
+    line = line.rstrip(".,!;:")
+    token = line.split()[0] if line else ""
+    return "YES" if token == "YES" else "NO"
+
+
+def pick_llm_gate_winner(
+    votes: list[tuple[str, str, int]],
+) -> str | None:
+    """YES voters; two YES → hash (choose_payer_n); one YES → that npub; zero → None."""
+    from agent_bitcoin.nostr.negotiate import choose_payer_n
+
+    yes = [(npub, score) for npub, vote, score in votes if vote == "YES"]
+    if not yes:
+        return None
+    if len(yes) == 1:
+        return yes[0][0]
+    return choose_payer_n(yes)[0]
