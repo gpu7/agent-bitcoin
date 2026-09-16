@@ -18,23 +18,6 @@
 
 A lightweight Python SDK that enables AI agents to send and receive Lightning/Bitcoin payments.
 
-| Doc | Who it's for |
-|-----|----------------|
-| **[SDK.md](SDK.md)** | App & agent developers (install, API, fees, quotes, LLM agents, HTTP API) |
-| **[docs/index.md](docs/index.md)** | Full docs index |
-| **[docs/l402-tools.md](docs/l402-tools.md)** | Agent developers: L402 Bitcoin / Lightning / Nostr paid JSON tools |
-| **[docs/l402-aperture.md](docs/l402-aperture.md)** | Operators: Aperture L402 runbook (`:8081` `/32`) |
-| **[docs/architecture.md](docs/architecture.md)** | Engineers: L402 / wallet diagrams |
-| **[docs/l402-external-agent.md](docs/l402-external-agent.md)** | Known client on our L402 (`/32`, their payer) |
-| **[docs/l402-client-pack.md](docs/l402-client-pack.md)** | Client pack (Neutrino LND compose, setup + 100-sat smoke) |
-| **[docs/l402-client-pack-script.md](docs/l402-client-pack-script.md)** | Ubuntu `client_pack.py` trial |
-| **[examples/swarm_l402.md](examples/swarm_l402.md)** | Two-agent swarm (who pays one L402 GET) |
-| **[examples/swarm_l402_8.md](examples/swarm_l402_8.md)** | Eight-agent swarm (one Mac LND, one pay) |
-| **[docs/backend.md](docs/backend.md)** | Operators: AWS/Mac **regtest** dual-node lab |
-| **[docs/signet.md](docs/signet.md)** | Operators: dual-node **signet** |
-| **[docs/mainnet-pilot.md](docs/mainnet-pilot.md)** | Mainnet pilot **Phases 0–8** (ops complete; ≤50k dual-node) |
-| **[docs/public-routing-loop.md](docs/public-routing-loop.md)** | Topology A′: public channels + first Loop Out done; capital HOLD; Autoloop off |
-
 ---
 
 ## Features
@@ -197,28 +180,16 @@ Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)**. Do not 
 
 ## Documentation
 
-| Link | Description |
-|------|-------------|
-| [SDK.md](SDK.md) | Python SDK, quotes, fees, LLM agents, Backend HTTP API |
-| [docs/index.md](docs/index.md) | Full docs index (signet, mainnet readiness, backup, health, liquidity) |
-| [docs/backend.md](docs/backend.md) | Regtest dual-node workflow |
-| [docs/signet.md](docs/signet.md) | Signet dual-node lab |
-| [docs/mainnet-pilot.md](docs/mainnet-pilot.md) | Mainnet pilot Phases 0–8 (ops complete; ≤50k dual-node) |
-| [docs/public-routing-loop.md](docs/public-routing-loop.md) | Public routing + Loop on AWS (topology A′; HOLD) |
-| [docs/architecture.md](docs/architecture.md) | L402 / wallet Mermaid diagrams |
-| [docs/l402-tools.md](docs/l402-tools.md) | L402 paid JSON tools for agents (Bitcoin / Lightning / Nostr) |
-| [docs/l402-aperture.md](docs/l402-aperture.md) | Aperture L402 operator runbook |
-| [docs/l402-external-agent.md](docs/l402-external-agent.md) | Connect a client agent to L402 (8081 `/32`) |
-| [docs/l402-client-pack.md](docs/l402-client-pack.md) | Client pack: Neutrino LND, setup + 100-sat smoke |
-| [docs/l402-client-pack-script.md](docs/l402-client-pack-script.md) | Ubuntu `client_pack.py` |
-| [examples/swarm_l402.md](examples/swarm_l402.md) | Two-agent swarm (hash / puzzle) |
-| [examples/swarm_l402_8.md](examples/swarm_l402_8.md) | Eight-agent swarm |
-| [examples/client-pack/](examples/client-pack/) | Client compose + setup / smoke / `client_pack.py` |
-| [docs/nostr-agent-identity.md](docs/nostr-agent-identity.md) | Nostr identity (Phases A–C) |
-| [docs/nwc-automatic-wallets.md](docs/nwc-automatic-wallets.md) | NWC / NIP-47 automatic wallets |
-| [examples/](examples/) | Runnable sample scripts (incl. signet product path) |
-| [CHANGELOG.md](CHANGELOG.md) | Release history |
-| [SECURITY.md](SECURITY.md) | Security policy and vulnerability reporting |
+| Doc | Why |
+|-----|-----|
+| [SDK.md](SDK.md) | Install + Python client |
+| [docs/l402-tools.md](docs/l402-tools.md) | What the paid routes are |
+| [docs/l402-client-pack.md](docs/l402-client-pack.md) | Known client: Ubuntu/Neutrino pack, `/32`, private channel |
+| [docs/l402-client-pack-script.md](docs/l402-client-pack-script.md) | Same path via `client_pack.py` |
+| [docs/l402-external-agent.md](docs/l402-external-agent.md) | How an external agent connects (operator admit) |
+| [docs/l402-aperture.md](docs/l402-aperture.md) | Operator: Aperture on our box (self-host the cash register) |
+
+More operator, lab, and swarm docs live under `docs/` and `examples/`.
 
 ---
 

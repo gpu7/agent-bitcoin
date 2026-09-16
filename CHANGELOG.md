@@ -1,3 +1,9 @@
+## Docs — README one get-started table (2026-09-15)
+
+[README.md](README.md): single Documentation table (SDK + L402). Not a public catalog.
+
+---
+
 ## Docs — README index refresh (2026-09-15)
 
 [README.md](README.md) tables point at L402 tools, client pack, swarms, architecture. Not a public catalog.
