@@ -1,3 +1,9 @@
+## Examples — SWARM_LLM_FORCE_VOTE test hook (2026-09-15)
+
+`YES`/`NO` skips xAI for llm-gate (`reason=forced_test`). Default mock/live still call Grok.
+
+---
+
 ## Examples — llm-gate logs Grok reason next to vote (2026-09-15)
 
 Vote JSON and console include a short `reason` (local only, not sent to AWS).

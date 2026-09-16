@@ -11,6 +11,7 @@ import pytest
 
 from agent_bitcoin.nostr.negotiate import negotiate_score
 from agent_bitcoin.nostr.resolve import (
+    parse_force_vote,
     parse_vote_reason,
     parse_yes_no,
     pick_llm_gate_winner,
@@ -109,3 +110,90 @@ def test_missing_key_exits_nonzero(
     out = proc.stdout + proc.stderr
     assert proc.returncode != 0, out
     assert "XAI_API_KEY" in out
+
+
+def test_parse_force_vote() -> None:
+    assert parse_force_vote(None) is None
+    assert parse_force_vote("") is None
+    assert parse_force_vote("yes") == "YES"
+    assert parse_force_vote("NO") == "NO"
+    with pytest.raises(ValueError):
+        parse_force_vote("maybe")
+
+
+def test_cli_force_yes_one_mock_pay(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pytest.importorskip("pynostr")
+    monkeypatch.delenv("XAI_API_KEY", raising=False)
+    env = {
+        **os.environ,
+        "NOSTR_PASSPHRASE": "test-offline-passphrase-not-a-secret",
+        "SWARM_LLM_FORCE_VOTE": "YES",
+        "PYTHONPATH": str(ROOT) + os.pathsep + os.environ.get("PYTHONPATH", ""),
+    }
+    env.pop("XAI_API_KEY", None)
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(EXAMPLE),
+            "--role",
+            "both",
+            "--resolve",
+            "llm-gate",
+            "--offline-bus",
+            "--force-new-keys",
+            "--dir",
+            str(tmp_path),
+            "--timeout",
+            "15",
+        ],
+        cwd=str(ROOT),
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    out = proc.stdout + proc.stderr
+    assert proc.returncode == 0, out
+    assert "reason=forced_test" in out
+    assert out.count("[l402] --offline-bus mock GET") == 1
+
+
+def test_cli_force_no_skips_pay(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pytest.importorskip("pynostr")
+    monkeypatch.delenv("XAI_API_KEY", raising=False)
+    env = {
+        **os.environ,
+        "NOSTR_PASSPHRASE": "test-offline-passphrase-not-a-secret",
+        "SWARM_LLM_FORCE_VOTE": "NO",
+        "PYTHONPATH": str(ROOT) + os.pathsep + os.environ.get("PYTHONPATH", ""),
+    }
+    env.pop("XAI_API_KEY", None)
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(EXAMPLE),
+            "--role",
+            "both",
+            "--resolve",
+            "llm-gate",
+            "--offline-bus",
+            "--force-new-keys",
+            "--dir",
+            str(tmp_path),
+            "--timeout",
+            "15",
+        ],
+        cwd=str(ROOT),
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    out = proc.stdout + proc.stderr
+    assert proc.returncode == 0, out
+    assert "skip L402" in out or "skipped" in out.lower()
+    assert "[l402] --offline-bus mock GET" not in out

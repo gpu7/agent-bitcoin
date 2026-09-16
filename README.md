@@ -119,6 +119,14 @@ export AGENT_BITCOIN_ALLOW_AUTOPAY=1
   --url http://3.90.159.146:8081/paid/finance/ln-path-fee-hint
 ```
 
+Forced YES (test only — skip Grok; do not default):
+
+```bash
+export SWARM_LLM_FORCE_VOTE=YES
+# both terminals, then the same alice/bob commands as mock (`--offline-bus`)
+# or live (URL + LND exports above)
+```
+
 ---
 
 ## Nostr (agent identity)

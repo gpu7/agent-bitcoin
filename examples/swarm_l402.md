@@ -84,6 +84,12 @@ export AGENT_BITCOIN_ALLOW_AUTOPAY=1
   --url http://3.90.159.146:8081/paid/finance/ln-path-fee-hint
 ```
 
+Forced YES (test only — skip Grok; do not default). Same alice/bob commands as mock (`--offline-bus`) or live (URL + LND exports):
+
+```bash
+export SWARM_LLM_FORCE_VOTE=YES
+```
+
 ## 2. Prerequisites
 
 - L402 stack up on AWS: `./startup-l402-aws.sh <regtest|signet|mainnet>`

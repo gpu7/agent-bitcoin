@@ -108,6 +108,16 @@ def parse_vote_reason(text: str) -> tuple[str, str]:
     return vote, reason
 
 
+def parse_force_vote(raw: str | None) -> str | None:
+    """SWARM_LLM_FORCE_VOTE: YES, NO, or unset. Garbage raises ValueError."""
+    s = (raw or "").strip().upper()
+    if not s:
+        return None
+    if s in ("YES", "NO"):
+        return s
+    raise ValueError("SWARM_LLM_FORCE_VOTE must be YES or NO")
+
+
 def pick_llm_gate_winner(
     votes: list[tuple[str, str, int]],
 ) -> str | None:
