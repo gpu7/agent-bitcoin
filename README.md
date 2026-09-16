@@ -21,9 +21,17 @@ A lightweight Python SDK that enables AI agents to send and receive Lightning/Bi
 | Doc | Who it's for |
 |-----|----------------|
 | **[SDK.md](SDK.md)** | App & agent developers (install, API, fees, quotes, LLM agents, HTTP API) |
+| **[docs/index.md](docs/index.md)** | Full docs index |
 | **[docs/l402-tools.md](docs/l402-tools.md)** | Agent developers: L402 Bitcoin / Lightning / Nostr paid JSON tools |
+| **[docs/l402-aperture.md](docs/l402-aperture.md)** | Operators: Aperture L402 runbook (`:8081` `/32`) |
+| **[docs/architecture.md](docs/architecture.md)** | Engineers: L402 / wallet diagrams |
+| **[docs/l402-external-agent.md](docs/l402-external-agent.md)** | Known client on our L402 (`/32`, their payer) |
+| **[docs/l402-client-pack.md](docs/l402-client-pack.md)** | Client pack (Neutrino LND compose, setup + 100-sat smoke) |
+| **[docs/l402-client-pack-script.md](docs/l402-client-pack-script.md)** | Ubuntu `client_pack.py` trial |
+| **[examples/swarm_l402.md](examples/swarm_l402.md)** | Two-agent swarm (who pays one L402 GET) |
+| **[examples/swarm_l402_8.md](examples/swarm_l402_8.md)** | Eight-agent swarm (one Mac LND, one pay) |
 | **[docs/backend.md](docs/backend.md)** | Operators: AWS/Mac **regtest** dual-node lab |
-| **[docs/signet.md](docs/signet.md)** | Operators: dual-node **signet** (current pre-mainnet lab) |
+| **[docs/signet.md](docs/signet.md)** | Operators: dual-node **signet** |
 | **[docs/mainnet-pilot.md](docs/mainnet-pilot.md)** | Mainnet pilot **Phases 0–8** (ops complete; ≤50k dual-node) |
 | **[docs/public-routing-loop.md](docs/public-routing-loop.md)** | Topology A′: public channels + first Loop Out done; capital HOLD; Autoloop off |
 
@@ -35,12 +43,13 @@ A lightweight Python SDK that enables AI agents to send and receive Lightning/Bi
 - Create and pay Lightning invoices (**payee** creates, **payer** pays)
 - **Explicit invoice quotes** for independent agents (`create_invoice_quote` / `pay_invoice_quote`) — one BOLT11 for the requested amount
 - LND transports: **docker** `lncli` (lab default) or **gRPC** + macaroon ([docs/lnd-client.md](docs/lnd-client.md))
-- Networks: **regtest** (default), **signet**, testnet; **mainnet** only with explicit latch
+- Networks: **regtest** (default), **signet**, testnet; **mainnet** only with explicit latch (pilot ops complete under caps)
 - Pydantic models and structured errors
 - Optional LLM **payment decision** agent (PAY / REJECT / CONFIRM — never executes pays)
 - Balance checks (Lightning and on-chain)
 - Operator tooling: dual-node health, SCB backup, daily ops ([docs/index.md](docs/index.md))
-- Optional **Aperture L402** paid JSON tool suites (Bitcoin / Lightning / Nostr, typically **100 sats**) — [docs/l402-tools.md](docs/l402-tools.md) (operators: [docs/l402-aperture.md](docs/l402-aperture.md))
+- Optional **Aperture L402** paid JSON tool suites (Bitcoin / Lightning / Nostr, typically **100 sats**) — [docs/l402-tools.md](docs/l402-tools.md) (operators: [docs/l402-aperture.md](docs/l402-aperture.md); **not** a public catalog — 8081 stays `/32`)
+- Optional **client pack** for a *known* remote agent (their Neutrino LND + private channel) — [docs/l402-client-pack.md](docs/l402-client-pack.md) (not hosted wallet / not SaaS)
 - Optional **Nostr** agent identity and **NWC** wallets (not required for Lightning pays) — [Nostr (agent identity)](#nostr-agent-identity)
 
 ---
@@ -81,6 +90,20 @@ Paid JSON on Aperture `:8081`. Unpaid calls return **402**; finance/Nostr paths 
 
 **Nostr** (local, no relay): `POST /paid/nostr/event-verify` — check NIP-01 id and sig; `npub-decode` — bech32 npub/note to hex (`nsec` rejected); `zap-receipt-inspect` — inspect kind-9735 zap receipt.
 
+Demo files (`/paid/hello`, PDFs, PNG) are **1,000 sats**. Lab host: `http://3.90.159.146:8081` (allowlisted).
+
+---
+
+## Remote client (known host)
+
+Not “anyone with the URL.” A **known** client machine can pay Aperture with **their** LND (not our Mac wallet, not AWS invoice LND). Prefer a **private** channel; the operator admits their egress `/32` on 8081 and 9735. Pack: [docs/l402-client-pack.md](docs/l402-client-pack.md). Ubuntu CLI: [docs/l402-client-pack-script.md](docs/l402-client-pack-script.md) (`examples/client-pack/`).
+
+---
+
+## Agent demos (swarm)
+
+Two-agent and eight-agent swarms negotiate **who pays one L402 GET** (hash default, optional `fee-sats` puzzle). Live pay is from the **Mac** LND, not AWS self-pay. [examples/swarm_l402.md](examples/swarm_l402.md), [examples/swarm_l402_8.md](examples/swarm_l402_8.md).
+
 ---
 
 ## Nostr (agent identity)
@@ -109,8 +132,10 @@ More: [SDK.md](SDK.md#examples) (Nostr examples list), [docs/nostr-agent-identit
 
 ### From PyPI
 
+PyPI matches `pyproject.toml` **26.6.0**. Git `main` may be ahead.
+
 ```bash
-pip install agent-bitcoin
+pip install agent-bitcoin==26.6.0
 ```
 
 ### From source
@@ -180,9 +205,15 @@ Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)**. Do not 
 | [docs/signet.md](docs/signet.md) | Signet dual-node lab |
 | [docs/mainnet-pilot.md](docs/mainnet-pilot.md) | Mainnet pilot Phases 0–8 (ops complete; ≤50k dual-node) |
 | [docs/public-routing-loop.md](docs/public-routing-loop.md) | Public routing + Loop on AWS (topology A′; HOLD) |
+| [docs/architecture.md](docs/architecture.md) | L402 / wallet Mermaid diagrams |
 | [docs/l402-tools.md](docs/l402-tools.md) | L402 paid JSON tools for agents (Bitcoin / Lightning / Nostr) |
-| [docs/l402-external-agent.md](docs/l402-external-agent.md) | Connect a client agent to L402 (8081 `/32`) |
 | [docs/l402-aperture.md](docs/l402-aperture.md) | Aperture L402 operator runbook |
+| [docs/l402-external-agent.md](docs/l402-external-agent.md) | Connect a client agent to L402 (8081 `/32`) |
+| [docs/l402-client-pack.md](docs/l402-client-pack.md) | Client pack: Neutrino LND, setup + 100-sat smoke |
+| [docs/l402-client-pack-script.md](docs/l402-client-pack-script.md) | Ubuntu `client_pack.py` |
+| [examples/swarm_l402.md](examples/swarm_l402.md) | Two-agent swarm (hash / puzzle) |
+| [examples/swarm_l402_8.md](examples/swarm_l402_8.md) | Eight-agent swarm |
+| [examples/client-pack/](examples/client-pack/) | Client compose + setup / smoke / `client_pack.py` |
 | [docs/nostr-agent-identity.md](docs/nostr-agent-identity.md) | Nostr identity (Phases A–C) |
 | [docs/nwc-automatic-wallets.md](docs/nwc-automatic-wallets.md) | NWC / NIP-47 automatic wallets |
 | [examples/](examples/) | Runnable sample scripts (incl. signet product path) |

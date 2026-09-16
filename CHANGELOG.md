@@ -1,3 +1,9 @@
+## Docs — README index refresh (2026-09-15)
+
+[README.md](README.md) tables point at L402 tools, client pack, swarms, architecture. Not a public catalog.
+
+---
+
 ## Examples — client_pack status shows channel outbound (2026-09-15)
 
 `status` prints on-chain confirmed balance plus per-channel local/reserve/`approx_spendable`. Not a new endpoint.
