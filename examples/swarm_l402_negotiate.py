@@ -26,6 +26,7 @@ import argparse
 import json
 import os
 import sys
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -73,11 +74,18 @@ from agent_bitcoin.nostr.resolve import (  # noqa: E402
     check_solved,
     fee_sats_expected,
     fee_sats_problem,
+    parse_yes_no,
     pick_first_correct,
+    pick_llm_gate_winner,
 )
 
 DEFAULT_DIR = Path(os.environ.get("NOSTR_POC_DIR", ".nostr-poc")).resolve()
 DEFAULT_PASSPHRASE = os.environ.get("NOSTR_PASSPHRASE", "")
+AWS_LND_PUB = "0290ec8b1733192e5dcbc5d32f8fec5ae345ff777fc48dafed757c2d14781d4967"
+LLM_GATE_URL = "http://3.90.159.146:8081/paid/finance/ln-path-fee-hint"
+LLM_GATE_TIMEOUT_S = 8.0
+_LLM_CALLS = 0
+_LLM_LOCK = threading.Lock()
 ROLES_2 = ("alice", "bob")
 ROLES_8 = tuple(f"a{i}" for i in range(1, 9))
 
@@ -179,14 +187,21 @@ def _explain(
     return text or None
 
 
-def _pay_l402(url: str, price: int, offline: bool) -> tuple[int, bool, dict[str, int]]:
+def _pay_l402(
+    url: str,
+    price: int,
+    offline: bool,
+    *,
+    method: str = "GET",
+    json_body: Any | None = None,
+) -> tuple[int, bool, dict[str, int]]:
     if offline:
         resp = _OfflineL402().fetch(url)
     else:
         from agent_bitcoin import L402Client, create_client
 
         client = L402Client(create_client(), expected_price_sats=price)
-        resp = client.fetch(url, method="GET")
+        resp = client.fetch(url, method=method, json_body=json_body)
     status = int(getattr(resp, "status_code", 0) or 0)
     paid = bool(getattr(resp, "paid", False))
     body: Any = {}
@@ -302,7 +317,13 @@ def _finish_pay_or_wait(
         )
         return 0 if result.get("paid") else 1
 
-    status, paid, summary = _pay_l402(url, price, args.offline_bus)
+    status, paid, summary = _pay_l402(
+        url,
+        price,
+        args.offline_bus,
+        method=getattr(args, "http_method", "GET") or "GET",
+        json_body=getattr(args, "json_body", None),
+    )
     print(
         f"[{role}] l402 status={status} paid={paid} amount_sats={price} "
         f"summary={summary}"
@@ -377,9 +398,144 @@ def run_puzzle_role(args: argparse.Namespace, role: str, roles: tuple[str, ...])
     )
 
 
+def _llm_yes_no(job: str) -> str:
+    """One Grok YES/NO. Cap SWARM_LLM_MAX_CALLS. Timeout/error → NO. No secrets in prompt."""
+    global _LLM_CALLS
+    key = (os.environ.get("XAI_API_KEY") or "").strip()
+    if not key:
+        raise SystemExit("llm-gate requires XAI_API_KEY in the environment")
+    max_calls = int(os.environ.get("SWARM_LLM_MAX_CALLS") or "2")
+    with _LLM_LOCK:
+        if _LLM_CALLS >= max_calls:
+            print("[llm-gate] call cap reached; vote NO", file=sys.stderr)
+            return "NO"
+        _LLM_CALLS += 1
+    try:
+        from langchain_core.messages import HumanMessage, SystemMessage
+        from langchain_xai import ChatXAI
+    except ImportError as exc:
+        print(f"[llm-gate] langchain-xai missing: {exc}", file=sys.stderr)
+        return "NO"
+    llm = ChatXAI(
+        model="grok-4-1-fast-reasoning",
+        temperature=0,
+        max_tokens=8,
+        api_key=key,
+        timeout=LLM_GATE_TIMEOUT_S,
+    )
+
+    def _invoke() -> str:
+        msg = llm.invoke(
+            [
+                SystemMessage(
+                    content=(
+                        "Reply with YES or NO on the first line only. "
+                        "Do not pay. Do not ask for invoices or keys."
+                    )
+                ),
+                HumanMessage(content=job),
+            ]
+        )
+        return str(getattr(msg, "content", "") or "")
+
+    try:
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            fut = pool.submit(_invoke)
+            raw = fut.result(timeout=LLM_GATE_TIMEOUT_S)
+    except Exception as exc:
+        print(f"[llm-gate] timeout/error → NO ({exc})", file=sys.stderr)
+        return "NO"
+    return parse_yes_no(raw)
+
+
+def run_llm_gate_role(
+    args: argparse.Namespace, role: str, roles: tuple[str, ...]
+) -> int:
+    passphrase = _require_passphrase(args.passphrase)
+    root = Path(args.dir)
+    bus = _bus_dir(root)
+    url = args.url
+    price = int(args.price)
+    round_n = int(args.round)
+    iid = invoice_id_for_url(url)
+    sk = load_or_create_agent(root, role, passphrase, force_new=args.force_new_keys)
+    npub = sk.public_key.bech32()
+    score, _hx = negotiate_score_hex(sk.public_key.hex(), iid, round_n)
+    job = (
+        f"Should this agent pay {price} sats for POST /paid/finance/ln-path-fee-hint "
+        f"(Lightning first-path fee hint)? Reply YES or NO."
+    )
+    vote = _llm_yes_no(job)
+    print(f"[{role}] npub={npub} resolve=llm-gate vote={vote} score={score}")
+    payload = {
+        "type": "vote",
+        "v": 1,
+        "invoice_id": iid,
+        "vote": vote,
+        "npub": npub,
+        "score": score,
+    }
+    write_bus_event(bus, f"{iid}_{role}_vote.json", _sign(sk, payload))
+    others = [r for r in roles if r != role]
+    for peer in others:
+        _wait_bus_file(bus / f"{iid}_{peer}_vote.json", args.timeout)
+    votes: list[tuple[str, str, int]] = []
+    for r in roles:
+        ev = read_bus_event(bus / f"{iid}_{r}_vote.json")
+        if not ev.verify():
+            raise SystemExit(f"[{role}] {r} vote signature invalid")
+        body = parse_payload(ev)
+        votes.append(
+            (
+                str(body.get("npub") or ""),
+                parse_yes_no(str(body.get("vote") or "NO")),
+                negotiate_score_hex(ev.pubkey, iid, round_n)[0],
+            )
+        )
+    winner_npub = pick_llm_gate_winner(votes)
+    if winner_npub is None:
+        print(f"[{role}] llm-gate: 0 YES — skip L402")
+        if role == "alice":
+            skipped = {
+                "type": "result",
+                "v": 1,
+                "invoice_id": iid,
+                "paid": False,
+                "skipped": True,
+                "http_status": 0,
+                "amount_sats": 0,
+                "summary": {},
+            }
+            write_bus_event(bus, f"{iid}_result.json", _sign(sk, skipped))
+        else:
+            _wait_bus_file(bus / f"{iid}_result.json", args.timeout)
+        return 0
+    i_pay = winner_npub == npub
+    print(f"[{role}] winner_npub={winner_npub} i_pay={i_pay} reason=llm-gate")
+    return _finish_pay_or_wait(
+        args=args,
+        role=role,
+        sk=sk,
+        npub=npub,
+        iid=iid,
+        round_n=round_n,
+        url=url,
+        price=price,
+        bus=bus,
+        roles=roles,
+        i_pay=i_pay,
+        winner_npub=winner_npub,
+        reason="llm-gate",
+    )
+
+
 def run_role(args: argparse.Namespace, role: str) -> int:
     role = role.lower()
     roles = _roles_for(int(args.expect_peers))
+    if getattr(args, "resolve", "hash") == "llm-gate":
+        if role not in roles:
+            raise SystemExit(f"unknown role {role!r}")
+        return run_llm_gate_role(args, role, roles)
     if getattr(args, "resolve", "hash") == "puzzle":
         if role not in roles:
             raise SystemExit(
@@ -578,9 +734,20 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--resolve",
-        choices=("hash", "puzzle"),
+        choices=("hash", "puzzle", "llm-gate"),
         default="hash",
-        help="Winner rule: hash (default) or puzzle (first correct solve)",
+        help="Winner rule: hash (default), puzzle, or llm-gate (YES/NO then hash)",
+    )
+    parser.add_argument(
+        "--dest-pubkey",
+        default=AWS_LND_PUB,
+        help="llm-gate path-hint dest (default: AWS LND pubkey)",
+    )
+    parser.add_argument(
+        "--hint-sats",
+        type=int,
+        default=100,
+        help="llm-gate path-hint amount_sats (default: 100)",
     )
     parser.add_argument(
         "--puzzle-type",
@@ -625,10 +792,26 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     args.role = role
     args.expect_peers = expect
     args.resolve = (args.resolve or "hash").strip().lower()
+    args.http_method = "GET"
+    args.json_body = None
     if args.resolve == "puzzle" and args.puzzle_type != PUZZLE_FEE_SATS:
         raise SystemExit(
             f"unknown --puzzle-type {args.puzzle_type!r} (only {PUZZLE_FEE_SATS})"
         )
+    if args.resolve == "llm-gate":
+        if expect != 2:
+            raise SystemExit("llm-gate is two-agent only (--role alice|bob|both)")
+        if args.no_llm:
+            raise SystemExit("llm-gate cannot be used with --no-llm")
+        if not (os.environ.get("XAI_API_KEY") or "").strip():
+            raise SystemExit("llm-gate requires XAI_API_KEY in the environment")
+        if args.url == DEFAULT_L402_URL:
+            args.url = LLM_GATE_URL
+        args.http_method = "POST"
+        args.json_body = {
+            "dest_pubkey": args.dest_pubkey,
+            "amount_sats": int(args.hint_sats),
+        }
     if args.relay:
         print(
             "[relay] --relay is documented but not used; "

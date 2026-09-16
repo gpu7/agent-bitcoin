@@ -1,3 +1,9 @@
+## Examples — swarm --resolve llm-gate (2026-09-15)
+
+Two-agent YES/NO Grok gate then hash among YES; POST path-hint 100 sats. Requires `XAI_API_KEY` in env. Default remains hash / `--no-llm`.
+
+---
+
 ## Docs — README AI models (LLM optional) (2026-09-15)
 
 [README.md](README.md): SDK/L402 pay without an LLM; optional Grok (`XAI_API_KEY`) and Ollama.

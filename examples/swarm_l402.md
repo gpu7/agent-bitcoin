@@ -30,7 +30,7 @@ Each agent’s score is SHA-256 of this UTF-8 string, with **no separators**: lo
 
 Same keys, same URL (`invoice_id`), and same `--round` → the same winner. One L402 pay per successful run.
 
-Default is **`--resolve hash`**. `./examples/swarm_l402.sh --role alice --no-llm` still uses hash.
+Default is **`--resolve hash`**. `./examples/swarm_l402.sh --role alice --no-llm` still uses hash (no `XAI_API_KEY` required).
 
 ### Puzzle (fee-sats)
 
@@ -46,6 +46,23 @@ Default is **`--resolve hash`**. `./examples/swarm_l402.sh --role alice --no-llm
   --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
 ./examples/swarm_l402.sh --role bob --resolve puzzle --puzzle-type fee-sats --no-llm \
   --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
+```
+
+### LLM gate (opt-in)
+
+`--resolve llm-gate`: each agent asks Grok YES/NO whether to pay **100 sats** for `POST /paid/finance/ln-path-fee-hint` (dest = AWS LND pubkey, `amount_sats=100` — no third-party invoice). YES voters then use the **hash** tie-break. 0 YES → no L402. Requires `XAI_API_KEY` in the environment (never commit it; `.env` is gitignored). `--no-llm` cannot be combined with llm-gate. Two-agent only.
+
+```bash
+export XAI_API_KEY=   # local only
+# mock
+./examples/swarm_l402.sh --role alice --resolve llm-gate --offline-bus
+./examples/swarm_l402.sh --role bob --resolve llm-gate --offline-bus
+
+# live (Mac)
+./examples/swarm_l402.sh --role alice --resolve llm-gate --price 100 \
+  --url http://3.90.159.146:8081/paid/finance/ln-path-fee-hint
+./examples/swarm_l402.sh --role bob --resolve llm-gate --price 100 \
+  --url http://3.90.159.146:8081/paid/finance/ln-path-fee-hint
 ```
 
 ## 2. Prerequisites
