@@ -74,6 +74,7 @@ from agent_bitcoin.nostr.resolve import (  # noqa: E402
     check_solved,
     fee_sats_expected,
     fee_sats_problem,
+    parse_force_vote,
     parse_yes_no,
     parse_vote_reason,
     pick_first_correct,
@@ -402,6 +403,12 @@ def run_puzzle_role(args: argparse.Namespace, role: str, roles: tuple[str, ...])
 def _llm_yes_no(job: str) -> tuple[str, str]:
     """One Grok YES/NO + short reason. Cap SWARM_LLM_MAX_CALLS. No secrets in prompt."""
     global _LLM_CALLS
+    try:
+        forced = parse_force_vote(os.environ.get("SWARM_LLM_FORCE_VOTE"))
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
+    if forced:
+        return forced, "forced_test"
     key = (os.environ.get("XAI_API_KEY") or "").strip()
     if not key:
         return "NO", "no_key"
@@ -805,7 +812,11 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             raise SystemExit("llm-gate is two-agent only (--role alice|bob|both)")
         if args.no_llm:
             raise SystemExit("llm-gate cannot be used with --no-llm")
-        if not (os.environ.get("XAI_API_KEY") or "").strip():
+        try:
+            forced = parse_force_vote(os.environ.get("SWARM_LLM_FORCE_VOTE"))
+        except ValueError as exc:
+            raise SystemExit(str(exc)) from exc
+        if not forced and not (os.environ.get("XAI_API_KEY") or "").strip():
             raise SystemExit("llm-gate requires XAI_API_KEY in the environment")
         if args.url == DEFAULT_L402_URL:
             args.url = LLM_GATE_URL
