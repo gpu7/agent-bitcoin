@@ -87,6 +87,38 @@ Not “anyone with the URL.” A **known** client machine can pay Aperture with 
 
 Two-agent and eight-agent swarms negotiate **who pays one L402 GET** (hash default, optional `fee-sats` puzzle). Live pay is from the **Mac** LND, not AWS self-pay. [examples/swarm_l402.md](examples/swarm_l402.md), [examples/swarm_l402_8.md](examples/swarm_l402_8.md).
 
+**LLM gate** (`--resolve llm-gate`, two-agent only): each role votes YES/NO with Grok; YES voters use the hash tie-break; 0 YES → no L402. Requires `XAI_API_KEY` in the environment (never commit it). Do not pass `--no-llm`. Run Alice in **one Mac terminal** and Bob in **another** (same exports; start Alice then Bob). The script POSTs path-hint for you (no `--method POST` flag).
+
+```bash
+export XAI_API_KEY=
+export NOSTR_PASSPHRASE=
+```
+
+Mock (no Lightning):
+
+```bash
+# Terminal A
+./examples/swarm_l402.sh --role alice --resolve llm-gate --offline-bus
+# Terminal B
+./examples/swarm_l402.sh --role bob --resolve llm-gate --offline-bus
+```
+
+Live (Mac pays AWS, 100 sats):
+
+```bash
+export LND_NETWORK=mainnet
+export LND_CONTAINER=agent-bitcoin-lnd-mainnet
+export LND_TRANSPORT=docker
+export AGENT_BITCOIN_ALLOW_MAINNET=1
+export AGENT_BITCOIN_ALLOW_AUTOPAY=1
+# Terminal A
+./examples/swarm_l402.sh --role alice --resolve llm-gate --price 100 \
+  --url http://3.90.159.146:8081/paid/finance/ln-path-fee-hint
+# Terminal B
+./examples/swarm_l402.sh --role bob --resolve llm-gate --price 100 \
+  --url http://3.90.159.146:8081/paid/finance/ln-path-fee-hint
+```
+
 ---
 
 ## Nostr (agent identity)
