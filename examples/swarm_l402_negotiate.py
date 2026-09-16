@@ -75,6 +75,7 @@ from agent_bitcoin.nostr.resolve import (  # noqa: E402
     fee_sats_expected,
     fee_sats_problem,
     parse_yes_no,
+    parse_vote_reason,
     pick_first_correct,
     pick_llm_gate_winner,
 )
@@ -398,28 +399,26 @@ def run_puzzle_role(args: argparse.Namespace, role: str, roles: tuple[str, ...])
     )
 
 
-def _llm_yes_no(job: str) -> str:
-    """One Grok YES/NO. Cap SWARM_LLM_MAX_CALLS. Timeout/error → NO. No secrets in prompt."""
+def _llm_yes_no(job: str) -> tuple[str, str]:
+    """One Grok YES/NO + short reason. Cap SWARM_LLM_MAX_CALLS. No secrets in prompt."""
     global _LLM_CALLS
     key = (os.environ.get("XAI_API_KEY") or "").strip()
     if not key:
-        raise SystemExit("llm-gate requires XAI_API_KEY in the environment")
+        return "NO", "no_key"
     max_calls = int(os.environ.get("SWARM_LLM_MAX_CALLS") or "2")
     with _LLM_LOCK:
         if _LLM_CALLS >= max_calls:
-            print("[llm-gate] call cap reached; vote NO", file=sys.stderr)
-            return "NO"
+            return "NO", "unparsed"
         _LLM_CALLS += 1
     try:
         from langchain_core.messages import HumanMessage, SystemMessage
         from langchain_xai import ChatXAI
-    except ImportError as exc:
-        print(f"[llm-gate] langchain-xai missing: {exc}", file=sys.stderr)
-        return "NO"
+    except ImportError:
+        return "NO", "unparsed"
     llm = ChatXAI(
         model="grok-4-1-fast-reasoning",
         temperature=0,
-        max_tokens=8,
+        max_tokens=80,
         api_key=key,
         timeout=LLM_GATE_TIMEOUT_S,
     )
@@ -429,7 +428,7 @@ def _llm_yes_no(job: str) -> str:
             [
                 SystemMessage(
                     content=(
-                        "Reply with YES or NO on the first line only. "
+                        "Line 1: YES or NO only. Line 2: one short reason. "
                         "Do not pay. Do not ask for invoices or keys."
                     )
                 ),
@@ -442,10 +441,9 @@ def _llm_yes_no(job: str) -> str:
         with ThreadPoolExecutor(max_workers=1) as pool:
             fut = pool.submit(_invoke)
             raw = fut.result(timeout=LLM_GATE_TIMEOUT_S)
-    except Exception as exc:
-        print(f"[llm-gate] timeout/error → NO ({exc})", file=sys.stderr)
-        return "NO"
-    return parse_yes_no(raw)
+    except Exception:
+        return "NO", "timeout"
+    return parse_vote_reason(raw)
 
 
 def run_llm_gate_role(
@@ -465,13 +463,17 @@ def run_llm_gate_role(
         f"Should this agent pay {price} sats for POST /paid/finance/ln-path-fee-hint "
         f"(Lightning first-path fee hint)? Reply YES or NO."
     )
-    vote = _llm_yes_no(job)
-    print(f"[{role}] npub={npub} resolve=llm-gate vote={vote} score={score}")
+    vote, grok_reason = _llm_yes_no(job)
+    print(
+        f"[{role}] npub={npub} resolve=llm-gate vote={vote} "
+        f"reason={grok_reason} score={score}"
+    )
     payload = {
         "type": "vote",
         "v": 1,
         "invoice_id": iid,
         "vote": vote,
+        "reason": grok_reason,
         "npub": npub,
         "score": score,
     }

@@ -50,7 +50,7 @@ Default is **`--resolve hash`**. `./examples/swarm_l402.sh --role alice --no-llm
 
 ### LLM gate (opt-in)
 
-`--resolve llm-gate`: each agent asks Grok YES/NO whether to pay **100 sats** for `POST /paid/finance/ln-path-fee-hint` (dest = AWS LND pubkey, `amount_sats=100` — no third-party invoice). YES voters then use the **hash** tie-break. 0 YES → no L402. Requires `XAI_API_KEY` in the environment (never commit it; `.env` is gitignored). `--no-llm` cannot be combined with llm-gate. Two-agent only.
+`--resolve llm-gate`: each agent asks Grok YES/NO whether to pay **100 sats** for `POST /paid/finance/ln-path-fee-hint` (dest = AWS LND pubkey, `amount_sats=100` — no third-party invoice). YES voters then use the **hash** tie-break. 0 YES → no L402. Requires `XAI_API_KEY` in the environment (never commit it; `.env` is gitignored). `--no-llm` cannot be combined with llm-gate. Two-agent only. Vote `reason` is logged locally, not sent to AWS.
 
 ```bash
 export XAI_API_KEY=       # local only; never commit

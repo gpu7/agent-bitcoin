@@ -1,3 +1,9 @@
+## Examples — llm-gate logs Grok reason next to vote (2026-09-15)
+
+Vote JSON and console include a short `reason` (local only, not sent to AWS).
+
+---
+
 ## Docs — README llm-gate two-terminal mock vs live (2026-09-15)
 
 [README.md](README.md): Alice and Bob terminals; mock `--offline-bus` vs live Mac→AWS path-hint.
