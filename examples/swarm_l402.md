@@ -53,14 +53,33 @@ Default is **`--resolve hash`**. `./examples/swarm_l402.sh --role alice --no-llm
 `--resolve llm-gate`: each agent asks Grok YES/NO whether to pay **100 sats** for `POST /paid/finance/ln-path-fee-hint` (dest = AWS LND pubkey, `amount_sats=100` — no third-party invoice). YES voters then use the **hash** tie-break. 0 YES → no L402. Requires `XAI_API_KEY` in the environment (never commit it; `.env` is gitignored). `--no-llm` cannot be combined with llm-gate. Two-agent only.
 
 ```bash
-export XAI_API_KEY=   # local only
-# mock
-./examples/swarm_l402.sh --role alice --resolve llm-gate --offline-bus
-./examples/swarm_l402.sh --role bob --resolve llm-gate --offline-bus
+export XAI_API_KEY=   # local only; never commit
+export NOSTR_PASSPHRASE=
+```
 
-# live (Mac)
+Alice in **one Mac terminal**, Bob in **another**. Same exports in both. Start Alice, then Bob. The script POSTs path-hint (no `--method POST` flag).
+
+Mock (no Lightning):
+
+```bash
+# Terminal A
+./examples/swarm_l402.sh --role alice --resolve llm-gate --offline-bus
+# Terminal B
+./examples/swarm_l402.sh --role bob --resolve llm-gate --offline-bus
+```
+
+Live (Mac pays AWS, 100 sats):
+
+```bash
+export LND_NETWORK=mainnet
+export LND_CONTAINER=agent-bitcoin-lnd-mainnet
+export LND_TRANSPORT=docker
+export AGENT_BITCOIN_ALLOW_MAINNET=1
+export AGENT_BITCOIN_ALLOW_AUTOPAY=1
+# Terminal A
 ./examples/swarm_l402.sh --role alice --resolve llm-gate --price 100 \
   --url http://3.90.159.146:8081/paid/finance/ln-path-fee-hint
+# Terminal B
 ./examples/swarm_l402.sh --role bob --resolve llm-gate --price 100 \
   --url http://3.90.159.146:8081/paid/finance/ln-path-fee-hint
 ```

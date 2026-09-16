@@ -1,3 +1,9 @@
+## Docs — README llm-gate two-terminal mock vs live (2026-09-15)
+
+[README.md](README.md): Alice and Bob terminals; mock `--offline-bus` vs live Mac→AWS path-hint.
+
+---
+
 ## Examples — swarm --resolve llm-gate (2026-09-15)
 
 Two-agent YES/NO Grok gate then hash among YES; POST path-hint 100 sats. Requires `XAI_API_KEY` in env. Default remains hash / `--no-llm`.
