@@ -1,3 +1,9 @@
+## Docs — README AI models (LLM optional) (2026-09-15)
+
+[README.md](README.md): SDK/L402 pay without an LLM; optional Grok (`XAI_API_KEY`) and Ollama.
+
+---
+
 ## Docs — README one get-started table (2026-09-15)
 
 [README.md](README.md): single Documentation table (SDK + L402). Not a public catalog.
