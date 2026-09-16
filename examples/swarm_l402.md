@@ -54,7 +54,7 @@ Default is **`--resolve hash`**. `./examples/swarm_l402.sh --role alice --no-llm
 
 ```bash
 export XAI_API_KEY=       # local only; never commit
-export NOSTR_PASSPHRASE=. # local only; never commit; create any passphrase you like
+export NOSTR_PASSPHRASE=  # local only; never commit; create any passphrase you like
 ```
 
 Alice in **one Mac terminal**, Bob in **another**. Same exports in both. Start Alice, then Bob. The script POSTs path-hint (no `--method POST` flag).
