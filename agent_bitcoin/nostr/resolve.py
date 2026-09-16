@@ -85,6 +85,29 @@ def parse_yes_no(text: str) -> str:
     return "YES" if token == "YES" else "NO"
 
 
+REASON_MAX = 200
+
+
+def parse_vote_reason(text: str) -> tuple[str, str]:
+    """YES/NO from the first token; short reason from the rest (max 200 chars)."""
+    raw = (text or "").strip()
+    if not raw:
+        return "NO", "unparsed"
+    lines = [ln.strip() for ln in raw.splitlines() if ln.strip()]
+    first = lines[0] if lines else ""
+    vote = parse_yes_no(first)
+    rest_parts: list[str] = []
+    tokens = first.split(None, 1)
+    if len(tokens) > 1:
+        rest_parts.append(tokens[1])
+    rest_parts.extend(lines[1:])
+    reason = " ".join(rest_parts).strip()
+    reason = " ".join(reason.split())[:REASON_MAX]
+    if not reason:
+        return vote, ("unparsed" if vote == "NO" else "")
+    return vote, reason
+
+
 def pick_llm_gate_winner(
     votes: list[tuple[str, str, int]],
 ) -> str | None:

@@ -87,7 +87,7 @@ Not “anyone with the URL.” A **known** client machine can pay Aperture with 
 
 Two-agent and eight-agent swarms negotiate **who pays one L402 GET** (hash default, optional `fee-sats` puzzle). Live pay is from the **Mac** LND, not AWS self-pay. [examples/swarm_l402.md](examples/swarm_l402.md), [examples/swarm_l402_8.md](examples/swarm_l402_8.md).
 
-**LLM gate** (`--resolve llm-gate`, two-agent only): each role votes YES/NO with Grok; YES voters use the hash tie-break; 0 YES → no L402. Requires `XAI_API_KEY` in the environment (never commit it). Do not pass `--no-llm`. Run Alice in **one Mac terminal** and Bob in **another** (same exports; start Alice then Bob). The script POSTs path-hint for you (no `--method POST` flag).
+**LLM gate** (`--resolve llm-gate`, two-agent only): each role votes YES/NO with Grok; YES voters use the hash tie-break; 0 YES → no L402. Requires `XAI_API_KEY` in the environment (never commit it). Do not pass `--no-llm`. Run Alice in **one Mac terminal** and Bob in **another** (same exports; start Alice then Bob). The script POSTs path-hint for you (no `--method POST` flag). Vote `reason` is logged locally, not sent to AWS.
 
 ```bash
 export XAI_API_KEY=

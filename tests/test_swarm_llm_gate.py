@@ -10,7 +10,11 @@ from pathlib import Path
 import pytest
 
 from agent_bitcoin.nostr.negotiate import negotiate_score
-from agent_bitcoin.nostr.resolve import parse_yes_no, pick_llm_gate_winner
+from agent_bitcoin.nostr.resolve import (
+    parse_vote_reason,
+    parse_yes_no,
+    pick_llm_gate_winner,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE = ROOT / "examples" / "swarm_l402_negotiate.py"
@@ -41,6 +45,36 @@ def test_zero_yes_no_winner() -> None:
 
 def test_one_yes_that_npub() -> None:
     assert pick_llm_gate_winner([("npub1a", "NO", 9), ("npub1b", "YES", 1)]) == "npub1b"
+
+
+def test_parse_vote_reason() -> None:
+    assert parse_vote_reason("NO\nfee too high") == ("NO", "fee too high")
+    assert parse_vote_reason("YES\npath hint is cheap")[0] == "YES"
+    assert parse_vote_reason("") == ("NO", "unparsed")
+    long = "NO\n" + ("x" * 300)
+    vote, reason = parse_vote_reason(long)
+    assert vote == "NO"
+    assert len(reason) == 200
+
+
+def test_vote_payload_reason_optional() -> None:
+    with_reason = {
+        "type": "vote",
+        "vote": "YES",
+        "reason": "ok to pay 100 sats",
+        "npub": "npub1a",
+        "score": 1,
+    }
+    without = {"type": "vote", "vote": "NO", "npub": "npub1b", "score": 2}
+    assert with_reason.get("reason")
+    assert not without.get("reason")
+    winner = pick_llm_gate_winner(
+        [
+            (with_reason["npub"], parse_yes_no(with_reason["vote"]), 1),
+            (without["npub"], parse_yes_no(without["vote"]), 2),
+        ]
+    )
+    assert winner == "npub1a"
 
 
 def test_missing_key_exits_nonzero(
