@@ -56,7 +56,8 @@ export LND_CONTAINER=agent-payment-decision-lnd-mainnet
 export AGENT_BITCOIN_ALLOW_MAINNET=1
 export LND_NETWORK=mainnet
 export LND_TRANSPORT=docker
-uv run python examples/a2a_ln_pay.py invoice-dm \
+
+.venv-nostr/bin/python examples/a2a_ln_pay.py invoice-dm \
   --to-npub npub1mxhtkr0658tksmj7usred7jep0am0aqnhvmck2dgs472q90dxd5stdl7xg \
   --sats 100
 ```
@@ -73,6 +74,7 @@ export AGENT_BITCOIN_ALLOW_MAINNET=1
 export AGENT_BITCOIN_ALLOW_AUTOPAY=1
 export LND_NETWORK=mainnet
 export LND_TRANSPORT=docker
+
 .venv-nostr/bin/python examples/a2a_ln_pay.py pay-dm \
   --from-npub 'npub1a5valg8raheywc7vhmzewsewaag0rafgwt4cevtdrrjw7cmy36csh3e8jp' \
   --sats 100 \
