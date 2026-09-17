@@ -15,7 +15,6 @@ Set these environment variables on the payer and payee machines:
 
 ```bash
 export AGENT_BITCOIN_ALLOW_MAINNET=1
-export AGENT_BITCOIN_ALLOW_AUTOPAY=1
 export LND_NETWORK=mainnet
 export LND_TRANSPORT=docker
 ```
@@ -25,6 +24,7 @@ export LND_TRANSPORT=docker
 Run these commands on AWS:
 
 ```bash
+export AGENT_BITCOIN_ALLOW_AUTOPAY=1
 export LND_CONTAINER=agent-payment-decision-lnd-mainnet
 uv run python examples/a2a_ln_pay.py invoice --sats 100
 # copy the printed BOLT11 to the payer
