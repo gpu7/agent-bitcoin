@@ -28,7 +28,7 @@ A Python SDK and Merchant endpoint that enables autonomous AI agents to transact
 - Bitcoin final settlement layer
 - Python SDK for autonomous AI agent swarms
 - Nostr Unique ID's for agents
-- AI models for agents (Grok, Ollama, etc.)
+- AI models for agents (Grok, Ollama)
 
 ---
 
