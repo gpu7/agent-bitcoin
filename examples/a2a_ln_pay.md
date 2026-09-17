@@ -41,18 +41,17 @@ Ubuntu client pack as payer: `LND_CONTAINER=l402-client-lnd` ([l402-client-pack.
 
 ## Encrypted Nostr DM (no SSH)
 
-NIP-17 gift wrap (kind 1059), not a public kind-1 note. Relays are **transport**, not a marketplace. Default `NOSTR_RELAYS=wss://relay.damus.io,wss://nos.lol`.
+NIP-17 gift wrap (kind 1059), not a public kind-1 note. Relays are **transport**, not a marketplace.  
+Default `NOSTR_RELAYS=wss://relay.damus.io,wss://nos.lol`.  
+Defaults `a2a_payee` (AWS) and `a2a_payer` (Mac). Exchange **npubs** once (not nsec).  
 
-Keys: same Phase A encrypted files as other examples (`NOSTR_PASSPHRASE`, `NOSTR_POC_DIR=.nostr-poc`). Defaults `a2a_payee` (AWS) and `a2a_payer` (Mac). Exchange **npubs** once (not nsec).
+AWS:
+
+Run commands on AWS:
 
 ```bash
 export NOSTR_PASSPHRASE='choose-a-local-passphrase'
 export NOSTR_POC_DIR=.nostr-poc
-```
-
-AWS (prints `sent` only — no BOLT11):
-
-```bash
 export LND_CONTAINER=agent-payment-decision-lnd-mainnet
 export AGENT_BITCOIN_ALLOW_MAINNET=1
 export LND_NETWORK=mainnet
@@ -62,7 +61,11 @@ uv run python examples/a2a_ln_pay.py invoice-dm --to-npub npub1mxhtkr0658tksmj7u
 
 Mac:
 
+Run commands on Mac:
+
 ```bash
+export NOSTR_PASSPHRASE='choose-a-local-passphrase'
+export NOSTR_POC_DIR=.nostr-poc
 export LND_CONTAINER=agent-bitcoin-lnd-mainnet
 export AGENT_BITCOIN_ALLOW_MAINNET=1
 export AGENT_BITCOIN_ALLOW_AUTOPAY=1
