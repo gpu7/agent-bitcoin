@@ -64,7 +64,7 @@ Lab EIP is `3.90.159.146` (stable). Mainnet names; signet/regtest are analogous 
 
 Each host has its own **bitcoind** (blocks) and its own **LND wallet** (keys, on-chain sats, channel sats). bitcoind does not hold spend keys in this lab — LND `wallet.db` does.
 
-In operator terms: the “Bitcoin wallet” is LND on-chain (`walletbalance` / `newaddress`). The “Lightning wallet” is the **same** LND’s channel balances (`listchannels`). Dual-node lab = **two** LND wallets, not four key stores.
+In operator terms: the “Bitcoin wallet” is LND on-chain (`walletbalance` / `newaddress`). The “Lightning wallet” is the **same** LND’s channel balances (`listchannels`). Dual-node lab = **two** LND wallets, not four key stores. Channel close (on-chain): [ln-channel-close.md](./ln-channel-close.md) — do not close the lab channel unless you intend to.
 
 ![Two LND wallets](images/wallets-mac-aws.jpg)
 
