@@ -66,3 +66,68 @@ def test_cli_offline_help() -> None:
     assert proc.returncode == 0
     assert "invoice" in proc.stdout
     assert "pay" in proc.stdout
+    assert "invoice-dm" in proc.stdout
+    assert "pay-dm" in proc.stdout
+
+
+def test_payload_reject_wrong_sats() -> None:
+    payload = a2a.build_invoice_payload(100, "lnbc1abc", 2_000_000_000)
+    try:
+        a2a.check_invoice_payload(payload, 200)
+        raise AssertionError("expected wrong sats")
+    except ValueError as exc:
+        assert "sats" in str(exc)
+
+
+def test_payload_reject_expired() -> None:
+    payload = a2a.build_invoice_payload(100, "lnbc1abc", 1)
+    try:
+        a2a.check_invoice_payload(payload, 100, now=100)
+        raise AssertionError("expected expired")
+    except ValueError as exc:
+        assert "expired" in str(exc)
+
+
+def test_nip17_invoice_roundtrip() -> None:
+    import pytest
+
+    pytest.importorskip("pynostr")
+    from pynostr.key import PrivateKey
+
+    payee = PrivateKey()
+    payer = PrivateKey()
+    payload = a2a.build_invoice_payload(100, "lnbc1secretinvoice", 2_000_000_000)
+    wrap = a2a.wrap_payload(payee, payer.public_key.hex(), payload)
+    assert wrap["kind"] == 1059
+    got, rumor = a2a.unwrap_payload(payer, wrap)
+    assert got["bolt11"] == "lnbc1secretinvoice"
+    assert rumor["pubkey"] == payee.public_key.hex()
+    assert a2a.check_invoice_payload(got, 100, now=1_000) == "lnbc1secretinvoice"
+
+
+def test_offline_invoice_dm_no_relay() -> None:
+    args = argparse.Namespace(
+        offline=True,
+        to_npub="npub1unused",
+        sats=100,
+        memo="t",
+        nostr_name="a2a_payee",
+    )
+    assert a2a.cmd_invoice_dm(args) == 0
+
+
+def test_offline_pay_dm_timeout() -> None:
+    args = argparse.Namespace(
+        offline=True,
+        from_npub="npub1unused",
+        sats=100,
+        wait=0,
+        nostr_name="a2a_payer",
+        offline_inbox=[],
+        offline_sk=None,
+    )
+    try:
+        a2a.cmd_pay_dm(args)
+        raise AssertionError("expected no DM")
+    except SystemExit as exc:
+        assert "no DM" in str(exc)
