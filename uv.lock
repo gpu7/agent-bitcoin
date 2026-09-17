@@ -25,6 +25,7 @@ langchain = [
     { name = "langchain-xai" },
 ]
 nostr = [
+    { name = "bech32" },
     { name = "cryptography" },
     { name = "pynostr", extra = ["websocket-client"] },
 ]
@@ -42,6 +43,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "bech32", marker = "extra == 'nostr'", specifier = ">=1.2.0" },
     { name = "cryptography", marker = "extra == 'nostr'", specifier = ">=50.0.0" },
     { name = "fastapi", specifier = ">=0.115.0" },
     { name = "grpcio", specifier = ">=1.60.0" },

@@ -7,6 +7,8 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "examples"))
 import a2a_ln_pay as a2a  # noqa: E402
@@ -103,6 +105,16 @@ def test_nip17_invoice_roundtrip() -> None:
     assert got["bolt11"] == "lnbc1secretinvoice"
     assert rumor["pubkey"] == payee.public_key.hex()
     assert a2a.check_invoice_payload(got, 100, now=1_000) == "lnbc1secretinvoice"
+
+
+def test_npub_to_hex_with_bech32() -> None:
+    pytest.importorskip("bech32")
+    pytest.importorskip("pynostr")
+    from pynostr.key import PrivateKey
+
+    sk = PrivateKey()
+    npub = sk.public_key.bech32()
+    assert a2a.npub_to_hex(npub) == sk.public_key.hex()
 
 
 def test_offline_invoice_dm_no_relay() -> None:
