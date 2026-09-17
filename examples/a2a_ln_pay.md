@@ -11,6 +11,8 @@ Need a channel with outbound on the **payer** (private is fine). Not Aperture. N
 
 ## Latches (same as live L402)
 
+Set these environment variables on the payer and payee machines:
+
 ```bash
 export AGENT_BITCOIN_ALLOW_MAINNET=1
 export AGENT_BITCOIN_ALLOW_AUTOPAY=1
@@ -20,6 +22,8 @@ export LND_TRANSPORT=docker
 
 ## Payee (AWS)
 
+Run these commands on AWS:
+
 ```bash
 export LND_CONTAINER=agent-payment-decision-lnd-mainnet
 uv run python examples/a2a_ln_pay.py invoice --sats 100
@@ -27,6 +31,8 @@ uv run python examples/a2a_ln_pay.py invoice --sats 100
 ```
 
 ## Payer (Mac)
+
+Run these commands on Mac:
 
 ```bash
 export LND_CONTAINER=agent-bitcoin-lnd-mainnet
