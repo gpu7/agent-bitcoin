@@ -7,7 +7,7 @@
 
 This document freezes what a **minimal, defensible mainnet pilot** means for agent-bitcoin and records the Phase 8 outcome. Engineering readiness (gRPC client, limits, backups, security) targeted this scope.
 
-**Related:** [mainnet-infra.md](./mainnet-infra.md) · [liquidity-topology-b.md](./liquidity-topology-b.md) · [public-routing-loop.md](./public-routing-loop.md) (post-pilot topology A′) · [loop-multi-network.md](./loop-multi-network.md) · [SECURITY.md](../SECURITY.md) · [signet.md](./signet.md)
+**Related:** [mainnet-infra.md](./mainnet-infra.md) · [liquidity-topology-b.md](./liquidity-topology-b.md) · [public-routing-loop.md](./public-routing-loop.md) (post-pilot topology A′) · [loop-multi-network.md](./loop-multi-network.md) · [ln-channel-close.md](./ln-channel-close.md) · [SECURITY.md](../SECURITY.md) · [signet.md](./signet.md)
 
 ---
 

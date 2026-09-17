@@ -1,3 +1,9 @@
+## Docs — Lightning channel close to on-chain (2026-09-17)
+
+[docs/ln-channel-close.md](docs/ln-channel-close.md): L402 pays stay off-chain until close. Do not close the lab channel unless you intend to.
+
+---
+
 ## Examples — grok and ollama how-tos call the model (2026-09-17)
 
 [examples/grok_example.py](examples/grok_example.py) / [examples/ollama_example.py](examples/ollama_example.py): one short completion each. L402 still works without an LLM.
