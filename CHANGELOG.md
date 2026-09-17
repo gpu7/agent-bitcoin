@@ -1,3 +1,9 @@
+## Examples — grok and ollama how-tos call the model (2026-09-17)
+
+[examples/grok_example.py](examples/grok_example.py) / [examples/ollama_example.py](examples/ollama_example.py): one short completion each. L402 still works without an LLM.
+
+---
+
 ## Examples — SWARM_LLM_FORCE_VOTE test hook (2026-09-15)
 
 `YES`/`NO` skips xAI for llm-gate (`reason=forced_test`). Default mock/live still call Grok.

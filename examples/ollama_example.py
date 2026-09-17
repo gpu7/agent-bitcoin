@@ -1,65 +1,40 @@
-"""
-Simple & Reliable Example: Agent-Bitcoin SDK + Ollama
-No complex agent framework — just direct tool usage.
+#!/usr/bin/env python3
+"""Optional local Ollama how-to. Does not use XAI_API_KEY. No LND.
+
+Default: http://127.0.0.1:11434  model llama3.2
+  ollama pull llama3.2
+  ollama serve   # if not already running
 """
 
-from agent_bitcoin import create_client
-from langchain_core.tools import tool
+from __future__ import annotations
+
+import os
+import sys
+
+from langchain_core.messages import HumanMessage
 from langchain_ollama import ChatOllama
 
-# === 1. Initialize SDK ===
-client = create_client()
+DEFAULT_HOST = "http://127.0.0.1:11434"
+DEFAULT_MODEL = "llama3.2"
+PROMPT = "Reply in one sentence: can a Lightning L402 client pay without an LLM?"
 
 
-# === 2. Define Tools ===
-@tool
-def create_lightning_invoice(amount_sats: int, memo: str = "Payment from AI Agent"):
-    """Create a Lightning invoice."""
-    invoice = client.create_invoice(memo=memo, amount_sats=amount_sats)
-    return f"✅ Invoice created!\nAmount: {amount_sats} sats\nMemo: {memo}\nPayment Request: {invoice.payment_request[:80]}..."
+def main() -> int:
+    host = (os.environ.get("OLLAMA_HOST") or DEFAULT_HOST).rstrip("/")
+    model = os.environ.get("OLLAMA_MODEL") or DEFAULT_MODEL
+    llm = ChatOllama(model=model, base_url=host, temperature=0)
+    try:
+        msg = llm.invoke([HumanMessage(content=PROMPT)])
+    except Exception as exc:
+        print(
+            f"Ollama not reachable or model missing ({host}, {model}). "
+            f"Start Ollama and run: ollama pull {model}\n{type(exc).__name__}",
+            file=sys.stderr,
+        )
+        return 1
+    print(getattr(msg, "content", msg))
+    return 0
 
 
-@tool
-def pay_lightning_invoice(payment_request: str):
-    """Pay a Lightning invoice."""
-    result = client.pay_invoice(payment_request=payment_request)
-    if result.success:
-        return f"✅ Payment Successful!\nAmount: {result.amount} sats\nHash: {result.payment_hash}\nPreimage: {result.preimage}"
-    else:
-        return f"❌ Payment Failed: {result.status}"
-
-
-@tool
-def check_balance():
-    """Check Lightning balance."""
-    balance = client.get_balance()
-    return f"Current Balance: {balance.get('total_balance')} sats (Confirmed: {balance.get('confirmed_balance')} sats)"
-
-
-tools = [create_lightning_invoice, pay_lightning_invoice, check_balance]
-
-
-# === 3. Setup Local LLM ===
-llm = ChatOllama(model="llama3.2", temperature=0)
-
-
-# === 4. Test Tools Directly ===
 if __name__ == "__main__":
-    print("🚀 Agent-Bitcoin SDK + Ollama Example\n")
-
-    # Test 1: Create Invoice
-    print("🟡 Creating invoice for 5000 sats...")
-    result1 = create_lightning_invoice.invoke(
-        {"amount_sats": 5000, "memo": "Test from Ollama"}
-    )
-    print(result1)
-
-    print("\n" + "=" * 60)
-
-    # Test 2: Check Balance
-    print("🟡 Checking balance...")
-    result2 = check_balance.invoke({})
-    print(result2)
-
-    print("\n✅ Example completed successfully!")
-    print("You can now expand this into a full agent if desired.")
+    raise SystemExit(main())
