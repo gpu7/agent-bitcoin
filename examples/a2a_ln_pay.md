@@ -41,9 +41,9 @@ Ubuntu client pack as payer: `LND_CONTAINER=l402-client-lnd` ([l402-client-pack.
 
 ## Encrypted Nostr DM (no SSH)
 
-NIP-17 gift wrap (kind 1059), not a public kind-1 note. Relays are **transport**, not a marketplace.  
-Default `NOSTR_RELAYS=wss://relay.damus.io,wss://nos.lol`.  
-Defaults `a2a_payee` (AWS) and `a2a_payer` (Mac). Exchange **npubs** once (not nsec).  
+NIP-17 gift wrap (kind 1059), not a public kind-1 note. Relays are **transport**, not a marketplace. Use `.venv-nostr/bin/python` after `uv pip install --python .venv-nostr/bin/python -e '.[nostr]'` — not `uv run python` (that venv lacks `bech32` / pynostr).
+Default `NOSTR_RELAYS=wss://relay.damus.io,wss://nos.lol`.
+Defaults `a2a_payee` (AWS) and `a2a_payer` (Mac). Exchange **npubs** once (not nsec).
 
 AWS:
 

@@ -41,6 +41,7 @@ langchain = [
 nostr = [
     "pynostr[websocket-client]>=0.6.0",
     "cryptography>=50.0.0",
+    "bech32>=1.2.0",
 ]
 
 [project.urls]
