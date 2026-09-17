@@ -9,22 +9,14 @@ Two **Lightning nodes**, one 100-sat invoice, one pay. This is **not** the swarm
 
 Need a channel with outbound on the **payer** (private is fine). Not Aperture. Not self-pay (do not invoice and pay the same container).
 
-## Latches (same as live L402)
-
-Set these environment variables on the payer and payee machines:
-
-```bash
-export AGENT_BITCOIN_ALLOW_MAINNET=1
-export LND_NETWORK=mainnet
-export LND_TRANSPORT=docker
-```
-
 ## Payee (AWS)
 
 Run these commands on AWS:
 
 ```bash
-export AGENT_BITCOIN_ALLOW_AUTOPAY=1
+export AGENT_BITCOIN_ALLOW_MAINNET=1
+export LND_NETWORK=mainnet
+export LND_TRANSPORT=docker
 export LND_CONTAINER=agent-payment-decision-lnd-mainnet
 uv run python examples/a2a_ln_pay.py invoice --sats 100
 # copy the printed BOLT11 to the payer
@@ -35,7 +27,11 @@ uv run python examples/a2a_ln_pay.py invoice --sats 100
 Run these commands on Mac:
 
 ```bash
+export AGENT_BITCOIN_ALLOW_MAINNET=1
+export LND_NETWORK=mainnet
+export LND_TRANSPORT=docker
 export LND_CONTAINER=agent-bitcoin-lnd-mainnet
+export AGENT_BITCOIN_ALLOW_AUTOPAY=1
 uv run python examples/a2a_ln_pay.py pay --bolt11 'lnbc1…'
 ```
 
