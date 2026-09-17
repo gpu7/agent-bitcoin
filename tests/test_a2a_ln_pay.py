@@ -131,3 +131,43 @@ def test_offline_pay_dm_timeout() -> None:
         raise AssertionError("expected no DM")
     except SystemExit as exc:
         assert "no DM" in str(exc)
+
+
+def test_pay_dm_live_passes_from_hex(monkeypatch) -> None:
+    seen: dict = {}
+
+    def fake_hex(npub: str) -> str:
+        seen["npub"] = npub
+        return "ab" * 32
+
+    def fake_poll(sk, from_hex, sats, wait, inbox=None):
+        seen["from_hex"] = from_hex
+        return a2a.build_invoice_payload(100, "lnbc1x", 2_000_000_000)
+
+    monkeypatch.setattr(a2a, "npub_to_hex", fake_hex)
+    monkeypatch.setattr(a2a, "_poll_dm", fake_poll)
+    monkeypatch.setattr(a2a, "_require_latches", lambda **k: None)
+    monkeypatch.setattr(a2a, "_load_nostr", lambda n: object())
+
+    class C:
+        lnd = SimpleNamespace(decode_pay_req=lambda b: {"num_satoshis": 100})
+
+        def pay_invoice(self, payment_request, fee_limit_sats=200):
+            return SimpleNamespace(
+                success=True,
+                status="SUCCEEDED",
+                amount=100,
+                payment_hash="h",
+                preimage="p",
+            )
+
+    args = argparse.Namespace(
+        offline=False,
+        from_npub="npub1abc",
+        sats=100,
+        wait=1,
+        nostr_name="a2a_payer",
+    )
+    assert a2a.cmd_pay_dm(args, client=C()) == 0
+    assert seen["from_hex"] == "ab" * 32
+    assert seen["npub"] == "npub1abc"

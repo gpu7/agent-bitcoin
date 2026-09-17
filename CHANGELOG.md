@@ -1,3 +1,9 @@
+## Fix — pay-dm sets from_hex before poll (2026-09-17)
+
+`cmd_pay_dm` live path no longer UnboundLocalError on `from_hex`.
+
+---
+
 ## Examples — A2A invoice over encrypted Nostr DM (2026-09-17)
 
 [examples/a2a_ln_pay.md](examples/a2a_ln_pay.md): `invoice-dm` / `pay-dm` (NIP-17 gift wrap). SSH paste still works. Not a marketplace.
