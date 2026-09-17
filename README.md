@@ -6,34 +6,29 @@
 
 <br>
 
-[![PyPI](https://img.shields.io/pypi/v/agent-bitcoin)](https://pypi.org/project/agent-bitcoin/)
-[![Python](https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12-blue)](https://www.python.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub Release](https://img.shields.io/github/v/release/gpu7/agent-bitcoin)](https://github.com/gpu7/agent-bitcoin/releases/latest)
 [![GitHub Repo](https://img.shields.io/badge/GitHub-gpu7/agent--bitcoin-black)](https://github.com/gpu7/agent-bitcoin)
+[![GitHub Release](https://img.shields.io/github/v/release/gpu7/agent-bitcoin)](https://github.com/gpu7/agent-bitcoin/releases/latest)
+[![Python](https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12-blue)](https://www.python.org/)
+[![PyPI](https://img.shields.io/pypi/v/agent-bitcoin)](https://pypi.org/project/agent-bitcoin/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 <br>
 
 ## Lightning Bitcoin payments for autonomous AI Agents
 
-A lightweight Python SDK that enables AI agents to send and receive Lightning/Bitcoin payments.
+A Python SDK and Merchant endpoint that enables autonomous AI agents to transact via Lightning Network payments with Bitcoin final settlement.
 
 ---
 
 ## Features
 
-- Simple, agent-friendly API (`create_client`)
-- Create and pay Lightning invoices (**payee** creates, **payer** pays)
-- **Explicit invoice quotes** for independent agents (`create_invoice_quote` / `pay_invoice_quote`) — one BOLT11 for the requested amount
-- LND transports: **docker** `lncli` (lab default) or **gRPC** + macaroon ([docs/lnd-client.md](docs/lnd-client.md))
-- Networks: **regtest** (default), **signet**, testnet; **mainnet** only with explicit latch (pilot ops complete under caps)
-- Pydantic models and structured errors
-- Optional LLM **payment decision** agent (PAY / REJECT / CONFIRM — never executes pays)
-- Balance checks (Lightning and on-chain)
-- Operator tooling: dual-node health, SCB backup, daily ops ([docs/index.md](docs/index.md))
-- Optional **Aperture L402** paid JSON tool suites (Bitcoin / Lightning / Nostr, typically **100 sats**) — [docs/l402-tools.md](docs/l402-tools.md) (operators: [docs/l402-aperture.md](docs/l402-aperture.md); **not** a public catalog — 8081 stays `/32`)
-- Optional **client pack** for a *known* remote agent (their Neutrino LND + private channel) — [docs/l402-client-pack.md](docs/l402-client-pack.md) (not hosted wallet / not SaaS)
-- Optional **Nostr** agent identity and **NWC** wallets (not required for Lightning pays) — [Nostr (agent identity)](#nostr-agent-identity)
+- Autonomous AI agent swarms
+- Agent-to-Agent Lightning Network payments
+- Agent-to-Merchant Lightning Network payments
+- Bitcoin final settlement layer
+- Python SDK for autonomous AI agent swarms
+- Nostr Unique ID's for agents
+- AI models for agents (Grok, Ollama, etc.)
 
 ---
 
