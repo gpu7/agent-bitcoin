@@ -1,3 +1,9 @@
+## Examples — agent-to-agent LN between two LND nodes (2026-09-17)
+
+[examples/a2a_ln_pay.md](examples/a2a_ln_pay.md): Mac (or Ubuntu client) pays AWS invoice. Not swarm (one wallet). Not a new endpoint.
+
+---
+
 ## Docs — Lightning channel close to on-chain (2026-09-17)
 
 [docs/ln-channel-close.md](docs/ln-channel-close.md): L402 pays stay off-chain until close. Do not close the lab channel unless you intend to.
