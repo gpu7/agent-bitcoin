@@ -9,37 +9,72 @@ Two **Lightning nodes**, one 100-sat invoice, one pay. This is **not** the swarm
 
 Need a channel with outbound on the **payer** (private is fine). Not Aperture. Not self-pay (do not invoice and pay the same container).
 
-## Payee (AWS)
+## SSH paste (still valid)
 
-Run these commands on AWS:
+Payee prints a BOLT11; you copy it to the payer.
+
+### Payee (AWS)
 
 ```bash
 export AGENT_BITCOIN_ALLOW_MAINNET=1
 export LND_NETWORK=mainnet
 export LND_TRANSPORT=docker
 export LND_CONTAINER=agent-payment-decision-lnd-mainnet
-export AGENT_BITCOIN_ALLOW_AUTOPAY=1
 uv run python examples/a2a_ln_pay.py invoice --sats 100
 # copy the printed BOLT11 to the payer
 ```
 
-## Payer (Mac)
+Payee does **not** need `ALLOW_AUTOPAY`.
 
-Run these commands on Mac:
+### Payer (Mac)
 
 ```bash
 export AGENT_BITCOIN_ALLOW_MAINNET=1
+export AGENT_BITCOIN_ALLOW_AUTOPAY=1
 export LND_NETWORK=mainnet
 export LND_TRANSPORT=docker
 export LND_CONTAINER=agent-bitcoin-lnd-mainnet
-export AGENT_BITCOIN_ALLOW_AUTOPAY=1
 uv run python examples/a2a_ln_pay.py pay --bolt11 'lnbc1…'
 ```
 
 Ubuntu client pack as payer: `LND_CONTAINER=l402-client-lnd` ([l402-client-pack.md](../docs/l402-client-pack.md)).
 
-The script prints `payment_hash` and `preimage`, then an `lncli listpayments --max_payments 3` hint. Do not paste preimages into git.
+## Encrypted Nostr DM (no SSH)
 
-Offline (no LND): `… invoice --offline` / `… pay --bolt11 lnbc1offline --offline`.
+NIP-17 gift wrap (kind 1059), not a public kind-1 note. Relays are **transport**, not a marketplace. Default `NOSTR_RELAYS=wss://relay.damus.io,wss://nos.lol`.
+
+Keys: same Phase A encrypted files as other examples (`NOSTR_PASSPHRASE`, `NOSTR_POC_DIR=.nostr-poc`). Defaults `a2a_payee` (AWS) and `a2a_payer` (Mac). Exchange **npubs** once (not nsec).
+
+```bash
+export NOSTR_PASSPHRASE='choose-a-local-passphrase'
+export NOSTR_POC_DIR=.nostr-poc
+```
+
+AWS (prints `sent` only — no BOLT11):
+
+```bash
+export LND_CONTAINER=agent-payment-decision-lnd-mainnet
+export AGENT_BITCOIN_ALLOW_MAINNET=1
+export LND_NETWORK=mainnet
+export LND_TRANSPORT=docker
+uv run python examples/a2a_ln_pay.py invoice-dm --to-npub npub1…payer --sats 100
+```
+
+Mac:
+
+```bash
+export LND_CONTAINER=agent-bitcoin-lnd-mainnet
+export AGENT_BITCOIN_ALLOW_MAINNET=1
+export AGENT_BITCOIN_ALLOW_AUTOPAY=1
+export LND_NETWORK=mainnet
+export LND_TRANSPORT=docker
+uv run python examples/a2a_ln_pay.py pay-dm --from-npub npub1…payee --sats 100 --wait 60
+```
+
+Payer decrypts, checks amount/expiry, pays once. Timeout / no DM → exit 1, no pay.
+
+The script prints `payment_hash` and `preimage` on pay, then an `lncli listpayments --max_payments 3` hint. Do not paste preimages or nsec into git.
+
+Offline: `invoice --offline` / `pay --bolt11 lnbc1offline --offline` / `invoice-dm --offline` (no relay).
 
 Swarm (merchant L402, one wallet): [swarm_l402.md](./swarm_l402.md).

@@ -1,3 +1,9 @@
+## Examples — A2A invoice over encrypted Nostr DM (2026-09-17)
+
+[examples/a2a_ln_pay.md](examples/a2a_ln_pay.md): `invoice-dm` / `pay-dm` (NIP-17 gift wrap). SSH paste still works. Not a marketplace.
+
+---
+
 ## Examples — agent-to-agent LN between two LND nodes (2026-09-17)
 
 [examples/a2a_ln_pay.md](examples/a2a_ln_pay.md): Mac (or Ubuntu client) pays AWS invoice. Not swarm (one wallet). Not a new endpoint.
