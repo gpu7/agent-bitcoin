@@ -289,7 +289,8 @@ def cmd_pay_dm(args: argparse.Namespace, client: Any | None = None) -> int:
         inbox = getattr(args, "offline_inbox", None)
         if not inbox:
             raise SystemExit("no DM")
-        from_hex = npub_to_hex(args.from_npub)
+    from_hex = npub_to_hex(args.from_npub)
+    if args.offline:
         sk = getattr(args, "offline_sk", None)
         payload = _poll_dm(sk, from_hex, sats, wait_s, inbox=inbox)
         check_invoice_payload(payload, sats)
