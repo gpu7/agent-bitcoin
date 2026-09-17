@@ -56,7 +56,9 @@ export LND_CONTAINER=agent-payment-decision-lnd-mainnet
 export AGENT_BITCOIN_ALLOW_MAINNET=1
 export LND_NETWORK=mainnet
 export LND_TRANSPORT=docker
-uv run python examples/a2a_ln_pay.py invoice-dm --to-npub npub1mxhtkr0658tksmj7usred7jep0am0aqnhvmck2dgs472q90dxd5stdl7xg74c5a12a2767789e6e85c9f1e36a728d0a3c979cc13b25a7a5b1e58e83a413aa --sats 100
+uv run python examples/a2a_ln_pay.py invoice-dm \
+  --to-npub npub1mxhtkr0658tksmj7usred7jep0am0aqnhvmck2dgs472q90dxd5stdl7xg \
+  --sats 100
 ```
 
 Mac:
@@ -71,7 +73,10 @@ export AGENT_BITCOIN_ALLOW_MAINNET=1
 export AGENT_BITCOIN_ALLOW_AUTOPAY=1
 export LND_NETWORK=mainnet
 export LND_TRANSPORT=docker
-uv run python examples/a2a_ln_pay.py pay-dm --from-npub npub1a5valg8raheywc7vhmzewsewaag0rafgwt4cevtdrrjw7cmy36csh3e8jp37e2ddb3625fb6c13c98bc65b33f6ea07a87eb6691a417db4de32f1e58b5fc0a --sats 100 --wait 60
+.venv-nostr/bin/python examples/a2a_ln_pay.py pay-dm \
+  --from-npub 'npub1a5valg8raheywc7vhmzewsewaag0rafgwt4cevtdrrjw7cmy36csh3e8jp' \
+  --sats 100 \
+  --wait 60
 ```
 
 Payer decrypts, checks amount/expiry, pays once. Timeout / no DM → exit 1, no pay.
