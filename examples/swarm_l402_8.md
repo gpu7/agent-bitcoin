@@ -2,7 +2,7 @@
 
 Eight Nostr identities (`a1`…`a8`), signed file-bus messages, **one** winner pays `GET /paid/finance/mempool-feerate` (100 sats). Same jobs as the [two-agent demo](./swarm_l402.md). Coded policy picks the payer. Optional Grok explains in one sentence each and **never** pays. **`--no-llm` is the required path.**
 
-Agents are **processes**, not Lightning nodes. One Mac LND wallet, one existing private channel, **one** pay per successful live run. Do not start eight LNDs. Do not open channels. The wrapper passes `--expect-peers 8`.
+Agents are **processes**, not Lightning nodes. One Mac LND wallet, one existing private channel, **one** pay per successful live run. Swarm picks who pays the **merchant**; A2A LN (two LND nodes) is [a2a_ln_pay.md](./a2a_ln_pay.md). Do not start eight LNDs. Do not open channels. The wrapper passes `--expect-peers 8`.
 
 **Two modes — do not mix them:**
 
