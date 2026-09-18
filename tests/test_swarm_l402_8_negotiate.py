@@ -13,7 +13,7 @@ import pytest
 from agent_bitcoin.nostr.negotiate import choose_payer, choose_payer_n
 
 ROOT = Path(__file__).resolve().parents[1]
-EXAMPLE = ROOT / "examples" / "swarm_l402_negotiate.py"
+EXAMPLE = ROOT / "examples" / "agent-to-merchant-pay.py"
 
 
 def test_choose_payer_n_highest_score() -> None:

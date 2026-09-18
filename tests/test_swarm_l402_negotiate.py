@@ -20,7 +20,7 @@ from agent_bitcoin.nostr.negotiate import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-EXAMPLE = ROOT / "examples" / "swarm_l402_negotiate.py"
+EXAMPLE = ROOT / "examples" / "agent-to-merchant-pay.py"
 
 
 def test_invoice_id_stable() -> None:
