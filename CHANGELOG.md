@@ -1,3 +1,9 @@
+## v27.0.0 — 2026-09-18
+
+PyPI version for GitHub tag **v.27.0.0**. Install: `pip install agent-bitcoin==27.0.0`. Includes A2A LN (invoice / invoice-dm / pay-dm), client pack, swarms, llm-gate.
+
+---
+
 ## Deps — bech32 on the nostr extra (2026-09-17)
 
 `.[nostr]` installs `bech32` so `a2a_ln_pay` npub decode works in `.venv-nostr`.
