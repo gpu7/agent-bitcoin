@@ -150,10 +150,10 @@ More: [SDK.md](SDK.md#examples) (Nostr examples list), [docs/nostr-agent-identit
 
 ### From PyPI
 
-PyPI matches `pyproject.toml` **26.6.0**. Git `main` may be ahead.
+PyPI matches `pyproject.toml` **27.0.0**. Git `main` may be ahead.
 
 ```bash
-pip install agent-bitcoin==26.6.0
+pip install agent-bitcoin==27.0.0
 ```
 
 ### From source
