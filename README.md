@@ -230,7 +230,8 @@ More operator, lab, and swarm docs live under `docs/` and `examples/`.
 
 The SDK and L402 client pay Lightning **without** an LLM. Grok is not required to call `/paid/…`.
 
-Optional decision/demo agents use **xAI Grok** (`XAI_API_KEY`; default `grok-4-1-fast-reasoning`, also `grok-3` in [SDK.md](SDK.md)) or local **Ollama** (examples). They recommend PAY / REJECT / CONFIRM; they do not execute pays. How-tos: [examples/grok_example.py](examples/grok_example.py), [examples/ollama_example.py](examples/ollama_example.py).
+Optional decision/demo agents use **xAI Grok** (`XAI_API_KEY`; default `grok-4-1-fast-reasoning`, also `grok-3` in [SDK.md](SDK.md)) or local **Ollama** (examples). 
+Examples: [examples/grok_example.py](examples/grok_example.py), [examples/ollama_example.py](examples/ollama_example.py).
 
 Swarm demos can run `--no-llm` (deterministic hash or fee-sats puzzle). The model does not pick the winner. [examples/swarm_l402.md](examples/swarm_l402.md). Prompt text: [agent_bitcoin/prompts.py](agent_bitcoin/prompts.py).
 
