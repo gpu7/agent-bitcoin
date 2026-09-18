@@ -148,15 +148,7 @@ More: [SDK.md](SDK.md#examples) (Nostr examples list), [docs/nostr-agent-identit
 
 ## Installation
 
-### From PyPI
-
-PyPI matches `pyproject.toml` **27.0.0**. Git `main` may be ahead.
-
-```bash
-pip install agent-bitcoin==27.0.0
-```
-
-### From source
+### From github repo source
 
 ```bash
 git clone https://github.com/gpu7/agent-bitcoin.git
@@ -164,7 +156,13 @@ cd agent-bitcoin
 uv sync
 ```
 
-More detail (optional LangChain / Grok / Ollama deps): **[SDK.md](SDK.md#installation)**.
+### From PyPI
+
+PyPI matches `pyproject.toml` **27.0.0**. Git `main` may be ahead.
+
+```bash
+pip install agent-bitcoin==27.0.0
+```
 
 ---
 
