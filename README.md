@@ -232,8 +232,8 @@ Agent-to-Agent Lightning Network payments: Grok model
 
 Agent-to-Agent Lightning Network payments: Ollama model
 
-Agent-to-Merchant Lightning Network payments: Grok model
-Example: examples/swarm_l402.md
+Agent-to-Merchant Lightning Network payments: Grok model  
+Example: examples/agent-to-merchant-pay.md
 
 
 
