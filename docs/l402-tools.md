@@ -24,7 +24,7 @@ This is **not** a public catalog. The operator’s security group is **`/32`**. 
 6. Wiring, SG, and restart: [l402-aperture.md](./l402-aperture.md). Mainnet pays still need the usual latches on the payer.
 
 Sequence (402 → pay → retry): [architecture.md — L402 request sequence](./architecture.md#l402-request-sequence).
-Two agents negotiate who pays one GET: [examples/swarm_l402.md](../examples/swarm_l402.md) (live demo pays from the Mac).
+Two agents negotiate who pays one GET: [examples/agent-to-merchant-pay.md](../examples/agent-to-merchant-pay.md) (live demo pays from the Mac).
 Connect a **client** agent (their node, our `/32`): [l402-external-agent.md](./l402-external-agent.md).
 Client pack (compose + setup + smoke): [l402-client-pack.md](./l402-client-pack.md).
 

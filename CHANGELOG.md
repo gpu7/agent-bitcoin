@@ -1,3 +1,15 @@
+## Examples — merchant demo --model grok|ollama (2026-09-18)
+
+`llm-gate` can use Grok or local Ollama. `--no-llm` cannot combine with `--model`. README not edited.
+
+---
+
+## Rename — 2-agent merchant demo files (2026-09-18)
+
+`examples/swarm_l402.{sh,py,md}` → `examples/agent-to-merchant-pay.{sh,py,md}` (formerly 2-agent swarm L402). 8-agent files unchanged.
+
+---
+
 ## v27.0.0 — 2026-09-18
 
 PyPI version for GitHub tag **v.27.0.0**. Install: `pip install agent-bitcoin==27.0.0`. Includes A2A LN (invoice / invoice-dm / pay-dm), client pack, swarms, llm-gate.

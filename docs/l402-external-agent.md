@@ -66,4 +66,4 @@ Installer sketch (Neutrino LND on their box): [l402-client-pack.md](./l402-clien
 - Routes: [l402-tools.md](./l402-tools.md)
 - Diagrams: [architecture.md](./architecture.md)
 - Client: [examples/l402_pay.py](../examples/l402_pay.py)
-- [examples/swarm_l402.md](../examples/swarm_l402.md) is **our** lab (Mac payer). It is not the client’s setup.
+- [examples/agent-to-merchant-pay.md](../examples/agent-to-merchant-pay.md) is **our** lab (Mac payer). It is not the client’s setup.
