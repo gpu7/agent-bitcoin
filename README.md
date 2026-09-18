@@ -158,8 +158,6 @@ uv sync
 
 ### From PyPI
 
-PyPI matches `pyproject.toml` **27.0.0**. Git `main` may be ahead.
-
 ```bash
 pip install agent-bitcoin==27.0.0
 ```
