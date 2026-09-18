@@ -228,6 +228,18 @@ More operator, lab, and swarm docs live under `docs/` and `examples/`.
 
 ## AI models
 
+Agent-to-Agent Lightning Network payments: Grok model
+
+Agent-to-Agent Lightning Network payments: Ollama model
+
+Agent-to-Merchant Lightning Network payments: Grok model
+Example: examples/swarm_l402.md
+
+
+
+Agent-to-Merchant Lightning Network payments: Ollama
+
+
 The SDK and L402 client pay Lightning **without** an LLM. Grok is not required to call `/paid/…`.
 
 Optional decision/demo agents use **xAI Grok** (`XAI_API_KEY`; default `grok-4-1-fast-reasoning`, also `grok-3` in [SDK.md](SDK.md)) or local **Ollama** (examples). 
