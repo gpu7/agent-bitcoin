@@ -197,3 +197,73 @@ def test_cli_force_no_skips_pay(
     assert proc.returncode == 0, out
     assert "skip L402" in out or "skipped" in out.lower()
     assert "[l402] --offline-bus mock GET" not in out
+
+
+def test_no_llm_plus_model_errors() -> None:
+    pytest.importorskip("pynostr")
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(EXAMPLE),
+            "--role",
+            "alice",
+            "--offline-bus",
+            "--no-llm",
+            "--model",
+            "grok",
+        ],
+        cwd=str(ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    out = proc.stdout + proc.stderr
+    assert proc.returncode != 0
+    assert "--no-llm" in out and "--model" in out
+
+
+def test_help_shows_model() -> None:
+    pytest.importorskip("pynostr")
+    proc = subprocess.run(
+        [sys.executable, str(EXAMPLE), "--help"],
+        cwd=str(ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc.returncode == 0
+    assert "--model" in proc.stdout
+    assert "ollama" in proc.stdout
+
+
+def test_ask_gate_ollama_down(monkeypatch: pytest.MonkeyPatch) -> None:
+    pytest.importorskip("pynostr")
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("merchant_pay", EXAMPLE)
+    assert spec and spec.loader
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    monkeypatch.delenv("SWARM_LLM_FORCE_VOTE", raising=False)
+
+    class Boom:
+        def __init__(self, **_k):
+            pass
+
+        def invoke(self, _m):
+            raise ConnectionError("refused")
+
+    monkeypatch.setitem(
+        __import__("sys").modules,
+        "langchain_ollama",
+        type("M", (), {"ChatOllama": Boom})(),
+    )
+    # Patch local import target
+    import types
+
+    fake = types.ModuleType("langchain_ollama")
+    fake.ChatOllama = Boom
+    monkeypatch.setitem(sys.modules, "langchain_ollama", fake)
+    vote, reason = mod.ask_gate("pay 100 sats?", "ollama")
+    assert vote == "NO"
+    assert reason == "ollama_down"

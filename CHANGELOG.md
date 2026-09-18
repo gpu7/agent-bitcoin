@@ -1,3 +1,9 @@
+## Examples — merchant demo --model grok|ollama (2026-09-18)
+
+`llm-gate` can use Grok or local Ollama. `--no-llm` cannot combine with `--model`. README not edited.
+
+---
+
 ## Rename — 2-agent merchant demo files (2026-09-18)
 
 `examples/swarm_l402.{sh,py,md}` → `examples/agent-to-merchant-pay.{sh,py,md}` (formerly 2-agent swarm L402). 8-agent files unchanged.
