@@ -14,10 +14,10 @@ Do not live-pay with LND_CONTAINER=agent-payment-decision-lnd* (self-pay).
 Engineer path (two terminals):
 
   export NOSTR_PASSPHRASE='...'
-  ./examples/swarm_l402.sh --role alice --offline-bus --no-llm
-  ./examples/swarm_l402.sh --role bob --offline-bus --no-llm
+  ./examples/agent-to-merchant-pay.sh --role alice --offline-bus --no-llm
+  ./examples/agent-to-merchant-pay.sh --role bob --offline-bus --no-llm
 
-See examples/swarm_l402.md
+See examples/agent-to-merchant-pay.md
 """
 
 from __future__ import annotations
@@ -43,7 +43,7 @@ except ImportError as e:  # pragma: no cover
         "Missing pynostr. Use Python 3.12:\n"
         "  uv venv -p 3.12 .venv-nostr\n"
         "  uv pip install --python .venv-nostr/bin/python -e '.[nostr]'\n"
-        "  ./examples/swarm_l402.sh --role alice --offline-bus --no-llm\n"
+        "  ./examples/agent-to-merchant-pay.sh --role alice --offline-bus --no-llm\n"
         "Do not use: uv run python  (3.13/3.14 skips .[nostr])\n"
         f"{e}",
         file=sys.stderr,
@@ -845,7 +845,7 @@ def _assert_live_payer_not_invoice_node(offline: bool) -> None:
             f"{container} is self-pay: Aperture invoices AWS LND. "
             "Use Mac agent-bitcoin-lnd* and "
             "--url http://3.90.159.146:8081/… or --offline-bus. "
-            "See examples/swarm_l402.md."
+            "See examples/agent-to-merchant-pay.md."
         )
 
 

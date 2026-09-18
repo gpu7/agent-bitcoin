@@ -12,4 +12,4 @@ if [[ ! -x "$PY" ]]; then
   echo "  uv pip install --python .venv-nostr/bin/python -e '.[nostr]'" >&2
   exit 1
 fi
-exec "$PY" "$ROOT/examples/swarm_l402_negotiate.py" --expect-peers 8 "$@"
+exec "$PY" "$ROOT/examples/agent-to-merchant-pay.py" --expect-peers 8 "$@"

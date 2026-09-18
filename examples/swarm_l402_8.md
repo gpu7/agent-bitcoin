@@ -1,6 +1,6 @@
 # Eight-agent swarm: who pays one L402 tool
 
-Eight Nostr identities (`a1`…`a8`), signed file-bus messages, **one** winner pays `GET /paid/finance/mempool-feerate` (100 sats). Same jobs as the [two-agent demo](./swarm_l402.md). Coded policy picks the payer. Optional Grok explains in one sentence each and **never** pays. **`--no-llm` is the required path.**
+Eight Nostr identities (`a1`…`a8`), signed file-bus messages, **one** winner pays `GET /paid/finance/mempool-feerate` (100 sats). Same jobs as the [two-agent demo](./agent-to-merchant-pay.md). Coded policy picks the payer. Optional Grok explains in one sentence each and **never** pays. **`--no-llm` is the required path.**
 
 Agents are **processes**, not Lightning nodes. One Mac LND wallet, one existing private channel, **one** pay per successful live run. Swarm picks who pays the **merchant**; A2A LN (two LND nodes) is [a2a_ln_pay.md](./a2a_ln_pay.md). Do not start eight LNDs. Do not open channels. The wrapper passes `--expect-peers 8`.
 
@@ -28,7 +28,7 @@ Each agent’s score is SHA-256 of this UTF-8 string, with **no separators**: lo
 
 Same keys, same URL (`invoice_id`), and same `--round` → the same winner. One L402 pay per successful run.
 
-The eight-agent demo stays **`--resolve hash`**. Puzzle (`fee-sats`) and **llm-gate** are two-agent only — [swarm_l402.md](./swarm_l402.md).
+The eight-agent demo stays **`--resolve hash`**. Puzzle (`fee-sats`) and **llm-gate** are two-agent only — [agent-to-merchant-pay.md](./agent-to-merchant-pay.md).
 
 ## 2. Prerequisites
 
@@ -77,7 +77,7 @@ The script refuses live pay from the AWS invoice node (self-pay).
 
 ## 5. Setup
 
-Do **not** use `uv run python` for this demo on 3.13/3.14: it recreates `.venv`, skips `.[nostr]`, then `import pynostr` fails. Use `./examples/swarm_l402_8.sh` or `.venv-nostr/bin/python examples/swarm_l402_negotiate.py --expect-peers 8`.
+Do **not** use `uv run python` for this demo on 3.13/3.14: it recreates `.venv`, skips `.[nostr]`, then `import pynostr` fails. Use `./examples/swarm_l402_8.sh` or `.venv-nostr/bin/python examples/agent-to-merchant-pay.py --expect-peers 8`.
 
 If all eight processes run on the **Mac** (live), use the **Mac** container below. AWS invoice names are notes only — **not** live-pay exports.
 
@@ -255,4 +255,4 @@ Bus: `{invoice_id}_aN_negotiate.json`, `{invoice_id}_aN_concede.json` (losers), 
 | Timeout waiting for peer | Same `--dir`, same `--url`, all eight on **one** Mac; bus is `$NOSTR_POC_DIR/bus/` |
 | Missing pynostr / uv 3.14 | Do not use `uv run python`. `uv venv -p 3.12 .venv-nostr` then `uv pip install --python .venv-nostr/bin/python -e '.[nostr]'`. Run `./examples/swarm_l402_8.sh` |
 
-Sequence of a paid GET: [docs/architecture.md — L402 request sequence](../docs/architecture.md#l402-request-sequence). Operator gateway: [docs/l402-aperture.md](../docs/l402-aperture.md). Two-agent: [swarm_l402.md](./swarm_l402.md).
+Sequence of a paid GET: [docs/architecture.md — L402 request sequence](../docs/architecture.md#l402-request-sequence). Operator gateway: [docs/l402-aperture.md](../docs/l402-aperture.md). Two-agent: [agent-to-merchant-pay.md](./agent-to-merchant-pay.md).

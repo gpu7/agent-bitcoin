@@ -19,7 +19,7 @@ from agent_bitcoin.nostr.resolve import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-EXAMPLE = ROOT / "examples" / "swarm_l402_negotiate.py"
+EXAMPLE = ROOT / "examples" / "agent-to-merchant-pay.py"
 
 
 def test_fee_sats_141_times_4_is_564() -> None:

@@ -1,4 +1,6 @@
-# Two-agent swarm: who pays one L402 tool
+# Agent-to-merchant L402 pay demo (2 agents, one wallet)
+
+Two-agent swarm: who pays one L402 tool.
 
 Two Nostr identities, signed file-bus messages, one winner pays `GET /paid/finance/mempool-feerate` (100 sats). Coded policy picks the payer. Optional Grok explains in one sentence each and **never** pays.
 
@@ -30,7 +32,7 @@ Each agent’s score is SHA-256 of this UTF-8 string, with **no separators**: lo
 
 Same keys, same URL (`invoice_id`), and same `--round` → the same winner. One L402 pay per successful run.
 
-Default is **`--resolve hash`**. `./examples/swarm_l402.sh --role alice --no-llm` still uses hash (no `XAI_API_KEY` required).
+Default is **`--resolve hash`**. `./examples/agent-to-merchant-pay.sh --role alice --no-llm` still uses hash (no `XAI_API_KEY` required).
 
 ### Puzzle (fee-sats)
 
@@ -38,13 +40,13 @@ Default is **`--resolve hash`**. `./examples/swarm_l402.sh --role alice --no-llm
 
 ```bash
 # mock
-./examples/swarm_l402.sh --role alice --resolve puzzle --puzzle-type fee-sats --offline-bus --no-llm
-./examples/swarm_l402.sh --role bob --resolve puzzle --puzzle-type fee-sats --offline-bus --no-llm
+./examples/agent-to-merchant-pay.sh --role alice --resolve puzzle --puzzle-type fee-sats --offline-bus --no-llm
+./examples/agent-to-merchant-pay.sh --role bob --resolve puzzle --puzzle-type fee-sats --offline-bus --no-llm
 
 # live (Mac)
-./examples/swarm_l402.sh --role alice --resolve puzzle --puzzle-type fee-sats --no-llm \
+./examples/agent-to-merchant-pay.sh --role alice --resolve puzzle --puzzle-type fee-sats --no-llm \
   --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
-./examples/swarm_l402.sh --role bob --resolve puzzle --puzzle-type fee-sats --no-llm \
+./examples/agent-to-merchant-pay.sh --role bob --resolve puzzle --puzzle-type fee-sats --no-llm \
   --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
 ```
 
@@ -63,9 +65,9 @@ Mock (no Lightning):
 
 ```bash
 # Terminal A
-./examples/swarm_l402.sh --role alice --resolve llm-gate --offline-bus
+./examples/agent-to-merchant-pay.sh --role alice --resolve llm-gate --offline-bus
 # Terminal B
-./examples/swarm_l402.sh --role bob --resolve llm-gate --offline-bus
+./examples/agent-to-merchant-pay.sh --role bob --resolve llm-gate --offline-bus
 ```
 
 Live (Mac pays AWS, 100 sats):
@@ -77,10 +79,10 @@ export LND_TRANSPORT=docker
 export AGENT_BITCOIN_ALLOW_MAINNET=1
 export AGENT_BITCOIN_ALLOW_AUTOPAY=1
 # Terminal A
-./examples/swarm_l402.sh --role alice --resolve llm-gate --price 100 \
+./examples/agent-to-merchant-pay.sh --role alice --resolve llm-gate --price 100 \
   --url http://3.90.159.146:8081/paid/finance/ln-path-fee-hint
 # Terminal B
-./examples/swarm_l402.sh --role bob --resolve llm-gate --price 100 \
+./examples/agent-to-merchant-pay.sh --role bob --resolve llm-gate --price 100 \
   --url http://3.90.159.146:8081/paid/finance/ln-path-fee-hint
 ```
 
@@ -108,8 +110,8 @@ Live HTTP is from the **Mac** to `http://3.90.159.146:8081`. On-box `http://127.
 ### A. Mock (any one host, including AWS)
 
 ```bash
-./examples/swarm_l402.sh --role alice --offline-bus --no-llm
-./examples/swarm_l402.sh --role bob --offline-bus --no-llm
+./examples/agent-to-merchant-pay.sh --role alice --offline-bus --no-llm
+./examples/agent-to-merchant-pay.sh --role bob --offline-bus --no-llm
 ```
 
 No LND pay. Fine for Nostr ids + negotiate. Both processes must share the **same** `.nostr-poc/bus` on **one disk**.
@@ -129,7 +131,7 @@ Splitting Alice on AWS and Bob on Mac breaks the file bus unless they rsync (**o
 
 ## 5. Setup
 
-Do **not** use `uv run python` for this demo on 3.13/3.14: it recreates `.venv`, skips `.[nostr]`, then `import pynostr` fails. Use `./examples/swarm_l402.sh` or `.venv-nostr/bin/python examples/swarm_l402_negotiate.py`.
+Do **not** use `uv run python` for this demo on 3.13/3.14: it recreates `.venv`, skips `.[nostr]`, then `import pynostr` fails. Use `./examples/agent-to-merchant-pay.sh` or `.venv-nostr/bin/python examples/agent-to-merchant-pay.py`.
 
 If both swarm processes run on the **Mac** (live), use the **Mac** container. The AWS column is for invoicing or debugging on the instance, **not** paying the local Aperture invoice.
 
@@ -259,16 +261,16 @@ Same wrapper for first time and later runs. `--relay` is accepted and ignored; h
 
 ```bash
 # Terminal A
-./examples/swarm_l402.sh --role alice --offline-bus --no-llm
+./examples/agent-to-merchant-pay.sh --role alice --offline-bus --no-llm
 
 # Terminal B
-./examples/swarm_l402.sh --role bob --offline-bus --no-llm
+./examples/agent-to-merchant-pay.sh --role bob --offline-bus --no-llm
 ```
 
 One process (two threads):
 
 ```bash
-./examples/swarm_l402.sh --role both --offline-bus --no-llm
+./examples/agent-to-merchant-pay.sh --role both --offline-bus --no-llm
 ```
 
 ### Live (Mac, two terminals, empty bus)
@@ -277,11 +279,11 @@ Alice or Bob first is fine after `rm -f .nostr-poc/bus/*.json`. **No** `--offlin
 
 ```bash
 # Terminal A
-./examples/swarm_l402.sh --role alice --no-llm \
+./examples/agent-to-merchant-pay.sh --role alice --no-llm \
   --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
 
 # Terminal B
-./examples/swarm_l402.sh --role bob --no-llm \
+./examples/agent-to-merchant-pay.sh --role bob --no-llm \
   --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
 ```
 
@@ -326,6 +328,6 @@ Printed: `npub=npub1…`. Encrypted nsec stays in `.nostr-poc/alice.enc.json` an
 | `self-payments not allowed` | Payer == invoice node. Use Mac `agent-bitcoin-lnd*` + `--url http://3.90.159.146:8081/…`. Do not enable LND self-pay |
 | Alice exits instantly with bands 3/2/1 | Stale bus and/or `--offline-bus`. `rm -f .nostr-poc/bus/*.json` |
 | Timeout waiting for peer | Same `--dir`, same `--url`, both processes on **one** Mac; bus is `$NOSTR_POC_DIR/bus/` |
-| Missing pynostr / uv 3.14 | Do not use `uv run python`. `uv venv -p 3.12 .venv-nostr` then `uv pip install --python .venv-nostr/bin/python -e '.[nostr]'`. Run `./examples/swarm_l402.sh` |
+| Missing pynostr / uv 3.14 | Do not use `uv run python`. `uv venv -p 3.12 .venv-nostr` then `uv pip install --python .venv-nostr/bin/python -e '.[nostr]'`. Run `./examples/agent-to-merchant-pay.sh` |
 
 Sequence of a paid GET: [docs/architecture.md — L402 request sequence](../docs/architecture.md#l402-request-sequence). Operator gateway: [docs/l402-aperture.md](../docs/l402-aperture.md).
