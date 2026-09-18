@@ -228,24 +228,13 @@ More operator, lab, and swarm docs live under `docs/` and `examples/`.
 
 ## AI models
 
-Agent-to-Agent Lightning Network payments: Grok model
+Currently, you may choose default Grok or Ollama models for Agent-to-Agent payments or Agent-to-Merchant payments.
 
-Agent-to-Agent Lightning Network payments: Ollama model
+Agent-to-Agent Lightning Network payments: Grok or Ollama model  
+Example: examples/agent-to-agent-pay.md
 
-Agent-to-Merchant Lightning Network payments: Grok model  
+Agent-to-Merchant Lightning Network payments: Grok or Ollama model  
 Example: examples/agent-to-merchant-pay.md
-
-
-
-Agent-to-Merchant Lightning Network payments: Ollama
-
-
-The SDK and L402 client pay Lightning **without** an LLM. Grok is not required to call `/paid/…`.
-
-Optional decision/demo agents use **xAI Grok** (`XAI_API_KEY`; default `grok-4-1-fast-reasoning`, also `grok-3` in [SDK.md](SDK.md)) or local **Ollama** (examples). 
-Examples: [examples/grok_example.py](examples/grok_example.py), [examples/ollama_example.py](examples/ollama_example.py).
-
-Swarm demos can run `--no-llm` (deterministic hash or fee-sats puzzle). The model does not pick the winner. [examples/swarm_l402.md](examples/swarm_l402.md). Prompt text: [agent_bitcoin/prompts.py](agent_bitcoin/prompts.py).
 
 ---
 
