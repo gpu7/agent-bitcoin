@@ -1,3 +1,9 @@
+## Examples — agent-to-agent-pay wrapper (2026-09-18)
+
+[examples/agent-to-agent-pay.md](examples/agent-to-agent-pay.md): two LND nodes, DM invoice, optional payer Grok/Ollama gate. README not edited.
+
+---
+
 ## Examples — merchant demo --model grok|ollama (2026-09-18)
 
 `llm-gate` can use Grok or local Ollama. `--no-llm` cannot combine with `--model`. README not edited.

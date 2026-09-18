@@ -87,4 +87,6 @@ The script prints `payment_hash` and `preimage` on pay, then an `lncli listpayme
 
 Offline: `invoice --offline` / `pay --bolt11 lnbc1offline --offline` / `invoice-dm --offline` (no relay).
 
+Role wrapper (payer gate optional): [agent-to-agent-pay.md](./agent-to-agent-pay.md).
+
 Swarm (merchant L402, one wallet): [agent-to-merchant-pay.md](./agent-to-merchant-pay.md).
