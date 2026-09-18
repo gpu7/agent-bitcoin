@@ -400,25 +400,51 @@ def run_puzzle_role(args: argparse.Namespace, role: str, roles: tuple[str, ...])
     )
 
 
-def _llm_yes_no(job: str) -> tuple[str, str]:
-    """One Grok YES/NO + short reason. Cap SWARM_LLM_MAX_CALLS. No secrets in prompt."""
+def _gate_prompt():
+    from langchain_core.messages import SystemMessage
+
+    return [
+        SystemMessage(
+            content=(
+                "Line 1: YES or NO only. Line 2: one short reason. "
+                "Do not pay. Do not ask for invoices or keys."
+            )
+        ),
+    ]
+
+
+def _take_llm_slot() -> bool:
     global _LLM_CALLS
+    max_calls = int(os.environ.get("SWARM_LLM_MAX_CALLS") or "2")
+    with _LLM_LOCK:
+        if _LLM_CALLS >= max_calls:
+            return False
+        _LLM_CALLS += 1
+        return True
+
+
+def ask_gate(job: str, backend: str = "grok") -> tuple[str, str]:
+    """YES/NO for llm-gate. backend grok|ollama. FORCE_VOTE overrides both."""
     try:
         forced = parse_force_vote(os.environ.get("SWARM_LLM_FORCE_VOTE"))
     except ValueError as exc:
         raise SystemExit(str(exc)) from exc
     if forced:
         return forced, "forced_test"
+    backend = (backend or "grok").strip().lower()
+    if backend == "ollama":
+        return _ask_ollama(job)
+    return _ask_grok(job)
+
+
+def _ask_grok(job: str) -> tuple[str, str]:
     key = (os.environ.get("XAI_API_KEY") or "").strip()
     if not key:
         return "NO", "no_key"
-    max_calls = int(os.environ.get("SWARM_LLM_MAX_CALLS") or "2")
-    with _LLM_LOCK:
-        if _LLM_CALLS >= max_calls:
-            return "NO", "unparsed"
-        _LLM_CALLS += 1
+    if not _take_llm_slot():
+        return "NO", "unparsed"
     try:
-        from langchain_core.messages import HumanMessage, SystemMessage
+        from langchain_core.messages import HumanMessage
         from langchain_xai import ChatXAI
     except ImportError:
         return "NO", "unparsed"
@@ -431,17 +457,7 @@ def _llm_yes_no(job: str) -> tuple[str, str]:
     )
 
     def _invoke() -> str:
-        msg = llm.invoke(
-            [
-                SystemMessage(
-                    content=(
-                        "Line 1: YES or NO only. Line 2: one short reason. "
-                        "Do not pay. Do not ask for invoices or keys."
-                    )
-                ),
-                HumanMessage(content=job),
-            ]
-        )
+        msg = llm.invoke([*_gate_prompt(), HumanMessage(content=job)])
         return str(getattr(msg, "content", "") or "")
 
     try:
@@ -450,6 +466,29 @@ def _llm_yes_no(job: str) -> tuple[str, str]:
             raw = fut.result(timeout=LLM_GATE_TIMEOUT_S)
     except Exception:
         return "NO", "timeout"
+    return parse_vote_reason(raw)
+
+
+def _ask_ollama(job: str) -> tuple[str, str]:
+    if not _take_llm_slot():
+        return "NO", "unparsed"
+    host = (os.environ.get("OLLAMA_HOST") or "http://127.0.0.1:11434").rstrip("/")
+    model = os.environ.get("OLLAMA_MODEL") or "llama3.2"
+    try:
+        from langchain_core.messages import HumanMessage
+        from langchain_ollama import ChatOllama
+
+        llm = ChatOllama(model=model, base_url=host, temperature=0)
+
+        def _invoke() -> str:
+            msg = llm.invoke([*_gate_prompt(), HumanMessage(content=job)])
+            return str(getattr(msg, "content", "") or "")
+
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            fut = pool.submit(_invoke)
+            raw = fut.result(timeout=LLM_GATE_TIMEOUT_S)
+    except Exception:
+        return "NO", "ollama_down"
     return parse_vote_reason(raw)
 
 
@@ -470,7 +509,7 @@ def run_llm_gate_role(
         f"Should this agent pay {price} sats for POST /paid/finance/ln-path-fee-hint "
         f"(Lightning first-path fee hint)? Reply YES or NO."
     )
-    vote, grok_reason = _llm_yes_no(job)
+    vote, grok_reason = ask_gate(job, getattr(args, "model", "grok") or "grok")
     print(
         f"[{role}] npub={npub} resolve=llm-gate vote={vote} "
         f"reason={grok_reason} score={score}"
@@ -748,6 +787,12 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Winner rule: hash (default), puzzle, or llm-gate (YES/NO then hash)",
     )
     parser.add_argument(
+        "--model",
+        choices=("grok", "ollama"),
+        default="",
+        help="llm-gate backend (default grok). Mutually exclusive; not with --no-llm",
+    )
+    parser.add_argument(
         "--dest-pubkey",
         default=AWS_LND_PUB,
         help="llm-gate path-hint dest (default: AWS LND pubkey)",
@@ -807,17 +852,26 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         raise SystemExit(
             f"unknown --puzzle-type {args.puzzle_type!r} (only {PUZZLE_FEE_SATS})"
         )
+    if args.no_llm and (args.model or "").strip():
+        raise SystemExit("--no-llm cannot be combined with --model")
     if args.resolve == "llm-gate":
         if expect != 2:
             raise SystemExit("llm-gate is two-agent only (--role alice|bob|both)")
         if args.no_llm:
             raise SystemExit("llm-gate cannot be used with --no-llm")
+        args.model = (args.model or "grok").strip().lower()
         try:
             forced = parse_force_vote(os.environ.get("SWARM_LLM_FORCE_VOTE"))
         except ValueError as exc:
             raise SystemExit(str(exc)) from exc
-        if not forced and not (os.environ.get("XAI_API_KEY") or "").strip():
-            raise SystemExit("llm-gate requires XAI_API_KEY in the environment")
+        if (
+            not forced
+            and args.model == "grok"
+            and not (os.environ.get("XAI_API_KEY") or "").strip()
+        ):
+            raise SystemExit(
+                "llm-gate --model grok requires XAI_API_KEY in the environment"
+            )
         if args.url == DEFAULT_L402_URL:
             args.url = LLM_GATE_URL
         args.http_method = "POST"

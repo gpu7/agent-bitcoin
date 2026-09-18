@@ -52,7 +52,7 @@ Default is **`--resolve hash`**. `./examples/agent-to-merchant-pay.sh --role ali
 
 ### LLM gate (opt-in)
 
-`--resolve llm-gate`: each agent asks Grok YES/NO whether to pay **100 sats** for `POST /paid/finance/ln-path-fee-hint` (dest = AWS LND pubkey, `amount_sats=100` — no third-party invoice). YES voters then use the **hash** tie-break. 0 YES → no L402. Requires `XAI_API_KEY` in the environment (never commit it; `.env` is gitignored). `--no-llm` cannot be combined with llm-gate. Two-agent only. Vote `reason` is logged locally, not sent to AWS.
+`--resolve llm-gate`: each agent votes YES/NO whether to pay **100 sats** for `POST /paid/finance/ln-path-fee-hint`. YES voters then use the **hash** tie-break. 0 YES → no L402. `--model grok` (default) uses `XAI_API_KEY`. `--model ollama` uses local Ollama (`http://127.0.0.1:11434`, `OLLAMA_MODEL` or `llama3.2`) and does not need xAI. `--no-llm` cannot be combined with `--model` or llm-gate. Two-agent only. Vote `reason` is logged locally, not sent to AWS. Hash / puzzle still need no model (`--no-llm`).
 
 ```bash
 export XAI_API_KEY=       # local only; never commit
@@ -61,13 +61,22 @@ export NOSTR_PASSPHRASE=  # local only; never commit; create any passphrase you 
 
 Alice in **one Mac terminal**, Bob in **another**. Same exports in both. Start Alice, then Bob. The script POSTs path-hint (no `--method POST` flag).
 
-Mock (no Lightning):
+Mock Grok (no Lightning):
 
 ```bash
 # Terminal A
-./examples/agent-to-merchant-pay.sh --role alice --resolve llm-gate --offline-bus
+./examples/agent-to-merchant-pay.sh --role alice --resolve llm-gate --model grok --offline-bus
 # Terminal B
-./examples/agent-to-merchant-pay.sh --role bob --resolve llm-gate --offline-bus
+./examples/agent-to-merchant-pay.sh --role bob --resolve llm-gate --model grok --offline-bus
+```
+
+Mock Ollama (local HTTP; `ollama pull llama3.2`; no `XAI_API_KEY`):
+
+```bash
+# Terminal A
+./examples/agent-to-merchant-pay.sh --role alice --resolve llm-gate --model ollama --offline-bus
+# Terminal B
+./examples/agent-to-merchant-pay.sh --role bob --resolve llm-gate --model ollama --offline-bus
 ```
 
 Live (Mac pays AWS, 100 sats):
