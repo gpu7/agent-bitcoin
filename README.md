@@ -126,23 +126,26 @@ export SWARM_LLM_FORCE_VOTE=YES
 
 ## Nostr (agent identity)
 
-Lightning invoice/pay does **not** require Nostr. L402 **finance** tools do not use it. Paid local checks (event-verify, npub-decode, zap-receipt-inspect) are in the [L402 Nostr suite](docs/l402-tools.md#nostr-suite) at 100 sats. Nostr is an optional layer so agents can have a public identity and, if you opt in, a limited wallet connection.
+Lightning invoice/pay and L402 finance tools do not require Nostr. Paid local checks (event-verify, npub-decode, zap-receipt-inspect) are in the L402 Nostr suite at 100 sats. Install the extra with uv sync --extra nostr or pip install 'agent-bitcoin[nostr]' (prefer Python 3.12). Details: docs/nostr-agent-identity.md, docs/nwc-automatic-wallets.md, SDK.md.  
 
-**Identity.** An agent can hold a Nostr keypair as a stable public ID (a username that is a cryptographic key). Two agents can recognize each other without a central account server.
+- Identity travels with the agent. An agent’s ID is a secp256k1 keypair (npub / nsec), not a vendor account, so the same identity works on every client and relay if the host or model changes.
 
-**Phase A.** Proof-of-concept: two agents talk over Nostr only. No Lightning node required. See [`examples/nostr_agent_poc.py`](examples/nostr_agent_poc.py) and [docs/nostr-agent-identity.md](docs/nostr-agent-identity.md).
+- Signed events are the verb. Profiles, messages, job ads, and receipts are signed events; anyone can check who wrote them and that the payload was not altered.  
 
-**Phase B.** Agents can send signed payment requests and offers on that same bus, then use Lightning invoices/pay when LND is in the picture. See [`examples/nostr_phase_b_payment.py`](examples/nostr_phase_b_payment.py).
+- Relays are pub/sub, not a platform. Agents publish once and subscribe with filters; if one relay dies or censors, they move to another without a central inbox.
+ 
+- Private A2A traffic can stay encrypted. NIP-44 and gift-wrapped NIP-17 DMs let agents send invoices or state as ciphertext; relays see wrapping, not the BOLT11 or prompt.
 
-**Phase C.** Signing policy lives in a separate local signer process. The agent itself is not supposed to hold the secret key (`nsec`). See [`examples/nostr_phase_c_signer.py`](examples/nostr_phase_c_signer.py).
+- Payments sit on the same identity. NIP-57 zaps attach sats to an event; NIP-47 NWC lets an agent invoice or pay without handing every tool an LND admin macaroon.  
 
-**NWC (NIP-47).** For automatic wallets, the agent holds a Nostr Wallet Connect URI rather than an LND admin macaroon. The payment-decision agent still only says PAY / REJECT; settlement goes through NWC after PAY. See [docs/nwc-automatic-wallets.md](docs/nwc-automatic-wallets.md).
+- Kinds stay extensible. Kind 0 profiles, replaceable events, labels, and custom kinds can carry capability ads, memory, and audit trails without a new transport per app.
 
-**NIP-46.** Optional bunker demo for remote signing: [`examples/nip46_bunker_demo.py`](examples/nip46_bunker_demo.py).
+- No single operator owns the agent. Key-based identity plus many relays means existence, history, and settlement are not tied to one company’s API.
 
-**Install.** Optional extra (`pynostr`): `uv sync --extra nostr` or `pip install 'agent-bitcoin[nostr]'`. Prefer **Python 3.12** for wheels ([SDK.md](SDK.md#nostr-agent-identity-phase-a-poc)).
-
-More: [SDK.md](SDK.md#examples) (Nostr examples list), [docs/nostr-agent-identity.md](docs/nostr-agent-identity.md), [docs/nwc-automatic-wallets.md](docs/nwc-automatic-wallets.md).
+Documents:  
+docs/nostr-agent-identity.md  
+docs/nwc-automatic-wallets.md  
+SDK.md  
 
 ---
 
