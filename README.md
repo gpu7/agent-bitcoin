@@ -128,19 +128,19 @@ export SWARM_LLM_FORCE_VOTE=YES
 
 Lightning invoice/pay and L402 finance tools do not require Nostr. Paid local checks (event-verify, npub-decode, zap-receipt-inspect) are in the L402 Nostr suite at 100 sats. Install the extra with uv sync --extra nostr or pip install 'agent-bitcoin[nostr]' (prefer Python 3.12). Details: docs/nostr-agent-identity.md, docs/nwc-automatic-wallets.md, SDK.md.  
 
-- Identity travels with the agent. An agent’s ID is a secp256k1 keypair (npub / nsec), not a vendor account, so the same identity works on every client and relay if the host or model changes.
+- **Identity travels with the agent.** An agent’s ID is a secp256k1 keypair (npub / nsec), not a vendor account, so the same identity works on every client and relay if the host or model changes.
 
-- Signed events are the verb. Profiles, messages, job ads, and receipts are signed events; anyone can check who wrote them and that the payload was not altered.  
+- **Signed events are the verb.** Profiles, messages, job ads, and receipts are signed events; anyone can check who wrote them and that the payload was not altered.  
 
-- Relays are pub/sub, not a platform. Agents publish once and subscribe with filters; if one relay dies or censors, they move to another without a central inbox.
+- **Relays are pub/sub, not a platform.** Agents publish once and subscribe with filters; if one relay dies or censors, they move to another without a central inbox.
  
-- Private A2A traffic can stay encrypted. NIP-44 and gift-wrapped NIP-17 DMs let agents send invoices or state as ciphertext; relays see wrapping, not the BOLT11 or prompt.
+- **Private A2A traffic can stay encrypted.** NIP-44 and gift-wrapped NIP-17 DMs let agents send invoices or state as ciphertext; relays see wrapping, not the BOLT11 or prompt.
 
-- Payments sit on the same identity. NIP-57 zaps attach sats to an event; NIP-47 NWC lets an agent invoice or pay without handing every tool an LND admin macaroon.  
+- **Payments sit on the same identity.** NIP-57 zaps attach sats to an event; NIP-47 NWC lets an agent invoice or pay without handing every tool an LND admin macaroon.  
 
-- Kinds stay extensible. Kind 0 profiles, replaceable events, labels, and custom kinds can carry capability ads, memory, and audit trails without a new transport per app.
+- **Kinds stay extensible.** Kind 0 profiles, replaceable events, labels, and custom kinds can carry capability ads, memory, and audit trails without a new transport per app.
 
-- No single operator owns the agent. Key-based identity plus many relays means existence, history, and settlement are not tied to one company’s API.
+- **No single operator owns the agent.** Key-based identity plus many relays means existence, history, and settlement are not tied to one company’s API.
 
 Documents:  
 docs/nostr-agent-identity.md  
