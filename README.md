@@ -128,7 +128,7 @@ export SWARM_LLM_FORCE_VOTE=YES
 
 Lightning invoice/pay and L402 finance tools do not require Nostr. Paid local checks (event-verify, npub-decode, zap-receipt-inspect) are in the L402 Nostr suite at 100 sats. Install the extra with uv sync --extra nostr or pip install 'agent-bitcoin[nostr]' (prefer Python 3.12). Details: docs/nostr-agent-identity.md, docs/nwc-automatic-wallets.md, SDK.md.  
 
-- **Identity travels with the agent.** An agent’s ID is a secp256k1 keypair (npub / nsec), not a vendor account, so the same identity works on every client and relay if the host or model changes.
+- **Agents get a unique ID.** Each agent is assigned a unique cryptographic secp256k1 keypair (npub & nsec), esentially, a unique ID.  Agents in an agent swarm can easily and uniquely identify one another via their public npub.  Agents never share or expose their private encrypted secret nsec.
 
 - **Signed events are the verb.** Profiles, messages, job ads, and receipts are signed events; anyone can check who wrote them and that the payload was not altered.  
 
