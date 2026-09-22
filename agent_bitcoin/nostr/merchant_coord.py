@@ -21,6 +21,7 @@ import os
 import socket
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 from pathlib import Path
@@ -31,7 +32,6 @@ from agent_bitcoin.nostr.ws_relay import event_to_dict, poll_events, publish_eve
 # Regular custom kind. Not in the NIP kind table (checked 2026-09). Not kind 1.
 KIND_MERCHANT = 8139
 COORD_TAG = "agent-bitcoin-merchant-v1"
-DEFAULT_RELAYS = "wss://relay.damus.io,wss://nos.lol"
 MOCK_HOST = "127.0.0.1"
 _SECRET_KEYS = frozenset({"bolt11", "preimage", "nsec", "macaroon", "payment_request"})
 _ANNOUNCED: set[int] = set()
@@ -41,11 +41,6 @@ _LOCK = threading.Lock()
 def mock_port() -> int:
     raw = (os.environ.get("MERCHANT_MOCK_PORT") or "8765").strip()
     return int(raw)
-
-
-def mock_idle_s() -> float:
-    raw = (os.environ.get("MERCHANT_MOCK_IDLE") or "60").strip()
-    return float(raw)
 
 
 def _tag(data: dict[str, Any], name: str) -> str:
@@ -169,137 +164,12 @@ def accept(
     return True
 
 
-class _Hub:
-    def __init__(self) -> None:
-        self.events: list[dict[str, Any]] = []
-        self.cv = threading.Condition()
-
-    def add(self, ev: dict[str, Any]) -> None:
-        stored = json.loads(json.dumps(ev))
-        with self.cv:
-            self.events.append(stored)
-            if len(self.events) > 2000:
-                del self.events[:1000]
-            self.cv.notify_all()
+def _server_script() -> str:
+    return str(Path(__file__).resolve().with_name("merchant_mock.py"))
 
 
-class _ServerState:
-    def __init__(self) -> None:
-        self.hub = _Hub()
-        self.clients = 0
-        self.lock = threading.Lock()
-
-
-def _send(conn: socket.socket, payload: dict[str, Any]) -> None:
-    blob = (json.dumps(payload, separators=(",", ":")) + "\n").encode()
-    conn.sendall(blob)
-
-
-def _handle(conn: socket.socket, state: _ServerState) -> None:
-    with state.lock:
-        state.clients += 1
-    buf = b""
-    watching = False
-    sent = 0
-    conn.settimeout(0.4)
-    try:
-        while True:
-            if watching:
-                with state.hub.cv:
-                    fresh = state.hub.events[sent:]
-                    sent = len(state.hub.events)
-                    if not fresh:
-                        state.hub.cv.wait(timeout=0.2)
-                        fresh = state.hub.events[sent:]
-                        sent = len(state.hub.events)
-                for ev in fresh:
-                    _send(conn, {"op": "event", "event": ev})
-            try:
-                chunk = conn.recv(65536)
-            except TimeoutError:
-                continue
-            if not chunk:
-                break
-            buf += chunk
-            while b"\n" in buf:
-                line, buf = buf.split(b"\n", 1)
-                if not line.strip():
-                    continue
-                try:
-                    msg = json.loads(line.decode())
-                except json.JSONDecodeError:
-                    continue
-                op = msg.get("op")
-                if op == "pub" and isinstance(msg.get("event"), dict):
-                    state.hub.add(msg["event"])
-                    _send(conn, {"op": "ok"})
-                elif op == "watch":
-                    watching = True
-                    with state.hub.cv:
-                        backlog = list(state.hub.events)
-                        sent = len(backlog)
-                    for ev in backlog:
-                        _send(conn, {"op": "event", "event": ev})
-                elif op == "hold":
-                    _send(conn, {"op": "ok"})
-                    while True:
-                        try:
-                            parked = conn.recv(65536)
-                        except TimeoutError:
-                            continue
-                        if not parked:
-                            break
-                    break
-                else:
-                    _send(conn, {"op": "err"})
-    except (OSError, TypeError, ValueError):
-        pass
-    finally:
-        with state.lock:
-            state.clients -= 1
-        try:
-            conn.close()
-        except OSError:
-            pass
-
-
-def serve_forever(port: int) -> None:
-    """Block as the mock relay. Exit after idle seconds with zero clients."""
-    state = _ServerState()
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    try:
-        sock.bind((MOCK_HOST, int(port)))
-    except OSError:
-        return
-    sock.listen(64)
-    sock.settimeout(0.5)
-    idle_s = mock_idle_s()
-
-    def _idle() -> None:
-        quiet = 0.0
-        while True:
-            time.sleep(0.25)
-            with state.lock:
-                clients = state.clients
-            if clients == 0:
-                quiet += 0.25
-                if quiet >= idle_s:
-                    os._exit(0)
-            else:
-                quiet = 0.0
-
-    threading.Thread(target=_idle, name="merchant-mock-idle", daemon=True).start()
-    while True:
-        try:
-            conn, _addr = sock.accept()
-        except TimeoutError:
-            continue
-        except OSError:
-            return
-        threading.Thread(
-            target=_handle, args=(conn, state), name="merchant-mock-client", daemon=True
-        ).start()
+def _spawn_log(port: int) -> Path:
+    return Path(tempfile.gettempdir()) / f"merchant-mock-{port}.log"
 
 
 def _port_open(port: int) -> bool:
@@ -311,13 +181,31 @@ def _port_open(port: int) -> bool:
     return True
 
 
-def _spawn(port: int) -> None:
-    subprocess.Popen(
-        [sys.executable, "-m", "agent_bitcoin.nostr.merchant_mock", str(port)],
-        start_new_session=True,
-        stdin=subprocess.DEVNULL,
-        stdout=subprocess.DEVNULL,
-    )
+def _spawn(port: int) -> subprocess.Popen[bytes]:
+    log = _spawn_log(port)
+    err = log.open("w", encoding="utf-8")
+    try:
+        return subprocess.Popen(
+            [sys.executable, _server_script(), str(port)],
+            start_new_session=True,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=err,
+        )
+    finally:
+        err.close()
+
+
+def _spawn_failure(port: int, proc: subprocess.Popen[bytes]) -> str:
+    try:
+        detail = _spawn_log(port).read_text(encoding="utf-8").strip()
+    except OSError:
+        detail = ""
+    code = proc.poll()
+    extra = f" exit={code}" if code is not None else ""
+    if detail:
+        extra = f"{extra}: {detail}"
+    return f"mock relay failed to listen on {MOCK_HOST}:{port}{extra}"
 
 
 def ensure_mock() -> None:
@@ -326,14 +214,19 @@ def ensure_mock() -> None:
         _announce(port)
         return
     with _LOCK:
-        deadline = time.time() + 5
+        if _port_open(port):
+            _announce(port)
+            return
+        proc = _spawn(port)
+        deadline = time.time() + 8
         while time.time() < deadline:
             if _port_open(port):
                 _announce(port)
                 return
-            _spawn(port)
-            time.sleep(0.1)
-    raise SystemExit(f"mock relay failed to listen on {MOCK_HOST}:{port}")
+            if proc.poll() is not None:
+                raise SystemExit(_spawn_failure(port, proc))
+            time.sleep(0.05)
+        raise SystemExit(_spawn_failure(port, proc))
 
 
 def _announce(port: int) -> None:
