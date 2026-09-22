@@ -158,34 +158,6 @@ pip install agent-bitcoin==27.0.0
 
 ---
 
-## Quick start
-
-```python
-from agent_bitcoin import create_client
-
-client = create_client()
-
-# Payee: invoice + explicit quote for independent payers
-quote = client.create_invoice_quote(memo="Test payment", amount_sats=2000)
-# quote.payment_request, amount_sats, total_cost_sats (equals amount)
-
-# Payer: validate / decision inputs, then pay Lightning amount
-inputs = client.build_payer_decision_inputs(quote, routing_fee_limit_sats=200)
-if inputs.quote_valid:
-    result = client.pay_invoice_quote(quote, routing_fee_limit_sats=200)
-    if result.success:
-        print(f"Paid {result.amount} sats (LN); total_cost was {quote.total_cost_sats}")
-```
-
-Bare `create_invoice` / `pay_invoice` remain available for simple lab flows.
-
-Configure LND via env (`LND_NETWORK`, `LND_TRANSPORT=docker|grpc`, container or gRPC cert/macaroon).
-Full API → **[SDK.md](SDK.md)**.
-Regtest operators → **[docs/backend.md](docs/backend.md)**.
-Signet operators → **[docs/signet.md](docs/signet.md)**.
-
----
-
 ## Security
 
 Agent-Bitcoin is developed with security in mind:
