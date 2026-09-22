@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 import subprocess
 import sys
@@ -89,13 +88,4 @@ def test_offline_eight_cli_one_mock_pay(
         if "npub=npub1" in line
     }
     assert len(npubs) == 8
-    bus = tmp_path / "bus"
-    names = {p.name for p in bus.glob("*.json")}
-    for i in range(1, 9):
-        assert any(n.endswith(f"_a{i}_negotiate.json") for n in names)
-    results = [p for p in bus.glob("*_result.json")]
-    assert len(results) == 1
-    payload = json.loads(json.loads(results[0].read_text(encoding="utf-8"))["content"])
-    assert payload["type"] == "result"
-    assert payload["paid"] is True
-    assert "preimage" not in payload
+    assert not (tmp_path / "bus").exists()

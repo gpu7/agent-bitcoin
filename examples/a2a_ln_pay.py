@@ -177,24 +177,9 @@ def _load_nostr(name: str) -> Any:
 
 
 def _publish_wrap(wrap: dict[str, Any], relays: list[str]) -> None:
-    from pynostr.event import Event
-    from pynostr.relay_manager import RelayManager
+    from agent_bitcoin.nostr.ws_relay import publish_event
 
-    ev = Event(
-        content=wrap["content"],
-        kind=int(wrap["kind"]),
-        tags=wrap.get("tags") or [],
-        pubkey=wrap.get("pubkey"),
-    )
-    ev.id = wrap.get("id")
-    ev.created_at = wrap.get("created_at")
-    ev.sig = wrap.get("sig")
-    mgr = RelayManager(timeout=8)
-    for url in relays:
-        mgr.add_relay(url, timeout=3, close_on_eose=True)
-    mgr.publish_event(ev)
-    mgr.run_sync()
-    mgr.close_all_relay_connections()
+    publish_event(wrap, relays)
 
 
 def cmd_invoice_dm(args: argparse.Namespace, client: Any | None = None) -> int:

@@ -1,8 +1,8 @@
 # Eight-agent swarm: who pays one L402 tool
 
-Eight Nostr identities (`a1`…`a8`), signed file-bus messages, **one** winner pays `GET /paid/finance/mempool-feerate` (100 sats). Same jobs as the [two-agent demo](./agent-to-merchant-pay.md). Coded policy picks the payer. Optional Grok explains in one sentence each and **never** pays. **`--no-llm` is the required path.**
+Eight Nostr identities (`a1`…`a8`), signed relay events, **one** winner pays `GET /paid/finance/mempool-feerate` (100 sats). Same jobs as the [two-agent demo](./agent-to-merchant-pay.md). Coded policy picks the payer. Optional Grok explains in one sentence each and **never** pays. **`--no-llm` is the required path.**
 
-Agents are **processes**, not Lightning nodes. One Mac LND wallet, one existing private channel, **one** pay per successful live run. Swarm picks who pays the **merchant**; A2A LN (two LND nodes) is [a2a_ln_pay.md](./a2a_ln_pay.md). Do not start eight LNDs. Do not open channels. The wrapper passes `--expect-peers 8`.
+Agents are **processes**, not Lightning nodes. One Mac LND wallet, one existing private channel, **one** pay per successful live run. Swarm picks who pays the **merchant**; A2A LN (two LND nodes) is [a2a_ln_pay.md](./a2a_ln_pay.md). Coordination is the same module as the 2-agent demo: signed kind **8139** on `NOSTR_RELAYS`, or a localhost mock with `--offline-bus`. Not a shared message directory. Do not start eight LNDs. Do not open channels. The wrapper passes `--expect-peers 8`.
 
 **Two modes — do not mix them:**
 
@@ -43,7 +43,7 @@ The eight-agent demo stays **`--resolve hash`**. Puzzle (`fee-sats`) and **llm-g
 
 Live HTTP is from the **Mac** to `http://3.90.159.146:8081`. On-box `http://127.0.0.1:8081` is for **mock** or for a client whose payer LND is **not** the Aperture invoice node (AWS LND).
 
-Splitting agents across Mac and AWS breaks the file bus unless they rsync (**out of scope**).
+Splitting agents across Mac and AWS is **out of scope**. The mock relay is `127.0.0.1` only. Live processes must share `NOSTR_RELAYS`.
 
 ## 4. Two demo modes
 
@@ -54,13 +54,13 @@ Splitting agents across Mac and AWS breaks the file bus unless they rsync (**out
 # terminals a2 … a8, same flags
 ```
 
-Or one launcher (still one bus dir):
+Or one launcher (eight processes, one mock relay):
 
 ```bash
 ./examples/swarm_l402_8_all.sh --offline-bus --no-llm
 ```
 
-No LND pay. Fine for Nostr ids + negotiate. All eight processes must share the **same** `.nostr-poc/bus` on **one disk**.
+No LND pay. Fine for Nostr ids + negotiate. All eight processes must be on **one host** so they share `127.0.0.1:8765`. Start `a1` first and wait for `waiting for`, then start the rest within `--timeout`. Every event is verified (id, sig, pubkey, role) before it counts.
 
 ### B. Live L402 (required topology)
 
@@ -68,7 +68,7 @@ No LND pay. Fine for Nostr ids + negotiate. All eight processes must share the *
 |-------|--------|
 | Aperture + invoice LND | **AWS** |
 | Payer LND | **Mac** `agent-bitcoin-lnd*` |
-| Eight swarm processes | **Mac** (shared `.nostr-poc/bus`) |
+| Eight swarm processes | **Mac** (`NOSTR_RELAYS`; no shared message directory) |
 | URL | `http://3.90.159.146:8081/paid/finance/mempool-feerate` |
 | Flags | **No** `--offline-bus`; `--price 100` |
 | Do **not** | Use `LND_CONTAINER=agent-payment-decision-lnd*` as the live payer |
@@ -81,11 +81,7 @@ Do **not** use `uv run python` for this demo on 3.13/3.14: it recreates `.venv`,
 
 If all eight processes run on the **Mac** (live), use the **Mac** container below. AWS invoice names are notes only — **not** live-pay exports.
 
-Before a **new live** run (or any rerun of the same `--url`), clear the bus — `invoice_id` is derived from the URL; leftover `*_result.json` reuses the old pay:
-
-```bash
-rm -f .nostr-poc/bus/*.json
-```
+Before a **new live** run of the same `--url`, bump `--round` if a result for this invoice is already on the relay. There is no message directory to clear.
 
 ### First time (no `.venv-nostr` yet)
 
@@ -165,18 +161,16 @@ curl -sS -o /dev/null -w '%{http_code}\n' http://3.90.159.146:8081/health
 curl -sS -o /dev/null -w '%{http_code}\n' \
   http://3.90.159.146:8081/paid/finance/mempool-feerate
 # 402
-
-rm -f .nostr-poc/bus/*.json
 # if health times out: ./update-aws-sg-my-ip.sh   # do not world-open 8081
 ```
 
 ## 7. Run
 
-Same wrapper for first time and later runs. `--relay` is accepted and ignored; happy path is `.nostr-poc/bus/`. `swarm_l402_8.sh` adds `--expect-peers 8`.
+Same wrapper for first time and later runs. `--relay` is ignored; set `NOSTR_RELAYS` for the live path. `swarm_l402_8.sh` adds `--expect-peers 8`. There is no message directory to clear. If a result for this invoice and `--round` is already on the relay, bump `--round`.
 
 ### Mock (any one host)
 
-Engineer path — **eight terminals**, one bus dir:
+Engineer path — **eight terminals**, one localhost mock relay. Start `a1` first:
 
 ```bash
 ./examples/swarm_l402_8.sh --role a1 --offline-bus --no-llm
@@ -196,9 +190,9 @@ One process (eight threads):
 ./examples/swarm_l402_8.sh --role all --offline-bus --no-llm
 ```
 
-### Live (Mac, empty bus)
+### Live (Mac)
 
-**No** `--offline-bus`. After `rm -f .nostr-poc/bus/*.json`:
+**No** `--offline-bus`. Start `a1` first (`waiting for`), then the others within `--timeout`, or use the launcher:
 
 ```bash
 ./examples/swarm_l402_8_all.sh --no-llm \
@@ -237,9 +231,7 @@ Only **one** L402 pay per successful run.
 
 ## 9. How IDs show up
 
-Printed: `npub=npub1…`. Encrypted nsec stays in `.nostr-poc/a1.enc.json` … `a8.enc.json` (mode 0600). Never print or commit nsec.
-
-Bus: `{invoice_id}_aN_negotiate.json`, `{invoice_id}_aN_concede.json` (losers), `{invoice_id}_result.json` (winner).
+Printed: `npub=npub1…`. Encrypted nsec stays in `.nostr-poc/a1.enc.json` … `a8.enc.json` (mode 0600). Never print or commit nsec. Coordination events are kind 8139 on the relay (or the localhost mock), not files.
 
 ## 10. Troubleshooting
 
@@ -251,8 +243,8 @@ Bus: `{invoice_id}_aN_negotiate.json`, `{invoice_id}_aN_concede.json` (losers), 
 | Amount below floor | Min invoice is **100 sats** (`MIN_PAYMENT_SATS`) |
 | `No such container: agent-bitcoin-lnd-mainnet` on AWS | Wrong host. Live payer is the **Mac** |
 | `self-payments not allowed` | Payer == invoice node. Use Mac `agent-bitcoin-lnd*` + `--url http://3.90.159.146:8081/…`. Do not enable LND self-pay |
-| Agent exits instantly with bands 3/2/1 | Stale bus and/or `--offline-bus`. `rm -f .nostr-poc/bus/*.json` |
-| Timeout waiting for peer | Same `--dir`, same `--url`, all eight on **one** Mac; bus is `$NOSTR_POC_DIR/bus/` |
+| `Stale result already on the relay` | Bump `--round`. Do not delete key files. |
+| Timeout waiting for peer | Same `--dir`, same `--url`, all eight on **one** host. Start `a1` first. Mock relays are `127.0.0.1` only. Live: same `NOSTR_RELAYS`. |
 | Missing pynostr / uv 3.14 | Do not use `uv run python`. `uv venv -p 3.12 .venv-nostr` then `uv pip install --python .venv-nostr/bin/python -e '.[nostr]'`. Run `./examples/swarm_l402_8.sh` |
 
 Sequence of a paid GET: [docs/architecture.md — L402 request sequence](../docs/architecture.md#l402-request-sequence). Operator gateway: [docs/l402-aperture.md](../docs/l402-aperture.md). Two-agent: [agent-to-merchant-pay.md](./agent-to-merchant-pay.md).
