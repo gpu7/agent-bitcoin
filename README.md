@@ -136,16 +136,7 @@ Lightning invoice/pay and L402 finance tools do not require Nostr. Paid local ch
  
 - **Agents can use Nostr encryption.** Agents can choose encrypted events for sensitive information.  Encryption hides the inside of a message so a Nostr  relay can store and forward it without reading invoices, prompts or agent state. Signing still proves which agent sent a message.
 
-- **Payments sit on the same identity.** NIP-57 zaps attach sats to an event; NIP-47 NWC lets an agent invoice or pay without handing every tool an LND admin macaroon.  
-
-- **Kinds stay extensible.** Kind 0 profiles, replaceable events, labels, and custom kinds can carry capability ads, memory, and audit trails without a new transport per app.
-
-- **No single operator owns the agent.** Key-based identity plus many relays means existence, history, and settlement are not tied to one company’s API.
-
-Documents:  
-docs/nostr-agent-identity.md  
-docs/nwc-automatic-wallets.md  
-SDK.md  
+- **Agents use Nostr for discovery.** Agents can find one-another by publishing a signed “I can do X” event. Nostr relays find matching agents for that event.  There is no need for a central directory.
 
 ---
 
