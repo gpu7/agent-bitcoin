@@ -28,7 +28,7 @@ A Python SDK and Merchant endpoint that enables autonomous AI agents to transact
 - Bitcoin final settlement layer
 - Python SDK for autonomous AI agent swarms
 - [Nostr for agents](#nostr-for-agents)
-- AI models for agents (Grok, Ollama)
+- [AI models for agents](#ai-models-for-agents)
 
 ---
 
@@ -46,7 +46,7 @@ Demo files (`/paid/hello`, PDFs, PNG) are **1,000 sats**. Lab host: `http://3.90
 
 ---
 
-## Agent demos (swarm)
+## Agent demos (swarms)
 
 Two-agent and eight-agent swarms negotiate **who pays one L402 GET** (hash default, optional `fee-sats` puzzle). Live pay is from the **Mac** LND, not AWS self-pay. [examples/swarm_l402.md](examples/swarm_l402.md), [examples/swarm_l402_8.md](examples/swarm_l402_8.md).
 
@@ -121,7 +121,7 @@ uv sync
 ### From PyPI
 
 ```bash
-pip install agent-bitcoin==27.0.0
+pip install agent-bitcoin==27.1.0
 ```
 
 ---
@@ -130,14 +130,14 @@ pip install agent-bitcoin==27.0.0
 
 Agent-Bitcoin is developed with security in mind:
 
-- **Secrets stay out of the repository** — API keys, wallet material, and host credentials are configured via environment and local ops practice, not committed source
-- **Least privilege** for network and node access (admin/API/RPC not left open to the whole internet in operator deployments)
-- **Conservative defaults** for payment amounts and fees (see [SDK.md](SDK.md))
-- **Authenticated payment APIs** — backend balance/invoice/pay routes require an API key when deployed
-- **Bounded autonomous payment decisions** — hard amount limits in code before any LLM approval
-- **Mainnet kill switches** — e.g. `AGENT_BITCOIN_ALLOW_MAINNET`, `AGENT_BITCOIN_ALLOW_AUTOPAY`, daily spend caps
-- **Operator health checks** — dual-node signet health, backups ([docs/daily-ops-signet.md](docs/daily-ops-signet.md), [docs/security-hardening.md](docs/security-hardening.md))
-- **Regtest / signet first** for lab work; mainnet is never the implicit default (pilot ops complete under ≤50k dual-node — [docs/mainnet-pilot.md](docs/mainnet-pilot.md))
+- **Secrets stay out of the repository.** API keys, wallet material, and host credentials are configured via environment and local ops practice, not committed source
+- **Least privilege.** For network and node access (admin/API/RPC not left open to the whole internet in operator deployments)
+- **Conservative defaults.** For payment amounts and fees (see [SDK.md](SDK.md))
+- **Authenticated payment APIs.** Backend balance/invoice/pay routes require an API key when deployed
+- **Bounded autonomous payment decisions.** Hard amount limits in code before any LLM approval
+- **Mainnet kill switches.** For example `AGENT_BITCOIN_ALLOW_MAINNET`, `AGENT_BITCOIN_ALLOW_AUTOPAY`, daily spend caps
+- **Operator health checks.** Dual-node signet health, backups ([docs/daily-ops-signet.md](docs/daily-ops-signet.md), [docs/security-hardening.md](docs/security-hardening.md))
+- **Regtest / signet first.** For lab work; mainnet is never the implicit default (pilot ops complete under ≤50k dual-node — [docs/mainnet-pilot.md](docs/mainnet-pilot.md))
 
 Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)**. Do not open public issues for security reports.
 
@@ -158,7 +158,7 @@ More operator, lab, and swarm docs live under `docs/` and `examples/`.
 
 ---
 
-## AI models
+## AI models for agents
 
 Currently, you may choose default Grok or Ollama models for Agent-to-Agent payments or Agent-to-Merchant payments.
 
