@@ -134,7 +134,7 @@ Lightning invoice/pay and L402 finance tools do not require Nostr. Paid local ch
 
 - **Agents use Nostr relays.** Agents publish signed events once. If one relay dies or censors, events simply move to another relay. Thus, agents use redundant and reliable communication channels to exchange events.
  
-- **Private A2A traffic can stay encrypted.** NIP-44 and gift-wrapped NIP-17 DMs let agents send invoices or state as ciphertext; relays see wrapping, not the BOLT11 or prompt.
+- **Agents can use Nostr encryption.** Agents can choose encrypted events for sensitive information.  Encryption hides the inside of a message so a Nostr  relay can store and forward it without reading invoices, prompts or agent state. Signing still proves which agent sent a message.
 
 - **Payments sit on the same identity.** NIP-57 zaps attach sats to an event; NIP-47 NWC lets an agent invoice or pay without handing every tool an LND admin macaroon.  
 
