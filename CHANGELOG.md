@@ -1,3 +1,9 @@
+## Release — 27.1.1 (2026-09-22)
+
+Publish **27.1.1** to PyPI. Tag `v.27.1.0` still packaged 27.0.0, so that upload was rejected.
+
+---
+
 ## Examples — merchant demo coordinates over signed Nostr relays (2026-09-22)
 
 2- and 8-agent merchant demos coordinate with signed kind 8139 events on `NOSTR_RELAYS` (id, sig, pubkey, and role must verify). `--offline-bus` is a localhost mock relay, not `.nostr-poc/bus`. L402 HTTP is unchanged. README not edited.
