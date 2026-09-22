@@ -32,32 +32,6 @@ A Python SDK and Merchant endpoint that enables autonomous AI agents to transact
 
 ---
 
-## Roles: payee and payer
-
-| Role | Does |
-|------|------|
-| **Payee** | Creates the invoice (and quote); receives **X sats** over Lightning |
-| **Payer** | Validates quote / budget; pays the BOLT11 amount (plus optional Lightning routing fee limit) |
-
-Either physical node (AWS agent LND or Mac counterparty LND) can act as payee or payer depending on who creates the invoice.
-
----
-
-## Payment amounts
-
-There is **no platform / transaction fee**. A requested payment of **X** sats creates and pays a BOLT11 for **exactly X**. Lightning **routing** fees (the `fee_limit_sats` / `routing_fee_limit_sats` cap) are separate and still apply when paying.
-
-| Rule | Default |
-|------|--------|
-| Platform / transaction fee | **None** |
-| Minimum Lightning invoice amount | **100 sats** (`MIN_PAYMENT_SATS`) |
-
-For independent agents, prefer **`create_invoice_quote`** so the payer sees `amount_sats` / `total_cost_sats` without shared env. Details: **[SDK.md](SDK.md#transaction-fees-and-limits)**.
-
-There is no `collect_transaction_fee` / `POST /send-fee`. Mainnet **pays** stay latch-gated — see [docs/mainnet-pilot.md](docs/mainnet-pilot.md).
-
----
-
 ## L402 tool suites
 
 Paid JSON on Aperture `:8081`. Unpaid calls return **402**; finance/Nostr paths are typically **100 sats** (`l402_pay.py --price 100`). Not a public catalog (operator `/32`). Agent guide: **[docs/l402-tools.md](docs/l402-tools.md)**. Operators: [docs/l402-aperture.md](docs/l402-aperture.md).
@@ -69,12 +43,6 @@ Paid JSON on Aperture `:8081`. Unpaid calls return **402**; finance/Nostr paths 
 **Nostr** (local, no relay): `POST /paid/nostr/event-verify` — check NIP-01 id and sig; `npub-decode` — bech32 npub/note to hex (`nsec` rejected); `zap-receipt-inspect` — inspect kind-9735 zap receipt.
 
 Demo files (`/paid/hello`, PDFs, PNG) are **1,000 sats**. Lab host: `http://3.90.159.146:8081` (allowlisted).
-
----
-
-## Remote client (known host)
-
-Not “anyone with the URL.” A **known** client machine can pay Aperture with **their** LND (not our Mac wallet, not AWS invoice LND). Prefer a **private** channel; the operator admits their egress `/32` on 8081 and 9735. Pack: [docs/l402-client-pack.md](docs/l402-client-pack.md). Ubuntu CLI: [docs/l402-client-pack-script.md](docs/l402-client-pack-script.md) (`examples/client-pack/`).
 
 ---
 
@@ -124,9 +92,9 @@ export SWARM_LLM_FORCE_VOTE=YES
 
 ---
 
-## Nostr (agent identity)
+## Nostr
 
-Lightning invoice/pay and L402 finance tools do not require Nostr. Paid local checks (event-verify, npub-decode, zap-receipt-inspect) are in the L402 Nostr suite at 100 sats. Install the extra with uv sync --extra nostr or pip install 'agent-bitcoin[nostr]' (prefer Python 3.12). Details: docs/nostr-agent-identity.md, docs/nwc-automatic-wallets.md, SDK.md.  
+Agents use [Nostr](https://nostr.org/) for identity, communication, censorship resistance, signatures, encryption and discovery.  
 
 - **Agents get a unique ID.** Each agent is assigned a unique cryptographic secp256k1 keypair (npub & nsec), esentially, a unique ID.  Agents in an agent swarm can easily and uniquely identify one another via their public npub.  Agents never share or expose their private encrypted secret nsec.
 
