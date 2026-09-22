@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Start a1…a8 as background jobs on one bus dir. Wait for all.
+# Start a1…a8 as background jobs. They share the mock relay or NOSTR_RELAYS.
 # Pass through flags, e.g. --offline-bus --no-llm
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

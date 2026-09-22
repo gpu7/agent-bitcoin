@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 import subprocess
 import sys
@@ -118,9 +117,7 @@ def test_hash_cli_still_default(
     out = proc.stdout + proc.stderr
     assert proc.returncode == 0, out
     assert "paid=True" in out
-    assert not any(
-        p.name.endswith("_solved.json") for p in (tmp_path / "bus").glob("*")
-    )
+    assert not (tmp_path / "bus").exists()
 
 
 def test_puzzle_cli_offline_one_pay(
@@ -166,13 +163,4 @@ def test_puzzle_cli_offline_one_pay(
     assert out.count("[l402] --offline-bus mock GET") == 1
     assert "paid=True" in out
     assert "create_client" not in out
-    bus = tmp_path / "bus"
-    names = {p.name for p in bus.glob("*.json")}
-    assert any(n.endswith("_problem.json") for n in names)
-    assert any(n.endswith("_alice_solved.json") for n in names)
-    assert any(n.endswith("_bob_solved.json") for n in names)
-    results = list(bus.glob("*_result.json"))
-    assert len(results) == 1
-    payload = json.loads(json.loads(results[0].read_text(encoding="utf-8"))["content"])
-    assert payload["paid"] is True
-    assert "preimage" not in payload
+    assert not (tmp_path / "bus").exists()

@@ -2,9 +2,9 @@
 """Two Nostr agents negotiate who pays one Aperture L402 GET.
 
 Identity: Phase A/B encrypted keys under .nostr-poc/ (same as nostr_phase_b_payment.py).
-Transport: file bus (.nostr-poc/bus/). --relay is documented but unused.
+Transport: signed kind-8139 events on NOSTR_RELAYS (localhost mock if --offline-bus).
 Pay: L402Client (same 402 → pay → retry as l402_pay.py). Coded policy picks
-the payer; optional Grok only explains.
+the payer; optional Grok only explains. L402 HTTP stays unsigned (no npub).
 
 Mock (any one host): --offline-bus (no sats; fixture bands 3/2/1).
 Live: both processes on the Mac; Mac LND agent-bitcoin-lnd* pays AWS Aperture.
@@ -23,7 +23,6 @@ See examples/agent-to-merchant-pay.md
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import sys
 import threading
@@ -37,7 +36,7 @@ if str(_EXAMPLES) not in sys.path:
     sys.path.insert(0, str(_EXAMPLES))
 
 try:
-    from pynostr.event import EventKind
+    import pynostr.event  # noqa: F401
 except ImportError as e:  # pragma: no cover
     print(
         "Missing pynostr. Use Python 3.12:\n"
@@ -53,13 +52,19 @@ except ImportError as e:  # pragma: no cover
 from nostr_common import (  # noqa: E402
     load_or_create_agent,
     parse_payload,
-    read_bus_event,
     sign_json_event,
-    write_bus_event,
 )
 
-from agent_bitcoin.nostr.negotiate import (  # noqa: E402
+from agent_bitcoin.nostr.merchant_coord import (  # noqa: E402
     COORD_TAG,
+    KIND_MERCHANT,
+    collect_events,
+    has_result,
+    hold_mock,
+    publish as coord_publish,
+    wait_event,
+)
+from agent_bitcoin.nostr.negotiate import (  # noqa: E402
     DEFAULT_L402_URL,
     DEFAULT_PRICE_SATS,
     choose_payer_n,
@@ -129,27 +134,39 @@ def _require_passphrase(p: str) -> str:
     return p
 
 
-def _bus_dir(root: Path) -> Path:
-    return root / "bus"
-
-
-def _wait_bus_file(path: Path, timeout: float) -> None:
-    deadline = time.time() + timeout
-    while time.time() < deadline:
-        if path.is_file() and path.stat().st_size > 0:
-            return
-        time.sleep(0.25)
-    raise SystemExit(f"timeout waiting for {path}")
-
-
-def _sign(sk: Any, payload: dict[str, Any], extra_tags: list[list[str]] | None = None):
-    tags = [["t", COORD_TAG], ["client", "agent-bitcoin-swarm-l402"]]
-    if extra_tags:
-        tags.extend(extra_tags)
-    event = sign_json_event(sk, payload, kind=EventKind.TEXT_NOTE, tags=tags)
+def _sign(sk: Any, payload: dict[str, Any], role: str, invoice_id: str):
+    tags = [
+        ["t", COORD_TAG],
+        ["role", role],
+        ["client", "agent-bitcoin-merchant"],
+    ]
+    event = sign_json_event(sk, payload, kind=KIND_MERCHANT, tags=tags)
     if not event.verify():
         raise SystemExit("Failed to verify own event signature")
     return event
+
+
+def _pub(args: argparse.Namespace, event: Any) -> None:
+    coord_publish(event, offline=bool(args.offline_bus))
+
+
+def _wait(
+    args: argparse.Namespace,
+    invoice_id: str,
+    msg_type: str,
+    role: str | None,
+    timeout: float,
+) -> Any:
+    return wait_event(
+        offline=bool(args.offline_bus),
+        invoice_id=invoice_id,
+        msg_type=msg_type,
+        role=role,
+        timeout=timeout,
+        since=int(getattr(args, "since", 0) or 0),
+        key_dir=Path(args.dir),
+        round_n=int(args.round),
+    )
 
 
 def _explain(
@@ -214,17 +231,24 @@ def _pay_l402(
     return status, paid, fee_band_summary(body)
 
 
-def _ensure_problem(bus: Path, iid: str, problem: dict) -> dict[str, Any]:
-    path = bus / f"{iid}_problem.json"
-    bus.mkdir(parents=True, exist_ok=True)
-    canonical = json.dumps(problem, sort_keys=True, indent=2) + "\n"
-    if path.is_file() and path.stat().st_size > 0:
-        existing = json.loads(path.read_text(encoding="utf-8"))
-        if json.dumps(existing, sort_keys=True, indent=2) + "\n" != canonical:
-            raise SystemExit(f"problem mismatch on bus {path}")
-        return existing
-    path.write_text(canonical, encoding="utf-8")
-    return problem
+def _ensure_problem(
+    args: argparse.Namespace, sk: Any, role: str, iid: str, problem: dict
+) -> dict[str, Any]:
+    payload = {
+        **problem,
+        "v": 1,
+        "invoice_id": iid,
+        "type": "problem",
+        "round": int(args.round),
+    }
+    _pub(args, _sign(sk, payload, role, iid))
+    ev = _wait(args, iid, "problem", None, min(5.0, float(args.timeout)))
+    body = parse_payload(ev)
+    if int(body.get("vsize", -1)) != int(problem["vsize"]) or int(
+        body.get("sat_vb", -1)
+    ) != int(problem["sat_vb"]):
+        raise SystemExit("problem mismatch on relay")
+    return body
 
 
 def _puzzle_answer(args: argparse.Namespace, problem: dict[str, Any]) -> int:
@@ -252,26 +276,29 @@ def _puzzle_answer(args: argparse.Namespace, problem: dict[str, Any]) -> int:
 
 
 def _wait_puzzle_winner(
-    bus: Path, iid: str, problem: dict[str, Any], timeout: float
+    args: argparse.Namespace, iid: str, problem: dict[str, Any], timeout: float
 ) -> str:
     deadline = time.time() + timeout
     while time.time() < deadline:
         rows: list[tuple[float, str, dict[str, Any]]] = []
-        for path in bus.glob(f"{iid}_*_solved.json"):
-            try:
-                ev = read_bus_event(path)
-            except (OSError, ValueError, json.JSONDecodeError, SystemExit):
-                continue
-            if not ev.verify():
-                continue
+        for ev in collect_events(
+            offline=bool(args.offline_bus),
+            invoice_id=iid,
+            msg_type="solved",
+            timeout=0.4,
+            since=int(getattr(args, "since", 0) or 0),
+            key_dir=Path(args.dir),
+            round_n=int(args.round),
+        ):
             payload = parse_payload(ev)
-            npub = str(payload.get("npub") or "")
-            rows.append((path.stat().st_mtime, npub, payload))
+            rows.append(
+                (float(ev.created_at or 0), str(payload.get("npub") or ""), payload)
+            )
         winner = pick_first_correct(rows, problem)
         if winner:
             return winner
         time.sleep(0.25)
-    raise SystemExit(f"timeout waiting for a correct solved event under {bus}")
+    raise SystemExit("timeout waiting for a correct solved event")
 
 
 def _finish_pay_or_wait(
@@ -284,7 +311,6 @@ def _finish_pay_or_wait(
     round_n: int,
     url: str,
     price: int,
-    bus: Path,
     roles: tuple[str, ...],
     i_pay: bool,
     winner_npub: str,
@@ -300,14 +326,9 @@ def _finish_pay_or_wait(
             "loser_npub": npub,
             "reason": reason,
         }
-        concede_name = (
-            f"{iid}_concede.json" if len(roles) == 2 else f"{iid}_{role}_concede.json"
-        )
-        write_bus_event(bus, concede_name, _sign(sk, concede))
-        result_path = bus / f"{iid}_result.json"
+        _pub(args, _sign(sk, concede, role, iid))
         print(f"[{role}] waiting for signed result …")
-        _wait_bus_file(result_path, args.timeout)
-        result_event = read_bus_event(result_path)
+        result_event = _wait(args, iid, "result", None, args.timeout)
         if not result_event.verify():
             raise SystemExit(f"[{role}] result signature invalid")
         result = parse_payload(result_event)
@@ -339,8 +360,9 @@ def _finish_pay_or_wait(
         "http_status": status,
         "paid": paid,
         "summary": summary,
+        "round": round_n,
     }
-    write_bus_event(bus, f"{iid}_result.json", _sign(sk, result_payload))
+    _pub(args, _sign(sk, result_payload, role, iid))
     return 0 if paid and status == 200 else 1
 
 
@@ -351,15 +373,14 @@ def run_puzzle_role(args: argparse.Namespace, role: str, roles: tuple[str, ...])
         )
     passphrase = _require_passphrase(args.passphrase)
     root = Path(args.dir)
-    bus = _bus_dir(root)
     url = args.url
     price = int(args.price)
     round_n = int(args.round)
     iid = invoice_id_for_url(url)
-    problem = _ensure_problem(
-        bus, iid, fee_sats_problem(int(args.vsize), int(args.sat_vb))
-    )
     sk = load_or_create_agent(root, role, passphrase, force_new=args.force_new_keys)
+    problem = _ensure_problem(
+        args, sk, role, iid, fee_sats_problem(int(args.vsize), int(args.sat_vb))
+    )
     npub = sk.public_key.bech32()
     answer = _puzzle_answer(args, problem)
     print(
@@ -376,11 +397,12 @@ def run_puzzle_role(args: argparse.Namespace, role: str, roles: tuple[str, ...])
         "sat_vb": int(problem["sat_vb"]),
         "answer": int(answer),
         "npub": npub,
+        "round": round_n,
     }
     if not check_solved(solved, problem):
         raise SystemExit(f"[{role}] local answer failed the coded check")
-    write_bus_event(bus, f"{iid}_{role}_solved.json", _sign(sk, solved))
-    winner_npub = _wait_puzzle_winner(bus, iid, problem, args.timeout)
+    _pub(args, _sign(sk, solved, role, iid))
+    winner_npub = _wait_puzzle_winner(args, iid, problem, args.timeout)
     i_pay = winner_npub == npub
     print(f"[{role}] winner_npub={winner_npub} i_pay={i_pay} reason=first_correct")
     return _finish_pay_or_wait(
@@ -392,7 +414,6 @@ def run_puzzle_role(args: argparse.Namespace, role: str, roles: tuple[str, ...])
         round_n=round_n,
         url=url,
         price=price,
-        bus=bus,
         roles=roles,
         i_pay=i_pay,
         winner_npub=winner_npub,
@@ -497,7 +518,6 @@ def run_llm_gate_role(
 ) -> int:
     passphrase = _require_passphrase(args.passphrase)
     root = Path(args.dir)
-    bus = _bus_dir(root)
     url = args.url
     price = int(args.price)
     round_n = int(args.round)
@@ -522,14 +542,15 @@ def run_llm_gate_role(
         "reason": grok_reason,
         "npub": npub,
         "score": score,
+        "round": round_n,
     }
-    write_bus_event(bus, f"{iid}_{role}_vote.json", _sign(sk, payload))
+    _pub(args, _sign(sk, payload, role, iid))
     others = [r for r in roles if r != role]
     for peer in others:
-        _wait_bus_file(bus / f"{iid}_{peer}_vote.json", args.timeout)
+        _wait(args, iid, "vote", peer, args.timeout)
     votes: list[tuple[str, str, int]] = []
     for r in roles:
-        ev = read_bus_event(bus / f"{iid}_{r}_vote.json")
+        ev = _wait(args, iid, "vote", r, args.timeout)
         if not ev.verify():
             raise SystemExit(f"[{role}] {r} vote signature invalid")
         body = parse_payload(ev)
@@ -553,10 +574,11 @@ def run_llm_gate_role(
                 "http_status": 0,
                 "amount_sats": 0,
                 "summary": {},
+                "round": round_n,
             }
-            write_bus_event(bus, f"{iid}_result.json", _sign(sk, skipped))
+            _pub(args, _sign(sk, skipped, role, iid))
         else:
-            _wait_bus_file(bus / f"{iid}_result.json", args.timeout)
+            _wait(args, iid, "result", None, args.timeout)
         return 0
     i_pay = winner_npub == npub
     print(f"[{role}] winner_npub={winner_npub} i_pay={i_pay} reason=llm-gate")
@@ -569,7 +591,6 @@ def run_llm_gate_role(
         round_n=round_n,
         url=url,
         price=price,
-        bus=bus,
         roles=roles,
         i_pay=i_pay,
         winner_npub=winner_npub,
@@ -598,7 +619,6 @@ def run_role(args: argparse.Namespace, role: str) -> int:
         )
     passphrase = _require_passphrase(args.passphrase)
     root = Path(args.dir)
-    bus = _bus_dir(root)
     url = args.url
     price = int(args.price)
     round_n = int(args.round)
@@ -624,18 +644,17 @@ def run_role(args: argparse.Namespace, role: str) -> int:
         "score": score,
         "score_hex": score_hx,
     }
-    write_bus_event(bus, f"{iid}_{role}_negotiate.json", _sign(sk, neg))
+    _pub(args, _sign(sk, neg, role, iid))
 
     others = [r for r in roles if r != role]
-    print(f"[{role}] waiting for {len(others)} peer negotiate file(s) …")
+    print(f"[{role}] waiting for {len(others)} peer negotiate event(s) …")
     for peer in others:
-        _wait_bus_file(bus / f"{iid}_{peer}_negotiate.json", args.timeout)
+        _wait(args, iid, "negotiate", peer, args.timeout)
 
     candidates: list[tuple[str, int]] = []
     peer_scores: list[int] = []
     for r in roles:
-        path = bus / f"{iid}_{r}_negotiate.json"
-        ev = read_bus_event(path)
+        ev = _wait(args, iid, "negotiate", r, args.timeout)
         if not ev.verify():
             raise SystemExit(f"[{role}] {r} negotiate signature invalid")
         payload = parse_payload(ev)
@@ -681,7 +700,6 @@ def run_role(args: argparse.Namespace, role: str) -> int:
         round_n=round_n,
         url=url,
         price=price,
-        bus=bus,
         roles=roles,
         i_pay=i_pay,
         winner_npub=winner_npub,
@@ -747,7 +765,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--dir",
         type=Path,
         default=DEFAULT_DIR,
-        help="Key + bus root (default: .nostr-poc or NOSTR_POC_DIR)",
+        help="Encrypted key directory (default: .nostr-poc or NOSTR_POC_DIR)",
     )
     parser.add_argument(
         "--passphrase",
@@ -757,7 +775,11 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--offline-bus",
         action="store_true",
-        help="Mock L402 (fixture bands 3/2/1; no sats). Omit for live Mac→AWS pay",
+        help=(
+            "Localhost mock relay (127.0.0.1:8765 or MERCHANT_MOCK_PORT). "
+            "No shared JSON files and no public relays. "
+            "Also skips L402 (fixture bands 3/2/1)"
+        ),
     )
     parser.add_argument(
         "--no-llm",
@@ -767,7 +789,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--relay",
         default="",
-        help="Optional public relay (documented only; happy path is the file bus)",
+        help="Deprecated alias; live path uses NOSTR_RELAYS",
     )
     parser.add_argument(
         "--force-new-keys",
@@ -778,7 +800,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--timeout",
         type=float,
         default=60.0,
-        help="Seconds to wait for peer bus files (default: 60)",
+        help="Seconds to wait for the peer's signed events (default: 60)",
     )
     parser.add_argument(
         "--resolve",
@@ -881,8 +903,8 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         }
     if args.relay:
         print(
-            "[relay] --relay is documented but not used; "
-            "happy path is the file bus (.nostr-poc/bus/)",
+            "[relay] --relay is ignored; set NOSTR_RELAYS "
+            f"(kind {KIND_MERCHANT}, verified before trust)",
             file=sys.stderr,
         )
     return args
@@ -903,28 +925,38 @@ def _assert_live_payer_not_invoice_node(offline: bool) -> None:
         )
 
 
-def _assert_no_stale_result(bus: Path, iid: str) -> None:
-    path = bus / f"{iid}_result.json"
-    if path.is_file():
+def _assert_no_stale_result(args: argparse.Namespace, iid: str) -> None:
+    if has_result(
+        iid,
+        int(args.round),
+        offline=bool(args.offline_bus),
+        key_dir=Path(args.dir),
+    ):
         raise SystemExit(
-            f"Stale bus result {path}. Clear before a new run:\n"
-            "  rm -f .nostr-poc/bus/*.json"
+            "Stale result already on the relay for this invoice_id and round. "
+            "Bump --round and run again."
         )
 
 
 def main(argv: list[str] | None = None) -> int:
     args = _parse_args(argv)
+    args.since = int(time.time()) - max(int(args.timeout), 30)
     _assert_live_payer_not_invoice_node(args.offline_bus)
-    iid = invoice_id_for_url(args.url)
-    _assert_no_stale_result(_bus_dir(Path(args.dir)), iid)
-    if args.role in ("both", "all"):
-        batch = _roles_for(int(args.expect_peers))
-        with ThreadPoolExecutor(max_workers=len(batch)) as pool:
-            futs = [pool.submit(run_role, args, r) for r in batch]
-            codes = [f.result() for f in futs]
-        print(f"[{args.role}] exits={codes}")
-        return 0 if all(c == 0 for c in codes) else 1
-    return run_role(args, args.role)
+    holder = hold_mock() if args.offline_bus else None
+    try:
+        iid = invoice_id_for_url(args.url)
+        _assert_no_stale_result(args, iid)
+        if args.role in ("both", "all"):
+            batch = _roles_for(int(args.expect_peers))
+            with ThreadPoolExecutor(max_workers=len(batch)) as pool:
+                futs = [pool.submit(run_role, args, r) for r in batch]
+                codes = [f.result() for f in futs]
+            print(f"[{args.role}] exits={codes}")
+            return 0 if all(c == 0 for c in codes) else 1
+        return run_role(args, args.role)
+    finally:
+        if holder is not None:
+            holder.close()
 
 
 if __name__ == "__main__":

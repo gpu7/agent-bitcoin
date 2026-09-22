@@ -2,7 +2,7 @@
 
 Two-agent swarm: who pays one L402 tool.
 
-Two Nostr identities, signed file-bus messages, one winner pays `GET /paid/finance/mempool-feerate` (100 sats). Coded policy picks the payer. Optional Grok explains in one sentence each and **never** pays.
+Two Nostr identities, signed relay events, one winner pays `GET /paid/finance/mempool-feerate` (100 sats). Coded policy picks the payer. Optional Grok explains in one sentence each and **never** pays.
 
 **Two modes — do not mix them:**
 
@@ -13,7 +13,7 @@ Two Nostr identities, signed file-bus messages, one winner pays `GET /paid/finan
 
 Live pay is **Mac → AWS**, not two processes on AWS using AWS LND (that is self-pay).
 
-Identity is Phase A/B encrypted keys (same as `examples/nostr_phase_b_payment.py`). This demo is **two processes** sharing one disk bus, not four (no Phase C daemons). Eight-agent variant: [swarm_l402_8.md](./swarm_l402_8.md). Swarm picks who pays the **merchant**; A2A LN (two LND nodes) is [a2a_ln_pay.md](./a2a_ln_pay.md).
+Identity is Phase A/B encrypted keys (same as `examples/nostr_phase_b_payment.py`). This demo is **two processes** that share a key directory, not a message bus and not four Phase C daemons. Eight-agent variant: [swarm_l402_8.md](./swarm_l402_8.md). Swarm picks who pays the **merchant**; A2A LN (two LND nodes) is [a2a_ln_pay.md](./a2a_ln_pay.md).
 
 ## 1. What you will see
 
@@ -22,7 +22,7 @@ Each agent prints its **npub** (never nsec), a deterministic score, then who pay
 - **Mock:** `paid=True` and fee bands **3/2/1** (fixture). No sats move.
 - **Live:** `paid=True` and real `fast` / `medium` / `slow` bands — **not** 3/2/1 unless the origin really returned that.
 
-The loser reads the signed `result` on the bus.
+The loser reads the signed `result` on the relay.
 
 ## How the winner is chosen
 
@@ -36,7 +36,7 @@ Default is **`--resolve hash`**. `./examples/agent-to-merchant-pay.sh --role ali
 
 ### Puzzle (fee-sats)
 
-`--resolve puzzle --puzzle-type fee-sats`: both agents get the same problem (`ceil(vsize * sat_vb)` integer sats). Default `vsize=141`, `sat_vb=4` → **564**. First **correct** signed `solved` on the bus pays L402. Wrong answers are ignored. The win check is coded — Grok may suggest a number when `XAI_API_KEY` is set; `--no-llm` still solves locally so the race works offline.
+`--resolve puzzle --puzzle-type fee-sats`: both agents get the same problem (`ceil(vsize * sat_vb)` integer sats). Default `vsize=141`, `sat_vb=4` → **564**. First **correct** signed `solved` on the relay pays L402. Wrong answers are ignored. The win check is coded — Grok may suggest a number when `XAI_API_KEY` is set; `--no-llm` still solves locally so the race works offline.
 
 ```bash
 # mock
@@ -123,7 +123,7 @@ Live HTTP is from the **Mac** to `http://3.90.159.146:8081`. On-box `http://127.
 ./examples/agent-to-merchant-pay.sh --role bob --offline-bus --no-llm
 ```
 
-No LND pay. Fine for Nostr ids + negotiate. Both processes must share the **same** `.nostr-poc/bus` on **one disk**.
+No LND pay. Fine for Nostr ids + negotiate. `--offline-bus` uses a **localhost mock relay** on `127.0.0.1:8765` (`MERCHANT_MOCK_PORT` to move it). Not shared files. Not Damus or nos.lol. Live uses `NOSTR_RELAYS` (default `wss://relay.damus.io,wss://nos.lol`). Every accepted event is kind **8139** (regular, not kind 1, not replaceable). The process checks **id, signature, and pubkey** and rejects a signer that is not the pubkey stored for that role. Coordination JSON is npub, score, and invoice id only — not a NIP-17 gift wrap, and never a BOLT11 or preimage. The L402 GET/POST to Aperture stays unsigned HTTP plus the invoice. No npub on that hop.
 
 ### B. Live L402 (required topology)
 
@@ -131,12 +131,12 @@ No LND pay. Fine for Nostr ids + negotiate. Both processes must share the **same
 |-------|--------|
 | Aperture + invoice LND | **AWS** |
 | Payer LND | **Mac** `agent-bitcoin-lnd*` |
-| Both swarm processes | **Mac** (shared `.nostr-poc/bus`) |
+| Both swarm processes | **Mac** (Nostr relays; no shared message directory) |
 | URL | `http://3.90.159.146:8081/paid/finance/mempool-feerate` |
 | Flags | **No** `--offline-bus`; `--price 100` |
 | Do **not** | Use `LND_CONTAINER=agent-payment-decision-lnd*` as the live payer |
 
-Splitting Alice on AWS and Bob on Mac breaks the file bus unless they rsync (**out of scope**).
+Alice and Bob do not share a message directory. Live coordination is signed events on `NOSTR_RELAYS`. Start Alice and wait until she prints `waiting for`, then start Bob within `--timeout` (default 60 seconds). Verify before trust. Same order for the mock relay: the first process starts `127.0.0.1:8765`.
 
 ## 5. Setup
 
@@ -144,11 +144,7 @@ Do **not** use `uv run python` for this demo on 3.13/3.14: it recreates `.venv`,
 
 If both swarm processes run on the **Mac** (live), use the **Mac** container. The AWS column is for invoicing or debugging on the instance, **not** paying the local Aperture invoice.
 
-Before a **new live** run (or any rerun of the same `--url`), clear the bus — `invoice_id` is derived from the URL; leftover `*_result.json` reuses the old pay:
-
-```bash
-rm -f .nostr-poc/bus/*.json
-```
+Before a **new live** run of the same `--url`, bump `--round` if a result for this invoice is already on the relay.
 
 ### First time (no `.venv-nostr` yet)
 
@@ -257,14 +253,12 @@ curl -sS -o /dev/null -w '%{http_code}\n' http://3.90.159.146:8081/health
 curl -sS -o /dev/null -w '%{http_code}\n' \
   http://3.90.159.146:8081/paid/finance/mempool-feerate
 # 402
-
-rm -f .nostr-poc/bus/*.json
 # if health times out: ./update-aws-sg-my-ip.sh   # do not world-open 8081
 ```
 
 ## 7. Run
 
-Same wrapper for first time and later runs. `--relay` is accepted and ignored; happy path is `.nostr-poc/bus/`.
+Same wrapper for first time and later runs. `--relay` is ignored; set `NOSTR_RELAYS` for the live path. There is no message directory to clear. If a result for this invoice and `--round` is already on the relay, bump `--round`. The mock relay forgets events about 60 seconds after the last client disconnects.
 
 ### Mock (any one host)
 
@@ -282,9 +276,9 @@ One process (two threads):
 ./examples/agent-to-merchant-pay.sh --role both --offline-bus --no-llm
 ```
 
-### Live (Mac, two terminals, empty bus)
+### Live (Mac, two terminals)
 
-Alice or Bob first is fine after `rm -f .nostr-poc/bus/*.json`. **No** `--offline-bus`.
+**No** `--offline-bus`. Start Alice, wait for `waiting for`, then start Bob within `--timeout`.
 
 ```bash
 # Terminal A
@@ -335,8 +329,8 @@ Printed: `npub=npub1…`. Encrypted nsec stays in `.nostr-poc/alice.enc.json` an
 | Amount below floor | Min invoice is **100 sats** (`MIN_PAYMENT_SATS`) |
 | `No such container: agent-bitcoin-lnd-mainnet` on AWS | Wrong host. Live payer is the **Mac** |
 | `self-payments not allowed` | Payer == invoice node. Use Mac `agent-bitcoin-lnd*` + `--url http://3.90.159.146:8081/…`. Do not enable LND self-pay |
-| Alice exits instantly with bands 3/2/1 | Stale bus and/or `--offline-bus`. `rm -f .nostr-poc/bus/*.json` |
-| Timeout waiting for peer | Same `--dir`, same `--url`, both processes on **one** Mac; bus is `$NOSTR_POC_DIR/bus/` |
+| `Stale result already on the relay` | Bump `--round`. Do not delete key files. The mock relay also drops events ~60s after both processes exit. |
+| Timeout waiting for peer | Same `--dir`, same `--url`, both processes on **one** host. Start Alice first. Mock: both use `127.0.0.1` (not two machines). Live: both use the same `NOSTR_RELAYS`. |
 | Missing pynostr / uv 3.14 | Do not use `uv run python`. `uv venv -p 3.12 .venv-nostr` then `uv pip install --python .venv-nostr/bin/python -e '.[nostr]'`. Run `./examples/agent-to-merchant-pay.sh` |
 
 Sequence of a paid GET: [docs/architecture.md — L402 request sequence](../docs/architecture.md#l402-request-sequence). Operator gateway: [docs/l402-aperture.md](../docs/l402-aperture.md).

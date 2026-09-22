@@ -61,9 +61,10 @@ def pick_first_correct(
     solved: list[tuple[float, str, dict[str, Any]]],
     problem: dict[str, Any],
 ) -> str | None:
-    """Winner npub: valid solves only, earliest mtime then larger-lex npub last.
+    """Winner npub: valid solves only, earliest timestamp then larger-lex npub.
 
-    Sort key is (mtime, npub) so the first correct file on a file bus wins.
+    Sort key is (created_at, npub). The merchant demo reads that timestamp
+    from a verified relay event, not from a file mtime.
     """
     ok = [
         (mtime, npub, payload)

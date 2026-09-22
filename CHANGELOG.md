@@ -1,3 +1,9 @@
+## Examples — merchant demo coordinates over signed Nostr relays (2026-09-22)
+
+2- and 8-agent merchant demos coordinate with signed kind 8139 events on `NOSTR_RELAYS` (id, sig, pubkey, and role must verify). `--offline-bus` is a localhost mock relay, not `.nostr-poc/bus`. L402 HTTP is unchanged. README not edited.
+
+---
+
 ## Chore — GitHub Actions docker build pins (2026-09-22)
 
 `docker/setup-buildx-action` 4.3.0→4.4.1; `docker/build-push-action` 7.3.0→7.4.0 (command-injection hardening in metadata logs). No LND/Aperture bump.

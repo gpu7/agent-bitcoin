@@ -1,5 +1,7 @@
 """Shared pytest fixtures and markers."""
 
+import socket
+
 import pytest
 
 
@@ -8,6 +10,16 @@ def pytest_configure(config):
         "markers",
         "integration: tests that need live Docker/LND/backend (skip by default in offline CI)",
     )
+
+
+@pytest.fixture(autouse=True)
+def _merchant_mock_isolation(monkeypatch):
+    """Give each test its own localhost merchant mock port. No public relays."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", 0))
+        port = sock.getsockname()[1]
+    monkeypatch.setenv("MERCHANT_MOCK_PORT", str(port))
+    monkeypatch.setenv("MERCHANT_MOCK_IDLE", "30")
 
 
 @pytest.fixture
