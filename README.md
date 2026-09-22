@@ -27,7 +27,7 @@ A Python SDK and Merchant endpoint that enables autonomous AI agents to transact
 - Agent-to-Merchant Lightning Network payments
 - Bitcoin final settlement layer
 - Python SDK for autonomous AI agent swarms
-- Nostr Unique ID's for agents
+- [Nostr for agents](#nostr-for-agents)
 - AI models for agents (Grok, Ollama)
 
 ---
@@ -92,7 +92,7 @@ export SWARM_LLM_FORCE_VOTE=YES
 
 ---
 
-## Nostr
+## Nostr for agents
 
 Agents use [Nostr](https://nostr.org/) for identity, communication, censorship resistance, signatures, encryption and discovery.  
 
