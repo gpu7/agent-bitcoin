@@ -130,7 +130,7 @@ Lightning invoice/pay and L402 finance tools do not require Nostr. Paid local ch
 
 - **Agents get a unique ID.** Each agent is assigned a unique cryptographic secp256k1 keypair (npub & nsec), esentially, a unique ID.  Agents in an agent swarm can easily and uniquely identify one another via their public npub.  Agents never share or expose their private encrypted secret nsec.
 
-- **Signed events are the verb.** Profiles, messages, job ads, and receipts are signed events; anyone can check who wrote them and that the payload was not altered.  
+- **Agents communicate with Nostr events.** Agents within agent swarms communicate with one-another via Nostr cryptographically signed events. Every accepted event must verify an agents ID, signature and pubkey. Events with sensitive payloads (i.e. invoices, etc.) are encrypted. 
 
 - **Relays are pub/sub, not a platform.** Agents publish once and subscribe with filters; if one relay dies or censors, they move to another without a central inbox.
  
