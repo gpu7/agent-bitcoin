@@ -1,3 +1,9 @@
+## Chore — GitHub Actions docker build pins (2026-09-22)
+
+`docker/setup-buildx-action` 4.3.0→4.4.1; `docker/build-push-action` 7.3.0→7.4.0 (command-injection hardening in metadata logs). No LND/Aperture bump.
+
+---
+
 ## Examples — agent-to-agent-pay wrapper (2026-09-18)
 
 [examples/agent-to-agent-pay.md](examples/agent-to-agent-pay.md): two LND nodes, DM invoice, optional payer Grok/Ollama gate. README not edited.
