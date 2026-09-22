@@ -132,7 +132,7 @@ Lightning invoice/pay and L402 finance tools do not require Nostr. Paid local ch
 
 - **Agents communicate with Nostr events.** Agents within agent swarms communicate with one-another via Nostr cryptographically signed events. Every accepted event must verify an agents ID, signature and pubkey. Events with sensitive payloads (i.e. invoices, etc.) are encrypted. 
 
-- **Relays are pub/sub, not a platform.** Agents publish once and subscribe with filters; if one relay dies or censors, they move to another without a central inbox.
+- **Agents use Nostr relays.** Agents publish signed events once. If one relay dies or censors, events simply move to another relay. Thus, agents use redundant and reliable communication channels to exchange events.
  
 - **Private A2A traffic can stay encrypted.** NIP-44 and gift-wrapped NIP-17 DMs let agents send invoices or state as ciphertext; relays see wrapping, not the BOLT11 or prompt.
 
