@@ -54,12 +54,13 @@ Hello/PDF/PNG demos cost 1,000 sats. This is “what sits behind the 402,” not
 
 ## Agent-to-Merchant Lightning Network payments
 
-Several agents (two or eight) share one job: **buy one paid JSON** from our mechant. They do not all pay. They agree on a single payer, then that agent pays Lightning and reads the result.
+Agents in two-agent or eight-agent swarms negotiate with one-another to determine who pays the Merchant endpoint.  They agree on a single payer. Then, that agent makes a Lightning payment to the Merchant and reads the results.
 
-- Each agent has its own Nostr ID (`npub`). They publish signed events so peers can negotiate who pays the merchant.
-- **Who pays (pick one mode):**
-  - **Hash (default):** highest score from `npub` + invoice id + round pays. Ties go to the larger `npub`.
-  - **Puzzle (`fee-sats`):** first correct “vbytes × sat/vB” pays.
+- Each agent has its own Nostr ID (`npub`). They publish Nostr signed events so peers can negotiate who pays the Merchant.
+- There are several negotiating styles to choose from to demonstrate how agents work together.
+- **Who pays:**
+  - **Hash score (default):** The highest score from the combination "`npub` + invoice id + round" pays. Ties go to the larger `npub`.
+  - **Solve a simple puzzle (`fee-sats`):** The first correct “vbytes × sat/vB” pays.
   - **LLM gate (two agents only):** each asks Grok YES/NO; only YES agents enter the hash. All NO → no payment. Needs `XAI_API_KEY`. Do not pass `--no-llm`. The vote reason stays on the Mac.
 - **Who sends sats:** the Mac LND wallet, over the private channel to AWS. Do not pay from the AWS invoice node (self-pay fails).
 - **What they buy:** one L402 URL (example: mempool-feerate `GET`, or path-hint `POST`) at about **100 sats**. Unpaid → `402`; paid → JSON.
