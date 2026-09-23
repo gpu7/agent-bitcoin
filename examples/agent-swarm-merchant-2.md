@@ -1,4 +1,4 @@
-# Agent-to-merchant L402 pay demo (2 agents, one wallet)
+# 2-agent merchant swarm
 
 Two-agent swarm: who pays one L402 tool.
 
@@ -13,7 +13,7 @@ Two Nostr identities, signed relay events, one winner pays `GET /paid/finance/me
 
 Live pay is **Mac → AWS**, not two processes on AWS using AWS LND (that is self-pay).
 
-Identity is Phase A/B encrypted keys (same as `examples/nostr_phase_b_payment.py`). This demo is **two processes** that share a key directory, not a message bus and not four Phase C daemons. Eight-agent variant: [swarm_l402_8.md](./swarm_l402_8.md). Swarm picks who pays the **merchant**; A2A LN (two LND nodes) is [a2a_ln_pay.md](./a2a_ln_pay.md).
+Identity is Phase A/B encrypted keys (same as `examples/nostr_phase_b_payment.py`). This demo is **two processes** that share a key directory, not a message bus and not four Phase C daemons. Eight-agent variant: [agent-swarm-merchant-8.md](./agent-swarm-merchant-8.md). Swarm picks who pays the **merchant**; A2A LN (two LND nodes) is [a2a_ln_pay.md](./a2a_ln_pay.md).
 
 ## 1. What you will see
 

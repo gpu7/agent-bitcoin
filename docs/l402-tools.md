@@ -24,7 +24,7 @@ This is **not** a public catalog. The operator’s security group is **`/32`**. 
 6. Wiring, SG, and restart: [l402-aperture.md](./l402-aperture.md). Mainnet pays still need the usual latches on the payer.
 
 Sequence (402 → pay → retry): [architecture.md — L402 request sequence](./architecture.md#l402-request-sequence).
-Two agents negotiate who pays one GET: [examples/agent-to-merchant-pay.md](../examples/agent-to-merchant-pay.md) (live demo pays from the Mac). Coordination is signed kind 8139 on `NOSTR_RELAYS` (verify before trust). `--offline-bus` is a localhost mock relay. The L402 GET/POST itself stays unsigned HTTP.
+Two agents negotiate who pays one GET: [examples/agent-swarm-merchant-2.md](../examples/agent-swarm-merchant-2.md) (live demo pays from the Mac). Coordination is signed kind 8139 on `NOSTR_RELAYS` (verify before trust). `--offline-bus` is a localhost mock relay. The L402 GET/POST itself stays unsigned HTTP.
 Connect a **client** agent (their node, our `/32`): [l402-external-agent.md](./l402-external-agent.md).
 Client pack (compose + setup + smoke): [l402-client-pack.md](./l402-client-pack.md).
 
