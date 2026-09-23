@@ -1,3 +1,9 @@
+## Changed — L402 origin image (2026-09-23)
+
+Origin image no longer copies the removed zap module.
+
+---
+
 ## Changed — L402 nostr (2026-09-23)
 
 Removed unused `POST /paid/nostr/zap-receipt-inspect`. event-verify and npub-decode stay. README not edited.
