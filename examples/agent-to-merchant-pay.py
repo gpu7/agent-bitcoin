@@ -17,7 +17,7 @@ Engineer path (two terminals):
   ./examples/agent-to-merchant-pay.sh --role alice --offline-bus --no-llm
   ./examples/agent-to-merchant-pay.sh --role bob --offline-bus --no-llm
 
-See examples/agent-to-merchant-pay.md
+See examples/agent-swarm-merchant-2.md
 """
 
 from __future__ import annotations
@@ -921,7 +921,7 @@ def _assert_live_payer_not_invoice_node(offline: bool) -> None:
             f"{container} is self-pay: Aperture invoices AWS LND. "
             "Use Mac agent-bitcoin-lnd* and "
             "--url http://3.90.159.146:8081/… or --offline-bus. "
-            "See examples/agent-to-merchant-pay.md."
+            "See examples/agent-swarm-merchant-2.md."
         )
 
 

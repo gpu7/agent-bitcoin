@@ -1,3 +1,9 @@
+## Docs — merchant swarm example filenames (2026-09-22)
+
+Renamed the 2- and 8-agent merchant example docs to `examples/agent-swarm-merchant-2.md` and `examples/agent-swarm-merchant-8.md`. README not edited.
+
+---
+
 ## Release — 27.1.1 (2026-09-22)
 
 Publish **27.1.1** to PyPI. Tag `v.27.1.0` still packaged 27.0.0, so that upload was rejected.

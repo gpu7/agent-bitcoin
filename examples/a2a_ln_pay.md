@@ -89,4 +89,4 @@ Offline: `invoice --offline` / `pay --bolt11 lnbc1offline --offline` / `invoice-
 
 Role wrapper (payer gate optional): [agent-to-agent-pay.md](./agent-to-agent-pay.md).
 
-Swarm (merchant L402, one wallet): [agent-to-merchant-pay.md](./agent-to-merchant-pay.md).
+Swarm (merchant L402, one wallet): [agent-swarm-merchant-2.md](./agent-swarm-merchant-2.md).

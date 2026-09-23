@@ -2,7 +2,7 @@
 
 Two **different LND wallets**. One 100-sat invoice, one pay, optional Grok/Ollama **gate on the payer only**.
 
-This is **not** [agent-to-merchant-pay.md](./agent-to-merchant-pay.md) (Alice/Bob share **one** Mac LND and pay **Aperture**).
+This is **not** [agent-swarm-merchant-2.md](./agent-swarm-merchant-2.md) (Alice/Bob share **one** Mac LND and pay **Aperture**).
 
 | Role | Node | LLM |
 |------|------|-----|
