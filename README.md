@@ -24,7 +24,7 @@ A Python SDK and Merchant endpoint that enables autonomous AI agents to transact
 
 - Autonomous AI agent swarms
 - Agent-to-Agent Lightning Network payments
-- Agent-to-Merchant Lightning Network payments
+- [Agent-to-Merchant Lightning Network payments](#agent-to-merchant-lightning-network-payments)
 - Bitcoin final settlement layer
 - Python SDK for autonomous AI agent swarms
 - [Nostr for agents](#nostr-for-agents)
@@ -44,51 +44,32 @@ Paid JSON on Aperture `:8081`. Unpaid calls return **402**; finance/Nostr paths 
 
 Demo files (`/paid/hello`, PDFs, PNG) are **1,000 sats**. Lab host: `http://3.90.159.146:8081` (allowlisted).
 
+That section is the menu of paid HTTP tools, not the swarm.It says: Aperture on port 8081 sells small JSON. No payment → 402. Typical price is 100 sats. Only allowlisted IPs can reach the lab host. Details are in docs/l402-tools.md (agents) and docs/l402-aperture.md (you running the gateway).Then it lists three suites:Bitcoin — on-chain fee / mempool / USD mark (GET).  
+Lightning — inspect an invoice, policy check, route-fee hint (POST) before someone pays.  
+Nostr — verify a signature, decode an npub, inspect a zap receipt (no relay).
+
+Hello/PDF/PNG demos cost 1,000 sats. This is “what sits behind the 402,” not “how Alice and Bob decide who pays.”
+
 ---
 
-## Agent demos (swarms)
+## Agent-to-Merchant Lightning Network payments
 
-Two-agent and eight-agent swarms negotiate **who pays one L402 GET** (hash default, optional `fee-sats` puzzle). Live pay is from the **Mac** LND, not AWS self-pay. [examples/swarm_l402.md](examples/swarm_l402.md), [examples/swarm_l402_8.md](examples/swarm_l402_8.md).
+Several agents (two or eight) share one job: **buy one paid JSON** from our mechant. They do not all pay. They agree on a single payer, then that agent pays Lightning and reads the result.
 
-**LLM gate** (`--resolve llm-gate`, two-agent only): each role votes YES/NO with Grok; YES voters use the hash tie-break; 0 YES → no L402. Requires `XAI_API_KEY` in the environment (never commit it). Do not pass `--no-llm`. Run Alice in **one Mac terminal** and Bob in **another** (same exports; start Alice then Bob). The script POSTs path-hint for you (no `--method POST` flag). Vote `reason` is logged locally, not sent to AWS.
+- Each agent has its own Nostr ID (`npub`). They publish signed events so peers can negotiate who pays the merchant.
+- **Who pays (pick one mode):**
+  - **Hash (default):** highest score from `npub` + invoice id + round pays. Ties go to the larger `npub`.
+  - **Puzzle (`fee-sats`):** first correct “vbytes × sat/vB” pays.
+  - **LLM gate (two agents only):** each asks Grok YES/NO; only YES agents enter the hash. All NO → no payment. Needs `XAI_API_KEY`. Do not pass `--no-llm`. The vote reason stays on the Mac.
+- **Who sends sats:** the Mac LND wallet, over the private channel to AWS. Do not pay from the AWS invoice node (self-pay fails).
+- **What they buy:** one L402 URL (example: mempool-feerate `GET`, or path-hint `POST`) at about **100 sats**. Unpaid → `402`; paid → JSON.
+- **Mock:** `--offline-bus` uses a local mock relay and fake payment (no mainnet).
+- **Live:** start the first role and wait until it is listening; then start the others. Same env in every terminal (`NOSTR_PASSPHRASE`, LND exports, `ALLOW_MAINNET` / `ALLOW_AUTOPAY` on mainnet).
 
-```bash
-export XAI_API_KEY=
-export NOSTR_PASSPHRASE=
-```
-
-Mock (no Lightning):
-
-```bash
-# Terminal A
-./examples/swarm_l402.sh --role alice --resolve llm-gate --offline-bus
-# Terminal B
-./examples/swarm_l402.sh --role bob --resolve llm-gate --offline-bus
-```
-
-Live (Mac pays AWS, 100 sats):
-
-```bash
-export LND_NETWORK=mainnet
-export LND_CONTAINER=agent-bitcoin-lnd-mainnet
-export LND_TRANSPORT=docker
-export AGENT_BITCOIN_ALLOW_MAINNET=1
-export AGENT_BITCOIN_ALLOW_AUTOPAY=1
-# Terminal A
-./examples/swarm_l402.sh --role alice --resolve llm-gate --price 100 \
-  --url http://3.90.159.146:8081/paid/finance/ln-path-fee-hint
-# Terminal B
-./examples/swarm_l402.sh --role bob --resolve llm-gate --price 100 \
-  --url http://3.90.159.146:8081/paid/finance/ln-path-fee-hint
-```
-
-Forced YES (test only — skip Grok; do not default):
-
-```bash
-export SWARM_LLM_FORCE_VOTE=YES
-# both terminals, then the same alice/bob commands as mock (`--offline-bus`)
-# or live (URL + LND exports above)
-```
+Examples:  
+[examples/agent-to-merchant-pay.md](examples/agent-to-merchant-pay.md) (two agents)  
+[examples/swarm_l402.md](examples/swarm_l402.md)  (two agents)
+[examples/swarm_l402_8.md](examples/swarm_l402_8.md) (eight agents)
 
 ---
 
