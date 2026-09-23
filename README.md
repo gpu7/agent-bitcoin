@@ -67,9 +67,8 @@ Several agents (two or eight) share one job: **buy one paid JSON** from our mech
 - **Live:** start the first role and wait until it is listening; then start the others. Same env in every terminal (`NOSTR_PASSPHRASE`, LND exports, `ALLOW_MAINNET` / `ALLOW_AUTOPAY` on mainnet).
 
 Examples:  
-[examples/agent-to-merchant-pay.md](examples/agent-to-merchant-pay.md) (two agents)  
-[examples/swarm_l402.md](examples/swarm_l402.md)  (two agents)
-[examples/swarm_l402_8.md](examples/swarm_l402_8.md) (eight agents)
+[examples/agent-swarm-merchant-2.md](examples/agent-swarm-merchant-2.md) (two agents)  
+[examples/agent-swarm-merchant-8.md](examples/agent-swarm-merchant-8.md) (eight agents)
 
 ---
 
