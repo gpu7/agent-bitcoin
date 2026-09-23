@@ -38,25 +38,26 @@ The Merchant endpoints serve up a variety of services that might be of interest 
 
 Currently, the fee rate for Merchant services is 100 sats, but can be set to any value. The Merchant host URL (`http://3.90.159.146:8081`) is open to allowed IP's but not the entire Internet.  The URL is hosted on AWS but could be hosted on other platforms as well.  (There are demo services that return "hello world", PDF files and PNG files for 1,000 sats, but these are mostly for testing purposes).
 
+Currently, the Merchant provides a short list of Bitcoin, Lightning and Nostr services, but almost any kind of service could be added as a paid endpoiont.
+
 **Bitcoin services**:
 
 - `GET /paid/finance/mempool-feerate` — check current transaction fees (high / medium / low priority, sat per vbyte)
 - `GET /paid/finance/mempool-backlog` — check how full the mempool is
-- `GET /paid/finance/fee-for-vsize` — total fee in sats for a given size
-- `GET /paid/finance/confirm-target` — wait window → sat per vbyte
-- `GET /paid/finance/btc-usd` — BTC/USD mark (pass-through)
+- `GET /paid/finance/fee-for-vsize` — total fee in sats for a transaction of that many virtual bytes
+- `GET /paid/finance/confirm-target` — “I can wait this long” (`minutes` or `target=fast|medium|slow`) → recommended sat per vbyte
+- `GET /paid/finance/btc-usd` — current BTC price in USD
 
 **Lightning services**:
 
-- `POST /paid/finance/ln-invoice-decode` — read fee amount and destination from a Lightning BOLT11 invoice
-- `POST /paid/finance/ln-invoice-preflight` — allow / reject vs a simple policy
-- `POST /paid/finance/ln-path-fee-hint` — fee hint from our AWS node (not a payment)
+- `POST /paid/finance/ln-invoice-decode` — parse a Lightning BOLT11 invoice: get amount in sats, expiry, and payee pubkey
+- `POST /paid/finance/ln-invoice-preflight` — should we pay this invoice? (expired, too small, too large, wrong network)
+- `POST /paid/finance/ln-path-fee-hint` — estimate the Lightning routing fee for an invoice (AWS looks up a route; it does not pay)
 
 **Nostr services**:
 
-- `POST /paid/nostr/event-verify` — id and signature
-- `POST /paid/nostr/npub-decode` — bech32 → hex (`nsec` rejected)
-- `POST /paid/nostr/zap-receipt-inspect` — inspect a zap receipt (not a wallet)
+- `POST /paid/nostr/event-verify` — check that a Nostr events ID and signature match its pubkey (`npub`)
+- `POST /paid/nostr/npub-decode` — turn an `npub` (or `note`) into hex; refuse `nsec` private keys. Agents compare hex, verify events, or call other tools that expect hex. This service does that conversion.
 
 Documents:
 - Agent menu: [docs/l402-tools.md](docs/l402-tools.md)  
