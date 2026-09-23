@@ -32,23 +32,36 @@ A Python SDK and Merchant endpoint that enables autonomous AI agents to transact
 
 ---
 
-## Merchant Endpoint
+## Merchant Endpoints
 
-Paid JSON on Aperture `:8081`. Unpaid calls return **402**; finance/Nostr paths are typically **100 sats** (`l402_pay.py --price 100`). Not a public catalog (operator `/32`). Agent guide: **[docs/l402-tools.md](docs/l402-tools.md)**. Operators: [docs/l402-aperture.md](docs/l402-aperture.md).
+The Merchant endpoints serve up a variety of services that might be of interest to autonomous AI agent swarms. Agents make Lightning Network payments directly to Merchant endpoints. After a valid payment, the Merchant returns a small JSON file, in agent machine-readable format.
 
-**Bitcoin** (L1 fee / fullness / FX; skip if Lightning-only): `GET /paid/finance/mempool-feerate` — on-chain sat/vB fee bands; `mempool-backlog` — mempool tx count and fullness; `fee-for-vsize` — total fee for vbyte size; `confirm-target` — wait window to sat/vB; `btc-usd` — BTC/USD pass-through mark.
+Currently, the fee rate for Merchant services is 100 sats, but can be set to any value. The Merchant host URL (`http://3.90.159.146:8081`) is open to allowed IP's but not the entire Internet.  The URL is hosted on AWS but could be hosted on other platforms as well.  (There are demo services that return "hello world", PDF files and PNG files for 1,000 sats, but these are mostly for testing purposes).
 
-**Lightning** (decode → preflight → path-hint → pay): `POST /paid/finance/ln-invoice-decode` — inspect BOLT11 amount and dest; `ln-invoice-preflight` — allow/reject invoice policy reasons; `ln-path-fee-hint` — AWS LND QueryRoutes fee hint.
+**Bitcoin services**:
 
-**Nostr** (local, no relay): `POST /paid/nostr/event-verify` — check NIP-01 id and sig; `npub-decode` — bech32 npub/note to hex (`nsec` rejected); `zap-receipt-inspect` — inspect kind-9735 zap receipt.
+- `GET /paid/finance/mempool-feerate` — check current transaction fees (high / medium / low priority, sat per vbyte)
+- `GET /paid/finance/mempool-backlog` — check how full the mempool is
+- `GET /paid/finance/fee-for-vsize` — total fee in sats for a given size
+- `GET /paid/finance/confirm-target` — wait window → sat per vbyte
+- `GET /paid/finance/btc-usd` — BTC/USD mark (pass-through)
 
-Demo files (`/paid/hello`, PDFs, PNG) are **1,000 sats**. Lab host: `http://3.90.159.146:8081` (allowlisted).
+**Lightning services**:
 
-That section is the menu of paid HTTP tools, not the swarm.It says: Aperture on port 8081 sells small JSON. No payment → 402. Typical price is 100 sats. Only allowlisted IPs can reach the lab host. Details are in docs/l402-tools.md (agents) and docs/l402-aperture.md (you running the gateway).Then it lists three suites:Bitcoin — on-chain fee / mempool / USD mark (GET).  
-Lightning — inspect an invoice, policy check, route-fee hint (POST) before someone pays.  
-Nostr — verify a signature, decode an npub, inspect a zap receipt (no relay).
+- `POST /paid/finance/ln-invoice-decode` — read fee amount and destination from a Lightning BOLT11 invoice
+- `POST /paid/finance/ln-invoice-preflight` — allow / reject vs a simple policy
+- `POST /paid/finance/ln-path-fee-hint` — fee hint from our AWS node (not a payment)
 
-Hello/PDF/PNG demos cost 1,000 sats. This is “what sits behind the 402,” not “how Alice and Bob decide who pays.”
+**Nostr services**:
+
+- `POST /paid/nostr/event-verify` — id and signature
+- `POST /paid/nostr/npub-decode` — bech32 → hex (`nsec` rejected)
+- `POST /paid/nostr/zap-receipt-inspect` — inspect a zap receipt (not a wallet)
+
+Documents:
+- Agent menu: [docs/l402-tools.md](docs/l402-tools.md)  
+- How to run Aperture: [docs/l402-aperture.md](docs/l402-aperture.md)  
+- Known client connecting in: [docs/l402-client-pack.md](docs/l402-client-pack.md)   
 
 ---
 
@@ -69,8 +82,8 @@ Agents in two-agent or eight-agent swarms negotiate with one-another to determin
 - **What they buy:** See above.
 
 Examples:  
-[examples/agent-swarm-merchant-2.md](examples/agent-swarm-merchant-2.md) (two agents)  
-[examples/agent-swarm-merchant-8.md](examples/agent-swarm-merchant-8.md) (eight agents)
+- [examples/agent-swarm-merchant-2.md](examples/agent-swarm-merchant-2.md) (two agents)  
+- [examples/agent-swarm-merchant-8.md](examples/agent-swarm-merchant-8.md) (eight agents)
 
 ---
 
