@@ -1,3 +1,9 @@
+## Changed — L402 nostr (2026-09-23)
+
+Removed unused `POST /paid/nostr/zap-receipt-inspect`. event-verify and npub-decode stay. README not edited.
+
+---
+
 ## Docs — merchant swarm example filenames (2026-09-22)
 
 Renamed the 2- and 8-agent merchant example docs to `examples/agent-swarm-merchant-2.md` and `examples/agent-swarm-merchant-8.md`. README not edited.

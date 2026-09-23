@@ -118,7 +118,7 @@ uv run python examples/l402_pay.py \
 
 ## Nostr suite
 
-**Function:** **local** identity checks. These three do **not** talk to a relay (no 503 from relays). They are not Damus, not a zap wallet, and not **NWC (Nostr Wallet Connect)**. NWC is a way for an agent to talk to a Lightning wallet over Nostr using a URI, instead of holding an LND admin macaroon.
+**Function:** **local** identity checks. These two do **not** talk to a relay (no 503 from relays). They are not Damus and not **NWC (Nostr Wallet Connect)**. NWC is a way for an agent to talk to a Lightning wallet over Nostr using a URI, instead of holding an LND admin macaroon.
 
 Agent identity, NWC, and NIP-46 live elsewhere: [README — Nostr](../README.md#nostr-agent-identity), [nostr-agent-identity.md](./nostr-agent-identity.md), [nwc-automatic-wallets.md](./nwc-automatic-wallets.md).
 
@@ -144,23 +144,11 @@ uv run python examples/l402_pay.py \
   --json '{"entity":"npub1..."}'
 ```
 
-### POST `/paid/nostr/zap-receipt-inspect`
-
-Job: decide whether an event is a NIP-57 **zap receipt** (kind **9735**) and read claimed amount + targets. Amount from the **bolt11 tag only**. Structural inspect + event sig — **not** Appendix F wallet validation and **not** a zap wallet. Does not echo bolt11.
-
-```bash
-uv run python examples/l402_pay.py \
-  --url http://3.90.159.146:8081/paid/nostr/zap-receipt-inspect \
-  --price 100 --method POST \
-  --json '{"id":"...","pubkey":"...","created_at":1,"kind":9735,"tags":[],"content":"","sig":"..."}'
-```
-
 ## What this is not
 
 - Not a **mempool.space** replacement or explorer
 - Not an **FX oracle** or CoinGecko substitute (`btc-usd` is one public pass-through)
 - Not **Terminal / RTL** (path-hint is one QueryRoutes scalar, not a route UI)
-- Not **Damus** or a Nostr client (no relay on these three tools)
-- Not a **zap wallet** (zap-receipt-inspect does not pay or validate LNURL)
+- Not **Damus** or a Nostr client (no relay on these two tools)
 - Not a world-open catalog (operator `/32`)
 - Do not put Aperture in front of `/pay`, `/invoices`, or `/balance`
