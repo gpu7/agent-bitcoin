@@ -32,7 +32,7 @@ A Python SDK and Merchant endpoint that enables autonomous AI agents to transact
 
 ---
 
-## L402 tool suites
+## Merchant Endpoint
 
 Paid JSON on Aperture `:8081`. Unpaid calls return **402**; finance/Nostr paths are typically **100 sats** (`l402_pay.py --price 100`). Not a public catalog (operator `/32`). Agent guide: **[docs/l402-tools.md](docs/l402-tools.md)**. Operators: [docs/l402-aperture.md](docs/l402-aperture.md).
 
@@ -61,11 +61,12 @@ Agents in two-agent or eight-agent swarms negotiate with one-another to determin
 - **Who pays:**
   - **Hash score (default):** The highest score from the combination "`npub` + invoice id + round" pays. Ties go to the larger `npub`.
   - **Solve a simple puzzle (`fee-sats`):** The first correct “vbytes × sat/vB” pays.
-  - **LLM gate (two agents only):** each asks Grok YES/NO; only YES agents enter the hash. All NO → no payment. Needs `XAI_API_KEY`. Do not pass `--no-llm`. The vote reason stays on the Mac.
-- **Who sends sats:** the Mac LND wallet, over the private channel to AWS. Do not pay from the AWS invoice node (self-pay fails).
-- **What they buy:** one L402 URL (example: mempool-feerate `GET`, or path-hint `POST`) at about **100 sats**. Unpaid → `402`; paid → JSON.
-- **Mock:** `--offline-bus` uses a local mock relay and fake payment (no mainnet).
-- **Live:** start the first role and wait until it is listening; then start the others. Same env in every terminal (`NOSTR_PASSPHRASE`, LND exports, `ALLOW_MAINNET` / `ALLOW_AUTOPAY` on mainnet).
+  - **Grok vote (two agents only):** Agents (Alice and Bob) each ask Grok one question: “Should I spend ~100 sats on this Merchant service?” Grok answers YES or NO and gives a short reason.
+    - If **both say NO**, nobody pays and there is no payment to Merchant.
+    - If **one says YES**, that agent pays the Merchant.
+    - If **both say YES**, they use a hash score to pick one payer.
+    - Needs a Grok account and `XAI_API_KEY`.
+- **What they buy:** See above.
 
 Examples:  
 [examples/agent-swarm-merchant-2.md](examples/agent-swarm-merchant-2.md) (two agents)  
