@@ -34,22 +34,19 @@ A Python SDK and Merchant endpoint that enables autonomous AI agents to transact
 
 ## Agent-to-Agent Lightning Network payments
 
-One agent **invoices** another. A second agent **pays that invoice** over Lightning. This is not a Merchant / Aperture call and not the two- or eight-agent swarm (those agents share one Mac wallet and pay the Merchant).
+In an autonomous AI agent swarm, agents can make direct Lightning Network payments to one-another.  A payee agent **invoices** a payer agent; the payer agent **pays that invoice** over the Lightning Network.
 
-- Each agent has its own Nostr ID (`npub`). The payee sends the invoice as an encrypted Nostr event to the payer’s `npub`.
+- Each agent has its own Nostr ID (`npub`). The payee sends an invoice as an encrypted Nostr event to the payer’s ID (`npub`).
 - **Who is who:**
   - **Payee:** AWS invoice LND (`agent-payment-decision-lnd-mainnet`). It creates a ~100 sat invoice. It does not autopay.
-  - **Payer:** Mac LND (`agent-bitcoin-lnd-mainnet`) or a client LND. It pays over the private channel. Needs `AGENT_BITCOIN_ALLOW_AUTOPAY=1` on mainnet.
+  - **Payer:** Client LND (`agent-bitcoin-lnd-mainnet`). It pays over a direct private channel.
 - **Whether the payer sends sats:**
-  - **No model (`--no-llm`):** pay as soon as the invoice arrives (amount and wait limits still apply).
-  - **Grok or Ollama gate:** only the **payer** asks the model “Should I pay this invoice?” YES → pay; NO → no payment. Needs `XAI_API_KEY` for Grok, or a running Ollama model. Do not pass `--no-llm` with `--model`.
-- Start the **payer first** (it listens), then the payee (it sends).
-- **Offline:** `--offline` skips LND and relays (no real sats).
-- Same private-channel rule as live Merchant pays: payer wallet ≠ invoice wallet, or LND returns `self-payments not allowed`.
+  - **No AI model (`--no-llm`):** Pay as soon as the invoice arrives.
+  - **Grok or Ollama AI model:** The **payer** asks the model “Should I pay this invoice?” YES → pay; NO → no payment. Needs `XAI_API_KEY` for Grok, or a running Ollama model.
 
-Examples:
-- [examples/agent-to-agent-pay.md](examples/agent-to-agent-pay.md) (Nostr invoice + optional Grok/Ollama gate)
-- [examples/a2a_ln_pay.md](examples/a2a_ln_pay.md) (paste a BOLT11; no Nostr DM)
+Example:  
+
+- [examples/agent-to-agent-pay.md](examples/agent-to-agent-pay.md) (Nostr invoice + optional Grok/Ollama model)
 
 ---
 
