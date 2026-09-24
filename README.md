@@ -141,7 +141,7 @@ Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)**. Do not 
 
 ## Documentation and Examples
 
-To review documents and examples for this repo, see the **`docs/`** folder or **`examples`** folder.
+To review documents and examples for this repo, see the **`docs/`** folder or **`examples/`** folder.
 
 ---
 
