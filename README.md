@@ -34,6 +34,23 @@ A Python SDK and Merchant endpoint that enables autonomous AI agents to transact
 
 ## Agent-to-Agent Lightning Network payments
 
+One agent **invoices** another. A second agent **pays that invoice** over Lightning. This is not a Merchant / Aperture call and not the two- or eight-agent swarm (those agents share one Mac wallet and pay the Merchant).
+
+- Each agent has its own Nostr ID (`npub`). The payee sends the invoice as an encrypted Nostr event to the payer’s `npub`.
+- **Who is who:**
+  - **Payee:** AWS invoice LND (`agent-payment-decision-lnd-mainnet`). It creates a ~100 sat invoice. It does not autopay.
+  - **Payer:** Mac LND (`agent-bitcoin-lnd-mainnet`) or a client LND. It pays over the private channel. Needs `AGENT_BITCOIN_ALLOW_AUTOPAY=1` on mainnet.
+- **Whether the payer sends sats:**
+  - **No model (`--no-llm`):** pay as soon as the invoice arrives (amount and wait limits still apply).
+  - **Grok or Ollama gate:** only the **payer** asks the model “Should I pay this invoice?” YES → pay; NO → no payment. Needs `XAI_API_KEY` for Grok, or a running Ollama model. Do not pass `--no-llm` with `--model`.
+- Start the **payer first** (it listens), then the payee (it sends).
+- **Offline:** `--offline` skips LND and relays (no real sats).
+- Same private-channel rule as live Merchant pays: payer wallet ≠ invoice wallet, or LND returns `self-payments not allowed`.
+
+Examples:
+- [examples/agent-to-agent-pay.md](examples/agent-to-agent-pay.md) (Nostr invoice + optional Grok/Ollama gate)
+- [examples/a2a_ln_pay.md](examples/a2a_ln_pay.md) (paste a BOLT11; no Nostr DM)
+
 ---
 
 ## Merchant Endpoints
@@ -64,9 +81,9 @@ Currently, the Merchant provides a short list of Bitcoin, Lightning and Nostr se
 - `POST /paid/nostr/npub-decode` — turn an `npub` (or `note`) into hex; refuse `nsec` private keys. Agents compare hex, verify events, or call other tools that expect hex. This service does that conversion.
 
 Documents:
-- Agent menu: [docs/l402-tools.md](docs/l402-tools.md)  
-- How to run Aperture: [docs/l402-aperture.md](docs/l402-aperture.md)  
-- Known client connecting in: [docs/l402-client-pack.md](docs/l402-client-pack.md)   
+- Agent menu: [docs/l402-tools.md](docs/l402-tools.md)
+- How to run Aperture: [docs/l402-aperture.md](docs/l402-aperture.md)
+- Known client connecting in: [docs/l402-client-pack.md](docs/l402-client-pack.md)
 
 ---
 
@@ -86,22 +103,22 @@ Agents in two-agent or eight-agent swarms negotiate with one-another to determin
     - Needs a Grok account and `XAI_API_KEY`.
 - **What they buy:** See [Merchant Endpoints](#merchant-endpoints).
 
-Examples:  
-- [examples/agent-swarm-merchant-2.md](examples/agent-swarm-merchant-2.md) (two agents)  
+Examples:
+- [examples/agent-swarm-merchant-2.md](examples/agent-swarm-merchant-2.md) (two agents)
 - [examples/agent-swarm-merchant-8.md](examples/agent-swarm-merchant-8.md) (eight agents)
 
 ---
 
 ## Nostr for agents
 
-Agents use [Nostr](https://nostr.org/) for identity, communication, censorship resistance, signatures, encryption and discovery.  
+Agents use [Nostr](https://nostr.org/) for identity, communication, censorship resistance, signatures, encryption and discovery.
 
 - **Agents get a unique ID.** Each agent is assigned a unique cryptographic secp256k1 keypair (npub & nsec), esentially, a unique ID.  Agents in an agent swarm can easily and uniquely identify one another via their public npub.  Agents never share or expose their private encrypted secret nsec.
 
-- **Agents communicate with Nostr events.** Agents within agent swarms communicate with one-another via Nostr cryptographically signed events. Every accepted event must verify an agents ID, signature and pubkey. Events with sensitive payloads (i.e. invoices, etc.) are encrypted. 
+- **Agents communicate with Nostr events.** Agents within agent swarms communicate with one-another via Nostr cryptographically signed events. Every accepted event must verify an agents ID, signature and pubkey. Events with sensitive payloads (i.e. invoices, etc.) are encrypted.
 
 - **Agents use Nostr relays.** Agents publish signed events once. If one relay dies or censors, events simply move to another relay. Thus, agents use redundant and reliable communication channels to exchange events.
- 
+
 - **Agents can use Nostr encryption.** Agents can choose encrypted events for sensitive information.  Encryption hides the inside of a message so a Nostr  relay can store and forward it without reading invoices, prompts or agent state. Signing still proves which agent sent a message.
 
 - **Agents use Nostr for discovery.** Agents can find one-another by publishing a signed “I can do X” event. Nostr relays find matching agents for that event.  There is no need for a central directory.
@@ -112,10 +129,10 @@ Agents use [Nostr](https://nostr.org/) for identity, communication, censorship r
 
 Currently, you may choose default Grok or Ollama models for Agent-to-Agent payments or Agent-to-Merchant payments.
 
-Agent-to-Agent Lightning Network payments: Grok or Ollama model  
+Agent-to-Agent Lightning Network payments: Grok or Ollama model
 Example: examples/agent-to-agent-pay.md
 
-Agent-to-Merchant Lightning Network payments: Grok or Ollama model  
+Agent-to-Merchant Lightning Network payments: Grok or Ollama model
 Example: examples/agent-to-merchant-pay.md
 
 ---
