@@ -1,3 +1,9 @@
+## Docs — README Agent-to-Agent (2026-09-24)
+
+README Agent-to-Agent section filled.
+
+---
+
 ## Changed — L402 origin image (2026-09-23)
 
 Origin image no longer copies the removed zap module.
