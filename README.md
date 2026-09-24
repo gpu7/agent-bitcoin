@@ -124,10 +124,6 @@ For autonomous AI agent swarms, the payment and settlement protocol is:
 
 ---
 
-## Python SDK
-
----
-
 ## Nostr for Agents
 
 Agents use [Nostr](https://nostr.org/) for identity, communication, censorship resistance, signatures, encryption and discovery.
@@ -158,7 +154,40 @@ Example: examples/agent-to-merchant-pay.md
 
 ## Python SDK
 
-Install from PyPI (`pip install agent-bitcoin`) or from this repo (`uv sync`).
+Agent-Bitcoin services are available via a Python SDK.
+
+Install from [PyPI](https://pypi.org/) or from this repo.
+
+**PyPI (library only):**
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -U pip
+pip install agent-bitcoin
+# optional: pip install 'agent-bitcoin[nostr]'
+python -c "import agent_bitcoin; print(agent_bitcoin.__version__)"
+```
+
+This does not download examples/ or docs/. If you need those files use the repo clone below.
+
+**GitHub repo (SDK + examples + docs):**
+
+```bash
+git clone https://github.com/gpu7/agent-bitcoin.git
+cd agent-bitcoin
+git pull origin main
+uv sync --python 3.12
+uv run python -c "import agent_bitcoin; print(agent_bitcoin.__version__)"
+```
+
+**Nostr / swarm scripts:**
+
+```bash
+uv venv -p 3.12 .venv-nostr
+uv pip install --python .venv-nostr/bin/python -e '.[nostr]'
+```
+
 The import package is `agent_bitcoin`.
 
 - `create_client()` / `AgentBitcoinClient` — create invoices, pay BOLT11, read on-chain and channel balances (talks to your LND).
@@ -171,11 +200,13 @@ The import package is `agent_bitcoin`.
 - `PaymentDecision` — PAY / REJECT / CONFIRM_REQUIRED.
 - Exceptions (`PaymentError`, `InsufficientBalanceError`, `NoRouteError`, …) — typed failures instead of raw lncli text.
 
-Full client reference: [SDK.md](SDK.md)
-Package source: `agent_bitcoin/`
-L402 helper: `agent_bitcoin/l402/`
-LLM gate: `agent_bitcoin/agents/`
-Nostr identity / NWC (optional extras): `agent_bitcoin/nostr/`, `agent_bitcoin/nwc/`
+Documentation:   
+
+Full client reference: [SDK.md](SDK.md)  
+Package source: `agent_bitcoin/`  
+L402 helper: `agent_bitcoin/l402/`  
+LLM gate: `agent_bitcoin/agents/`  
+Nostr identity / NWC (optional extras): `agent_bitcoin/nostr/`, `agent_bitcoin/nwc/`  
 
 ---
 
