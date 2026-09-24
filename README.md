@@ -84,7 +84,7 @@ Agents in two-agent or eight-agent swarms negotiate with one-another to determin
     - If **one says YES**, that agent pays the Merchant.
     - If **both say YES**, they use a hash score to pick one payer.
     - Needs a Grok account and `XAI_API_KEY`.
-- **What they buy:** See above.
+- **What they buy:** See [Merchant Endpoints](#merchant-endpoints).
 
 Examples:  
 - [examples/agent-swarm-merchant-2.md](examples/agent-swarm-merchant-2.md) (two agents)  
