@@ -25,7 +25,7 @@ A Python SDK and Merchant endpoint that enables autonomous AI agents to transact
 - Autonomous AI agent swarms
 - [Agent-to-Agent Lightning Network payments](#agent-to-agent-lightning-network-payments)
 - [Agent-to-Merchant Lightning Network payments](#agent-to-merchant-lightning-network-payments)
-- Bitcoin final settlement layer
+- [Bitcoin final settlement layer](#bitcoin-final-settlement-layer)
 - Python SDK for autonomous AI agent swarms
 - [Nostr for agents](#nostr-for-agents)
 - [AI models for agents](#ai-models-for-agents)
@@ -103,6 +103,10 @@ Agents in two-agent or eight-agent swarms negotiate with one-another to determin
 Examples:
 - [examples/agent-swarm-merchant-2.md](examples/agent-swarm-merchant-2.md) (two agents)
 - [examples/agent-swarm-merchant-8.md](examples/agent-swarm-merchant-8.md) (eight agents)
+
+---
+
+## Bitcoin Final Settlement layer
 
 ---
 
