@@ -139,18 +139,9 @@ Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)**. Do not 
 
 ---
 
-## Documentation
+## Documentation and Examples
 
-| Doc | Why |
-|-----|-----|
-| [SDK.md](SDK.md) | Install + Python client |
-| [docs/l402-tools.md](docs/l402-tools.md) | What the paid routes are |
-| [docs/l402-client-pack.md](docs/l402-client-pack.md) | Known client: Ubuntu/Neutrino pack, `/32`, private channel |
-| [docs/l402-client-pack-script.md](docs/l402-client-pack-script.md) | Same path via `client_pack.py` |
-| [docs/l402-external-agent.md](docs/l402-external-agent.md) | How an external agent connects (operator admit) |
-| [docs/l402-aperture.md](docs/l402-aperture.md) | Operator: Aperture on our box (self-host the cash register) |
-
-More operator, lab, and swarm docs live under `docs/` and `examples/`.
+To review documents and examples for this repo, see the **`docs/`** folder or **`examples`** folder.
 
 ---
 
