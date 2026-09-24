@@ -22,34 +22,58 @@ A Python SDK and Merchant endpoint that enables autonomous AI agents to transact
 
 ## Features
 
-- Autonomous AI agent swarms
-- [Agent-to-Agent Lightning Network payments](#agent-to-agent-lightning-network-payments)
-- [Agent-to-Merchant Lightning Network payments](#agent-to-merchant-lightning-network-payments)
-- Bitcoin final settlement layer
-- Python SDK for autonomous AI agent swarms
-- [Nostr for agents](#nostr-for-agents)
-- [AI models for agents](#ai-models-for-agents)
+- [Autonomous AI Agent Swarms](#autonomous-ai-agent-swarms)
+- [Agent-to-Agent Lightning Network Payments](#agent-to-agent-lightning-network-payments)
+- [Agent-to-Merchant Lightning Network Payments](#agent-to-merchant-lightning-network-payments)
+- [Merchant Endpoints](#merchant-endpoints)
+- [Bitcoin Final Settlement Layer](#bitcoin-final-settlement-layer)
+- [Python SDK](#python-sdk)
+- [Nostr for Agents](#nostr-for-agents)
+- [AI Models for Agents](#ai-models-for-agents)
 
 ---
 
-## Agent-to-Agent Lightning Network payments
+## Autonomous AI Agent Swarms
 
-One agent **invoices** another. A second agent **pays that invoice** over Lightning. This is not a Merchant / Aperture call and not the two- or eight-agent swarm (those agents share one Mac wallet and pay the Merchant).
+---
 
-- Each agent has its own Nostr ID (`npub`). The payee sends the invoice as an encrypted Nostr event to the payer’s `npub`.
+## Agent-to-Agent Lightning Network Payments
+
+In an autonomous AI agent swarm, agents can make direct Lightning Network payments to one-another.  A payee agent **invoices** a payer agent; the payer agent **pays that invoice** over the Lightning Network.
+
+- Each agent has its own Nostr ID (`npub`). The payee sends an invoice as an encrypted Nostr event to the payer’s ID (`npub`).
 - **Who is who:**
   - **Payee:** AWS invoice LND (`agent-payment-decision-lnd-mainnet`). It creates a ~100 sat invoice. It does not autopay.
-  - **Payer:** Mac LND (`agent-bitcoin-lnd-mainnet`) or a client LND. It pays over the private channel. Needs `AGENT_BITCOIN_ALLOW_AUTOPAY=1` on mainnet.
+  - **Payer:** Client LND (`agent-bitcoin-lnd-mainnet`). It pays over a direct private channel.
 - **Whether the payer sends sats:**
-  - **No model (`--no-llm`):** pay as soon as the invoice arrives (amount and wait limits still apply).
-  - **Grok or Ollama gate:** only the **payer** asks the model “Should I pay this invoice?” YES → pay; NO → no payment. Needs `XAI_API_KEY` for Grok, or a running Ollama model. Do not pass `--no-llm` with `--model`.
-- Start the **payer first** (it listens), then the payee (it sends).
-- **Offline:** `--offline` skips LND and relays (no real sats).
-- Same private-channel rule as live Merchant pays: payer wallet ≠ invoice wallet, or LND returns `self-payments not allowed`.
+  - **No AI model (`--no-llm`):** Pay as soon as the invoice arrives.
+  - **Grok or Ollama AI model:** The **payer** asks the model “Should I pay this invoice?” YES → pay; NO → no payment. Needs `XAI_API_KEY` for Grok, or a running Ollama model.
+
+Example:  
+
+- [examples/agent-to-agent-pay.md](examples/agent-to-agent-pay.md) (Nostr invoice + optional Grok/Ollama model)
+
+---
+
+## Agent-to-Merchant Lightning Network Payments
+
+Agents in two-agent or eight-agent swarms negotiate with one-another to determine who pays the Merchant endpoint.  They agree on a single payer. Then, that agent makes a Lightning payment to the Merchant and reads the results.
+
+- Each agent has its own Nostr ID (`npub`). They publish Nostr signed events so peers can negotiate who pays the Merchant.
+- There are several negotiating styles to choose from to demonstrate how agents work together.
+- **Who pays:**
+  - **Hash score (default):** The highest score from the combination "`npub` + invoice id + round" pays. Ties go to the larger `npub`.
+  - **Solve a simple puzzle (`fee-sats`):** The first correct “vbytes × sat/vB” pays.
+  - **Grok vote (two agents only):** Agents (Alice and Bob) each ask Grok one question: “Should I spend ~100 sats on this Merchant service?” Grok answers YES or NO and gives a short reason.
+    - If **both say NO**, nobody pays and there is no payment to Merchant.
+    - If **one says YES**, that agent pays the Merchant.
+    - If **both say YES**, they use a hash score to pick one payer.
+    - Needs a Grok account and `XAI_API_KEY`.
+- **What they buy:** See [Merchant Endpoints](#merchant-endpoints).
 
 Examples:
-- [examples/agent-to-agent-pay.md](examples/agent-to-agent-pay.md) (Nostr invoice + optional Grok/Ollama gate)
-- [examples/a2a_ln_pay.md](examples/a2a_ln_pay.md) (paste a BOLT11; no Nostr DM)
+- [examples/agent-swarm-merchant-2.md](examples/agent-swarm-merchant-2.md) (two agents)
+- [examples/agent-swarm-merchant-8.md](examples/agent-swarm-merchant-8.md) (eight agents)
 
 ---
 
@@ -87,29 +111,24 @@ Documents:
 
 ---
 
-## Agent-to-Merchant Lightning Network payments
+## Bitcoin Final Settlement layer
 
-Agents in two-agent or eight-agent swarms negotiate with one-another to determine who pays the Merchant endpoint.  They agree on a single payer. Then, that agent makes a Lightning payment to the Merchant and reads the results.
+The Bitcoin blockchain network is used as the final settlement layer for Lightning payments between agents.  Bitcoin is treated as a Layer-1 protocol and Lightning is treated as a Layer-2 protocol.  
 
-- Each agent has its own Nostr ID (`npub`). They publish Nostr signed events so peers can negotiate who pays the Merchant.
-- There are several negotiating styles to choose from to demonstrate how agents work together.
-- **Who pays:**
-  - **Hash score (default):** The highest score from the combination "`npub` + invoice id + round" pays. Ties go to the larger `npub`.
-  - **Solve a simple puzzle (`fee-sats`):** The first correct “vbytes × sat/vB” pays.
-  - **Grok vote (two agents only):** Agents (Alice and Bob) each ask Grok one question: “Should I spend ~100 sats on this Merchant service?” Grok answers YES or NO and gives a short reason.
-    - If **both say NO**, nobody pays and there is no payment to Merchant.
-    - If **one says YES**, that agent pays the Merchant.
-    - If **both say YES**, they use a hash score to pick one payer.
-    - Needs a Grok account and `XAI_API_KEY`.
-- **What they buy:** See [Merchant Endpoints](#merchant-endpoints).
+For autonomous AI agent swarms, the payment and settlement protocol is:
 
-Examples:
-- [examples/agent-swarm-merchant-2.md](examples/agent-swarm-merchant-2.md) (two agents)
-- [examples/agent-swarm-merchant-8.md](examples/agent-swarm-merchant-8.md) (eight agents)
+- **Open a Lightning channel.** Operator (human-in-the-loop) opens a Lightning channel on behalf of agents.  Currently, this is for safety reasons to protect funds. Creates 2-of-2 multisig UTXO in the Bitcoin blockchain.  Funds Lightning channel for agents.
+- **Make Lightning payments.** Agents pay one another via the Lightning channel.
+- **Close the Lightning channel.** Operator (human-in-the-loop) closes the Lightning channel on behalf of agents.  Again, this is for safety reasons to protect funds.  
+- **Update Bitcoin ledger.** Spend 2-of-2 multisig UTXO.  Payout fund balances to each party's Bitcoin address. Final settlement of Lightning payment balances in the Bitcoin blockchain network. 
 
 ---
 
-## Nostr for agents
+## Python SDK
+
+---
+
+## Nostr for Agents
 
 Agents use [Nostr](https://nostr.org/) for identity, communication, censorship resistance, signatures, encryption and discovery.
 
@@ -125,15 +144,15 @@ Agents use [Nostr](https://nostr.org/) for identity, communication, censorship r
 
 ---
 
-## AI models for agents
+## AI Models for Agents
 
-Currently, you may choose default Grok or Ollama models for Agent-to-Agent payments or Agent-to-Merchant payments.
+Currently, you may choose default Grok or Ollama models for Agent-to-Agent payments or Agent-to-Merchant payments.  
 
-Agent-to-Agent Lightning Network payments: Grok or Ollama model
-Example: examples/agent-to-agent-pay.md
+Agent-to-Agent Lightning Network payments: Grok or Ollama model  
+Example: examples/agent-to-agent-pay.md  
 
-Agent-to-Merchant Lightning Network payments: Grok or Ollama model
-Example: examples/agent-to-merchant-pay.md
+Agent-to-Merchant Lightning Network payments: Grok or Ollama model  
+Example: examples/agent-to-merchant-pay.md  
 
 ---
 
