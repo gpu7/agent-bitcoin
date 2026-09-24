@@ -1,3 +1,9 @@
+## Docs — README Python SDK (2026-09-24)
+
+README Python SDK section lists public client pieces.
+
+---
+
 ## Docs — README Agent-to-Agent (2026-09-24)
 
 README Agent-to-Agent section filled.

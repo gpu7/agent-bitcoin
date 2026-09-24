@@ -137,6 +137,29 @@ Example: examples/agent-to-merchant-pay.md
 
 ---
 
+## Python SDK
+
+Install from PyPI (`pip install agent-bitcoin`) or from this repo (`uv sync`).
+The import package is `agent_bitcoin`.
+
+- `create_client()` / `AgentBitcoinClient` — create invoices, pay BOLT11, read on-chain and channel balances (talks to your LND).
+- `L402Client` — call a Merchant URL: handle HTTP 402, pay the invoice, retry, return JSON.
+- `L402Challenge` / `parse_www_authenticate` — read the Lightning invoice out of a 402 response.
+- `Invoice`, `InvoiceQuote`, `PayerDecisionInputs` — invoice and “should I pay?” data.
+- `LightningConfig` — how the client finds LND (network, container, transport).
+- `DEFAULT_MIN_PAYMENT_SATS`, `DEFAULT_MAX_PAYMENT_SATS`, `DEFAULT_L402_PRICE_SATS` — floor (100), caps, typical Merchant price.
+- `PaymentDecisionAgent` / `create_grok_payment_decision_agent()` — Grok or Ollama YES/NO gate before a pay.
+- `PaymentDecision` — PAY / REJECT / CONFIRM_REQUIRED.
+- Exceptions (`PaymentError`, `InsufficientBalanceError`, `NoRouteError`, …) — typed failures instead of raw lncli text.
+
+Full client reference: [SDK.md](SDK.md)
+Package source: `agent_bitcoin/`
+L402 helper: `agent_bitcoin/l402/`
+LLM gate: `agent_bitcoin/agents/`
+Nostr identity / NWC (optional extras): `agent_bitcoin/nostr/`, `agent_bitcoin/nwc/`
+
+---
+
 ## Installation
 
 ### From github repo source
