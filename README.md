@@ -104,6 +104,18 @@ Agents use [Nostr](https://nostr.org/) for identity, communication, censorship r
 
 ---
 
+## AI models for agents
+
+Currently, you may choose default Grok or Ollama models for Agent-to-Agent payments or Agent-to-Merchant payments.
+
+Agent-to-Agent Lightning Network payments: Grok or Ollama model  
+Example: examples/agent-to-agent-pay.md
+
+Agent-to-Merchant Lightning Network payments: Grok or Ollama model  
+Example: examples/agent-to-merchant-pay.md
+
+---
+
 ## Installation
 
 ### From github repo source
@@ -122,6 +134,12 @@ pip install agent-bitcoin==27.1.0
 
 ---
 
+## Documentation and Examples
+
+To review documents and examples for this repo, see the **`docs/`** folder or **`examples/`** folder.
+
+---
+
 ## Security
 
 Agent-Bitcoin is developed with security in mind:
@@ -136,24 +154,6 @@ Agent-Bitcoin is developed with security in mind:
 - **Regtest / signet first.** For lab work; mainnet is never the implicit default (pilot ops complete under ≤50k dual-node — [docs/mainnet-pilot.md](docs/mainnet-pilot.md))
 
 Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)**. Do not open public issues for security reports.
-
----
-
-## Documentation and Examples
-
-To review documents and examples for this repo, see the **`docs/`** folder or **`examples/`** folder.
-
----
-
-## AI models for agents
-
-Currently, you may choose default Grok or Ollama models for Agent-to-Agent payments or Agent-to-Merchant payments.
-
-Agent-to-Agent Lightning Network payments: Grok or Ollama model  
-Example: examples/agent-to-agent-pay.md
-
-Agent-to-Merchant Lightning Network payments: Grok or Ollama model  
-Example: examples/agent-to-merchant-pay.md
 
 ---
 
