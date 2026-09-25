@@ -28,9 +28,10 @@ A Python SDK and Merchant endpoint that enables autonomous AI agents to transact
 - [Agent-to-Merchant Lightning Network Payments](#agent-to-merchant-lightning-network-payments)
 - [Merchant Endpoints](#merchant-endpoints)
 - [Bitcoin Final Settlement Layer](#bitcoin-final-settlement-layer)
-- [Python SDK](#python-sdk)
 - [Nostr for Agents](#nostr-for-agents)
 - [AI Models for Agents](#ai-models-for-agents)
+- [Python SDK](#python-sdk)
+- [AWS](#aws)
 
 ---
 
@@ -247,6 +248,26 @@ The import package is `agent_bitcoin`.
 
 Full developer reference for SDK: [SDK.md](SDK.md)  
 Python package source: `agent_bitcoin/`    
+
+---
+
+## AWS
+
+The main roles for AWS are:
+
+- Host — EC2 box that runs the Merchant stack  
+- Invoice node — AWS ([Lightning Labs](https://lightning.engineering/)) LND ([Lightning Labs](https://lightning.engineering/)) creates L402 / agent-to-agent invoices  
+- Bitcoin backend for LND node — bitcoind feeds AWS LND  
+- L402 cash register — [Lightning Labs](https://lightning.engineering/) Aperture on port 8081  
+- Paid origin — JSON services behind [Lightning Labs](https://lightning.engineering/) Aperture (port 8090, private)  
+- Channel peer — accepts a client private Lightning channel on 9735  
+- Allowlist — security groups decide which IP's may hit ports 8081 / 22 / 9735  
+
+**Documentation:**
+
+The AWS Runbook describes how to set up, configure, run and manage AWS.
+
+Runbook: `docs/aws-operator.md` 
 
 ---
 
