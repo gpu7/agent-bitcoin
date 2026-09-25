@@ -22,6 +22,7 @@ A Python SDK and Merchant endpoint that enables autonomous AI agents to transact
 
 ## Features
 
+- [Agentic Finance](#agentic-finance)
 - [Autonomous AI Agent Swarms](#autonomous-ai-agent-swarms)
 - [Agent-to-Agent Lightning Network Payments](#agent-to-agent-lightning-network-payments)
 - [Agent-to-Merchant Lightning Network Payments](#agent-to-merchant-lightning-network-payments)
@@ -33,7 +34,31 @@ A Python SDK and Merchant endpoint that enables autonomous AI agents to transact
 
 ---
 
+## Agentic Finance
+
+---
+
 ## Autonomous AI Agent Swarms
+
+An agent swarm is a set of cooperating software agents that jointly execute a workflow. Each agent has a distinct cryptographic identity. They coordinate with one another via signed messages, allocate tasks, and can authorize payments without a human approving each transfer. In this design the nodes and wallets remain under an operator; autonomy refers to the execution loop after the agent infrastructure is funded and started.
+
+**Agent-to-Agent settlement on Lightning**
+
+Payment is a Lightning invoice issued by one agent and discharged by another. Value moves by updating balances inside a pre-funded channel, typically in seconds. The Bitcoin base chain is not used for each micropayment. Instead, Bitcoin Layer 1 is used when a Lightning channel is opened, closed, or a dispute is enforced.  This represents final settlement of the net position between agents.
+
+**Why pair agent swarms with Lightning**  
+
+- Low-latency payment and settlement between agents  
+- Micropayments between agents  
+- Bilateral, auditable funds transfer — query, invoice, and payment — without a pooled omnibus account  
+- Separation of roles among agents (retrieve, decide, pay)  
+- One payment rail for peer invoices and Merchant endpoints
+
+Currently, to protect funds, some human constraints remain in place (but may be relaxed or transferred to agents in the future). A human operator must capitalize Lightning nodes, maintain inbound and outbound channel liquidity and impose spend limits. Public multipath routing of very small amounts is unreliable unless counterparties have provisioned an appropriate channel.  
+
+**Velocity of money**
+
+Velocity of money is the turnover rate of sats between paying agents. In an agent swarm with Lightning payments, the same channel inventory can settle a Merchant call, then a peer invoice, then another call, many times per day, without a new block per payment. An agent swarm uses Lightning payments as a high-turnover working-capital layer.  Thus, agent swarms dramatically increase the velocity of money.
 
 ---
 
