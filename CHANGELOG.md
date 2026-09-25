@@ -1,3 +1,9 @@
+## Docs — AWS operator runbook (2026-09-25)
+
+Add `docs/aws-operator.md` (AWS operator runbook).
+
+---
+
 ## Docs — README Python SDK (2026-09-24)
 
 README Python SDK section lists public client pieces.

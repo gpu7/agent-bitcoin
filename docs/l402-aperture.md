@@ -6,6 +6,7 @@
 **Agent tools:** what each paid JSON path is for, and one example call — [l402-tools.md](./l402-tools.md). This page is the operator runbook (startup, SG, YAML).
 
 Deployment diagram: [architecture.md](./architecture.md).
+AWS day-2: [aws-operator.md](./aws-operator.md).
 Lab EIP is `3.90.159.146` (stable).
 
 ## What it is
