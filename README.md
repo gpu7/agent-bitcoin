@@ -200,13 +200,10 @@ The import package is `agent_bitcoin`.
 - `PaymentDecision` — PAY / REJECT / CONFIRM_REQUIRED.
 - Exceptions (`PaymentError`, `InsufficientBalanceError`, `NoRouteError`, …) — typed failures instead of raw lncli text.
 
-Documentation:   
+**Documentation and source code:**   
 
-Full client reference: [SDK.md](SDK.md)  
-Package source: `agent_bitcoin/`  
-L402 helper: `agent_bitcoin/l402/`  
-LLM gate: `agent_bitcoin/agents/`  
-Nostr identity / NWC (optional extras): `agent_bitcoin/nostr/`, `agent_bitcoin/nwc/`  
+Full developer reference for SDK: [SDK.md](SDK.md)  
+Python package source: `agent_bitcoin/`    
 
 ---
 
