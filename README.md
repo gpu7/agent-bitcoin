@@ -36,6 +36,24 @@ A Python SDK and Merchant endpoint that enables autonomous AI agents to transact
 
 ## Agentic Finance
 
+Agentic finance is financial transactions and market activity carried out by autonomous goal-directed AI agents.  Human mediation is minimal or non-existent. Agents perceive data, make decisions under policy, and execute transactions (pay, invoice, reconcile, route a trade) with minimal or no human prompting.  
+
+**The term is used in two overlapping ways:**
+
+- Enterprise finance ops — specialized agents own jobs such as invoicing, matching trades, controls, and close, across existing systems. Humans set limits and handle exceptions. 
+  
+- Markets and payments — autonomous or semi-autonomous agents take part in information management, monitoring, and execution, so their actions can move money or prices. 
+
+Currently, in practice, many agentic systems are semi-autonomous where some policies, spend caps, and an operator intervene in some financial activites.  But agentic swarms are increasingly taking over these functions. 
+
+**Key benefits**
+
+- Throughput — routine payments and ops run continuously, 24/7  
+- Smaller tickets — agents can settle amounts that are too small or too frequent for human approval, i.e. micropayments  
+- Division of labor — one agent retrieves, one checks policy, one pays (a swarm), instead of a single program performing all steps  
+- Audit trail — if each transaction is an invoice, a signed message, or a logged decision, audit review is more transparent  
+- Working-capital velocity — the same locked balance can support many completed transfers per day (Lightning is one example payment rail)
+
 ---
 
 ## Autonomous AI Agent Swarms
