@@ -57,6 +57,7 @@ sequenceDiagram
 
 Two-agent swarm (who pays one GET): [examples/agent-swarm-merchant-2.md](../examples/agent-swarm-merchant-2.md) (live demo pays from the Mac; [how the winner is chosen](../examples/agent-swarm-merchant-2.md#how-the-winner-is-chosen)).
 External agent (their LND, our 8081 `/32`): [l402-external-agent.md](./l402-external-agent.md).
+AWS day-2: [aws-operator.md](./aws-operator.md).
 
 ## Wallets and chain backends
 
