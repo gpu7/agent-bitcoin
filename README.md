@@ -16,7 +16,7 @@
 
 ## Lightning Bitcoin payments for autonomous AI Agents
 
-A Python SDK and Merchant endpoint that enables autonomous AI agents to transact via Lightning Network payments with Bitcoin final settlement.
+A Python SDK and Merchant endpoint that enable autonomous AI agents to transact via Lightning Network payments and Bitcoin final settlement.
 
 ---
 
