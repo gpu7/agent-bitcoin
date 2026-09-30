@@ -1,5 +1,11 @@
 ## Changed — title banner (2026-09-29)
 
+Refresh `images/dark-factory-image.jpg` (cyan Dark Factory, Bitcoin-orange Agent Bitcoin).
+
+---
+
+## Changed — title banner (2026-09-29)
+
 Refresh `images/dark-factory-image.jpg` (sharper title banner).
 
 ---
