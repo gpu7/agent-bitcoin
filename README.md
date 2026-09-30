@@ -5,12 +5,15 @@
 </p>
 
 <br>
+<br>
 
-[![GitHub Repo](https://img.shields.io/badge/GitHub-gpu7/agent--bitcoin-black)](https://github.com/gpu7/agent-bitcoin)
-[![GitHub Release](https://img.shields.io/github/v/release/gpu7/agent-bitcoin)](https://github.com/gpu7/agent-bitcoin/releases/latest)
-[![Python](https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12-blue)](https://www.python.org/)
-[![PyPI](https://img.shields.io/pypi/v/agent-bitcoin)](https://pypi.org/project/agent-bitcoin/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<p align="center">
+  <a href="https://github.com/gpu7/agent-bitcoin"><img src="https://img.shields.io/badge/GitHub-gpu7/agent--bitcoin-black" alt="GitHub Repo"></a>
+  <a href="https://github.com/gpu7/agent-bitcoin/releases/latest"><img src="https://img.shields.io/github/v/release/gpu7/agent-bitcoin" alt="GitHub Release"></a>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12-blue" alt="Python"></a>
+  <a href="https://pypi.org/project/agent-bitcoin/"><img src="https://img.shields.io/pypi/v/agent-bitcoin" alt="PyPI"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
+</p>
 
 <br>
 
