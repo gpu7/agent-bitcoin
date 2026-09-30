@@ -1,3 +1,9 @@
+## Changed — title banner (2026-09-29)
+
+Refresh `images/dark-factory-image.jpg` (sharper title banner).
+
+---
+
 ## Docs — AWS operator runbook (2026-09-25)
 
 Add `docs/aws-operator.md` (AWS operator runbook).
