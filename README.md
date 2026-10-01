@@ -330,6 +330,7 @@ MIT License — see [LICENSE](LICENSE).
 
 ## Support
 
-Richard Casey<br>
-richardcaseyhpc@protonmail.com<br>
+Dark Factory  
+Richard Casey  
+richardcaseyhpc@protonmail.com  
 +1 970-980-5975
