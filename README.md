@@ -104,6 +104,10 @@ Example:
 
 ## Agent-to-Merchant Lightning Network Payments
 
+<p align="center">
+  <img src="./images/agent-to-merchant-lightning-payment.jpg" alt="Agent-to-Merchant Lightning Payment" width="700"/>
+</p>
+
 Agents in two-agent or eight-agent swarms negotiate with one-another to determine who pays the Merchant endpoint.  They agree on a single payer. Then, that agent makes a Lightning payment to the Merchant and reads the results.
 
 - Each agent has its own Nostr ID (`npub`). They publish Nostr signed events so peers can negotiate who pays the Merchant.

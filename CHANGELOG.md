@@ -1,3 +1,9 @@
+## Docs — Agent-to-Merchant infographic (2026-10-02)
+
+Add Agent-to-Merchant Lightning Payment infographic to the README.
+
+---
+
 ## Changed — title banner (2026-09-29)
 
 Refresh `images/dark-factory-image.jpg` (cyan Dark Factory, Bitcoin-orange Agent Bitcoin).
