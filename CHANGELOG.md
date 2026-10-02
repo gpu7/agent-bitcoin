@@ -1,3 +1,9 @@
+## Docs — Agent-to-Agent infographic (2026-10-02)
+
+Add Agent-to-Agent Lightning Payment infographic to the README.
+
+---
+
 ## Docs — Agent-to-Merchant infographic (2026-10-02)
 
 Add Agent-to-Merchant Lightning Payment infographic to the README.
