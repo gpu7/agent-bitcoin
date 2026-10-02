@@ -166,7 +166,7 @@ Documents:
 
 ---
 
-## Bitcoin Final Settlement layer
+## Bitcoin Final Settlement Layer
 
 The Bitcoin blockchain network is used as the final settlement layer for Lightning payments between agents.  Bitcoin is treated as a Layer-1 protocol and Lightning is treated as a Layer-2 protocol.  
 
