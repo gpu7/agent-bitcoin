@@ -173,8 +173,11 @@ The Bitcoin blockchain network is used as the final settlement layer for Lightni
 For autonomous AI agent swarms, the payment and settlement protocol is:
 
 - **Open a Lightning channel.** Operator (human-in-the-loop) opens a Lightning channel on behalf of agents.  Currently, this is for safety reasons to protect funds. Creates 2-of-2 multisig UTXO in the Bitcoin blockchain.  Funds Lightning channel for agents.
+
 - **Make Lightning payments.** Agents pay one another via the Lightning channel.
-- **Close the Lightning channel.** Operator (human-in-the-loop) closes the Lightning channel on behalf of agents.  Again, this is for safety reasons to protect funds.  
+
+- **Close the Lightning channel.** Operator (human-in-the-loop) closes the Lightning channel on behalf of agents.  Again, this is for safety reasons to protect funds.
+
 - **Update Bitcoin ledger.** Spend 2-of-2 multisig UTXO.  Payout fund balances to each party's Bitcoin address. Final settlement of Lightning payment balances in the Bitcoin blockchain network. 
 
 ---
