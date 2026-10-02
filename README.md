@@ -86,6 +86,10 @@ Velocity of money is the turnover rate of sats between paying agents. In an agen
 
 ## Agent-to-Agent Lightning Network Payments
 
+<p align="center">
+  <img src="./images/agent-to-agent-lightning-payment.jpg" alt="Agent-to-Agent Lightning Payment" width="700"/>
+</p>
+
 In an autonomous AI agent swarm, agents can make direct Lightning Network payments to one-another.  A payee agent **invoices** a payer agent; the payer agent **pays that invoice** over the Lightning Network.
 
 - Each agent has its own Nostr ID (`npub`). The payee sends an invoice as an encrypted Nostr event to the payer’s ID (`npub`).
