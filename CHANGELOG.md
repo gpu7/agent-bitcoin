@@ -1,3 +1,9 @@
+## Docs — Bitcoin final settlement infographic (2026-10-04)
+
+Add Bitcoin Final Settlement Layer infographic to the README.
+
+---
+
 ## Docs — Agent-to-Agent infographic (2026-10-02)
 
 Add Agent-to-Agent Lightning Payment infographic to the README.

@@ -168,6 +168,10 @@ Documents:
 
 ## Bitcoin Final Settlement Layer
 
+<p align="center">
+  <img src="./images/bitcoin-final-settlement-layer.jpg" alt="Bitcoin Final Settlement Layer" width="700"/>
+</p>
+
 The Bitcoin blockchain network is used as the final settlement layer for Lightning payments between agents.  Bitcoin is treated as a Layer-1 protocol and Lightning is treated as a Layer-2 protocol.  
 
 For autonomous AI agent swarms, the payment and settlement protocol is:
