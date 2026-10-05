@@ -1,3 +1,9 @@
+## Docs — Contributing section (2026-10-05)
+
+Add a Contributing section to the README.
+
+---
+
 ## Docs — Bitcoin final settlement infographic (2026-10-04)
 
 Add Bitcoin Final Settlement Layer infographic to the README.

@@ -337,6 +337,18 @@ Report vulnerabilities privately — see **[SECURITY.md](SECURITY.md)**. Do not 
 
 ---
 
+## Contributing
+
+Pull requests are welcome. This repo is MIT licensed.
+
+1. Fork https://github.com/gpu7/agent-bitcoin and branch from `main`.
+2. Keep the change small and focused. Match the existing style.
+3. Add or update a test when the change is behavioral. Run the relevant tests before opening the PR.
+4. Open a pull request against `main`. Describe what changed and how you checked it.
+5. Do not open a public issue or PR for a security report. Use [SECURITY.md](SECURITY.md).
+
+---
+
 ## License
 
 MIT License — see [LICENSE](LICENSE).
