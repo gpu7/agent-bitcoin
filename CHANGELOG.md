@@ -1,3 +1,9 @@
+## Changed — 27.1.2 (2026-10-05)
+
+Unpin PyPI install, drop zap-receipt-inspect from the published description, and align the finance L402 demo price with 100 sats.
+
+---
+
 ## Docs — Contributing section (2026-10-05)
 
 Add a Contributing section to the README.
