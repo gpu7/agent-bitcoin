@@ -13,6 +13,18 @@ from agent_bitcoin.client import AgentBitcoinClient, _invoice_amount_sats
 from agent_bitcoin.constants import DEFAULT_L402_PRICE_SATS, min_payment_sats
 from agent_bitcoin.exceptions import PaymentError
 
+# Lab price for /paid/finance and /paid/nostr. Hello, PDF, and PNG stay at
+# DEFAULT_L402_PRICE_SATS (1,000). This is not the payment minimum.
+FINANCE_L402_PRICE_SATS = 100
+
+
+def expected_price_sats_for_url(url: str) -> int:
+    """Return 100 for finance and Nostr paths, otherwise the 1,000-sat demo price."""
+    path = (url or "").split("?", 1)[0]
+    if "/paid/finance/" in path or "/paid/nostr/" in path:
+        return FINANCE_L402_PRICE_SATS
+    return DEFAULT_L402_PRICE_SATS
+
 
 # Aperture / LSAT WWW-Authenticate: L402 macaroon="...", invoice="ln..."
 _CHALLENGE_RE = re.compile(

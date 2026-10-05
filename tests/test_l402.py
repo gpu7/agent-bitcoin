@@ -41,6 +41,22 @@ def test_default_l402_price_matches_min_pay() -> None:
     assert DEFAULT_L402_PRICE_SATS >= DEFAULT_MIN_PAYMENT_SATS
 
 
+def test_finance_and_nostr_urls_default_to_100() -> None:
+    from agent_bitcoin.l402.client import (
+        FINANCE_L402_PRICE_SATS,
+        expected_price_sats_for_url,
+    )
+
+    assert FINANCE_L402_PRICE_SATS == 100
+    finance = "http://127.0.0.1:8081/paid/finance/mempool-feerate"
+    nostr = "http://127.0.0.1:8081/paid/nostr/event-verify?x=1"
+    assert expected_price_sats_for_url(finance) == 100
+    assert expected_price_sats_for_url(nostr) == 100
+    assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/hello") == 1_000
+    assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/report.pdf") == 1_000
+    assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/badge.png") == 1_000
+
+
 def test_parse_www_authenticate_aperture() -> None:
     header = 'L402 macaroon="abc+/=", invoice="lnbcrt10u1ptestinvoice"'
     challenge = parse_www_authenticate(header)

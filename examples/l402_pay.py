@@ -26,7 +26,7 @@ Paid PDF / PNG (same 1,000 sat price):
     ... l402_pay.py --url http://3.90.159.146:8081/paid/script.pdf --out script.pdf
     ... l402_pay.py --url http://3.90.159.146:8081/paid/badge.png --out badge.png
 
-On-chain fee bands (100 sats; pass --price because the client default is 1000):
+On-chain fee bands and Nostr paths (100 sats; this CLI defaults to 100 there):
 
     ... l402_pay.py --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
     ... l402_pay.py --url http://3.90.159.146:8081/paid/finance/mempool-backlog --price 100
@@ -57,7 +57,7 @@ import os
 import sys
 
 from agent_bitcoin import L402Client, create_client
-from agent_bitcoin.constants import DEFAULT_L402_PRICE_SATS
+from agent_bitcoin.l402.client import expected_price_sats_for_url
 
 
 def main() -> int:
@@ -70,8 +70,12 @@ def main() -> int:
     parser.add_argument(
         "--price",
         type=int,
-        default=int(os.getenv("L402_PRICE_SATS", str(DEFAULT_L402_PRICE_SATS))),
-        help="Expected invoice amount in sats (default: %(default)s)",
+        default=None,
+        help=(
+            "Expected invoice amount in sats "
+            "(default: 100 for finance/Nostr, 1000 for hello/PDF/PNG, "
+            "or L402_PRICE_SATS)"
+        ),
     )
     parser.add_argument(
         "--out",
@@ -91,6 +95,12 @@ def main() -> int:
         help="JSON object string for POST body (not logged)",
     )
     args = parser.parse_args()
+    if args.price is None:
+        env_price = os.getenv("L402_PRICE_SATS")
+        if env_price is not None and env_price.strip() != "":
+            args.price = int(env_price)
+        else:
+            args.price = expected_price_sats_for_url(args.url)
 
     payload = None
     if args.json_body.strip():

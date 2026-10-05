@@ -257,7 +257,7 @@ The import package is `agent_bitcoin`.
 - `L402Challenge` / `parse_www_authenticate` — read the Lightning invoice out of a 402 response.
 - `Invoice`, `InvoiceQuote`, `PayerDecisionInputs` — invoice and “should I pay?” data.
 - `LightningConfig` — how the client finds LND (network, container, transport).
-- `DEFAULT_MIN_PAYMENT_SATS`, `DEFAULT_MAX_PAYMENT_SATS`, `DEFAULT_L402_PRICE_SATS` — floor (100), caps, typical Merchant price.
+- `DEFAULT_MIN_PAYMENT_SATS`, `DEFAULT_MAX_PAYMENT_SATS`, `DEFAULT_L402_PRICE_SATS` — minimum is 100 sats; finance/Nostr lab price is 100 sats; file demos are 1,000.
 - `PaymentDecisionAgent` / `create_grok_payment_decision_agent()` — Grok or Ollama YES/NO gate before a pay.
 - `PaymentDecision` — PAY / REJECT / CONFIRM_REQUIRED.
 - Exceptions (`PaymentError`, `InsufficientBalanceError`, `NoRouteError`, …) — typed failures instead of raw lncli text.
@@ -302,7 +302,7 @@ uv sync
 ### From PyPI
 
 ```bash
-pip install agent-bitcoin==27.1.0
+pip install agent-bitcoin
 ```
 
 ---
