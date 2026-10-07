@@ -18,7 +18,7 @@ Open [http://127.0.0.1:8765](http://127.0.0.1:8765) in Brave. `DASHBOARD_PORT` c
 
 | Node | Probe |
 |------|--------|
-| Payer agent | Local Docker container `agent-bitcoin-lnd` (or the signet/mainnet name). `lncli getinfo` only. |
+| Payer agent | Local Docker container `agent-bitcoin-lnd-mainnet` (regtest: `agent-bitcoin-lnd`, signet: `agent-bitcoin-lnd-signet`). `lncli getinfo` only. |
 | Invoice agent | Local invoice container if this Mac is running it. Otherwise **unknown**. The AWS invoice node is not marked up from here. |
 | Lightning channel | `lncli listchannels` on the payer after `getinfo` succeeds. Locked wallet stays **locked**. |
 | Bitcoin network | Payer `synced_to_chain`, or a local bitcoind container. A failed probe stays failed. |
@@ -26,7 +26,7 @@ Open [http://127.0.0.1:8765](http://127.0.0.1:8765) in Brave. `DASHBOARD_PORT` c
 | Merchant origin | Docker container `agent-l402-origin` on this Mac. If it is only on AWS, the box stays **unknown**. |
 | Nostr | TCP connect to `NOSTR_RELAYS` (default `relay.damus.io` and `nos.lol`) on port 443. No events are published. |
 
-`LND_NETWORK` selects regtest, signet, or mainnet container names. The default is regtest.
+The command defaults to mainnet: `agent-bitcoin-lnd-mainnet`, `agent-payment-decision-lnd-mainnet`, `agent-payment-decision-bitcoind-mainnet`, `agent-l402-aperture`, and `agent-l402-origin`. It does not read `LND_NETWORK` and does not change the SDK regtest default. For the lab, add `--network regtest` or `--network signet`.
 
 Set `DASHBOARD_APERTURE_URL` to the Aperture you can reach from this Mac, for example `http://<AWS_PUBLIC_IP>:8081`. Do not put that address in a public bind.
 

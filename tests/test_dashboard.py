@@ -2,10 +2,17 @@
 
 from __future__ import annotations
 
+import os
+
 import pytest
 from fastapi.testclient import TestClient
 
-from agent_bitcoin.dashboard.app import create_app, resolve_host, resolve_port
+from agent_bitcoin.dashboard.app import (
+    create_app,
+    resolve_host,
+    resolve_network,
+    resolve_port,
+)
 from agent_bitcoin.dashboard.probes import (
     ALLOWED_LNCLI,
     CommandRejected,
@@ -61,18 +68,27 @@ def test_status_is_read_only_and_has_no_secrets(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("LND_NETWORK", "regtest")
+    monkeypatch.delenv("AGENT_BITCOIN_ALLOW_AUTOPAY", raising=False)
     monkeypatch.delenv("DASHBOARD_APERTURE_URL", raising=False)
     io = FakeIO()
+    io.names = {
+        "agent-bitcoin-lnd-mainnet",
+        "agent-payment-decision-lnd-mainnet",
+        "agent-payment-decision-bitcoind-mainnet",
+        "agent-l402-origin",
+    }
     response = _client(io).get("/api/status")
     assert response.status_code == 200
     body = response.json()
     assert body["bind"] == "127.0.0.1"
+    assert body["network"] == "mainnet"
+    assert os.environ.get("AGENT_BITCOIN_ALLOW_AUTOPAY") is None
     states = {node["id"]: node["state"] for node in body["nodes"]}
     assert states == {
         "bitcoin": "up",
         "channel": "up",
         "payer": "up",
-        "invoice": "unknown",
+        "invoice": "up",
         "nostr": "up",
         "aperture": "up",
         "origin": "up",
@@ -132,6 +148,15 @@ def test_lncli_guard_rejects_unlock(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("agent_bitcoin.dashboard.probes.subprocess.run", boom)
     with pytest.raises(CommandRejected):
         RealProbeIO().lncli("agent-bitcoin-lnd", "regtest", "unlock")
+
+
+def test_default_network_is_mainnet_and_lab_override_is_explicit() -> None:
+    assert resolve_network([]) == "mainnet"
+    assert resolve_network(["--network", "regtest"]) == "regtest"
+    assert resolve_network(["--network", "signet"]) == "signet"
+    from agent_bitcoin.lightning import _DEFAULT_NETWORK
+
+    assert _DEFAULT_NETWORK == "regtest"
 
 
 def test_bind_is_loopback_only() -> None:

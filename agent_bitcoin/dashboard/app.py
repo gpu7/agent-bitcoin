@@ -2,12 +2,19 @@
 
 from __future__ import annotations
 
+import argparse
 import os
+import sys
 
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse
 
-from agent_bitcoin.dashboard.probes import ProbeIO, RealProbeIO, collect_status
+from agent_bitcoin.dashboard.probes import (
+    ProbeIO,
+    RealProbeIO,
+    collect_status,
+    network_name,
+)
 
 BIND_HOST = "127.0.0.1"
 DEFAULT_PORT = 8765
@@ -186,8 +193,21 @@ def resolve_port(raw: str | None = None) -> int:
     return port
 
 
-def create_app(io: ProbeIO | None = None) -> FastAPI:
+def resolve_network(argv: list[str] | None = None) -> str:
+    """Default mainnet. `--network regtest` or `--network signet` selects the lab."""
+    parser = argparse.ArgumentParser(prog="agent_bitcoin.dashboard")
+    parser.add_argument(
+        "--network",
+        default="mainnet",
+        choices=("mainnet", "regtest", "signet"),
+    )
+    args = parser.parse_args([] if argv is None else argv)
+    return network_name(args.network)
+
+
+def create_app(io: ProbeIO | None = None, network: str | None = None) -> FastAPI:
     probe = io or RealProbeIO()
+    chosen = network_name(network)
     app = FastAPI(title="Agent Bitcoin infrastructure", docs_url=None, redoc_url=None)
 
     @app.get("/", response_class=HTMLResponse)
@@ -196,15 +216,18 @@ def create_app(io: ProbeIO | None = None) -> FastAPI:
 
     @app.get("/api/status")
     def status() -> JSONResponse:
-        payload = collect_status(probe)
+        payload = collect_status(probe, network=chosen)
         return JSONResponse(payload, headers={"Cache-Control": "no-store"})
 
     return app
 
 
-def serve() -> None:
+def serve(argv: list[str] | None = None) -> None:
     import uvicorn
 
     host = resolve_host(os.environ.get("DASHBOARD_HOST"))
     port = resolve_port()
-    uvicorn.run(create_app(), host=host, port=port, log_level="info")
+    # docker exec lncli does not consult the SDK mainnet latch.
+    # Do not set AGENT_BITCOIN_ALLOW_AUTOPAY or AGENT_BITCOIN_ALLOW_MAINNET here.
+    network = resolve_network(sys.argv[1:] if argv is None else argv)
+    uvicorn.run(create_app(network=network), host=host, port=port, log_level="info")
