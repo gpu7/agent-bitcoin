@@ -287,6 +287,8 @@ The AWS Runbook describes how to set up, configure, run and manage AWS.
 
 Runbook: `docs/aws-operator.md` 
 
+Mac map: [localhost-dashboard.md](docs/localhost-dashboard.md)
+
 ---
 
 ## Installation
