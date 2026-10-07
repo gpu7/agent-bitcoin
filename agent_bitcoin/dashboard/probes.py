@@ -52,9 +52,12 @@ def scrub(text: str, limit: int = 140) -> str:
     return cleaned[:limit]
 
 
-def network_name() -> str:
-    raw = (os.environ.get("LND_NETWORK") or "regtest").strip().lower()
-    return raw if raw in _PAYER else "regtest"
+def network_name(explicit: str | None = None) -> str:
+    """Dashboard default is mainnet. This does not read LND_NETWORK."""
+    raw = (explicit or "mainnet").strip().lower()
+    if raw not in _PAYER:
+        raise SystemExit("dashboard --network must be mainnet, regtest, or signet")
+    return raw
 
 
 @dataclass(frozen=True)

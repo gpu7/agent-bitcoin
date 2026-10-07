@@ -1,3 +1,9 @@
+## Changed — dashboard network (2026-10-07)
+
+Dashboard defaults to the mainnet infrastructure map.
+
+---
+
 ## Docs — Dashboard section (2026-10-07)
 
 Add a Dashboard section to the README.
