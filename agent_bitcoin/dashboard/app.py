@@ -18,6 +18,15 @@ from agent_bitcoin.dashboard.probes import (
 
 BIND_HOST = "127.0.0.1"
 DEFAULT_PORT = 8765
+_MAP_NODES = (
+    ("bitcoin", "Bitcoin network"),
+    ("channel", "Lightning channel"),
+    ("payer", "Payer agent"),
+    ("invoice", "Invoice agent"),
+    ("nostr", "Nostr"),
+    ("aperture", "Aperture"),
+    ("origin", "Merchant origin"),
+)
 
 _PAGE = """<!DOCTYPE html>
 <html lang="en">
@@ -205,6 +214,33 @@ def resolve_network(argv: list[str] | None = None) -> str:
     return network_name(args.network)
 
 
+def _probe_failed(network: str) -> dict[str, object]:
+    """Generic map. The exception text stays off this payload."""
+    return {
+        "revision": "unknown",
+        "network": network,
+        "bind": BIND_HOST,
+        "nodes": [
+            {
+                "id": node_id,
+                "label": label,
+                "state": "unknown",
+                "detail": "probe failed",
+            }
+            for node_id, label in _MAP_NODES
+        ],
+        "links": [
+            ["bitcoin", "channel"],
+            ["channel", "payer"],
+            ["channel", "invoice"],
+            ["payer", "nostr"],
+            ["invoice", "nostr"],
+            ["invoice", "aperture"],
+            ["aperture", "origin"],
+        ],
+    }
+
+
 def create_app(io: ProbeIO | None = None, network: str | None = None) -> FastAPI:
     probe = io or RealProbeIO()
     chosen = network_name(network)
@@ -216,7 +252,10 @@ def create_app(io: ProbeIO | None = None, network: str | None = None) -> FastAPI
 
     @app.get("/api/status")
     def status() -> JSONResponse:
-        payload = collect_status(probe, network=chosen)
+        try:
+            payload = collect_status(probe, network=chosen)
+        except Exception:  # noqa: BLE001 — generic payload; no exception text
+            payload = _probe_failed(chosen)
         return JSONResponse(payload, headers={"Cache-Control": "no-store"})
 
     return app

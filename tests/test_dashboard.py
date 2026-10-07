@@ -108,6 +108,28 @@ def test_status_is_read_only_and_has_no_secrets(
     assert "password" not in text
 
 
+def test_status_hides_probe_exception_text() -> None:
+    class Boom(FakeIO):
+        def containers(self) -> set[str]:
+            raise RuntimeError("nsec1shouldnotappear macaroon=secret password=hunter2")
+
+    normal = _client(FakeIO()).get("/api/status")
+    assert normal.status_code == 200
+
+    response = _client(Boom()).get("/api/status")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["bind"] == "127.0.0.1"
+    assert [node["state"] for node in body["nodes"]] == ["unknown"] * 7
+    assert {node["detail"] for node in body["nodes"]} == {"probe failed"}
+    text = response.text.lower()
+    assert "nsec1shouldnotappear" not in text
+    assert "macaroon" not in text
+    assert "password" not in text
+    assert "hunter2" not in text
+    assert "traceback" not in text
+
+
 def test_failed_probe_is_not_marked_up(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LND_NETWORK", "regtest")
     monkeypatch.delenv("DASHBOARD_APERTURE_URL", raising=False)
