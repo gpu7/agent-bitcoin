@@ -170,8 +170,8 @@ def collect_status(io: ProbeIO, *, network: str | None = None) -> dict[str, obje
     ]
     try:
         revision = scrub(io.git_describe(), limit=80) or "unknown"
-    except Exception as exc:  # noqa: BLE001 — show the probe failure
-        revision = scrub(str(exc), limit=80) or "unknown"
+    except Exception:  # noqa: BLE001 — revision stays unknown; no exception text
+        revision = "unknown"
     return {
         "revision": revision,
         "network": net,
@@ -286,8 +286,8 @@ class RealProbeIO:
                 timeout=5,
                 check=False,
             )
-        except (OSError, subprocess.TimeoutExpired) as exc:
-            self.note = scrub(str(exc))
+        except (OSError, subprocess.TimeoutExpired):
+            self.note = "docker probe failed"
             return set()
         self.note = ""
         if done.returncode != 0:
@@ -315,8 +315,8 @@ class RealProbeIO:
                 timeout=8,
                 check=False,
             )
-        except (OSError, subprocess.TimeoutExpired) as exc:
-            return 1, scrub(str(exc))
+        except (OSError, subprocess.TimeoutExpired):
+            return 1, "lncli probe failed"
         return done.returncode, (done.stdout or "") + (done.stderr or "")
 
     def http_status(self, url: str) -> tuple[int | None, str]:
@@ -328,8 +328,8 @@ class RealProbeIO:
                 return int(response.status), ""
         except HTTPError as exc:
             return int(exc.code), ""
-        except (URLError, TimeoutError, OSError) as exc:
-            return None, scrub(str(exc.reason if isinstance(exc, URLError) else exc))
+        except (URLError, TimeoutError, OSError):
+            return None, "connection failed"
 
     def tcp_open(self, host: str, port: int) -> tuple[bool, str]:
         if os.environ.get("PYTEST_CURRENT_TEST"):
@@ -337,8 +337,8 @@ class RealProbeIO:
         try:
             with socket.create_connection((host, port), timeout=2):
                 return True, ""
-        except OSError as exc:
-            return False, scrub(str(exc))
+        except OSError:
+            return False, "connection failed"
 
     def git_describe(self) -> str:
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -351,8 +351,8 @@ class RealProbeIO:
                 check=False,
                 cwd=root,
             )
-        except (OSError, subprocess.TimeoutExpired) as exc:
-            return scrub(str(exc)) or "unknown"
+        except (OSError, subprocess.TimeoutExpired):
+            return "unknown"
         if done.returncode != 0:
             return scrub(done.stderr) or "unknown"
         return (done.stdout or "").strip() or "unknown"
