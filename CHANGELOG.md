@@ -1,3 +1,9 @@
+## Changed — dashboard probe exceptions (2026-10-07)
+
+Dashboard status does not return probe exception text.
+
+---
+
 ## Docs — lab Elastic IP (2026-10-07)
 
 Document the lab Elastic IP in place of the AWS public IP placeholder.
