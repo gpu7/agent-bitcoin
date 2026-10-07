@@ -291,6 +291,20 @@ Mac map: [localhost-dashboard.md](docs/localhost-dashboard.md)
 
 ---
 
+## Dashboard
+
+The Dashboard is a read-only map of the agent-bitcoin infrastructure. It shows Bitcoin, the Lightning channel, the payer and invoice agents, Nostr, Aperture, and the Merchant origin. It does not pay, unlock a wallet, or open a channel.
+
+Start the map on the Mac with:
+
+```bash
+uv run python -m agent_bitcoin.dashboard
+```
+
+Then open http://127.0.0.1:8765. It listens only on 127.0.0.1.
+
+---
+
 ## Installation
 
 ### From github repo source
