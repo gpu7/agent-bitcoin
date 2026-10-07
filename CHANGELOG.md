@@ -1,3 +1,9 @@
+## Changed — mainnet prune window (2026-10-07)
+
+Mainnet AWS bitcoind uses a 20 GB prune window on a new volume.
+
+---
+
 ## Changed — dashboard network (2026-10-07)
 
 Dashboard defaults to the mainnet infrastructure map.

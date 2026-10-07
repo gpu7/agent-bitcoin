@@ -44,7 +44,7 @@ export LND_CONTAINER="${LND_CONTAINER:-$CONTAINER}"
 echo "=== Agent-Bitcoin Mainnet Startup (AWS, bitcoind) ==="
 echo "AWS_IP=$AWS_IP"
 echo "WARNING: mainnet real funds risk. Do not proceed to fund without Phase 8 go."
-echo "Volumes: agent-bitcoin_lnd-mainnet-data , agent-bitcoin_bitcoind-mainnet-data (NEW only)"
+echo "Volumes: agent-bitcoin_lnd-mainnet-data , agent-bitcoin_bitcoind-mainnet-prune20g"
 echo ""
 
 if [[ ! -f "$COMPOSE_FILE" ]]; then

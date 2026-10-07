@@ -22,7 +22,7 @@ services:
       - -server=1
       - -listen=1
       - -dnsseed=1
-      - -prune=550
+      - -prune=20000
       - -rpcallowip=0.0.0.0/0
       - -rpcbind=0.0.0.0
       - -rpcuser=${MAINNET_BITCOIND_RPCUSER:?set MAINNET_BITCOIND_RPCUSER}
@@ -33,7 +33,7 @@ services:
       - -zmqpubrawtx=tcp://0.0.0.0:28333
       - -dbcache=1024
     volumes:
-      - bitcoind-mainnet-data:/home/bitcoin/.bitcoin
+      - bitcoind-mainnet-prune20g:/home/bitcoin/.bitcoin
     networks:
       - mainnet-net
     healthcheck:
@@ -86,7 +86,9 @@ networks:
     name: agent-bitcoin-mainnet
 
 volumes:
-  bitcoind-mainnet-data:
-    name: agent-bitcoin_bitcoind-mainnet-data
+  # ~20 GB prune window. The old agent-bitcoin_bitcoind-mainnet-data volume
+  # (prune=550) is retired, not deleted.
+  bitcoind-mainnet-prune20g:
+    name: agent-bitcoin_bitcoind-mainnet-prune20g
   lnd-mainnet-data:
     name: agent-bitcoin_lnd-mainnet-data
