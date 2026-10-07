@@ -4,11 +4,10 @@ Audience: an operator who already has an AWS account and this repo. This is not 
 
 Diagram: [architecture.md](./architecture.md). Paid routes and YAML: [l402-aperture.md](./l402-aperture.md). Mainnet design notes: [mainnet-infra.md](./mainnet-infra.md). Optional HTTP API: [backend.md](./backend.md).
 
-Use placeholders. Do not paste account IDs, AMI IDs, instance IDs, seeds, macaroons, or wallet passwords into git.
+Do not paste account IDs, AMI IDs, instance IDs, seeds, macaroons, or wallet passwords into git.
 
 | Placeholder | Meaning |
 |---|---|
-| `<AWS_PUBLIC_IP>` | This box's public IPv4 (EIP if you attached one) |
 | `<AWS_REGION>` | Region of the instance |
 | `<SG_ID>` | Security group ID |
 | `<KEY_NAME>` | SSH key pair name |
@@ -51,7 +50,7 @@ Only one L402 stack can bind **8081**. Stop the other network's Aperture before 
 
 ## 3. One-time box
 
-Ubuntu-class AMI in `<AWS_REGION>`. Attach an EIP if you want `<AWS_PUBLIC_IP>` to survive stop/start. Name the instance `<INSTANCE_NAME>`. SSH with `<KEY_NAME>`. Security group `<SG_ID>` as in the table above.
+Ubuntu-class AMI in `<AWS_REGION>`. Attach an EIP if you want `3.90.159.146` to survive stop/start. Name the instance `<INSTANCE_NAME>`. SSH with `<KEY_NAME>`. Security group `<SG_ID>` as in the table above.
 
 On the instance:
 
@@ -76,14 +75,14 @@ Invoice LND and chain first, then Aperture.
 
 ```bash
 # Regtest. Second arg is the public IP the node advertises.
-./startup-aws.sh regtest <AWS_PUBLIC_IP>
+./startup-aws.sh regtest 3.90.159.146
 
 # Signet (Neutrino). No local bitcoind.
-./startup-signet-aws.sh <AWS_PUBLIC_IP>
+./startup-signet-aws.sh 3.90.159.146
 
 # Mainnet bitcoind + invoice LND. Set RPC user/password in the environment
 # first (see docs/mainnet-infra.md). Do not put those values in git.
-./startup-mainnet-aws.sh <AWS_PUBLIC_IP>
+./startup-mainnet-aws.sh 3.90.159.146
 ```
 
 The AWS mainnet chain backend keeps about 20 GB (`-prune=20000` on `agent-bitcoin_bitcoind-mainnet-prune20g`) so LND can rescan back to the channel opens. The old 550 MB volume `agent-bitcoin_bitcoind-mainnet-data` is retired, not deleted. LND stays on `agent-bitcoin_lnd-mainnet-data`.
@@ -150,7 +149,7 @@ If the channel's `active` field is false, reconnect from the **payer** node. Rea
 
 ```bash
 # Payer shell. Signet uses port 19735, not 9735.
-lncli connect <pubkey-from-getinfo>@<AWS_PUBLIC_IP>:9735
+lncli connect <pubkey-from-getinfo>@3.90.159.146:9735
 ```
 
 ## 7. Day-2
@@ -160,7 +159,7 @@ lncli connect <pubkey-from-getinfo>@<AWS_PUBLIC_IP>:9735
 | `getinfo` says wallet locked after reboot or spot stop | Unlock with `<LND_UNLOCK_PASSWORD>` |
 | Channel `active: false` | Peer down, wrong port, or SG missing 9735/19735. Reconnect as in section 6 |
 | Paid path returns 500 | Invoice LND is down or locked. Aperture cannot get a challenge invoice |
-| `curl` to 8081 times out from your laptop | Security group or wrong `<AWS_PUBLIC_IP>`. On the box, 127.0.0.1:8081 should still answer |
+| `curl` to 8081 times out from your laptop | Security group or wrong `3.90.159.146`. On the box, 127.0.0.1:8081 should still answer |
 | Two networks both want 8081 | Stop the other `./shutdown-l402-aws.sh <network>` first |
 
 Backups: [lnd-backup-restore.md](./lnd-backup-restore.md). Closing a channel moves funds on-chain: [ln-channel-close.md](./ln-channel-close.md). Do not close a channel unless you mean to.
