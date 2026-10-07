@@ -1,3 +1,9 @@
+## Docs — Dashboard section (2026-10-07)
+
+Add a Dashboard section to the README.
+
+---
+
 ## Docs — localhost infrastructure map (2026-10-07)
 
 Add a localhost read-only infrastructure dashboard.
