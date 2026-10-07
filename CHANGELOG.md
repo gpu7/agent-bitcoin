@@ -1,3 +1,9 @@
+## Docs — lab Elastic IP (2026-10-07)
+
+Document the lab Elastic IP in place of the AWS public IP placeholder.
+
+---
+
 ## Changed — mainnet prune window (2026-10-07)
 
 Mainnet AWS bitcoind uses a 20 GB prune window on a new volume.

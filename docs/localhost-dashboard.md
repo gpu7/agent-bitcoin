@@ -28,6 +28,6 @@ Open [http://127.0.0.1:8765](http://127.0.0.1:8765) in Brave. `DASHBOARD_PORT` c
 
 The command defaults to mainnet: `agent-bitcoin-lnd-mainnet`, `agent-payment-decision-lnd-mainnet`, `agent-payment-decision-bitcoind-mainnet`, `agent-l402-aperture`, and `agent-l402-origin`. It does not read `LND_NETWORK` and does not change the SDK regtest default. For the lab, add `--network regtest` or `--network signet`.
 
-Set `DASHBOARD_APERTURE_URL` to the Aperture you can reach from this Mac, for example `http://<AWS_PUBLIC_IP>:8081`. Do not put that address in a public bind.
+Set `DASHBOARD_APERTURE_URL` to the Aperture you can reach from this Mac, for example `http://3.90.159.146:8081`. Do not put that address in a public bind.
 
 The page footer shows `git describe`. Probe errors are shortened. Macaroons, nsec values, seeds, and the unlock password are not returned.
