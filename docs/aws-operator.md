@@ -86,6 +86,8 @@ Invoice LND and chain first, then Aperture.
 ./startup-mainnet-aws.sh <AWS_PUBLIC_IP>
 ```
 
+The AWS mainnet chain backend keeps about 20 GB (`-prune=20000` on `agent-bitcoin_bitcoind-mainnet-prune20g`) so LND can rescan back to the channel opens. The old 550 MB volume `agent-bitcoin_bitcoind-mainnet-data` is retired, not deleted. LND stays on `agent-bitcoin_lnd-mainnet-data`.
+
 Then the gateway (default network is regtest):
 
 ```bash

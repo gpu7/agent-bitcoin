@@ -37,7 +37,7 @@ Mac:  bitcoind (mainnet, pruned OK for pilot)
 | Role | Host | Container | Volume (compose name) |
 |------|------|-----------|------------------------|
 | Agent LND | AWS | `agent-payment-decision-lnd-mainnet` | `agent-bitcoin_lnd-mainnet-data` |
-| Agent bitcoind | AWS | `agent-payment-decision-bitcoind-mainnet` | `agent-bitcoin_bitcoind-mainnet-data` |
+| Agent bitcoind | AWS | `agent-payment-decision-bitcoind-mainnet` | `agent-bitcoin_bitcoind-mainnet-prune20g` |
 | Peer LND | Mac | `agent-bitcoin-lnd-mainnet` | `agent-bitcoin_agent-bitcoin-lnd-mainnet-data` (project-prefixed) |
 | Peer bitcoind | Mac | `agent-bitcoin-bitcoind-mainnet` | `agent-bitcoin_agent-bitcoin-bitcoind-mainnet-data` |
 
@@ -76,7 +76,7 @@ Signet may keep using 19735/20009 and 29735/30009 — **stop signet LND** before
 |----------|--------|
 | Backend | **bitcoind** both sides |
 | Image | `bitcoin/bitcoin:28.0` (pin; bump deliberately) |
-| Prune | **Default prune=550** for pilot disk (no `txindex`) |
+| Prune | AWS **prune=20000** (about 20 GB) so LND can rescan back to the channel opens. The old 550 MB volume `agent-bitcoin_bitcoind-mainnet-data` is retired, not deleted. Mac pilot stays prune=550. No `txindex`. |
 | Full archival | Optional later; needs large EBS (hundreds of GB) |
 | Neutrino on mainnet | **Not** default for this pilot (signet AWS Neutrino was lab-only) |
 

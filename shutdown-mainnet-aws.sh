@@ -20,5 +20,6 @@ export AWS_IP="${AWS_IP:-${AWS_EIP:-3.90.159.146}}"
 
 echo "=== Mainnet AWS shutdown (volumes preserved) ==="
 docker compose -f "$COMPOSE_FILE" down
-echo "✅ Stopped. Volumes kept: agent-bitcoin_lnd-mainnet-data , agent-bitcoin_bitcoind-mainnet-data"
+echo "✅ Stopped. Volumes kept: agent-bitcoin_lnd-mainnet-data , agent-bitcoin_bitcoind-mainnet-prune20g"
+echo "   Retired, not deleted: agent-bitcoin_bitcoind-mainnet-data"
 echo "   Full wipe (DESTRUCTIVE): docker compose -f $COMPOSE_FILE down -v"
