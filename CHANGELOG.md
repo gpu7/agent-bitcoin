@@ -1,3 +1,9 @@
+## Docs — localhost infrastructure map (2026-10-07)
+
+Add a localhost read-only infrastructure dashboard.
+
+---
+
 ## Changed — 27.1.2 (2026-10-05)
 
 Unpin PyPI install, drop zap-receipt-inspect from the published description, and align the finance L402 demo price with 100 sats.

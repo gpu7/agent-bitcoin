@@ -30,6 +30,7 @@
 | [nip44-nwc-relays.md](./nip44-nwc-relays.md) | **NIP-44** + public-relay NWC; dual-host `get_info` / `get_balance` PASS |
 | [l402-aperture.md](./l402-aperture.md) | **Aperture L402** HTTP gateway (regtest + signet + mainnet PASS) |
 | [architecture.md](./architecture.md) | Engineers: L402 deployment diagram (Mermaid) |
+| [localhost-dashboard.md](./localhost-dashboard.md) | Mac-only read-only infrastructure map (`127.0.0.1`) |
 | [l402-tools.md](./l402-tools.md) | L402 paid JSON tools for agents (Bitcoin / Lightning / Nostr) |
 | [l402-external-agent.md](./l402-external-agent.md) | Connect a client agent to L402 (8081 `/32`, their payer) |
 | [l402-client-pack.md](./l402-client-pack.md) | Client pack: Neutrino LND compose, setup + 100-sat smoke |
