@@ -233,7 +233,10 @@ def test_page_lists_the_map_and_has_no_pay_button() -> None:
     assert "offset-path" in html
     assert "@keyframes glide" in html
     assert "not a live channel" in story
+    assert story.index("not a live channel.") < story.index('class="story-rule"')
     assert "<button" not in story
+    assert 'classList.add("pressed")' in html
+    assert 'fetch("/api/status"' in html
     assert "nsec" not in story.lower()
     assert "macaroon" not in story.lower()
     assert ">Refresh<" in html

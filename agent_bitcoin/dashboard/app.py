@@ -96,6 +96,12 @@ _PAGE = """<!DOCTYPE html>
     color: var(--muted);
     font-size: 13px;
   }
+  .story-rule {
+    margin: 12px 0 0;
+    border: 0;
+    border-top: 1px solid #7d8794;
+    width: 100%;
+  }
   .map {
     position: relative;
     max-width: 1080px;
@@ -173,6 +179,7 @@ _PAGE = """<!DOCTYPE html>
     padding: 6px 14px;
     cursor: pointer;
   }
+  button.pressed { opacity: 0.62; }
   @media (max-width: 860px) {
     .story { padding: 0 16px; }
     .groups { grid-template-columns: 1fr; padding: 0 16px 24px; }
@@ -207,6 +214,7 @@ _PAGE = """<!DOCTYPE html>
     </g>
   </svg>
   <figcaption>A picture of an agent-to-agent payment, not a live channel.</figcaption>
+  <hr class="story-rule">
 </figure>
 <div class="map" id="map">
   <svg class="links" id="links" aria-hidden="true"></svg>
@@ -287,7 +295,12 @@ async function load() {
     drawLinks(currentLinks);
   }
 }
-document.getElementById("refresh").addEventListener("click", load);
+const refresh = document.getElementById("refresh");
+refresh.addEventListener("click", () => {
+  refresh.classList.add("pressed");
+  window.setTimeout(() => refresh.classList.remove("pressed"), 180);
+  load();
+});
 window.addEventListener("resize", () => drawLinks(currentLinks));
 drawLinks(LINKS);
 load();

@@ -1,3 +1,9 @@
+## Changed — dashboard separator (2026-10-08)
+
+Separate the dashboard picture from the map and dim Refresh on click.
+
+---
+
 ## Changed — two-agent animation (2026-10-08)
 
 Add a two-agent Lightning payment animation above the dashboard map.
