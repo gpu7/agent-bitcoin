@@ -5,10 +5,12 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse
 
+from agent_bitcoin.dashboard.npub import picture_labels
 from agent_bitcoin.dashboard.probes import (
     ProbeIO,
     RealProbeIO,
@@ -205,9 +207,9 @@ _PAGE = """<!DOCTYPE html>
     <circle cx="46" cy="46" r="18" fill="#10192b" stroke="#5ad7ff" stroke-width="2"/>
     <circle cx="314" cy="46" r="18" fill="#10192b" stroke="#5ad7ff" stroke-width="2"/>
     <text x="46" y="84" text-anchor="middle" fill="#5ad7ff" font-size="13">Agent 1</text>
-    <text x="46" y="100" text-anchor="middle" fill="#8b97ad" font-size="11">agent npub</text>
+    <text x="46" y="100" text-anchor="middle" fill="#8b97ad" font-size="11">__AGENT1_NPUB__</text>
     <text x="314" y="84" text-anchor="middle" fill="#5ad7ff" font-size="13">Agent 2</text>
-    <text x="314" y="100" text-anchor="middle" fill="#8b97ad" font-size="11">agent npub</text>
+    <text x="314" y="100" text-anchor="middle" fill="#8b97ad" font-size="11">__AGENT2_NPUB__</text>
     <g id="payment-marker">
       <circle cy="-14" r="4.5" fill="#ff9a2e"/>
       <text y="-22" text-anchor="middle" fill="#ff9a2e" font-size="11">100 sats</text>
@@ -375,14 +377,25 @@ def _probe_failed(network: str) -> dict[str, object]:
     }
 
 
-def create_app(io: ProbeIO | None = None, network: str | None = None) -> FastAPI:
+def render_page(agent1: str, agent2: str) -> str:
+    return _PAGE.replace("__AGENT1_NPUB__", agent1, 1).replace(
+        "__AGENT2_NPUB__", agent2, 1
+    )
+
+
+def create_app(
+    io: ProbeIO | None = None,
+    network: str | None = None,
+    npub_dir: Path | None = None,
+) -> FastAPI:
     probe = io or RealProbeIO()
     chosen = network_name(network)
     app = FastAPI(title="Agent Bitcoin infrastructure", docs_url=None, redoc_url=None)
 
     @app.get("/", response_class=HTMLResponse)
     def map_page() -> str:
-        return _PAGE
+        agent1, agent2 = picture_labels(npub_dir=npub_dir)
+        return render_page(agent1, agent2)
 
     @app.get("/api/status")
     def status() -> JSONResponse:

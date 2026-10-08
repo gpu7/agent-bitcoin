@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import os
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -13,6 +15,7 @@ from agent_bitcoin.dashboard.app import (
     resolve_network,
     resolve_port,
 )
+from agent_bitcoin.dashboard.npub import default_npub_dir, picture_labels, short_npub
 from agent_bitcoin.dashboard.probes import (
     ALLOWED_LNCLI,
     CommandRejected,
@@ -60,8 +63,13 @@ class FakeIO:
         return ["relay.example"]
 
 
-def _client(io: FakeIO) -> TestClient:
-    return TestClient(create_app(io))
+_NO_NPUB_DIR = Path("/nonexistent/agent-bitcoin-dashboard-npubs")
+_ALICE = "npub1u9z2exv9udv2hkhnq5fl8pvlsqvuphmuuxejj2u6g0lf06r8tgsqxl68s8"
+_BOB = "npub1jy3ch65u5wvhx4x5s7239k63qtp65h4084fcaq8djgra0dh0erfslusp9f"
+
+
+def _client(io: FakeIO, npub_dir: Path | None = None) -> TestClient:
+    return TestClient(create_app(io, npub_dir=npub_dir or _NO_NPUB_DIR))
 
 
 def test_status_is_read_only_and_has_no_secrets(
@@ -228,7 +236,7 @@ def test_page_lists_the_map_and_has_no_pay_button() -> None:
     story = html.split('id="agent-animation"', 1)[1].split('id="map"', 1)[0]
     assert html.index('id="agent-animation"') < html.index('id="group-chain"')
     assert "Agent 1" in story and "Agent 2" in story
-    assert "agent npub" in story
+    assert story.count("agent npub") == 2
     assert "100 sats" in story
     assert "offset-path" in html
     assert "@keyframes glide" in html
@@ -243,3 +251,93 @@ def test_page_lists_the_map_and_has_no_pay_button() -> None:
     assert ">Pay<" not in html
     assert ">Unlock<" not in html
     assert "127.0.0.1" in html
+    assert "nsec" not in html.lower()
+
+
+def test_short_npub_keeps_last_four_and_drops_nsec() -> None:
+    assert short_npub(_ALICE) == "npub1…68s8"
+    assert short_npub(_BOB) == "npub1…sp9f"
+    assert short_npub("nsec1shouldnotappear") == "agent npub"
+    assert short_npub("") == "agent npub"
+    assert "nsec" not in short_npub("nsec1shouldnotappear")
+
+
+def test_missing_keys_still_render_the_picture(tmp_path: Path) -> None:
+    html = _client(FakeIO(), tmp_path).get("/").text
+    assert "Agent 1" in html and "Agent 2" in html
+    assert "100 sats" in html
+    assert html.count("agent npub") == 2
+    assert "nsec" not in html.lower()
+
+
+def test_picture_npubs_ignore_nsec_files_and_bob(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("DASHBOARD_AGENT1_NPUB", raising=False)
+    monkeypatch.delenv("DASHBOARD_AGENT2_NPUB", raising=False)
+    (tmp_path / "alice.pub.json").write_text(
+        json.dumps(
+            {
+                "name": "alice",
+                "npub": _ALICE,
+                "note": "public only; never return nsec",
+            }
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "alice.enc.json").write_text("nsec1shouldnotappear", encoding="utf-8")
+    (tmp_path / "bob.pub.json").write_text(json.dumps({"npub": _BOB}), encoding="utf-8")
+    regtest = tmp_path / ".nostr-poc"
+    regtest.mkdir()
+    (regtest / "alice.pub.json").write_text(
+        json.dumps({"npub": _BOB}), encoding="utf-8"
+    )
+
+    page = _client(FakeIO(), tmp_path).get("/")
+    status = _client(FakeIO(), tmp_path).get("/api/status")
+    assert page.status_code == 200
+    assert "npub1…68s8" in page.text
+    assert "npub1…sp9f" not in page.text
+    assert _ALICE not in page.text
+    assert "agent npub" in page.text
+    assert "nsec" not in page.text.lower()
+    assert "nsec" not in status.text.lower()
+    assert "nsec1shouldnotappear" not in page.text
+
+
+def test_npub_env_overrides_and_agent2_is_env_only(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (tmp_path / "alice.pub.json").write_text(
+        json.dumps({"npub": _ALICE}), encoding="utf-8"
+    )
+    (tmp_path / "bob.pub.json").write_text(json.dumps({"npub": _BOB}), encoding="utf-8")
+    monkeypatch.setenv("DASHBOARD_AGENT1_NPUB", _BOB)
+    monkeypatch.delenv("DASHBOARD_AGENT2_NPUB", raising=False)
+    overridden = _client(FakeIO(), tmp_path).get("/").text
+    assert "npub1…sp9f" in overridden
+    assert "npub1…68s8" not in overridden
+    assert _BOB not in overridden
+
+    monkeypatch.setenv("DASHBOARD_AGENT1_NPUB", "nsec1shouldnotappear")
+    monkeypatch.setenv("DASHBOARD_AGENT2_NPUB", _BOB)
+    rejected = _client(FakeIO(), tmp_path).get("/").text
+    assert "npub1…68s8" not in rejected
+    assert "npub1…sp9f" in rejected
+    assert "agent npub" in rejected
+    assert "nsec" not in rejected.lower()
+
+
+def test_live_mainnet_payer_pub_is_short(monkeypatch: pytest.MonkeyPatch) -> None:
+    directory = default_npub_dir()
+    if not (directory / "alice.pub.json").is_file():
+        pytest.skip("mainnet payer pub is not on this machine")
+    monkeypatch.delenv("DASHBOARD_AGENT1_NPUB", raising=False)
+    monkeypatch.delenv("DASHBOARD_AGENT2_NPUB", raising=False)
+    labels = picture_labels(npub_dir=directory)
+    assert labels == ("npub1…68s8", "agent npub")
+    html = _client(FakeIO(), directory).get("/").text
+    status = _client(FakeIO(), directory).get("/api/status").text
+    assert "npub1…68s8" in html
+    assert "nsec" not in html.lower()
+    assert "nsec" not in status.lower()
