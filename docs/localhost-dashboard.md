@@ -4,6 +4,8 @@ Read-only page for the operator Mac. It shows Bitcoin, the Lightning channel, th
 
 The nodes are grouped into three boxes: **Chain** (Bitcoin network and Lightning channel), **Agents** (Payer agent, Invoice agent, and Nostr), and **Merchant** (Aperture and Merchant origin). Lines still connect the nodes. A failed probe stays down or unknown.
 
+The animation above the map is a picture of an agent-to-agent payment, not a live channel.
+
 The process listens on **127.0.0.1** only. It does not bind `0.0.0.0`, and it does not use port 10009. It does not pay, create an invoice, open or close a channel, or unlock a wallet.
 
 ## Start

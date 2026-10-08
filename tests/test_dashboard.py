@@ -225,6 +225,17 @@ def test_page_lists_the_map_and_has_no_pay_button() -> None:
         '["aperture", "origin"]',
     ):
         assert pair in html
+    story = html.split('id="agent-animation"', 1)[1].split('id="map"', 1)[0]
+    assert html.index('id="agent-animation"') < html.index('id="group-chain"')
+    assert "Agent 1" in story and "Agent 2" in story
+    assert "agent npub" in story
+    assert "100 sats" in story
+    assert "offset-path" in html
+    assert "@keyframes glide" in html
+    assert "not a live channel" in story
+    assert "<button" not in story
+    assert "nsec" not in story.lower()
+    assert "macaroon" not in story.lower()
     assert ">Refresh<" in html
     assert ">Pay<" not in html
     assert ">Unlock<" not in html
