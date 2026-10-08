@@ -1,3 +1,9 @@
+## Changed — dashboard npubs (2026-10-08)
+
+Show short npubs on the dashboard agent picture.
+
+---
+
 ## Changed — dashboard separator (2026-10-08)
 
 Separate the dashboard picture from the map and dim Refresh on click.

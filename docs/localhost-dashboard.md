@@ -4,7 +4,7 @@ Read-only page for the operator Mac. It shows Bitcoin, the Lightning channel, th
 
 The nodes are grouped into three boxes: **Chain** (Bitcoin network and Lightning channel), **Agents** (Payer agent, Invoice agent, and Nostr), and **Merchant** (Aperture and Merchant origin). Lines still connect the nodes. A failed probe stays down or unknown.
 
-The animation above the map is a picture of an agent-to-agent payment, not a live channel.
+The animation above the map is a picture of an agent-to-agent payment, not a live channel. Agent 1 and Agent 2 are labeled `npub1…` plus the last four characters of the public id, or `agent npub` when that id is missing. Agent 1 reads `.nostr-poc-mainnet/alice.pub.json` on this Mac. `DASHBOARD_AGENT1_NPUB` overrides it. Agent 2 uses `DASHBOARD_AGENT2_NPUB` only. Regtest and signet key directories are not used. For this lab the short forms are `npub1…68s8` and `npub1…sp9f`.
 
 The process listens on **127.0.0.1** only. It does not bind `0.0.0.0`, and it does not use port 10009. It does not pay, create an invoice, open or close a channel, or unlock a wallet.
 
