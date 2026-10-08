@@ -270,7 +270,7 @@ def test_missing_keys_still_render_the_picture(tmp_path: Path) -> None:
     assert "nsec" not in html.lower()
 
 
-def test_picture_npubs_ignore_nsec_files_and_bob(
+def test_picture_reads_both_pubs_and_not_enc_files(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.delenv("DASHBOARD_AGENT1_NPUB", raising=False)
@@ -285,38 +285,54 @@ def test_picture_npubs_ignore_nsec_files_and_bob(
         ),
         encoding="utf-8",
     )
+    (tmp_path / "bob.pub.json").write_text(
+        json.dumps({"name": "bob", "npub": _BOB}),
+        encoding="utf-8",
+    )
     (tmp_path / "alice.enc.json").write_text("nsec1shouldnotappear", encoding="utf-8")
-    (tmp_path / "bob.pub.json").write_text(json.dumps({"npub": _BOB}), encoding="utf-8")
+    (tmp_path / "bob.enc.json").write_text(
+        "encfile-sentinel-shouldnotappear", encoding="utf-8"
+    )
     regtest = tmp_path / ".nostr-poc"
     regtest.mkdir()
-    (regtest / "alice.pub.json").write_text(
-        json.dumps({"npub": _BOB}), encoding="utf-8"
+    (regtest / "bob.pub.json").write_text(
+        json.dumps(
+            {"npub": "npub1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzzzz"}
+        ),
+        encoding="utf-8",
     )
 
     page = _client(FakeIO(), tmp_path).get("/")
     status = _client(FakeIO(), tmp_path).get("/api/status")
     assert page.status_code == 200
     assert "npub1…68s8" in page.text
-    assert "npub1…sp9f" not in page.text
+    assert "npub1…sp9f" in page.text
+    assert "npub1…zzzz" not in page.text
     assert _ALICE not in page.text
-    assert "agent npub" in page.text
+    assert _BOB not in page.text
     assert "nsec" not in page.text.lower()
     assert "nsec" not in status.text.lower()
     assert "nsec1shouldnotappear" not in page.text
+    assert "encfile-sentinel-shouldnotappear" not in page.text
+    assert "encfile-sentinel-shouldnotappear" not in status.text
 
 
-def test_npub_env_overrides_and_agent2_is_env_only(
+def test_npub_env_overrides_the_pub_files(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     (tmp_path / "alice.pub.json").write_text(
         json.dumps({"npub": _ALICE}), encoding="utf-8"
     )
     (tmp_path / "bob.pub.json").write_text(json.dumps({"npub": _BOB}), encoding="utf-8")
-    monkeypatch.setenv("DASHBOARD_AGENT1_NPUB", _BOB)
-    monkeypatch.delenv("DASHBOARD_AGENT2_NPUB", raising=False)
+    monkeypatch.setenv(
+        "DASHBOARD_AGENT2_NPUB",
+        "npub1" + ("q" * 54) + "acde",
+    )
+    monkeypatch.delenv("DASHBOARD_AGENT1_NPUB", raising=False)
     overridden = _client(FakeIO(), tmp_path).get("/").text
-    assert "npub1…sp9f" in overridden
-    assert "npub1…68s8" not in overridden
+    assert "npub1…68s8" in overridden
+    assert "npub1…acde" in overridden
+    assert "npub1…sp9f" not in overridden
     assert _BOB not in overridden
 
     monkeypatch.setenv("DASHBOARD_AGENT1_NPUB", "nsec1shouldnotappear")
@@ -335,9 +351,14 @@ def test_live_mainnet_payer_pub_is_short(monkeypatch: pytest.MonkeyPatch) -> Non
     monkeypatch.delenv("DASHBOARD_AGENT1_NPUB", raising=False)
     monkeypatch.delenv("DASHBOARD_AGENT2_NPUB", raising=False)
     labels = picture_labels(npub_dir=directory)
-    assert labels == ("npub1…68s8", "agent npub")
+    assert labels[0] == "npub1…68s8"
+    if (directory / "bob.pub.json").is_file():
+        assert labels[1] == "npub1…sp9f"
+    else:
+        assert labels[1] == "agent npub"
     html = _client(FakeIO(), directory).get("/").text
     status = _client(FakeIO(), directory).get("/api/status").text
     assert "npub1…68s8" in html
+    assert labels[1] in html
     assert "nsec" not in html.lower()
     assert "nsec" not in status.lower()
