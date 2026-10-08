@@ -1,3 +1,9 @@
+## Changed — dashboard groups (2026-10-08)
+
+Group the dashboard map into Chain, Agents, and Merchant.
+
+---
+
 ## Changed — dashboard probe exceptions (2026-10-07)
 
 Dashboard status does not return probe exception text.

@@ -1,6 +1,8 @@
 # Localhost infrastructure map
 
-Read-only page for the operator Mac. It shows Bitcoin, the Lightning channel, the payer agent, the invoice agent, Nostr, Aperture, and the Merchant origin. Each box is up, down, locked, or unknown from a live probe.
+Read-only page for the operator Mac. It shows Bitcoin, the Lightning channel, the payer agent, the invoice agent, Nostr, Aperture, and the Merchant origin. Each node is up, down, locked, or unknown from a live probe.
+
+The nodes are grouped into three boxes: **Chain** (Bitcoin network and Lightning channel), **Agents** (Payer agent, Invoice agent, and Nostr), and **Merchant** (Aperture and Merchant origin). Lines still connect the nodes. A failed probe stays down or unknown.
 
 The process listens on **127.0.0.1** only. It does not bind `0.0.0.0`, and it does not use port 10009. It does not pay, create an invoice, open or close a channel, or unlock a wallet.
 

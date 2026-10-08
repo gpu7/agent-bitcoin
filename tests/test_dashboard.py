@@ -202,6 +202,30 @@ def test_page_lists_the_map_and_has_no_pay_button() -> None:
         "Merchant origin",
     ):
         assert label in html
+    after_chain = html.split('id="group-chain"', 1)[1]
+    chain, after_agents = after_chain.split('id="group-agents"', 1)
+    agents, merchant = after_agents.split('id="group-merchant"', 1)
+    assert ">Chain<" in chain
+    assert 'id="bitcoin"' in chain and 'id="channel"' in chain
+    assert ">Agents<" in agents
+    assert (
+        'id="payer"' in agents and 'id="invoice"' in agents and 'id="nostr"' in agents
+    )
+    assert 'id="bitcoin"' not in agents
+    assert ">Merchant<" in merchant
+    assert 'id="aperture"' in merchant and 'id="origin"' in merchant
+    assert 'id="payer"' not in merchant
+    for pair in (
+        '["bitcoin", "channel"]',
+        '["channel", "payer"]',
+        '["channel", "invoice"]',
+        '["payer", "nostr"]',
+        '["invoice", "nostr"]',
+        '["invoice", "aperture"]',
+        '["aperture", "origin"]',
+    ):
+        assert pair in html
     assert ">Refresh<" in html
     assert ">Pay<" not in html
     assert ">Unlock<" not in html
+    assert "127.0.0.1" in html
