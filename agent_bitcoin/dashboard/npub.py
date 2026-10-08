@@ -1,7 +1,7 @@
 """Short public ids for the dashboard picture.
 
-Reads only `.nostr-poc-mainnet/alice.pub.json`. Never opens an encrypted
-nsec file, Bob's key, or the regtest and signet directories.
+Reads `.nostr-poc-mainnet/alice.pub.json` and `bob.pub.json` only.
+Never opens an encrypted nsec file, the bus, or the regtest and signet directories.
 """
 
 from __future__ import annotations
@@ -37,17 +37,22 @@ def picture_labels(
     env: Mapping[str, str] | None = None,
     npub_dir: Path | None = None,
 ) -> tuple[str, str]:
-    """Agent 1 from the Mac payer pub, Agent 2 from `DASHBOARD_AGENT2_NPUB` only."""
+    """Agent 1 from alice.pub.json, Agent 2 from bob.pub.json. Env overrides either."""
     source = os.environ if env is None else env
     directory = default_npub_dir() if npub_dir is None else npub_dir
-    override = (source.get("DASHBOARD_AGENT1_NPUB") or "").strip()
-    raw1 = override or _read_alice_npub(directory)
-    raw2 = (source.get("DASHBOARD_AGENT2_NPUB") or "").strip()
+    raw1 = (source.get("DASHBOARD_AGENT1_NPUB") or "").strip() or _read_pub_npub(
+        directory, "alice"
+    )
+    raw2 = (source.get("DASHBOARD_AGENT2_NPUB") or "").strip() or _read_pub_npub(
+        directory, "bob"
+    )
     return short_npub(raw1), short_npub(raw2)
 
 
-def _read_alice_npub(directory: Path) -> str | None:
-    path = directory / "alice.pub.json"
+def _read_pub_npub(directory: Path, name: str) -> str | None:
+    if name not in {"alice", "bob"}:
+        return None
+    path = directory / f"{name}.pub.json"
     try:
         if not path.is_file() or path.stat().st_size > _MAX_PUB_BYTES:
             return None

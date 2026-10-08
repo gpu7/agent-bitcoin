@@ -1,3 +1,9 @@
+## Changed — dashboard Agent 2 npub (2026-10-08)
+
+Dashboard reads Agent 2's short npub from the local key directory.
+
+---
+
 ## Changed — dashboard npubs (2026-10-08)
 
 Show short npubs on the dashboard agent picture.
