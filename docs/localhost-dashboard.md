@@ -34,4 +34,4 @@ The command defaults to mainnet: `agent-bitcoin-lnd-mainnet`, `agent-payment-dec
 
 Set `DASHBOARD_APERTURE_URL` to the Aperture you can reach from this Mac, for example `http://3.90.159.146:8081`. Do not put that address in a public bind.
 
-The page footer shows `git describe`. Probe errors are shortened. Macaroons, nsec values, seeds, and the unlock password are not returned.
+The header shows the nearest git release tag, not the exact commit. If the repo has no tags, it shows a short commit hash. Probe errors are shortened. Macaroons, nsec values, seeds, and the unlock password are not returned.

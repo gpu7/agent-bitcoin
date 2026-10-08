@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import os
+import re
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -21,6 +23,7 @@ from agent_bitcoin.dashboard.probes import (
     CommandRejected,
     RealProbeIO,
     collect_status,
+    release_label,
 )
 
 
@@ -362,3 +365,35 @@ def test_live_mainnet_payer_pub_is_short(monkeypatch: pytest.MonkeyPatch) -> Non
     assert labels[1] in html
     assert "nsec" not in html.lower()
     assert "nsec" not in status.lower()
+
+
+def test_release_label_is_nearest_tag_or_short_hash(tmp_path: Path) -> None:
+    env = os.environ.copy()
+    env.update(
+        {
+            "GIT_AUTHOR_NAME": "dashboard",
+            "GIT_AUTHOR_EMAIL": "dashboard@example.com",
+            "GIT_COMMITTER_NAME": "dashboard",
+            "GIT_COMMITTER_EMAIL": "dashboard@example.com",
+        }
+    )
+
+    def git(*args: str) -> None:
+        subprocess.run(
+            ["git", *args],
+            cwd=tmp_path,
+            check=True,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+
+    git("init", "-b", "main")
+    git("commit", "--allow-empty", "-m", "start")
+    bare = release_label(str(tmp_path))
+    assert re.fullmatch(r"[0-9a-f]{4,40}", bare)
+    assert "v.27.2.0" not in bare
+
+    git("tag", "v.27.2.0")
+    git("commit", "--allow-empty", "-m", "after the tag")
+    assert release_label(str(tmp_path)) == "v.27.2.0"
