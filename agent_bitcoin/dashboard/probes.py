@@ -90,6 +90,32 @@ class ProbeIO(Protocol):
     def relay_hosts(self) -> list[str]: ...
 
 
+def release_label(root: str) -> str:
+    """Nearest git release tag, or a short commit hash when the repo has no tags."""
+    tag = _git_stdout(root, ["describe", "--tags", "--abbrev=0"])
+    if tag:
+        return tag
+    return _git_stdout(root, ["rev-parse", "--short", "HEAD"]) or "unknown"
+
+
+def _git_stdout(root: str, args: list[str]) -> str:
+    try:
+        done = subprocess.run(
+            ["git", *args],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
+            cwd=root,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+    if done.returncode != 0:
+        return ""
+    lines = (done.stdout or "").strip().splitlines()
+    return lines[0].strip() if lines else ""
+
+
 def _first_running(names: set[str], candidates: tuple[str, ...]) -> str | None:
     for name in candidates:
         if name in names:
@@ -345,20 +371,7 @@ class RealProbeIO:
 
     def git_describe(self) -> str:
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-        try:
-            done = subprocess.run(
-                ["git", "describe", "--tags", "--always", "--dirty"],
-                capture_output=True,
-                text=True,
-                timeout=5,
-                check=False,
-                cwd=root,
-            )
-        except (OSError, subprocess.TimeoutExpired):
-            return "unknown"
-        if done.returncode != 0:
-            return scrub(done.stderr) or "unknown"
-        return (done.stdout or "").strip() or "unknown"
+        return release_label(root)
 
     def relay_hosts(self) -> list[str]:
         raw = os.environ.get("NOSTR_RELAYS") or "wss://relay.damus.io,wss://nos.lol"
