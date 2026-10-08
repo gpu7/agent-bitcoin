@@ -1,3 +1,9 @@
+## Changed — two-agent animation (2026-10-08)
+
+Add a two-agent Lightning payment animation above the dashboard map.
+
+---
+
 ## Changed — dashboard groups (2026-10-08)
 
 Group the dashboard map into Chain, Agents, and Merchant.

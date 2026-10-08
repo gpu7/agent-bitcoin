@@ -65,6 +65,37 @@ _PAGE = """<!DOCTYPE html>
     letter-spacing: 0.02em;
   }
   header p, footer p { margin: 6px 0 0; color: var(--muted); }
+  .story {
+    max-width: 1080px;
+    margin: 16px auto 0;
+    padding: 0 24px;
+  }
+  .story svg {
+    width: 100%;
+    max-width: 640px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+  }
+  .story svg text { font-family: ui-sans-serif, system-ui, sans-serif; }
+  #payment-marker {
+    offset-path: path("M 70 46 L 290 46");
+    offset-rotate: 0deg;
+    animation: glide 4.8s linear infinite;
+  }
+  @keyframes glide {
+    from { offset-distance: 0%; }
+    to { offset-distance: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #payment-marker { animation: none; offset-distance: 0%; }
+  }
+  .story figcaption {
+    margin: 2px 0 0;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+  }
   .map {
     position: relative;
     max-width: 1080px;
@@ -143,6 +174,7 @@ _PAGE = """<!DOCTYPE html>
     cursor: pointer;
   }
   @media (max-width: 860px) {
+    .story { padding: 0 16px; }
     .groups { grid-template-columns: 1fr; padding: 0 16px 24px; }
     svg.links { display: none; }
   }
@@ -158,6 +190,24 @@ _PAGE = """<!DOCTYPE html>
   <p id="meta">loading</p>
   <button type="button" id="refresh">Refresh</button>
 </header>
+<figure class="story" id="agent-animation">
+  <svg viewBox="0 0 360 128" width="360" height="128" role="img" aria-label="Agent 1 sends 100 sats to Agent 2 over one Lightning channel">
+    <title>Two agents and one Lightning channel</title>
+    <line x1="64" y1="46" x2="296" y2="46" stroke="#ff9a2e" stroke-width="6" stroke-opacity="0.22" stroke-linecap="round"/>
+    <line x1="64" y1="46" x2="296" y2="46" stroke="#ff9a2e" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="46" cy="46" r="18" fill="#10192b" stroke="#5ad7ff" stroke-width="2"/>
+    <circle cx="314" cy="46" r="18" fill="#10192b" stroke="#5ad7ff" stroke-width="2"/>
+    <text x="46" y="84" text-anchor="middle" fill="#5ad7ff" font-size="13">Agent 1</text>
+    <text x="46" y="100" text-anchor="middle" fill="#8b97ad" font-size="11">agent npub</text>
+    <text x="314" y="84" text-anchor="middle" fill="#5ad7ff" font-size="13">Agent 2</text>
+    <text x="314" y="100" text-anchor="middle" fill="#8b97ad" font-size="11">agent npub</text>
+    <g id="payment-marker">
+      <circle cy="-14" r="4.5" fill="#ff9a2e"/>
+      <text y="-22" text-anchor="middle" fill="#ff9a2e" font-size="11">100 sats</text>
+    </g>
+  </svg>
+  <figcaption>A picture of an agent-to-agent payment, not a live channel.</figcaption>
+</figure>
 <div class="map" id="map">
   <svg class="links" id="links" aria-hidden="true"></svg>
   <div class="groups">
