@@ -1,3 +1,9 @@
+## Changed — dashboard chain progress (2026-10-08)
+
+Dashboard shows AWS chain sync progress.
+
+---
+
 ## Changed — dashboard AWS invoice probe (2026-10-08)
 
 Dashboard probes the AWS invoice agent and splits Aperture health from the 402.
