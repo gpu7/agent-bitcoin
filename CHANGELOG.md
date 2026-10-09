@@ -1,3 +1,9 @@
+## Changed — Bitcoin stays up during AWS sync (2026-10-08)
+
+Bitcoin stays up while AWS chain sync progress is shown.
+
+---
+
 ## Changed — dashboard chain progress (2026-10-08)
 
 Dashboard shows AWS chain sync progress.
