@@ -1,3 +1,9 @@
+## Changed — dashboard AWS invoice probe (2026-10-08)
+
+Dashboard probes the AWS invoice agent and splits Aperture health from the 402.
+
+---
+
 ## Changed — dashboard release tag (2026-10-08)
 
 Dashboard header shows the current release tag.

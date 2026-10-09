@@ -31,6 +31,9 @@ class FakeIO:
     def __init__(self) -> None:
         self.names = {"agent-bitcoin-lnd", "agent-l402-origin"}
         self.calls: list[str] = []
+        self.local_lncli: list[tuple[str, str]] = []
+        self.invoice_containers: list[str] = []
+        self.aws_reached = True
         self.note = ""
         self.getinfo = '{"synced_to_chain": true}'
         self.getinfo_code = 0
@@ -45,10 +48,18 @@ class FakeIO:
 
     def lncli(self, container: str, network: str, command: str) -> tuple[int, str]:
         self.calls.append(command)
+        self.local_lncli.append((container, command))
         if command not in ALLOWED_LNCLI:
             raise CommandRejected(command)
         if command == "listchannels":
             return 0, self.channels
+        return self.getinfo_code, self.getinfo
+
+    def invoice_getinfo(self, container: str, network: str) -> tuple[int | None, str]:
+        self.calls.append("getinfo")
+        self.invoice_containers.append(container)
+        if not self.aws_reached:
+            return None, "AWS was not reached"
         return self.getinfo_code, self.getinfo
 
     def http_status(self, url: str) -> tuple[int | None, str]:
@@ -104,6 +115,10 @@ def test_status_is_read_only_and_has_no_secrets(
         "aperture": "up",
         "origin": "up",
     }
+    aperture = next(node for node in body["nodes"] if node["id"] == "aperture")
+    assert aperture["challenge_state"] == "up"
+    assert io.invoice_containers == ["agent-payment-decision-lnd-mainnet"]
+    assert ("agent-payment-decision-lnd-mainnet", "getinfo") not in io.local_lncli
     assert set(io.calls) <= {
         "getinfo",
         "listchannels",
@@ -225,6 +240,8 @@ def test_page_lists_the_map_and_has_no_pay_button() -> None:
     assert 'id="bitcoin"' not in agents
     assert ">Merchant<" in merchant
     assert 'id="aperture"' in merchant and 'id="origin"' in merchant
+    aperture = merchant.split('id="aperture"', 1)[1].split("</article>", 1)[0]
+    assert "Health" in aperture and "Challenge" in aperture
     assert 'id="payer"' not in merchant
     for pair in (
         '["bitcoin", "channel"]',
@@ -365,6 +382,128 @@ def test_live_mainnet_payer_pub_is_short(monkeypatch: pytest.MonkeyPatch) -> Non
     assert labels[1] in html
     assert "nsec" not in html.lower()
     assert "nsec" not in status.lower()
+
+
+def test_invoice_stays_unknown_when_aws_is_unreachable() -> None:
+    io = FakeIO()
+    io.names = {
+        "agent-bitcoin-lnd-mainnet",
+        "agent-payment-decision-lnd-mainnet",
+        "agent-l402-origin",
+    }
+    io.aws_reached = False
+    payload = collect_status(io, network="mainnet")
+    by_id = {node["id"]: node for node in payload["nodes"]}
+    assert by_id["payer"]["state"] == "up"
+    assert by_id["channel"]["state"] == "up"
+    assert by_id["invoice"]["state"] == "unknown"
+    assert by_id["invoice"]["detail"] == "AWS invoice LND was not reached"
+    assert io.invoice_containers == ["agent-payment-decision-lnd-mainnet"]
+    assert ("agent-payment-decision-lnd-mainnet", "getinfo") not in io.local_lncli
+    assert ("agent-bitcoin-lnd-mainnet", "listchannels") in io.local_lncli
+
+
+def test_hanging_hello_does_not_mark_aperture_health_down(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("DASHBOARD_APERTURE_URL", raising=False)
+    io = FakeIO()
+    io.http["http://127.0.0.1:8081/paid/hello"] = (
+        None,
+        "nsec1shouldnotappear macaroon=secret password=hunter2",
+    )
+    payload = collect_status(io, network="mainnet")
+    by_id = {node["id"]: node for node in payload["nodes"]}
+    assert by_id["aperture"]["state"] == "up"
+    assert by_id["aperture"]["detail"] == "health 200"
+    assert by_id["aperture"]["challenge_state"] == "down"
+    assert by_id["origin"]["state"] == "up"
+    assert all(name != "agent-l402-origin" for name, _cmd in io.local_lncli)
+    blob = str(payload).lower()
+    assert "nsec1" not in blob
+    assert "macaroon" not in blob
+    assert "password=" not in blob
+    assert "hunter2" not in blob
+
+
+def test_origin_is_unknown_when_aperture_cannot_be_reached(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("DASHBOARD_APERTURE_URL", raising=False)
+    io = FakeIO()
+    io.names = {"agent-l402-origin", "agent-bitcoin-lnd-mainnet"}
+    io.http = {}
+    payload = collect_status(io, network="mainnet")
+    by_id = {node["id"]: node for node in payload["nodes"]}
+    assert by_id["aperture"]["state"] == "down"
+    assert by_id["aperture"]["challenge_state"] == "down"
+    assert by_id["origin"]["state"] == "unknown"
+    assert by_id["origin"]["detail"] == "Aperture was not reached"
+    assert "this Mac" not in by_id["origin"]["detail"]
+
+
+def test_invoice_getinfo_is_ssh_getinfo_only(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    key = tmp_path / "agent-bitcoin-key.pem"
+    key.write_text("not-a-real-key\n", encoding="utf-8")
+    monkeypatch.setattr("agent_bitcoin.dashboard.probes._aws_key", lambda: key)
+    monkeypatch.setenv("DASHBOARD_AWS_HOST", "3.90.159.146")
+    seen: dict[str, object] = {}
+
+    def fake_run(argv: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        seen["argv"] = argv
+        seen["shell"] = kwargs.get("shell")
+        return subprocess.CompletedProcess(
+            argv, 0, stdout='{"synced_to_chain": true}', stderr=""
+        )
+
+    monkeypatch.setattr("agent_bitcoin.dashboard.probes.subprocess.run", fake_run)
+    code, raw = RealProbeIO().invoice_getinfo(
+        "agent-payment-decision-lnd-mainnet", "mainnet"
+    )
+    assert code == 0
+    assert "synced_to_chain" in raw
+    argv = seen["argv"]
+    assert isinstance(argv, list)
+    assert argv[0] == "ssh"
+    assert "BatchMode=yes" in argv
+    assert "ubuntu@3.90.159.146" in argv
+    assert argv[-1] == "getinfo"
+    assert "agent-payment-decision-lnd-mainnet" in argv
+    assert "listchannels" not in argv
+    assert "unlock" not in argv
+    assert "10009" not in argv
+    assert seen["shell"] is None
+
+    def unreachable(
+        argv: list[str], **kwargs: object
+    ) -> subprocess.CompletedProcess[str]:
+        return subprocess.CompletedProcess(
+            argv, 255, stdout="", stderr="connection failed"
+        )
+
+    monkeypatch.setattr("agent_bitcoin.dashboard.probes.subprocess.run", unreachable)
+    missed, _detail = RealProbeIO().invoice_getinfo(
+        "agent-payment-decision-lnd-mainnet", "mainnet"
+    )
+    assert missed is None
+
+    monkeypatch.setattr(
+        "agent_bitcoin.dashboard.probes._aws_key", lambda: tmp_path / "missing.pem"
+    )
+    called = {"ran": False}
+
+    def boom(*_args: object, **_kwargs: object) -> None:
+        called["ran"] = True
+        raise AssertionError("ssh should not run")
+
+    monkeypatch.setattr("agent_bitcoin.dashboard.probes.subprocess.run", boom)
+    absent, _detail = RealProbeIO().invoice_getinfo(
+        "agent-payment-decision-lnd-mainnet", "mainnet"
+    )
+    assert absent is None
+    assert called["ran"] is False
 
 
 def test_release_label_is_nearest_tag_or_short_hash(tmp_path: Path) -> None:
