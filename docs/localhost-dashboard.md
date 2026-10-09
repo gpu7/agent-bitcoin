@@ -23,9 +23,9 @@ Open [http://127.0.0.1:8765](http://127.0.0.1:8765) in Brave. `DASHBOARD_PORT` c
 | Node | Probe |
 |------|--------|
 | Payer agent | Local Docker container `agent-bitcoin-lnd-mainnet` (regtest: `agent-bitcoin-lnd`, signet: `agent-bitcoin-lnd-signet`). `lncli getinfo` only. |
-| Invoice agent | AWS `agent-payment-decision-lnd-mainnet` (regtest: `agent-payment-decision-lnd`, signet: `agent-payment-decision-lnd-signet`). `lncli getinfo` only, over SSH. If AWS cannot be reached, **unknown**. The Mac payer does not mark this box up. |
-| Lightning channel | `lncli listchannels` on the payer after `getinfo` succeeds. Locked wallet stays **locked**. |
-| Bitcoin network | Payer `synced_to_chain`, or a local bitcoind container. A failed probe stays failed. |
+| Invoice agent | AWS `agent-payment-decision-lnd-mainnet` (regtest: `agent-payment-decision-lnd`, signet: `agent-payment-decision-lnd-signet`). `lncli getinfo` only, over SSH. Block height is shown when `getinfo` returns it. If AWS cannot be reached, **unknown**. The Mac payer does not mark this box up. |
+| Lightning channel | `lncli listchannels` on the payer after `getinfo` succeeds. Peer count from that same `getinfo` is shown beside the active-channel state. Locked wallet stays **locked**. |
+| Bitcoin network | AWS `getblockchaininfo` on `agent-payment-decision-bitcoind-mainnet`. The line is blocks, headers, and percent. A failed read stays **unknown**. |
 | Aperture | Health and the unpaid challenge are separate. `GET .../health` HTTP 200 is **up**. A missing `402` from `GET .../paid/hello` stays a failed challenge and does not mark health down. Default URL is `http://127.0.0.1:8081`. |
 | Merchant origin | **up** only when Aperture `/health` returns 200, because the origin answered through the gateway. If Aperture cannot be reached, **unknown**. `agent-l402-origin` is not expected on this Mac. |
 | Nostr | TCP connect to `NOSTR_RELAYS` (default `relay.damus.io` and `nos.lol`) on port 443. No events are published. |
@@ -33,6 +33,8 @@ Open [http://127.0.0.1:8765](http://127.0.0.1:8765) in Brave. `DASHBOARD_PORT` c
 The command defaults to mainnet. The payer container on this Mac is `agent-bitcoin-lnd-mainnet`. The invoice probe is AWS `agent-payment-decision-lnd-mainnet`. It does not read `LND_NETWORK` and does not change the SDK regtest default. For the lab, add `--network regtest` or `--network signet`.
 
 Set `DASHBOARD_APERTURE_URL` to the Aperture you can reach from this Mac, for example `http://3.90.159.146:8081`. Do not put that address in a public bind.
+
+The Chain box shows AWS sync progress as blocks, headers, and percent, and it stays unknown when that read fails.
 
 The invoice probe uses the operator SSH path: `ubuntu` at `DASHBOARD_AWS_HOST`, or the host in `DASHBOARD_APERTURE_URL` when that host is not loopback, otherwise `3.90.159.146`. The key is `~/.ssh/aws/agent-bitcoin-key.pem`. The remote command is `docker exec` plus `lncli getinfo` in the AWS invoice container. It does not open port 10009. If that SSH path cannot be reached, the invoice box stays **unknown**.
 

@@ -1,8 +1,9 @@
 """Read-only probes for the Mac infrastructure map.
 
 Allowed LND commands are getinfo and listchannels. The invoice agent is the
-AWS LND, reached with getinfo over the operator SSH path. Nothing here
-unlocks a wallet, pays an invoice, or opens a channel.
+AWS LND, reached with getinfo over the operator SSH path. AWS chain progress
+is getblockchaininfo on the AWS bitcoind container. Nothing here unlocks a
+wallet, pays an invoice, or opens a channel.
 """
 
 from __future__ import annotations
@@ -34,15 +35,11 @@ _INVOICE = {
     "signet": ("agent-payment-decision-lnd-signet",),
     "mainnet": ("agent-payment-decision-lnd-mainnet",),
 }
-_BITCOIND = {
-    "regtest": ("bitcoind",),
-    "signet": ("agent-bitcoin-bitcoind-signet",),
-    "mainnet": (
-        "agent-bitcoin-bitcoind-mainnet",
-        "agent-payment-decision-bitcoind-mainnet",
-    ),
+_AWS_BITCOIND = {
+    "mainnet": "agent-payment-decision-bitcoind-mainnet",
 }
 _INVOICE_NAMES = frozenset(name for names in _INVOICE.values() for name in names)
+_AWS_BITCOIND_NAMES = frozenset(_AWS_BITCOIND.values())
 _DEFAULT_AWS_HOST = "3.90.159.146"
 _LOOPBACK_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
 _HOST_RE = re.compile(r"^[A-Za-z0-9.-]{1,253}$")
@@ -98,6 +95,8 @@ class ProbeIO(Protocol):
         self, container: str, network: str
     ) -> tuple[int | None, str]: ...
 
+    def chain_info(self, container: str, network: str) -> tuple[int | None, str]: ...
+
     def http_status(self, url: str) -> tuple[int | None, str]: ...
 
     def tcp_open(self, host: str, port: int) -> tuple[bool, str]: ...
@@ -140,21 +139,63 @@ def _first_running(names: set[str], candidates: tuple[str, ...]) -> str | None:
     return None
 
 
-def _classify_getinfo(code: int, raw: str) -> tuple[str, str]:
+@dataclass(frozen=True)
+class _Info:
+    state: str
+    detail: str
+    block_height: int | None = None
+    num_peers: int | None = None
+
+
+def _whole_number(value: object) -> int | None:
+    if isinstance(value, bool) or not isinstance(value, int):
+        return None
+    if value < 0:
+        return None
+    return value
+
+
+def _classify_getinfo(code: int, raw: str) -> _Info:
     low = (raw or "").lower()
     if "wallet locked" in low or "wallet is encrypted" in low:
-        return "locked", "wallet locked"
+        return _Info("locked", "wallet locked")
     if code != 0:
-        return "down", scrub(raw) or "getinfo failed"
+        return _Info("down", scrub(raw) or "getinfo failed")
     try:
         data = json.loads(raw)
     except json.JSONDecodeError:
-        return "unknown", scrub(raw) or "getinfo was not json"
+        return _Info("unknown", scrub(raw) or "getinfo was not json")
+    if not isinstance(data, dict):
+        return _Info("unknown", "getinfo was not json")
+    height = _whole_number(data.get("block_height"))
+    peers = _whole_number(data.get("num_peers"))
     if data.get("synced_to_chain") is True:
-        return "up", "synced to chain"
+        return _Info("up", "synced to chain", height, peers)
     if data.get("synced_to_chain") is False:
-        return "up", "unlocked, not synced to chain"
-    return "unknown", "getinfo had no chain status"
+        return _Info("up", "unlocked, not synced to chain", height, peers)
+    return _Info("unknown", "getinfo had no chain status", height, peers)
+
+
+def _with_height(info: _Info) -> tuple[str, str]:
+    if info.block_height is None:
+        return info.state, info.detail
+    return info.state, f"{info.detail} · height {info.block_height}"
+
+
+def chain_progress_line(data: dict[str, object]) -> str | None:
+    """blocks / headers and percent. Missing fields do not become a guess."""
+    blocks = _whole_number(data.get("blocks"))
+    headers = _whole_number(data.get("headers"))
+    progress = data.get("verificationprogress")
+    downloading = data.get("initialblockdownload")
+    if blocks is None or headers is None or not isinstance(downloading, bool):
+        return None
+    if isinstance(progress, bool) or not isinstance(progress, (int, float)):
+        return None
+    if not 0 <= float(progress) <= 1:
+        return None
+    percent = int(round(float(progress) * 100))
+    return f"{blocks} / {headers}, {percent}%"
 
 
 def _active_channels(raw: str) -> int | None:
@@ -175,14 +216,13 @@ def collect_status(io: ProbeIO, *, network: str | None = None) -> dict[str, obje
     net = network or network_name()
     names = io.containers()
     payer = _first_running(names, _PAYER.get(net, _PAYER["regtest"]))
-    bitcoind = _first_running(names, _BITCOIND.get(net, _BITCOIND["regtest"]))
 
-    payer_state, payer_detail = _lnd_node(
-        io, payer, net, "payer container is not running"
-    )
+    payer_info = _lnd_node(io, payer, net, "payer container is not running")
+    payer_state, payer_detail = _with_height(payer_info)
     invoice_state, invoice_detail = _invoice(io, net)
-    bitcoin = _bitcoin(io, payer, payer_state, bitcoind, net)
-    channel = _channel(io, payer, payer_state, net)
+    bitcoin = _bitcoin(io, net)
+    peers = payer_info.num_peers if payer_state == "up" else None
+    channel = _channel(io, payer, payer_state, net, peers)
     aperture, challenge, origin = _merchant(io)
     nostr = _nostr(io)
 
@@ -217,42 +257,52 @@ def collect_status(io: ProbeIO, *, network: str | None = None) -> dict[str, obje
     }
 
 
-def _lnd_node(
-    io: ProbeIO, container: str | None, network: str, absent: str
-) -> tuple[str, str]:
+def _lnd_node(io: ProbeIO, container: str | None, network: str, absent: str) -> _Info:
     if container is None:
         note = scrub(getattr(io, "note", "") or "")
-        return "down", note or absent
+        return _Info("down", note or absent)
     code, raw = io.lncli(container, network, "getinfo")
     return _classify_getinfo(code, raw)
 
 
-def _bitcoin(
-    io: ProbeIO,
-    payer: str | None,
-    payer_state: str,
-    bitcoind: str | None,
-    network: str,
-) -> tuple[str, str]:
-    if payer and payer_state == "up":
-        code, raw = io.lncli(payer, network, "getinfo")
-        state, detail = _classify_getinfo(code, raw)
-        if state == "up" and detail == "synced to chain":
-            return "up", "payer sees the chain"
-        if state == "up":
-            return "unknown", detail
-        return state, detail
-    if payer_state == "locked":
-        return "unknown", "payer wallet locked"
-    if bitcoind:
-        return "up", f"{bitcoind} container running"
-    if payer_state == "down":
-        return "unknown", "no bitcoind container and payer LND is down"
-    return "unknown", "chain sync was not read"
+def _bitcoin(io: ProbeIO, network: str) -> tuple[str, str]:
+    """AWS bitcoind progress. A failed read stays unknown and has no invented percent."""
+    container = _AWS_BITCOIND.get(network)
+    if not container:
+        return "unknown", "AWS chain progress was not read"
+    try:
+        code, raw = io.chain_info(container, network)
+    except Exception:  # noqa: BLE001 — chain failure must not change the payer
+        return "unknown", "AWS chain progress was not read"
+    if code != 0:
+        return "unknown", "AWS chain progress was not read"
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        return "unknown", "AWS chain progress was not read"
+    if not isinstance(data, dict):
+        return "unknown", "AWS chain progress was not read"
+    line = chain_progress_line(data)
+    if line is None:
+        return "unknown", "AWS chain progress was not read"
+    if data.get("initialblockdownload") is True:
+        return "unknown", line
+    return "up", line
+
+
+def _with_peers(detail: str, peers: int | None) -> str:
+    if peers is None:
+        return detail
+    noun = "peer" if peers == 1 else "peers"
+    return f"{detail} · {peers} {noun}"
 
 
 def _channel(
-    io: ProbeIO, payer: str | None, payer_state: str, network: str
+    io: ProbeIO,
+    payer: str | None,
+    payer_state: str,
+    network: str,
+    peers: int | None,
 ) -> tuple[str, str]:
     if payer is None:
         return "unknown", "payer container is not running"
@@ -262,14 +312,14 @@ def _channel(
         return "unknown", "payer getinfo did not succeed"
     code, raw = io.lncli(payer, network, "listchannels")
     if code != 0:
-        return "unknown", scrub(raw) or "listchannels failed"
+        return "unknown", _with_peers(scrub(raw) or "listchannels failed", peers)
     count = _active_channels(raw)
     if count is None:
-        return "unknown", "listchannels was not json"
+        return "unknown", _with_peers("listchannels was not json", peers)
     if count == 0:
-        return "down", "no active channel"
+        return "down", _with_peers("no active channel", peers)
     label = "1 active channel" if count == 1 else f"{count} active channels"
-    return "up", label
+    return "up", _with_peers(label, peers)
 
 
 def _invoice(io: ProbeIO, network: str) -> tuple[str, str]:
@@ -281,7 +331,7 @@ def _invoice(io: ProbeIO, network: str) -> tuple[str, str]:
         return "unknown", "AWS invoice LND was not reached"
     if code is None:
         return "unknown", "AWS invoice LND was not reached"
-    return _classify_getinfo(code, raw)
+    return _with_height(_classify_getinfo(code, raw))
 
 
 def _merchant(
@@ -333,6 +383,38 @@ def _origin(health_code: int | None) -> tuple[str, str]:
 
 def _aws_key() -> Path:
     return Path.home() / ".ssh/aws/agent-bitcoin-key.pem"
+
+
+def _ssh(remote: list[str]) -> subprocess.CompletedProcess[str] | None:
+    """One read-only SSH command. The remote args are fixed by the caller."""
+    host = _aws_host()
+    key = _aws_key()
+    if not host or not key.is_file():
+        return None
+    try:
+        return subprocess.run(
+            [
+                "ssh",
+                "-i",
+                str(key),
+                "-o",
+                "IdentitiesOnly=yes",
+                "-o",
+                "BatchMode=yes",
+                "-o",
+                "ConnectTimeout=5",
+                "-o",
+                "StrictHostKeyChecking=yes",
+                f"ubuntu@{host}",
+                *remote,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=20,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
 
 
 def _aws_host() -> str:
@@ -414,45 +496,37 @@ class RealProbeIO:
         """getinfo on the AWS invoice LND. Unreachable stays an empty code."""
         if container not in _INVOICE_NAMES or network not in _PAYER:
             return None, "AWS invoice LND was not reached"
-        host = _aws_host()
-        key = _aws_key()
-        if not host or not key.is_file():
-            return None, "AWS invoice LND was not reached"
-        try:
-            done = subprocess.run(
-                [
-                    "ssh",
-                    "-i",
-                    str(key),
-                    "-o",
-                    "IdentitiesOnly=yes",
-                    "-o",
-                    "BatchMode=yes",
-                    "-o",
-                    "ConnectTimeout=5",
-                    "-o",
-                    "StrictHostKeyChecking=yes",
-                    f"ubuntu@{host}",
-                    "docker",
-                    "exec",
-                    container,
-                    "lncli",
-                    "--lnddir=/home/lnd/.lnd",
-                    "--network",
-                    network,
-                    "getinfo",
-                ],
-                capture_output=True,
-                text=True,
-                timeout=20,
-                check=False,
-            )
-        except (OSError, subprocess.TimeoutExpired):
-            return None, "AWS invoice LND was not reached"
-        if done.returncode == 255:
+        done = _ssh(
+            [
+                "docker",
+                "exec",
+                container,
+                "lncli",
+                "--lnddir=/home/lnd/.lnd",
+                "--network",
+                network,
+                "getinfo",
+            ]
+        )
+        if done is None or done.returncode == 255:
             return None, "AWS invoice LND was not reached"
         raw = ((done.stdout or "") + (done.stderr or ""))[:8000]
         return done.returncode, raw
+
+    def chain_info(self, container: str, network: str) -> tuple[int | None, str]:
+        """getblockchaininfo. The RPC password stays in the container environment."""
+        if _AWS_BITCOIND.get(network) != container:
+            return None, ""
+        remote = (
+            "docker exec "
+            + container
+            + ' sh -c \'bitcoin-cli -rpcuser="$MAINNET_BITCOIND_RPCUSER" '
+            '-rpcpassword="$MAINNET_BITCOIND_RPCPASS" -rpcport=8332 getblockchaininfo\''
+        )
+        done = _ssh([remote])
+        if done is None or done.returncode == 255:
+            return None, ""
+        return done.returncode, (done.stdout or "")[:8000]
 
     def http_status(self, url: str) -> tuple[int | None, str]:
         if os.environ.get("PYTEST_CURRENT_TEST"):

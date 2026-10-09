@@ -22,6 +22,7 @@ from agent_bitcoin.dashboard.probes import (
     ALLOWED_LNCLI,
     CommandRejected,
     RealProbeIO,
+    chain_progress_line,
     collect_status,
     release_label,
 )
@@ -34,8 +35,17 @@ class FakeIO:
         self.local_lncli: list[tuple[str, str]] = []
         self.invoice_containers: list[str] = []
         self.aws_reached = True
+        self.chain_reached = True
+        self.chain_containers: list[str] = []
+        self.chain = {
+            "blocks": 100,
+            "headers": 100,
+            "verificationprogress": 1,
+            "initialblockdownload": False,
+        }
         self.note = ""
         self.getinfo = '{"synced_to_chain": true}'
+        self.invoice_body: str | None = None
         self.getinfo_code = 0
         self.channels = '{"channels": [{"active": true}]}'
         self.http = {
@@ -60,7 +70,17 @@ class FakeIO:
         self.invoice_containers.append(container)
         if not self.aws_reached:
             return None, "AWS was not reached"
-        return self.getinfo_code, self.getinfo
+        return (
+            self.getinfo_code,
+            self.getinfo if self.invoice_body is None else self.invoice_body,
+        )
+
+    def chain_info(self, container: str, network: str) -> tuple[int | None, str]:
+        self.calls.append("getblockchaininfo")
+        self.chain_containers.append(container)
+        if not self.chain_reached:
+            return None, "rpcpassword=supersecret nsec1shouldnotappear macaroon=aabb"
+        return 0, json.dumps(self.chain)
 
     def http_status(self, url: str) -> tuple[int | None, str]:
         self.calls.append("GET " + url)
@@ -122,6 +142,7 @@ def test_status_is_read_only_and_has_no_secrets(
     assert set(io.calls) <= {
         "getinfo",
         "listchannels",
+        "getblockchaininfo",
         *{c for c in io.calls if c.startswith(("GET ", "tcp "))},
     }
     assert "unlock" not in io.calls
@@ -504,6 +525,159 @@ def test_invoice_getinfo_is_ssh_getinfo_only(
     )
     assert absent is None
     assert called["ran"] is False
+
+
+def test_chain_progress_line_uses_only_real_fields() -> None:
+    assert (
+        chain_progress_line(
+            {
+                "blocks": 868334,
+                "headers": 970657,
+                "verificationprogress": 0.734,
+                "initialblockdownload": True,
+            }
+        )
+        == "868334 / 970657, 73%"
+    )
+    assert (
+        chain_progress_line(
+            {
+                "blocks": 100,
+                "headers": 100,
+                "verificationprogress": 1,
+                "initialblockdownload": False,
+            }
+        )
+        == "100 / 100, 100%"
+    )
+    missing = {
+        "blocks": 1,
+        "headers": 2,
+        "verificationprogress": 0.5,
+        "initialblockdownload": True,
+    }
+    for key in ("blocks", "headers", "verificationprogress", "initialblockdownload"):
+        payload = dict(missing)
+        del payload[key]
+        assert chain_progress_line(payload) is None
+    assert (
+        chain_progress_line(
+            {
+                "blocks": True,
+                "headers": 2,
+                "verificationprogress": 0.5,
+                "initialblockdownload": False,
+            }
+        )
+        is None
+    )
+
+
+def test_sync_line_heights_and_peers_do_not_invent_or_leak() -> None:
+    io = FakeIO()
+    io.names = {"agent-bitcoin-lnd-mainnet"}
+    io.getinfo = json.dumps(
+        {"synced_to_chain": True, "block_height": 900000, "num_peers": 0}
+    )
+    io.invoice_body = json.dumps(
+        {"synced_to_chain": False, "block_height": 868334, "num_peers": 4}
+    )
+    io.channels = '{"channels": []}'
+    io.chain = {
+        "blocks": 868334,
+        "headers": 970657,
+        "verificationprogress": 0.734,
+        "initialblockdownload": True,
+        "bestblockhash": "ab" * 32,
+    }
+    payload = collect_status(io, network="mainnet")
+    by_id = {node["id"]: node for node in payload["nodes"]}
+    assert by_id["bitcoin"]["state"] == "unknown"
+    assert by_id["bitcoin"]["detail"] == "868334 / 970657, 73%"
+    assert by_id["payer"]["state"] == "up"
+    assert by_id["payer"]["detail"] == "synced to chain · height 900000"
+    assert by_id["invoice"]["state"] == "up"
+    assert by_id["invoice"]["detail"] == "unlocked, not synced to chain · height 868334"
+    assert by_id["channel"]["state"] == "down"
+    assert by_id["channel"]["detail"] == "no active channel · 0 peers"
+    assert "listpeers" not in io.calls
+    blob = str(payload).lower()
+    assert "ab" * 16 not in blob
+
+    io.chain_reached = False
+    failed = collect_status(io, network="mainnet")
+    failed_by_id = {node["id"]: node for node in failed["nodes"]}
+    assert failed_by_id["payer"]["state"] == "up"
+    assert failed_by_id["bitcoin"]["state"] == "unknown"
+    assert failed_by_id["bitcoin"]["detail"] == "AWS chain progress was not read"
+    assert "868334" not in failed_by_id["bitcoin"]["detail"]
+    leaked = str(failed).lower()
+    assert "supersecret" not in leaked
+    assert "rpcpassword" not in leaked
+    assert "nsec1" not in leaked
+    assert "macaroon" not in leaked
+
+
+def test_chain_failure_does_not_mark_the_payer_down() -> None:
+    class Boom(FakeIO):
+        def chain_info(self, container: str, network: str) -> tuple[int | None, str]:
+            raise RuntimeError("rpcpassword=supersecret nsec1shouldnotappear")
+
+    io = Boom()
+    io.names = {"agent-bitcoin-lnd-mainnet"}
+    payload = collect_status(io, network="mainnet")
+    by_id = {node["id"]: node for node in payload["nodes"]}
+    assert by_id["payer"]["state"] == "up"
+    assert by_id["bitcoin"]["state"] == "unknown"
+    assert by_id["bitcoin"]["detail"] == "AWS chain progress was not read"
+    blob = str(payload).lower()
+    assert "supersecret" not in blob
+    assert "nsec1" not in blob
+
+
+def test_chain_info_is_getblockchaininfo_without_the_rpc_secret(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    key = tmp_path / "agent-bitcoin-key.pem"
+    key.write_text("not-a-real-key\n", encoding="utf-8")
+    monkeypatch.setattr("agent_bitcoin.dashboard.probes._aws_key", lambda: key)
+    monkeypatch.setenv("DASHBOARD_AWS_HOST", "3.90.159.146")
+    monkeypatch.setenv("MAINNET_BITCOIND_RPCPASS", "supersecretvalue")
+    seen: dict[str, object] = {}
+
+    def fake_run(argv: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        seen["argv"] = argv
+        return subprocess.CompletedProcess(
+            argv,
+            0,
+            stdout=json.dumps(
+                {
+                    "blocks": 868334,
+                    "headers": 970657,
+                    "verificationprogress": 0.73,
+                    "initialblockdownload": True,
+                }
+            ),
+            stderr="rpcpassword=supersecretvalue",
+        )
+
+    monkeypatch.setattr("agent_bitcoin.dashboard.probes.subprocess.run", fake_run)
+    code, raw = RealProbeIO().chain_info(
+        "agent-payment-decision-bitcoind-mainnet", "mainnet"
+    )
+    assert code == 0
+    assert "supersecretvalue" not in raw
+    argv = seen["argv"]
+    assert isinstance(argv, list)
+    joined = " ".join(argv)
+    assert "getblockchaininfo" in joined
+    assert "agent-payment-decision-bitcoind-mainnet" in joined
+    assert "$MAINNET_BITCOIND_RPCPASS" in joined
+    assert "supersecretvalue" not in joined
+    assert "stop" not in argv
+    assert "generatetoaddress" not in joined
+    line = chain_progress_line(json.loads(raw))
+    assert line == "868334 / 970657, 73%"
 
 
 def test_release_label_is_nearest_tag_or_short_hash(tmp_path: Path) -> None:
