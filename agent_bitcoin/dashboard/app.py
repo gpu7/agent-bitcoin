@@ -172,6 +172,13 @@ _PAGE = """<!DOCTYPE html>
   .card[data-state="down"] .state { color: var(--down); }
   .card[data-state="locked"] .state { color: var(--locked); }
   .card[data-state="unknown"] .state { color: var(--unknown); }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .sublabel { color: var(--muted); font-size: 12px; }
+  .split .state { margin-top: 2px; }
+  .card .half[data-state="up"] .state { color: var(--up); }
+  .card .half[data-state="down"] .state { color: var(--down); }
+  .card .half[data-state="locked"] .state { color: var(--locked); }
+  .card .half[data-state="unknown"] .state { color: var(--unknown); }
   button {
     margin-top: 12px;
     background: transparent;
@@ -236,7 +243,7 @@ _PAGE = """<!DOCTYPE html>
     </section>
     <section class="group" id="group-merchant">
       <h2>Merchant</h2>
-      <article class="card" id="aperture" data-state="unknown"><div class="label">Aperture</div><div class="state"></div><div class="detail"></div></article>
+      <article class="card" id="aperture" data-state="unknown"><div class="label">Aperture</div><div class="split"><div class="half" data-state="unknown"><div class="sublabel">Health</div><div class="state"></div></div><div class="half" data-state="unknown"><div class="sublabel">Challenge</div><div class="state challenge-state"></div></div></div><div class="detail"></div></article>
       <article class="card" id="origin" data-state="unknown"><div class="label">Merchant origin</div><div class="state"></div><div class="detail"></div></article>
     </section>
   </div>
@@ -288,8 +295,20 @@ async function load() {
       if (!card) continue;
       const state = STATES.indexOf(node.state) >= 0 ? node.state : "unknown";
       card.dataset.state = state;
-      card.querySelector(".state").textContent = state;
-      card.querySelector(".detail").textContent = node.detail || "";
+      const primary = card.querySelector(".state");
+      if (primary) primary.textContent = state;
+      const challenge = card.querySelector(".challenge-state");
+      if (challenge) {
+        const challengeState = STATES.indexOf(node.challenge_state) >= 0 ? node.challenge_state : "unknown";
+        challenge.textContent = challengeState;
+        const half = challenge.closest(".half");
+        if (half) half.dataset.state = challengeState;
+        const healthHalf = primary ? primary.closest(".half") : null;
+        if (healthHalf) healthHalf.dataset.state = state;
+      }
+      const parts = [node.detail || ""];
+      if (node.challenge_detail) parts.push(node.challenge_detail);
+      card.querySelector(".detail").textContent = parts.filter(Boolean).join(" · ");
     }
     drawLinks(data.links);
   } catch (err) {

@@ -1,7 +1,8 @@
 """Read-only probes for the Mac infrastructure map.
 
-Allowed LND commands are getinfo and listchannels. Nothing here unlocks a
-wallet, pays an invoice, or opens a channel.
+Allowed LND commands are getinfo and listchannels. The invoice agent is the
+AWS LND, reached with getinfo over the operator SSH path. Nothing here
+unlocks a wallet, pays an invoice, or opens a channel.
 """
 
 from __future__ import annotations
@@ -12,8 +13,10 @@ import re
 import socket
 import subprocess
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Protocol
 from urllib.error import HTTPError, URLError
+from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 _SECRET_RE = re.compile(
@@ -39,6 +42,10 @@ _BITCOIND = {
         "agent-payment-decision-bitcoind-mainnet",
     ),
 }
+_INVOICE_NAMES = frozenset(name for names in _INVOICE.values() for name in names)
+_DEFAULT_AWS_HOST = "3.90.159.146"
+_LOOPBACK_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
+_HOST_RE = re.compile(r"^[A-Za-z0-9.-]{1,253}$")
 
 
 class CommandRejected(RuntimeError):
@@ -66,20 +73,30 @@ class Node:
     label: str
     state: str
     detail: str
+    challenge_state: str = ""
+    challenge_detail: str = ""
 
     def as_dict(self) -> dict[str, str]:
-        return {
+        payload = {
             "id": self.id,
             "label": self.label,
             "state": self.state,
             "detail": scrub(self.detail),
         }
+        if self.challenge_state:
+            payload["challenge_state"] = self.challenge_state
+            payload["challenge_detail"] = scrub(self.challenge_detail)
+        return payload
 
 
 class ProbeIO(Protocol):
     def containers(self) -> set[str]: ...
 
     def lncli(self, container: str, network: str, command: str) -> tuple[int, str]: ...
+
+    def invoice_getinfo(
+        self, container: str, network: str
+    ) -> tuple[int | None, str]: ...
 
     def http_status(self, url: str) -> tuple[int | None, str]: ...
 
@@ -158,25 +175,15 @@ def collect_status(io: ProbeIO, *, network: str | None = None) -> dict[str, obje
     net = network or network_name()
     names = io.containers()
     payer = _first_running(names, _PAYER.get(net, _PAYER["regtest"]))
-    invoice = _first_running(names, _INVOICE.get(net, _INVOICE["regtest"]))
     bitcoind = _first_running(names, _BITCOIND.get(net, _BITCOIND["regtest"]))
 
     payer_state, payer_detail = _lnd_node(
         io, payer, net, "payer container is not running"
     )
-    invoice_state, invoice_detail = _lnd_node(
-        io, invoice, net, "invoice LND is not on this Mac"
-    )
-    if invoice is None and not getattr(io, "note", ""):
-        invoice_state = "unknown"
-
+    invoice_state, invoice_detail = _invoice(io, net)
     bitcoin = _bitcoin(io, payer, payer_state, bitcoind, net)
     channel = _channel(io, payer, payer_state, net)
-    aperture = _aperture(io)
-    origin = _origin(names)
-    note = scrub(getattr(io, "note", "") or "")
-    if note and "agent-l402-origin" not in names:
-        origin = ("down", note)
+    aperture, challenge, origin = _merchant(io)
     nostr = _nostr(io)
 
     nodes = [
@@ -185,7 +192,7 @@ def collect_status(io: ProbeIO, *, network: str | None = None) -> dict[str, obje
         Node("payer", "Payer agent", payer_state, payer_detail),
         Node("invoice", "Invoice agent", invoice_state, invoice_detail),
         Node("nostr", "Nostr", *nostr),
-        Node("aperture", "Aperture", *aperture),
+        Node("aperture", "Aperture", *aperture, *challenge),
         Node("origin", "Merchant origin", *origin),
     ]
     links = [
@@ -265,27 +272,82 @@ def _channel(
     return "up", label
 
 
-def _aperture(io: ProbeIO) -> tuple[str, str]:
+def _invoice(io: ProbeIO, network: str) -> tuple[str, str]:
+    """AWS invoice LND only. A Mac payer does not mark this box up."""
+    container = _INVOICE.get(network, _INVOICE["mainnet"])[0]
+    try:
+        code, raw = io.invoice_getinfo(container, network)
+    except Exception:  # noqa: BLE001 — unreachable stays unknown; no exception text
+        return "unknown", "AWS invoice LND was not reached"
+    if code is None:
+        return "unknown", "AWS invoice LND was not reached"
+    return _classify_getinfo(code, raw)
+
+
+def _merchant(
+    io: ProbeIO,
+) -> tuple[tuple[str, str], tuple[str, str], tuple[str, str]]:
+    """Health and the unpaid challenge are separate. Origin follows health."""
     base = (os.environ.get("DASHBOARD_APERTURE_URL") or "http://127.0.0.1:8081").rstrip(
         "/"
     )
-    health_code, health_err = io.http_status(base + "/health")
+    try:
+        health_code, health_err = io.http_status(base + "/health")
+    except Exception:  # noqa: BLE001 — health failure must not hide the challenge
+        health_code, health_err = None, "health probe failed"
+    try:
+        hello_code, hello_err = io.http_status(base + "/paid/hello")
+    except Exception:  # noqa: BLE001 — a hanging challenge must not mark health down
+        hello_code, hello_err = None, "hello probe failed"
+    return (
+        _health(health_code, health_err),
+        _challenge(hello_code, hello_err),
+        _origin(health_code),
+    )
+
+
+def _health(code: int | None, err: str) -> tuple[str, str]:
+    if code is None:
+        return "down", scrub(err) or "health probe failed"
+    if code != 200:
+        return "down", f"health HTTP {code}"
+    return "up", "health 200"
+
+
+def _challenge(code: int | None, err: str) -> tuple[str, str]:
+    if code is None:
+        return "down", scrub(err) or "hello probe failed"
+    if code == 402:
+        return "up", "unpaid hello 402"
+    return "down", f"hello HTTP {code}, expected 402"
+
+
+def _origin(health_code: int | None) -> tuple[str, str]:
+    """The origin has no host port. It is up only through Aperture /health."""
     if health_code is None:
-        return "down", scrub(health_err) or "health probe failed"
-    if health_code != 200:
-        return "down", f"health HTTP {health_code}"
-    hello_code, hello_err = io.http_status(base + "/paid/hello")
-    if hello_code is None:
-        return "down", scrub(hello_err) or "hello probe failed"
-    if hello_code == 402:
-        return "up", "health 200, unpaid hello 402"
-    return "unknown", f"hello HTTP {hello_code}, expected 402"
+        return "unknown", "Aperture was not reached"
+    if health_code == 200:
+        return "up", "answered through Aperture"
+    return "down", f"health HTTP {health_code}"
 
 
-def _origin(names: set[str]) -> tuple[str, str]:
-    if "agent-l402-origin" in names:
-        return "up", "container running on this Mac"
-    return "unknown", "origin container is not on this Mac"
+def _aws_key() -> Path:
+    return Path.home() / ".ssh/aws/agent-bitcoin-key.pem"
+
+
+def _aws_host() -> str:
+    """Operator SSH host. Loopback Aperture still uses the lab AWS host."""
+    chosen = (os.environ.get("DASHBOARD_AWS_HOST") or "").strip()
+    if not chosen:
+        base = (os.environ.get("DASHBOARD_APERTURE_URL") or "").strip()
+        host = (urlparse(base).hostname or "").lower()
+        if host and host not in _LOOPBACK_HOSTS:
+            chosen = host
+        else:
+            chosen = _DEFAULT_AWS_HOST
+    if not _HOST_RE.fullmatch(chosen):
+        return ""
+    return chosen
 
 
 def _nostr(io: ProbeIO) -> tuple[str, str]:
@@ -347,6 +409,50 @@ class RealProbeIO:
         except (OSError, subprocess.TimeoutExpired):
             return 1, "lncli probe failed"
         return done.returncode, (done.stdout or "") + (done.stderr or "")
+
+    def invoice_getinfo(self, container: str, network: str) -> tuple[int | None, str]:
+        """getinfo on the AWS invoice LND. Unreachable stays an empty code."""
+        if container not in _INVOICE_NAMES or network not in _PAYER:
+            return None, "AWS invoice LND was not reached"
+        host = _aws_host()
+        key = _aws_key()
+        if not host or not key.is_file():
+            return None, "AWS invoice LND was not reached"
+        try:
+            done = subprocess.run(
+                [
+                    "ssh",
+                    "-i",
+                    str(key),
+                    "-o",
+                    "IdentitiesOnly=yes",
+                    "-o",
+                    "BatchMode=yes",
+                    "-o",
+                    "ConnectTimeout=5",
+                    "-o",
+                    "StrictHostKeyChecking=yes",
+                    f"ubuntu@{host}",
+                    "docker",
+                    "exec",
+                    container,
+                    "lncli",
+                    "--lnddir=/home/lnd/.lnd",
+                    "--network",
+                    network,
+                    "getinfo",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=20,
+                check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            return None, "AWS invoice LND was not reached"
+        if done.returncode == 255:
+            return None, "AWS invoice LND was not reached"
+        raw = ((done.stdout or "") + (done.stderr or ""))[:8000]
+        return done.returncode, raw
 
     def http_status(self, url: str) -> tuple[int | None, str]:
         if os.environ.get("PYTEST_CURRENT_TEST"):
