@@ -286,7 +286,7 @@ def _bitcoin(io: ProbeIO, network: str) -> tuple[str, str]:
     if line is None:
         return "unknown", "AWS chain progress was not read"
     if data.get("initialblockdownload") is True:
-        return "unknown", line
+        return "up", f"{line}, syncing"
     return "up", line
 
 
