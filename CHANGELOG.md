@@ -1,3 +1,9 @@
+## Docs — Lightning node practices (2026-10-16)
+
+Document Lightning node practices and add a static channel backup export step.
+
+---
+
 ## Changed — duplicate payment hash (2026-10-15)
 
 Reject BOLT11 invoices with duplicate payment hashes and refuse to retry a paid hash.
