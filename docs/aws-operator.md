@@ -2,7 +2,7 @@
 
 Audience: an operator who already has an AWS account and this repo. This is not a tutorial that launches a mainnet node with shared keys.
 
-Diagram: [architecture.md](./architecture.md). Paid routes and YAML: [l402-aperture.md](./l402-aperture.md). Mainnet design notes: [mainnet-infra.md](./mainnet-infra.md). Optional HTTP API: [backend.md](./backend.md).
+Diagram: [architecture.md](./architecture.md). Paid routes and YAML: [l402-aperture.md](./l402-aperture.md). Mainnet design notes: [mainnet-infra.md](./mainnet-infra.md). Optional HTTP API: [backend.md](./backend.md). Node practices and the static channel backup export: [lightning-node-practices.md](./lightning-node-practices.md).
 
 Do not paste account IDs, AMI IDs, instance IDs, seeds, macaroons, or wallet passwords into git.
 
@@ -162,7 +162,7 @@ lncli connect <pubkey-from-getinfo>@3.90.159.146:9735
 | `curl` to 8081 times out from your laptop | Security group or wrong `3.90.159.146`. On the box, 127.0.0.1:8081 should still answer |
 | Two networks both want 8081 | Stop the other `./shutdown-l402-aws.sh <network>` first |
 
-Backups: [lnd-backup-restore.md](./lnd-backup-restore.md). Closing a channel moves funds on-chain: [ln-channel-close.md](./ln-channel-close.md). Do not close a channel unless you mean to.
+Backups: [lnd-backup-restore.md](./lnd-backup-restore.md). The nine node practices and the mainnet SCB export are in [lightning-node-practices.md](./lightning-node-practices.md). Closing a channel moves funds on-chain: [ln-channel-close.md](./ln-channel-close.md). Do not close a channel unless you mean to.
 
 AMI snapshot: stop LND (and bitcoind) before a snapshot if you need a consistent `wallet.db`. A snapshot of a running node can tear that file. This repo does not store snapshot IDs or account IDs.
 
