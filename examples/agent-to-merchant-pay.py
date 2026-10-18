@@ -8,7 +8,7 @@ the payer; optional Grok only explains. L402 HTTP stays unsigned (no npub).
 
 Mock (any one host): --offline-bus (no sats; fixture bands 3/2/1).
 Live: both processes on the Mac; Mac LND agent-bitcoin-lnd* pays AWS Aperture.
-  --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
+  --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 100
 Do not live-pay with LND_CONTAINER=agent-payment-decision-lnd* (self-pay).
 
 Engineer path (two terminals):
@@ -89,7 +89,7 @@ from agent_bitcoin.nostr.resolve import (  # noqa: E402
 DEFAULT_DIR = Path(os.environ.get("NOSTR_POC_DIR", ".nostr-poc")).resolve()
 DEFAULT_PASSPHRASE = os.environ.get("NOSTR_PASSPHRASE", "")
 AWS_LND_PUB = "0290ec8b1733192e5dcbc5d32f8fec5ae345ff777fc48dafed757c2d14781d4967"
-LLM_GATE_URL = "http://3.90.159.146:8081/paid/finance/ln-path-fee-hint"
+LLM_GATE_URL = "https://agent-bitcoin.net/paid/finance/ln-path-fee-hint"
 LLM_GATE_TIMEOUT_S = 8.0
 _LLM_CALLS = 0
 _LLM_LOCK = threading.Lock()
@@ -713,7 +713,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "Nostr swarm: who pays one L402 GET (2 or 8 agents). "
             "Mock: --offline-bus. Live: all processes on the Mac, "
             "payer agent-bitcoin-lnd* + "
-            "--url http://3.90.159.146:8081/paid/finance/mempool-feerate "
+            "--url https://agent-bitcoin.net/paid/finance/mempool-feerate "
             "(not 127.0.0.1 on AWS; that is self-pay)."
         )
     )
@@ -746,7 +746,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=os.getenv("L402_URL", DEFAULT_L402_URL),
         help=(
             "Paid L402 URL (default mock/on-box: %(default)s). "
-            "Live from the Mac: http://3.90.159.146:8081/paid/finance/mempool-feerate"
+            "Live from the Mac: https://agent-bitcoin.net/paid/finance/mempool-feerate"
         ),
     )
     parser.add_argument(
@@ -920,7 +920,7 @@ def _assert_live_payer_not_invoice_node(offline: bool) -> None:
             "Live L402 pay with LND_CONTAINER="
             f"{container} is self-pay: Aperture invoices AWS LND. "
             "Use Mac agent-bitcoin-lnd* and "
-            "--url http://3.90.159.146:8081/… or --offline-bus. "
+            "--url https://agent-bitcoin.net/… or --offline-bus. "
             "See examples/agent-swarm-merchant-2.md."
         )
 

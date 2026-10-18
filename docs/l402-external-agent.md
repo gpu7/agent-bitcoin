@@ -1,38 +1,34 @@
 # Connect an external agent to L402
 
-Operator + their engineer. Known client, ~100 sats, **8081 stays allowlisted**. HTTP as deployed today (`http://3.90.159.146:8081`). No TLS terminator in this lab.
+Operator + their engineer. Paid HTTP is `https://agent-bitcoin.net` (TLS on **443**). **8081** stays restricted to the operator. Aperture is still plain HTTP behind Caddy. Details: [l402-public-endpoint.md](./l402-public-endpoint.md).
 
 ## What this is
 
-An external agent pays **our AWS Aperture** for existing JSON tools. Aperture is the **cash register** (HTTP 402 + BOLT11). Origin returns JSON after pay. This is not a public marketplace. We do **not** run their node (not an A-kit).
+An external agent pays **our AWS Aperture** for existing JSON tools. Aperture is the **cash register** (HTTP 402 + BOLT11). Origin returns JSON after pay. We do **not** run their node (not an A-kit).
 
 ## Requirements
 
-- Their process can reach `http://3.90.159.146:8081` (after we add their **egress /32**).
+- Their process can reach `https://agent-bitcoin.net` on port **443**. They do **not** need an **8081** `/32`.
 - Lightning payer **≠** our AWS invoice LND. They pay with **their** LND (or SDK + their node). Paying our invoice with our AWS node is self-pay and fails.
 - A path that can send **100 sats**. Prefer a **direct private channel** to our AWS node. Public multi-hop is unreliable at 100 sats.
 - An L402 client: unpaid GET/POST → **402** + BOLT11 → pay → retry `Authorization: L402 <macaroon>:<preimage>`. Use [`examples/l402_pay.py`](../examples/l402_pay.py) or [`L402Client`](../SDK.md#l402-aperture).
 
 ## Step-by-step
 
-1. **Agree a trial.** One path, e.g. `GET http://3.90.159.146:8081/paid/finance/mempool-feerate` at **100 sats**. Other routes: [l402-tools.md](./l402-tools.md). Finance/Nostr tools are typically 100 sats; hello/PDF/PNG are 1,000.
+1. **Agree a trial.** One path, e.g. `GET https://agent-bitcoin.net/paid/finance/mempool-feerate` at **100 sats**. Other routes: [l402-tools.md](./l402-tools.md). Finance/Nostr tools are typically 100 sats; hello/PDF/PNG are 1,000.
 
-2. **Client gives egress /32** of the **agent host**. A VPS is more stable than a home ISP (home IPv4 often changes).
-
-3. **We add that /32 on TCP 8081** with Description `client pack` (not `MY_IP=<client> ./update-aws-sg-my-ip.sh` — that script is **additive for the Mac** and no longer wipes other `/32`s). **10009 stays closed**. Optionally allow **9735** the same way.
-
-4. **They probe** from that host:
+2. **They probe** from their host:
 
    ```bash
-   curl -sS -o /dev/null -w '%{http_code}\n' http://3.90.159.146:8081/health
+   curl -sS -o /dev/null -w '%{http_code}\n' https://agent-bitcoin.net/health
    # 200
-   curl -sS -D - -o /dev/null http://3.90.159.146:8081/paid/finance/mempool-feerate
+   curl -sS -D - -o /dev/null https://agent-bitcoin.net/paid/finance/mempool-feerate
    # 402 and a BOLT11 starting lnbc1u
    ```
 
-   Timeout / hang = SG or wrong IP. `500` challenge failure = our AWS LND is **locked**.
+   Timeout / hang = DNS or port 443. `500` challenge failure = our AWS LND is **locked**.
 
-5. **Lightning.** They connect to AWS LND and open a **private** channel with **outbound** (their side can send 100 sats):
+3. **Lightning.** They connect to AWS LND and open a **private** channel with **outbound** (their side can send 100 sats). Peer port **9735** may still be an operator-added `/32`. **10009 stays closed**. Do not pass `MY_IP=<client>` to `./update-aws-sg-my-ip.sh` — that script is additive for the Mac.
 
    ```text
    0290ec8b1733192e5dcbc5d32f8fec5ae345ff777fc48dafed757c2d14781d4967@3.90.159.146:9735
@@ -40,22 +36,21 @@ An external agent pays **our AWS Aperture** for existing JSON tools. Aperture is
 
    We do **not** pay from AWS for them (self-pay / we are not their wallet). Not our Mac wallet either.
 
-6. **Paid call** from their machine, using **their** LND env (and mainnet latches if mainnet):
+4. **Paid call** from their machine, using **their** LND env (and mainnet latches if mainnet):
 
    ```bash
    uv run python examples/l402_pay.py \
-     --url http://3.90.159.146:8081/paid/finance/mempool-feerate \
+     --url https://agent-bitcoin.net/paid/finance/mempool-feerate \
      --price 100
    ```
 
-7. **Their agent** loops the same L402 client. We only **add or remove** the SG rule.
+5. **Their agent** loops the same L402 client.
 
-8. **We operate:** AWS LND unlocked, channel active, `listinvoices` / origin logs. **Revoke** = delete their `/32` on 8081 (and 9735 if we opened it).
+6. **We operate:** AWS LND unlocked, channel active, `listinvoices` / origin logs. **Revoke** a Lightning peer by deleting their `/32` on **9735** if one was opened. Do **not** open **8081** to the client or to `0.0.0.0/0`.
 
 ## What this is not
 
-- A public URL for anyone
-- `0.0.0.0/0` on 8081
+- A reason to world-open **8081** (public HTTPS is **443**)
 - Card checkout (no Lightning ⇒ no path)
 - Required: Nostr, swarm, or Grok
 

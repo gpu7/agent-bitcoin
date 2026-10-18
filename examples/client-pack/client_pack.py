@@ -27,7 +27,7 @@ AWS_PEER = (
     "@3.90.159.146:9735"
 )
 AWS_PUB = AWS_PEER.split("@", 1)[0]
-L402_URL = "http://3.90.159.146:8081/paid/finance/mempool-feerate"
+L402_URL = "https://agent-bitcoin.net/paid/finance/mempool-feerate"
 FEEURL = "https://nodes.lightning.computer/fees/v1/btc-fee-estimates.json"
 MIN_FUND_SATS = 50_000
 
@@ -189,7 +189,7 @@ def write_hello(ip: str, pub: str, path: Path = HELLO) -> dict[str, str]:
     doc = {
         "egress_ip": ip,
         "identity_pubkey": pub,
-        "l402_host": "http://3.90.159.146:8081",
+        "l402_host": "https://agent-bitcoin.net",
     }
     for bad in ("seed", "macaroon", "password", "nsec"):
         if bad in doc:
@@ -345,8 +345,8 @@ def cmd_all(args: argparse.Namespace) -> int:
             return code
     print(
         "Stop here. Send client-hello.json to the operator "
-        "(they add your /32 on 8081 and 9735). "
-        "Then: address → fund → open --sats → smoke."
+        "(paid HTTP is https://agent-bitcoin.net; they add your /32 on 9735). "
+        "Do not open 8081. Then: address → fund → open --sats → smoke."
     )
     return 0
 
