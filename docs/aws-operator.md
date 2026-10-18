@@ -2,7 +2,7 @@
 
 Audience: an operator who already has an AWS account and this repo. This is not a tutorial that launches a mainnet node with shared keys.
 
-Diagram: [architecture.md](./architecture.md). Paid routes and YAML: [l402-aperture.md](./l402-aperture.md). Mainnet design notes: [mainnet-infra.md](./mainnet-infra.md). Optional HTTP API: [backend.md](./backend.md). Node practices and the static channel backup export: [lightning-node-practices.md](./lightning-node-practices.md).
+Diagram: [architecture.md](./architecture.md). Paid routes and YAML: [l402-aperture.md](./l402-aperture.md). Public HTTPS endpoint and the 402index listing: [l402-public-endpoint.md](./l402-public-endpoint.md). Mainnet design notes: [mainnet-infra.md](./mainnet-infra.md). Optional HTTP API: [backend.md](./backend.md). Node practices and the static channel backup export: [lightning-node-practices.md](./lightning-node-practices.md).
 
 Do not paste account IDs, AMI IDs, instance IDs, seeds, macaroons, or wallet passwords into git.
 
@@ -35,16 +35,17 @@ The payer LND is **not** this box. It is the Mac node or a client-pack node. Pay
 | Port | Why | Who |
 |---|---|---|
 | 22 | SSH | Operator `/32` |
-| 8081 | Aperture L402 | Operator or an admitted client `/32` |
+| 443 | Public HTTPS. Caddy reverse-proxies to `127.0.0.1:8081` | Open. [l402-public-endpoint.md](./l402-public-endpoint.md) |
+| 8081 | Aperture L402 (plain HTTP) | Operator `/32` |
 | 9735 | LND peer (regtest and mainnet) | Mac or client node that has a channel |
 | 19735 | LND peer (signet host port; container still 9735) | Same, signet only |
 | 10009 | LND gRPC (regtest maps it on the host) | Do **not** add it to the security group |
 | 20009 | Signet host port for container gRPC 10009 | Do **not** add it to the security group |
 | 8000 | Optional FastAPI backend | Operator `/32` only if you use it |
 
-`./update-aws-sg-my-ip.sh` is additive for the operator IP. Default ports include 22, 8000, 8081, 9735, and 19735. It refuses a `PORTS` list that contains **10009**. It does not open `0.0.0.0/0`.
+`./update-aws-sg-my-ip.sh` is additive for the operator IP. Default ports include 22, 8000, 8081, 9735, and 19735. It refuses a `PORTS` list that contains **10009**. It does not open `0.0.0.0/0`, and it does not open **443**.
 
-Never recommend `0.0.0.0/0` on **8081** or **10009**.
+Public HTTPS is port **443**. **8081** stays restricted to the operator. Never recommend `0.0.0.0/0` on **8081** or **10009**.
 
 Only one L402 stack can bind **8081**. Stop the other network's Aperture before switching.
 
@@ -188,6 +189,6 @@ The chain volume is `agent-bitcoin_bitcoind-mainnet-prune20g` with `-prune=20000
 
 ## 8. What this box is not
 
-- Not a public Merchant catalog. 8081 stays an allowlist of `/32`s.
+- Port **8081** stays an operator allowlist. The public door is HTTPS on **443**: [l402-public-endpoint.md](./l402-public-endpoint.md).
 - Not the Mac or client-pack payer.
 - Not an instruction to turn Autoloop on. Leave it off unless a separate regtest procedure says otherwise.

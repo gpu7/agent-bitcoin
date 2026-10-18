@@ -2,7 +2,7 @@
 
 For an engineer on **Ubuntu** using the Python driver. The bash pack is unchanged: [l402-client-pack.md](./l402-client-pack.md).
 
-Lab HTTP: `http://3.90.159.146:8081`. Your LND is container **`l402-client-lnd`**. We do not run your wallet.
+Lab HTTPS: `https://agent-bitcoin.net`. Your LND is container **`l402-client-lnd`**. We do not run your wallet.
 
 ## Docker + Python 3.12 + clone
 
@@ -35,7 +35,7 @@ python3.12 examples/client-pack/client_pack.py hello
 
 `hello` writes `examples/client-pack/client-hello.json` (egress IP + pubkey only). **Send that file to the operator.** `all` runs the four commands above, then **stops** — fund / open / smoke stay separate.
 
-The operator still adds your `/32` on **8081** and **9735**. That procedure is in [l402-client-pack.md](./l402-client-pack.md) **Operator admit**. Do not run AWS APIs from the client box.
+Paid HTTP is already `https://agent-bitcoin.net` (**443**). The operator adds your `/32` on **9735** only. That procedure is in [l402-client-pack.md](./l402-client-pack.md) **Operator admit**. Do not run AWS APIs from the client box. Do not ask them to open **8081**.
 
 After they admit you and Neutrino is synced:
 

@@ -45,9 +45,9 @@ Default is **`--resolve hash`**. `./examples/agent-to-merchant-pay.sh --role ali
 
 # live (Mac)
 ./examples/agent-to-merchant-pay.sh --role alice --resolve puzzle --puzzle-type fee-sats --no-llm \
-  --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
+  --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 100
 ./examples/agent-to-merchant-pay.sh --role bob --resolve puzzle --puzzle-type fee-sats --no-llm \
-  --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
+  --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 100
 ```
 
 ### LLM gate (opt-in)
@@ -89,10 +89,10 @@ export AGENT_BITCOIN_ALLOW_MAINNET=1
 export AGENT_BITCOIN_ALLOW_AUTOPAY=1
 # Terminal A
 ./examples/agent-to-merchant-pay.sh --role alice --resolve llm-gate --price 100 \
-  --url http://3.90.159.146:8081/paid/finance/ln-path-fee-hint
+  --url https://agent-bitcoin.net/paid/finance/ln-path-fee-hint
 # Terminal B
 ./examples/agent-to-merchant-pay.sh --role bob --resolve llm-gate --price 100 \
-  --url http://3.90.159.146:8081/paid/finance/ln-path-fee-hint
+  --url https://agent-bitcoin.net/paid/finance/ln-path-fee-hint
 ```
 
 Forced YES (test only — skip Grok; do not default). Same alice/bob commands as mock (`--offline-bus`) or live (URL + LND exports):
@@ -104,7 +104,7 @@ export SWARM_LLM_FORCE_VOTE=YES
 ## 2. Prerequisites
 
 - L402 stack up on AWS: `./startup-l402-aws.sh <regtest|signet|mainnet>`
-- **Live:** Mac clone on the 8081 `/32`; Mac LND unlocked; channel **Mac → AWS** with **local** (outbound) ≫ 100 sats + routing
+- **Live:** Mac can reach `https://agent-bitcoin.net`; Mac LND unlocked; channel **Mac → AWS** with **local** (outbound) ≫ 100 sats + routing
 - `XAI_API_KEY` optional. Without it, `--no-llm`
 - Python **3.12** + `.venv-nostr` + `.[nostr]` — [SDK.md](../SDK.md). Do **not** use `uv run python` on 3.13/3.14
 
@@ -112,7 +112,7 @@ export SWARM_LLM_FORCE_VOTE=YES
 
 **Do not** world-open 8081 or 10009. Do not put nsec, NWC URIs, macaroons, or `XAI_API_KEY` in git. `.nostr-poc/` is gitignored.
 
-Live HTTP is from the **Mac** to `http://3.90.159.146:8081`. On-box `http://127.0.0.1:8081` is for **mock** or for a client whose payer LND is **not** the Aperture invoice node (AWS LND).
+Live HTTP is from the **Mac** to `https://agent-bitcoin.net`. On-box `http://127.0.0.1:8081` is for **mock** or for a client whose payer LND is **not** the Aperture invoice node (AWS LND).
 
 ## 4. Two demo modes
 
@@ -132,7 +132,7 @@ No LND pay. Fine for Nostr ids + negotiate. `--offline-bus` uses a **localhost m
 | Aperture + invoice LND | **AWS** |
 | Payer LND | **Mac** `agent-bitcoin-lnd*` |
 | Both swarm processes | **Mac** (Nostr relays; no shared message directory) |
-| URL | `http://3.90.159.146:8081/paid/finance/mempool-feerate` |
+| URL | `https://agent-bitcoin.net/paid/finance/mempool-feerate` |
 | Flags | **No** `--offline-bus`; `--price 100` |
 | Do **not** | Use `LND_CONTAINER=agent-payment-decision-lnd*` as the live payer |
 
@@ -248,10 +248,10 @@ docker exec agent-bitcoin-lnd-mainnet lncli --lnddir=/home/lnd/.lnd \
   --network=mainnet listchannels
 # want: unlocked, synced; a channel active with local_balance >> 100
 
-curl -sS -o /dev/null -w '%{http_code}\n' http://3.90.159.146:8081/health
+curl -sS -o /dev/null -w '%{http_code}\n' https://agent-bitcoin.net/health
 # 200
 curl -sS -o /dev/null -w '%{http_code}\n' \
-  http://3.90.159.146:8081/paid/finance/mempool-feerate
+  https://agent-bitcoin.net/paid/finance/mempool-feerate
 # 402
 # if health times out: ./update-aws-sg-my-ip.sh   # do not world-open 8081
 ```
@@ -283,11 +283,11 @@ One process (two threads):
 ```bash
 # Terminal A
 ./examples/agent-to-merchant-pay.sh --role alice --no-llm \
-  --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
+  --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 100
 
 # Terminal B
 ./examples/agent-to-merchant-pay.sh --role bob --no-llm \
-  --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
+  --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 100
 ```
 
 Expected log lines (npubs will differ). Mock bands are **3/2/1**; live bands come from the origin:
@@ -324,11 +324,11 @@ Printed: `npub=npub1…`. Encrypted nsec stays in `.nostr-poc/alice.enc.json` an
 | Symptom | What to do |
 |---------|------------|
 | 402 loop / `paid=False` | Price mismatch: pass `--price 100` for feerate. Client default elsewhere is 1000. |
-| Connection refused / health timeout :8081 | Not on the `/32`. `./update-aws-sg-my-ip.sh`. **Do not open SG.** L402: `./startup-l402-aws.sh <network>` |
+| HTTPS health is not 200 | Check `https://agent-bitcoin.net/health`. Do not open 8081. L402: `./startup-l402-aws.sh <network>` |
 | LND locked / macaroon errors | Unlock the **Mac payer** wallet; `LND_CONTAINER` is `agent-bitcoin-lnd*` |
 | Amount below floor | Min invoice is **100 sats** (`MIN_PAYMENT_SATS`) |
 | `No such container: agent-bitcoin-lnd-mainnet` on AWS | Wrong host. Live payer is the **Mac** |
-| `self-payments not allowed` | Payer == invoice node. Use Mac `agent-bitcoin-lnd*` + `--url http://3.90.159.146:8081/…`. Do not enable LND self-pay |
+| `self-payments not allowed` | Payer == invoice node. Use Mac `agent-bitcoin-lnd*` + `--url https://agent-bitcoin.net/…`. Do not enable LND self-pay |
 | `Stale result already on the relay` | Bump `--round`. Do not delete key files. The mock relay also drops events ~60s after both processes exit. |
 | Timeout waiting for peer | Same `--dir`, same `--url`, both processes on **one** host. Start Alice first. Mock: both use `127.0.0.1` (not two machines). Live: both use the same `NOSTR_RELAYS`. |
 | Missing pynostr / uv 3.14 | Do not use `uv run python`. `uv venv -p 3.12 .venv-nostr` then `uv pip install --python .venv-nostr/bin/python -e '.[nostr]'`. Run `./examples/agent-to-merchant-pay.sh` |

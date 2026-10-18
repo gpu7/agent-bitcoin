@@ -279,37 +279,37 @@ if inputs.quote_valid:
 ```python
 from agent_bitcoin import L402Client, create_client
 
-resp = L402Client(create_client()).fetch("http://<host>:8081/paid/hello")
+resp = L402Client(create_client()).fetch("https://agent-bitcoin.net/paid/hello")
 # resp.status_code, resp.paid, resp.json()
 
 payer = create_client()
 fees = L402Client(payer, expected_price_sats=100).fetch(
-    "http://<host>:8081/paid/finance/mempool-feerate"
+    "https://agent-bitcoin.net/paid/finance/mempool-feerate"
 )
 backlog = L402Client(payer, expected_price_sats=100).fetch(
-    "http://<host>:8081/paid/finance/mempool-backlog"
+    "https://agent-bitcoin.net/paid/finance/mempool-backlog"
 )
 fees_tx = L402Client(payer, expected_price_sats=100).fetch(
-    "http://<host>:8081/paid/finance/fee-for-vsize?vsize=250"
+    "https://agent-bitcoin.net/paid/finance/fee-for-vsize?vsize=250"
 )
 wait = L402Client(payer, expected_price_sats=100).fetch(
-    "http://<host>:8081/paid/finance/confirm-target?minutes=30"
+    "https://agent-bitcoin.net/paid/finance/confirm-target?minutes=30"
 )
 fx = L402Client(payer, expected_price_sats=100).fetch(
-    "http://<host>:8081/paid/finance/btc-usd"
+    "https://agent-bitcoin.net/paid/finance/btc-usd"
 )
 path = L402Client(payer, expected_price_sats=100).fetch(
-    "http://<host>:8081/paid/finance/ln-path-fee-hint",
+    "https://agent-bitcoin.net/paid/finance/ln-path-fee-hint",
     method="POST",
     json_body={"dest_pubkey": "<66 hex>", "amount_sats": 1000},
 )
 inv = L402Client(payer, expected_price_sats=100).fetch(
-    "http://<host>:8081/paid/finance/ln-invoice-decode",
+    "https://agent-bitcoin.net/paid/finance/ln-invoice-decode",
     method="POST",
     json_body={"bolt11": "<test invoice>"},
 )
 gate = L402Client(payer, expected_price_sats=100).fetch(
-    "http://<host>:8081/paid/finance/ln-invoice-preflight",
+    "https://agent-bitcoin.net/paid/finance/ln-invoice-preflight",
     method="POST",
     json_body={
         "bolt11": "<test invoice>",

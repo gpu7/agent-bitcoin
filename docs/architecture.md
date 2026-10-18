@@ -26,7 +26,7 @@ flowchart TB
   Origin -.->|"path-hint only"| LND
 ```
 
-Public door is 8081 /32; LND is not world-open.
+Public HTTPS is port **443** (Caddy → `127.0.0.1:8081`). **8081** stays an operator `/32`. LND is not world-open. See [l402-public-endpoint.md](./l402-public-endpoint.md).
 
 ## L402 request sequence
 
@@ -52,11 +52,11 @@ sequenceDiagram
 
 - Unpaid requests stop at 402.
 - Finance/Nostr tools typically 100 sats; hello/PDF/PNG 1000.
-- 8081 allowlist is separate from payment.
+- Callers use `https://agent-bitcoin.net`. The **8081** allowlist is the operator port, separate from payment.
 - Origin does not charge; Aperture is the cash register.
 
 Two-agent swarm (who pays one GET): [examples/agent-swarm-merchant-2.md](../examples/agent-swarm-merchant-2.md) (live demo pays from the Mac; [how the winner is chosen](../examples/agent-swarm-merchant-2.md#how-the-winner-is-chosen)).
-External agent (their LND, our 8081 `/32`): [l402-external-agent.md](./l402-external-agent.md).
+External agent (their LND, public HTTPS): [l402-external-agent.md](./l402-external-agent.md).
 AWS day-2: [aws-operator.md](./aws-operator.md).
 
 ## Wallets and chain backends
@@ -97,7 +97,7 @@ flowchart TB
   Agent -->|"pay BOLT11"| MacLND
 ```
 
-Public door is 8081 /32; LND gRPC 10009 is not world-open.
+Public HTTPS is port **443** (Caddy → `127.0.0.1:8081`). **8081** stays an operator `/32`. LND gRPC 10009 is not world-open.
 
 ### Live L402 across two wallets
 

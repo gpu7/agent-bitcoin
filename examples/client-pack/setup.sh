@@ -121,7 +121,7 @@ path, ip, pub = sys.argv[1], sys.argv[2], sys.argv[3]
 doc = {
     "egress_ip": ip,
     "identity_pubkey": pub,
-    "l402_host": "http://3.90.159.146:8081",
+    "l402_host": "https://agent-bitcoin.net",
 }
 open(path, "w", encoding="utf-8").write(json.dumps(doc, indent=2) + "\n")
 print("Wrote", path)
@@ -145,6 +145,6 @@ if [ -n "$OPEN_SATS" ]; then
   fi
 fi
 
-echo "Send $HELLO to the operator (IP + pubkey only). They add $IP/32 on 8081 and 9735."
+echo "Send $HELLO to the operator (IP + pubkey only). Paid HTTP is https://agent-bitcoin.net. They add $IP/32 on 9735. Do not open 8081."
 echo "Repo root for smoke: $ROOT"
 echo "Then: ./smoke-l402.sh"

@@ -1,10 +1,10 @@
 # L402 client pack (private 100-sat channel)
 
-Turnkey **as far as Lightning allows**: Docker LND (Neutrino mainnet) on the **client** machine, one setup script, one smoke pay. We admit their host with a security-group `/32`. We do **not** run their wallet.
+Turnkey **as far as Lightning allows**: Docker LND (Neutrino mainnet) on the **client** machine, one setup script, one smoke pay. Paid HTTP is public HTTPS. Peer port **9735** may still be a client `/32`. We do **not** run their wallet.
 
 Scripts: [examples/client-pack/](../examples/client-pack/). Product context: [l402-external-agent.md](./l402-external-agent.md).
 
-Lab HTTP: `http://3.90.159.146:8081`. AWS peer:
+Lab HTTPS: `https://agent-bitcoin.net`. AWS peer:
 
 ```text
 0290ec8b1733192e5dcbc5d32f8fec5ae345ff777fc48dafed757c2d14781d4967@3.90.159.146:9735
@@ -15,11 +15,11 @@ Lab HTTP: `http://3.90.159.146:8081`. AWS peer:
 | Who | Action |
 |-----|--------|
 | Client | `setup.sh` → send **only** `client-hello.json` (egress IP + LND pubkey) |
-| Operator | Add that IP `/32` on **8081** and **9735**. Unlock AWS LND. **10009 stays closed.** |
+| Operator | Paid HTTP is already `https://agent-bitcoin.net` (**443** open). Add that IP `/32` on **9735** for the Lightning peer. Do **not** open **8081**. Unlock AWS LND. **10009 stays closed.** |
 | Client | Fund on-chain, optional `setup.sh --open-channel SATS` (**`--private`**) |
 | Operator | Confirm channel active |
 | Client | `smoke-l402.sh` (100-sat GET feerate) |
-| Operator | Revoke = delete those `/32` rules |
+| Operator | Revoke = delete the **9735** `/32` if one was added |
 
 This is not automatic. Allowlist, funding, and the private channel each need a human.
 
@@ -128,20 +128,18 @@ aws ec2 authorize-security-group-ingress \
   --group-id "$SG" \
   --region us-east-1 \
   --ip-permissions "[
-    {\"IpProtocol\":\"tcp\",\"FromPort\":8081,\"ToPort\":8081,
-     \"IpRanges\":[{\"CidrIp\":\"${IP}/32\",\"Description\":\"l402 client pack 8081\"}]},
     {\"IpProtocol\":\"tcp\",\"FromPort\":9735,\"ToPort\":9735,
      \"IpRanges\":[{\"CidrIp\":\"${IP}/32\",\"Description\":\"l402 client pack 9735\"}]}
   ]"
 
 # verify
 aws ec2 describe-security-groups --group-ids "$SG" \
-  --query 'SecurityGroups[0].IpPermissions[?FromPort==`8081` || FromPort==`9735`]'
+  --query 'SecurityGroups[0].IpPermissions[?FromPort==`9735`]'
 ```
 
-`./update-aws-sg-my-ip.sh` on the Mac is **additive** (adds the operator `/32`; it no longer wipes other CIDRs such as client pack). Do not pass `MY_IP=<client>` to that script. Admit clients with `Description` containing `client pack` as above.
+`./update-aws-sg-my-ip.sh` on the Mac is **additive** (adds the operator `/32`; it no longer wipes other CIDRs such as client pack). Do not pass `MY_IP=<client>` to that script. Admit the Lightning peer with `Description` containing `client pack` as above.
 
-Do **not** open 8081 to `0.0.0.0/0`. Do **not** publish 10009.
+Do **not** open 8081 to the client or to `0.0.0.0/0`. Do **not** publish 10009. Paid HTTP is `https://agent-bitcoin.net`.
 
 ## Fund Client Machine
 
@@ -171,8 +169,8 @@ docker exec l402-client-lnd \
   lncli --lnddir=/home/lnd/.lnd --network=mainnet newaddress p2wkh
 ```
 
-Send mainnet BTC to that address from an exchange or wallet you control. 
-Amount: channel size + miner fee (for example: 50,000 sats). 
+Send mainnet BTC to that address from an exchange or wallet you control.
+Amount: channel size + miner fee (for example: 50,000 sats).
 Wait until walletbalance shows a confirmed balance (typically ca. 10 minutes but can vary somewhat).
 After walletbalance shows a confirmed balance, open a private channel to AWS:
 ```bash

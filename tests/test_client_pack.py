@@ -55,7 +55,7 @@ def test_hello_schema_accepts_sample() -> None:
     sample = {
         "egress_ip": "203.0.113.10",
         "identity_pubkey": "0" * 66,
-        "l402_host": "http://3.90.159.146:8081",
+        "l402_host": "https://agent-bitcoin.net",
     }
     required = SCHEMA["required"]
     for key in required:

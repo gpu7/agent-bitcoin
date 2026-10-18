@@ -1,3 +1,9 @@
+## Docs — public HTTPS L402 endpoint (2026-10-18)
+
+Document the public HTTPS L402 endpoint and 402index listing.
+
+---
+
 ## Docs — Lightning node practices (2026-10-16)
 
 Document Lightning node practices and add a static channel backup export step.

@@ -7,7 +7,7 @@
   "properties": {
     "egress_ip": {
       "type": "string",
-      "description": "Public IPv4 of the agent host (operator adds /32 on 8081 and 9735)"
+      "description": "Public IPv4 of the agent host (operator may add /32 on 9735). Paid HTTP is https://agent-bitcoin.net"
     },
     "identity_pubkey": {
       "type": "string",

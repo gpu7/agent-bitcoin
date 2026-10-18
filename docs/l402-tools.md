@@ -8,7 +8,7 @@ Aperture sits in front of a dummy HTTP origin on **`:8081`**. Unpaid `GET`/`POST
 
 Finance and Nostr tool paths are typically **100 sats**. Demo `hello` / PDF / PNG stay **1,000 sats**. There is **no platform fee**; the L402 price **is** the Lightning amount.
 
-This is **not** a public catalog. The operator’s security group is **`/32`**. An external agent only reaches these URLs if the operator exposes a host the agent can call.
+The public base URL is `https://agent-bitcoin.net` (port **443**). Aperture still listens on plain HTTP **8081**, which stays restricted to the operator. See [l402-public-endpoint.md](./l402-public-endpoint.md).
 
 ## How an external agent uses any tool
 
@@ -16,7 +16,7 @@ This is **not** a public catalog. The operator’s security group is **`/32`**. 
 
 *Unpaid request → Lightning pay → JSON. Typical tool price 100 sats.*
 
-1. Get a reachable base URL from the operator (`http://3.90.159.146:8081` in this lab).
+1. Call `https://agent-bitcoin.net` (this lab).
 2. Call with `L402Client(..., expected_price_sats=100)` or `l402_pay.py --price 100` (the SDK default expected price is **1000**, so 100-sat paths need `--price 100`).
 3. **GET** for Bitcoin-suite query tools. **POST** JSON for Lightning and Nostr tools (GET → **405**).
 4. Do **not** put BOLT11 in query strings. POST it in JSON (`--json`).
@@ -25,10 +25,10 @@ This is **not** a public catalog. The operator’s security group is **`/32`**. 
 
 Sequence (402 → pay → retry): [architecture.md — L402 request sequence](./architecture.md#l402-request-sequence).
 Two agents negotiate who pays one GET: [examples/agent-swarm-merchant-2.md](../examples/agent-swarm-merchant-2.md) (live demo pays from the Mac). Coordination is signed kind 8139 on `NOSTR_RELAYS` (verify before trust). `--offline-bus` is a localhost mock relay. The L402 GET/POST itself stays unsigned HTTP.
-Connect a **client** agent (their node, our `/32`): [l402-external-agent.md](./l402-external-agent.md).
+Connect a **client** agent (their node, public HTTPS): [l402-external-agent.md](./l402-external-agent.md).
 Client pack (compose + setup + smoke): [l402-client-pack.md](./l402-client-pack.md).
 
-Lab host below is `http://3.90.159.146:8081`. Use a **test** invoice for decode/preflight examples, not a live mainnet pay request.
+Lab host below is `https://agent-bitcoin.net`. Use a **test** invoice for decode/preflight examples, not a live mainnet pay request.
 
 ## Bitcoin suite
 
@@ -40,7 +40,7 @@ Job: sat/vB bands (`fast` / `medium` / `slow`) from a public fee API cache. Use 
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url http://3.90.159.146:8081/paid/finance/mempool-feerate --price 100
+  --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 100
 ```
 
 ### GET `/paid/finance/mempool-backlog`
@@ -49,7 +49,7 @@ Job: how full the mempool is (`tx_count`, `vsize`, `total_fee_sats`) — not fee
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url http://3.90.159.146:8081/paid/finance/mempool-backlog --price 100
+  --url https://agent-bitcoin.net/paid/finance/mempool-backlog --price 100
 ```
 
 ### GET `/paid/finance/fee-for-vsize?vsize=`
@@ -58,7 +58,7 @@ Job: `ceil(vsize × sat/vB)` for a tx size in **virtual bytes** (not weight). Ra
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url 'http://3.90.159.146:8081/paid/finance/fee-for-vsize?vsize=250' --price 100
+  --url 'https://agent-bitcoin.net/paid/finance/fee-for-vsize?vsize=250' --price 100
 ```
 
 ### GET `/paid/finance/confirm-target`
@@ -67,7 +67,7 @@ Job: map a wait window (`minutes` 1–60) or named band (`fast`|`medium`|`slow`)
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url 'http://3.90.159.146:8081/paid/finance/confirm-target?minutes=30' --price 100
+  --url 'https://agent-bitcoin.net/paid/finance/confirm-target?minutes=30' --price 100
 ```
 
 ### GET `/paid/finance/btc-usd`
@@ -76,7 +76,7 @@ Job: USD per 1 BTC from one public JSON URL, plus `sats_per_usd`. Pass-through m
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url http://3.90.159.146:8081/paid/finance/btc-usd --price 100
+  --url https://agent-bitcoin.net/paid/finance/btc-usd --price 100
 ```
 
 ## Lightning suite
@@ -89,7 +89,7 @@ Job: parse a BOLT11 for network, `amount_sats`, dest, payment hash, expiry. No L
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url http://3.90.159.146:8081/paid/finance/ln-invoice-decode \
+  --url https://agent-bitcoin.net/paid/finance/ln-invoice-decode \
   --price 100 --method POST \
   --json '{"bolt11":"<test invoice>"}'
 ```
@@ -100,7 +100,7 @@ Job: reuse that parse and return `allow` plus reason codes (`expired`, `zero_amo
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url http://3.90.159.146:8081/paid/finance/ln-invoice-preflight \
+  --url https://agent-bitcoin.net/paid/finance/ln-invoice-preflight \
   --price 100 --method POST \
   --json '{"bolt11":"<test invoice>","max_sats":50000,"network":"bitcoin"}'
 ```
@@ -111,7 +111,7 @@ Job: first-path fee hint (`fee_sats`, `hop_count`) from AWS agent LND QueryRoute
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url http://3.90.159.146:8081/paid/finance/ln-path-fee-hint \
+  --url https://agent-bitcoin.net/paid/finance/ln-path-fee-hint \
   --price 100 --method POST \
   --json '{"dest_pubkey":"<66 hex>","amount_sats":1000}'
 ```
@@ -128,7 +128,7 @@ Job: NIP-01 id hash + Schnorr check on a **bare** event JSON. Response omits `co
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url http://3.90.159.146:8081/paid/nostr/event-verify \
+  --url https://agent-bitcoin.net/paid/nostr/event-verify \
   --price 100 --method POST \
   --json '{"id":"<64 hex>","pubkey":"<64 hex>","created_at":1,"kind":1,"tags":[],"content":"","sig":"<128 hex>"}'
 ```
@@ -139,7 +139,7 @@ Job: NIP-19 bech32 → `type` + hex (`npub` / `note` / `nprofile` / `nevent`). *
 
 ```bash
 uv run python examples/l402_pay.py \
-  --url http://3.90.159.146:8081/paid/nostr/npub-decode \
+  --url https://agent-bitcoin.net/paid/nostr/npub-decode \
   --price 100 --method POST \
   --json '{"entity":"npub1..."}'
 ```
@@ -150,5 +150,5 @@ uv run python examples/l402_pay.py \
 - Not an **FX oracle** or CoinGecko substitute (`btc-usd` is one public pass-through)
 - Not **Terminal / RTL** (path-hint is one QueryRoutes scalar, not a route UI)
 - Not **Damus** or a Nostr client (no relay on these two tools)
-- Not a world-open catalog (operator `/32`)
+- Not a world-open **8081** (public HTTPS is port **443**)
 - Do not put Aperture in front of `/pay`, `/invoices`, or `/balance`

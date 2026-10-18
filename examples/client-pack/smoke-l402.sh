@@ -5,7 +5,7 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
-URL="${L402_URL:-http://3.90.159.146:8081/paid/finance/mempool-feerate}"
+URL="${L402_URL:-https://agent-bitcoin.net/paid/finance/mempool-feerate}"
 
 usage() {
   cat <<'EOF'
@@ -15,7 +15,7 @@ Usage:
   ./smoke-l402.sh
   ./smoke-l402.sh --help
 
-Requires: Docker LND unlocked, operator /32 on 8081, a path that can send 100 sats
+Requires: Docker LND unlocked, https://agent-bitcoin.net on 443, a path that can send 100 sats
 (prefer a private channel to AWS). Sets AGENT_BITCOIN_ALLOW_MAINNET and ALLOW_AUTOPAY.
 EOF
 }
