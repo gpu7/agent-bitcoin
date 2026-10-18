@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -36,12 +37,12 @@ def test_payment_result_captures_preimage() -> None:
 def test_default_l402_price_matches_min_pay() -> None:
     from agent_bitcoin.constants import DEFAULT_MIN_PAYMENT_SATS
 
-    assert DEFAULT_L402_PRICE_SATS == 1_000
+    assert DEFAULT_L402_PRICE_SATS == 100
     assert DEFAULT_MIN_PAYMENT_SATS == 100
     assert DEFAULT_L402_PRICE_SATS >= DEFAULT_MIN_PAYMENT_SATS
 
 
-def test_finance_and_nostr_urls_default_to_100() -> None:
+def test_paid_urls_default_to_100() -> None:
     from agent_bitcoin.l402.client import (
         FINANCE_L402_PRICE_SATS,
         expected_price_sats_for_url,
@@ -52,9 +53,33 @@ def test_finance_and_nostr_urls_default_to_100() -> None:
     nostr = "http://127.0.0.1:8081/paid/nostr/event-verify?x=1"
     assert expected_price_sats_for_url(finance) == 100
     assert expected_price_sats_for_url(nostr) == 100
-    assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/hello") == 1_000
-    assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/report.pdf") == 1_000
-    assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/badge.png") == 1_000
+    assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/hello") == 100
+    assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/report.pdf") == 100
+    assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/script.pdf") == 100
+    assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/badge.png") == 100
+    assert (
+        expected_price_sats_for_url("http://127.0.0.1:8081/paid/finance/fee-for-vsize")
+        == 100
+    )
+    assert (
+        expected_price_sats_for_url(
+            "http://127.0.0.1:8081/paid/finance/ln-invoice-decode"
+        )
+        == 100
+    )
+
+
+def test_aperture_yaml_prices_are_100_and_health_is_free() -> None:
+    root = Path(__file__).resolve().parents[1] / "l402"
+    for name in (
+        "aperture.regtest.yaml",
+        "aperture.signet.yaml",
+        "aperture.mainnet.yaml",
+    ):
+        text = (root / name).read_text(encoding="utf-8")
+        assert "price: 1000" not in text
+        assert "price: 100" in text
+        assert '- "^/health$"' in text
 
 
 def test_parse_www_authenticate_aperture() -> None:
@@ -251,7 +276,7 @@ def test_fetch_rejects_failed_pay(clear_payment_env) -> None:
     payer = _payer()
     payer.pay_invoice.return_value = MagicMock(success=False, status="FAILED")
     header = 'L402 macaroon="MAC", invoice="lnbcrt1inv"'
-    client = L402Client(payer)
+    client = L402Client(payer, expected_price_sats=1000)
     with patch("agent_bitcoin.l402.client.L402Client._get") as mock_get:
         mock_get.return_value = (402, {"WWW-Authenticate": header}, b"")
         with pytest.raises(PaymentError, match="failed"):

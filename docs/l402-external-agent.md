@@ -15,7 +15,7 @@ An external agent pays **our AWS Aperture** for existing JSON tools. Aperture is
 
 ## Step-by-step
 
-1. **Agree a trial.** One path, e.g. `GET https://agent-bitcoin.net/paid/finance/mempool-feerate` at **100 sats**. Other routes: [l402-tools.md](./l402-tools.md). Finance/Nostr tools are typically 100 sats; hello/PDF/PNG are 1,000.
+1. **Agree a trial.** One path, e.g. `GET https://agent-bitcoin.net/paid/finance/mempool-feerate` at **100 sats**. Other routes: [l402-tools.md](./l402-tools.md). Paid paths, including hello, PDF, and PNG, are 100 sats.
 
 2. **They probe** from their host:
 

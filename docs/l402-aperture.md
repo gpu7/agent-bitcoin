@@ -12,7 +12,7 @@ Lab EIP is `3.90.159.146` (stable).
 
 ## What it is
 
-Aperture sits in front of a dummy HTTP origin on AWS. A client that has not paid gets **HTTP 402** plus a macaroon and a 1,000 sat BOLT11. After the Mac LND node pays, the client retries with `Authorization: L402 <macaroon>:<preimage>` and Aperture proxies to the origin.
+Aperture sits in front of a dummy HTTP origin on AWS. A client that has not paid gets **HTTP 402** plus a macaroon and a 100 sat BOLT11. After the Mac LND node pays, the client retries with `Authorization: L402 <macaroon>:<preimage>` and Aperture proxies to the origin.
 
 ```text
 Mac  examples/l402_pay.py
@@ -22,10 +22,10 @@ AWS  agent-l402-aperture :8081   (plain HTTP; 8081 stays operator /32)
         ├─ LND gRPC  <aws-lnd>:10009  (invoice.macaroon)
         └─ origin    agent-l402-origin:8090
               GET /health           free
-              GET /paid/hello       1,000 sats (JSON)
-              GET /paid/report.pdf  1,000 sats (PDF file)
-              GET /paid/script.pdf  1,000 sats (PDF from generate_script_pdf.py)
-              GET /paid/badge.png   1,000 sats (PNG image)
+              GET /paid/hello       100 sats (JSON)
+              GET /paid/report.pdf  100 sats (PDF file)
+              GET /paid/script.pdf  100 sats (PDF from generate_script_pdf.py)
+              GET /paid/badge.png   100 sats (PNG image)
               GET /paid/finance/mempool-feerate  100 sats (JSON fee bands)
               GET /paid/finance/mempool-backlog  100 sats (JSON mempool fullness)
               GET /paid/finance/fee-for-vsize?vsize=  100 sats (JSON total fee sats)
@@ -38,7 +38,7 @@ AWS  agent-l402-aperture :8081   (plain HTTP; 8081 stays operator /32)
               POST /paid/nostr/npub-decode             100 sats (JSON NIP-19 bech32 → hex)
 ```
 
-There is **no platform fee**. The L402 price **is** the Lightning amount (must be ≥ `MIN_PAYMENT_SATS`, default 100). Demo files are **1,000 sats**; finance and Nostr paths (feerate, backlog, fee-for-vsize, confirm-target, btc-usd, ln-path-fee-hint, ln-invoice-decode, ln-invoice-preflight, event-verify, npub-decode) are **100 sats**.
+There is **no platform fee**. The L402 price **is** the Lightning amount (must be ≥ `MIN_PAYMENT_SATS`, default 100). Every paid path is **100 sats**, including hello, PDF, PNG, finance, and Nostr (feerate, backlog, fee-for-vsize, confirm-target, btc-usd, ln-path-fee-hint, ln-invoice-decode, ln-invoice-preflight, event-verify, npub-decode). `/health` is free.
 
 This is **not** a mempool.space replacement, FX oracle, or CoinGecko substitute. **mempool-feerate** is fee bands (sat/vB). **mempool-backlog** is fullness. **fee-for-vsize** multiplies those bands by a **vbyte** size. **confirm-target** maps a wait window (minutes) or named band onto `sat_vb` from the feerate cache. **btc-usd** is a **pass-through mark, not our index** — USD per 1 BTC from one public JSON URL. **ln-path-fee-hint** is what the **AWS agent LND** sees for a dest+amount (or bolt11) via readonly **QueryRoutes** — not Terminal, not RTL, not a route dump. **ln-invoice-decode** parses BOLT11 **in-process** (no LND) so an agent can inspect amount / dest / expiry / network before pay or path-hint. **ln-invoice-preflight** reuses that parse and returns `allow` plus reason codes (expired, zero_amount, below_floor, above_max_sats, network_mismatch, duplicate_payment_hash). Not a route check.
 
@@ -238,7 +238,7 @@ Rebuild origin + Aperture after pull: `./startup-l402-aws.sh mainnet` (do **not*
 ```python
 from agent_bitcoin import L402Client, create_client
 
-client = L402Client(create_client(), expected_price_sats=1000)
+client = L402Client(create_client(), expected_price_sats=100)
 resp = client.fetch("https://agent-bitcoin.net/paid/hello")
 ```
 
@@ -251,7 +251,7 @@ resp = client.fetch("https://agent-bitcoin.net/paid/hello")
 | `docker-compose.l402.regtest.yml` | Origin + Aperture on `regtest_regtest` |
 | `docker-compose.l402.signet.yml` | Origin + Aperture on `agent-bitcoin-signet` |
 | `docker-compose.l402.mainnet.yml` | Origin + Aperture on `agent-bitcoin-mainnet` |
-| `l402/aperture.*.yaml` | `price: 1000`, `insecure: true` |
+| `l402/aperture.*.yaml` | `price: 100`, `insecure: true` |
 | `l402/origin.py` | Dummy origin |
 | `agent_bitcoin/l402/` | Client + header parser |
 | `examples/l402_pay.py` | Mac CLI |
@@ -261,4 +261,4 @@ resp = client.fetch("https://agent-bitcoin.net/paid/hello")
 
 - Public callers use `https://agent-bitcoin.net` (**443**). Aperture stays on `:8081` with an operator `/32`. Do **not** world-open 8081.
 - Aperture uses **`invoice.macaroon`** from the mainnet macaroon dir (not admin).
-- One paid GET is **1,000 real sats**. Needs `AGENT_BITCOIN_ALLOW_MAINNET=1` and `AGENT_BITCOIN_ALLOW_AUTOPAY=1` on the Mac payer. Autoloop stays **off**.
+- One paid GET is **100 real sats**. Needs `AGENT_BITCOIN_ALLOW_MAINNET=1` and `AGENT_BITCOIN_ALLOW_AUTOPAY=1` on the Mac payer. Autoloop stays **off**.

@@ -6,7 +6,7 @@ Paid JSON tools behind Aperture L402. This page is for an **external autonomous 
 
 Aperture sits in front of a dummy HTTP origin on **`:8081`**. Unpaid `GET`/`POST` to a paid path returns **HTTP 402** plus a Lightning invoice. Pay at least **`MIN_PAYMENT_SATS`** (default **100**), then retry with L402 auth (`Authorization: L402 <macaroon>:<preimage>`). Prefer [`L402Client`](../SDK.md#l402-aperture) or [`examples/l402_pay.py`](../examples/l402_pay.py) so that handshake is automatic.
 
-Finance and Nostr tool paths are typically **100 sats**. Demo `hello` / PDF / PNG stay **1,000 sats**. There is **no platform fee**; the L402 price **is** the Lightning amount.
+Every paid path is **100 sats**, including hello, PDF, PNG, finance, and Nostr. `/health` is free. There is **no platform fee**; the L402 price **is** the Lightning amount.
 
 The public base URL is `https://agent-bitcoin.net` (port **443**). Aperture still listens on plain HTTP **8081**, which stays restricted to the operator. See [l402-public-endpoint.md](./l402-public-endpoint.md).
 
@@ -17,7 +17,7 @@ The public base URL is `https://agent-bitcoin.net` (port **443**). Aperture stil
 *Unpaid request → Lightning pay → JSON. Typical tool price 100 sats.*
 
 1. Call `https://agent-bitcoin.net` (this lab).
-2. Call with `L402Client(..., expected_price_sats=100)` or `l402_pay.py --price 100` (the SDK default expected price is **1000**, so 100-sat paths need `--price 100`).
+2. Call with `L402Client(..., expected_price_sats=100)` or `l402_pay.py --price 100`. The SDK default expected price is **100**.
 3. **GET** for Bitcoin-suite query tools. **POST** JSON for Lightning and Nostr tools (GET → **405**).
 4. Do **not** put BOLT11 in query strings. POST it in JSON (`--json`).
 5. Read `ttl_s` and cache. Do not poll every second. Local inspect tools (`ttl_s` 0) are still not a hot loop.
