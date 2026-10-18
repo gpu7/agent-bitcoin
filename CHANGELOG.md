@@ -1,3 +1,9 @@
+## Changed — L402 paid endpoints (2026-10-18)
+
+Set L402 paid endpoints to 100 sats.
+
+---
+
 ## Docs — public HTTPS L402 endpoint (2026-10-18)
 
 Document the public HTTPS L402 endpoint and 402index listing.

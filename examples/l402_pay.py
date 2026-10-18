@@ -20,7 +20,7 @@ Mainnet (real sats; latches required):
       uv run python examples/l402_pay.py \\
       --url https://agent-bitcoin.net/paid/hello
 
-Paid PDF / PNG (same 1,000 sat price):
+Paid PDF / PNG (same 100 sat price):
 
     ... l402_pay.py --url https://agent-bitcoin.net/paid/report.pdf --out report.pdf
     ... l402_pay.py --url https://agent-bitcoin.net/paid/script.pdf --out script.pdf
