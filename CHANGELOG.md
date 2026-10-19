@@ -1,3 +1,9 @@
+## Changed — free L402 discovery document (2026-10-19)
+
+Keep `/.well-known/l402-services` free of the L402 challenge and leave every `/paid` route protected.
+
+---
+
 ## Changed — well-known L402 services (2026-10-19)
 
 Serve `/.well-known/l402-services` as free JSON so crawlers can discover public endpoints.

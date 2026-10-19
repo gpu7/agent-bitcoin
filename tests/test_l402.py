@@ -126,7 +126,49 @@ def test_authorization_value() -> None:
         authorization_value("mac", "zz")
 
 
+def _yaml_double_quoted(value: str) -> str:
+    """Undo the escapes in a YAML double-quoted scalar."""
+    out: list[str] = []
+    index = 0
+    while index < len(value):
+        if value[index] == "\\" and index + 1 < len(value):
+            nxt = value[index + 1]
+            out.append("\\" if nxt == "\\" else nxt)
+            index += 2
+            continue
+        out.append(value[index])
+        index += 1
+    return "".join(out)
+
+
+def _aperture_http_status(path: str, text: str) -> int:
+    """Status Aperture returns before the origin sees a non-free path."""
+    import re
+
+    for chunk in re.split(r"(?m)^  - name: ", text)[1:]:
+        path_match = re.search(r'(?m)^    pathregexp: "(.*)"\s*$', chunk)
+        price_match = re.search(r"(?m)^    price: (\d+)\s*$", chunk)
+        if path_match is None or price_match is None:
+            continue
+        path_re = re.compile(_yaml_double_quoted(path_match.group(1)))
+        if path_re.search(path) is None:
+            continue
+        whitelist = re.search(
+            r"(?m)^    authwhitelistpaths:\n((?:      - .*\n)+)",
+            chunk,
+        )
+        if whitelist is not None:
+            for raw in re.findall(r'- "(.*)"', whitelist.group(1)):
+                if re.compile(_yaml_double_quoted(raw)).search(path):
+                    return 200
+        if int(price_match.group(1)) == 0:
+            return 200
+        return 402
+    return 404
+
+
 def test_well_known_l402_services_is_public_json() -> None:
+    root = Path(__file__).resolve().parents[1] / "l402"
     status, content_type, body = dispatch("/.well-known/l402-services")
     assert status == 200
     assert content_type == "application/json"
@@ -141,6 +183,22 @@ def test_well_known_l402_services_is_public_json() -> None:
     assert entry["name"] == "agent-bitcoin: btc-usd"
     assert entry["method"] == "GET"
     assert entry["price_sats"] == 100
+    paid = (
+        "/paid/hello",
+        "/paid/finance/btc-usd",
+        "/paid/report.pdf",
+        "/paid/nostr/npub-decode",
+    )
+    for name in (
+        "aperture.regtest.yaml",
+        "aperture.signet.yaml",
+        "aperture.mainnet.yaml",
+    ):
+        text = (root / name).read_text(encoding="utf-8")
+        assert _aperture_http_status("/.well-known/l402-services", text) == 200
+        assert _aperture_http_status("/health", text) == 200
+        for path in paid:
+            assert _aperture_http_status(path, text) == 402
 
 
 def test_origin_paths() -> None:
