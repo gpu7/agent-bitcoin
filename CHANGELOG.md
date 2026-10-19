@@ -1,3 +1,9 @@
+## Changed — well-known finance endpoints (2026-10-19)
+
+List every /paid/finance endpoint in the free L402 discovery document.
+
+---
+
 ## Changed — well-known mempool endpoints (2026-10-19)
 
 List btc-usd, mempool-feerate, and mempool-backlog in the free L402 discovery document.
