@@ -588,7 +588,7 @@ def test_channel_panel_shows_capacity_and_local_remote_balance() -> None:
                     "active": True,
                     "capacity": "25000",
                     "local_balance": "2500",
-                    "remote_balance": "21500",
+                    "remote_balance": "21537",
                 },
                 {
                     "active": False,
@@ -602,9 +602,12 @@ def test_channel_panel_shows_capacity_and_local_remote_balance() -> None:
     payload = collect_status(io, network="mainnet")
     channel = next(node for node in payload["nodes"] if node["id"] == "channel")
     assert channel["state"] == "up"
-    assert (
-        channel["detail"]
-        == "1 active channel · 1 peer · 25000 sats · local 2500 / remote 21500"
+    assert channel["detail"] == (
+        "1 active channel\n"
+        "1 peer\n"
+        "capacity: 25000 sats\n"
+        "outbound: 2500 sats\n"
+        "inbound: 21537 sats"
     )
 
     io.channels = json.dumps(
@@ -628,9 +631,12 @@ def test_channel_panel_shows_capacity_and_local_remote_balance() -> None:
     summed = collect_status(io, network="mainnet")
     summed_channel = next(node for node in summed["nodes"] if node["id"] == "channel")
     assert summed_channel["state"] == "up"
-    assert (
-        summed_channel["detail"]
-        == "2 active channels · 1 peer · 25000 sats · local 2500 / remote 21500"
+    assert summed_channel["detail"] == (
+        "2 active channels\n"
+        "1 peer\n"
+        "capacity: 25000 sats\n"
+        "outbound: 2500 sats\n"
+        "inbound: 21500 sats"
     )
 
 

@@ -228,7 +228,7 @@ def _active_channel_rows(raw: str) -> list[dict[str, object]] | None:
 
 
 def _balance_line(rows: list[dict[str, object]]) -> str | None:
-    """Sum capacity and local/remote across active channels. Omit if any field is unreadable."""
+    """Sum capacity, outbound (local), and inbound (remote). Omit if any field is unreadable."""
     capacity = 0
     local = 0
     remote = 0
@@ -241,7 +241,7 @@ def _balance_line(rows: list[dict[str, object]]) -> str | None:
         capacity += cap
         local += loc
         remote += rem
-    return f"{capacity} sats · local {local} / remote {remote}"
+    return f"capacity: {capacity} sats\noutbound: {local} sats\ninbound: {remote} sats"
 
 
 def collect_status(io: ProbeIO, *, network: str | None = None) -> dict[str, object]:
@@ -353,11 +353,14 @@ def _channel(
     if count == 0:
         return "down", _with_peers("no active channel", peers)
     label = "1 active channel" if count == 1 else f"{count} active channels"
-    detail = _with_peers(label, peers)
+    lines = [label]
+    if peers is not None:
+        noun = "peer" if peers == 1 else "peers"
+        lines.append(f"{peers} {noun}")
     amounts = _balance_line(rows)
-    if amounts is None:
-        return "up", detail
-    return "up", f"{detail} · {amounts}"
+    if amounts is not None:
+        lines.append(amounts)
+    return "up", "\n".join(lines)
 
 
 def _invoice(io: ProbeIO, network: str) -> tuple[str, str]:
