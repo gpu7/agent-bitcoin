@@ -31,7 +31,7 @@ Once the agent has the URL from the directory, it treats the endpoint exactly li
 
 The listing name is `btc-usd` and the description says “Bitcoin price”, so both `btc-usd` and `bitcoin price` queries match. The unit of account remains sats.
 
-The origin also serves `GET https://agent-bitcoin.net/.well-known/l402-services` (`Content-Type: application/json`, HTTP 200, no payment). The document is [`l402/well-known/l402-services.json`](../l402/well-known/l402-services.json). It lists the three Bitcoin-suite GET endpoints: btc-usd, mempool-feerate, and mempool-backlog. Add each new public endpoint to that file.
+The origin also serves `GET https://agent-bitcoin.net/.well-known/l402-services` (`Content-Type: application/json`, HTTP 200, no payment). The document is [`l402/well-known/l402-services.json`](../l402/well-known/l402-services.json). It lists every `/paid/finance` endpoint. Add each new public endpoint to that file.
 
 The existing Caddy reverse proxy forwards the path to Aperture, which leaves it free alongside `/health`, and the origin returns the JSON. This repo does not call 402index. A new row shows up in search only after an operator registers it, or after a later crawl reads this file.
 
