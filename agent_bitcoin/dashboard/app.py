@@ -167,7 +167,7 @@ _PAGE = """<!DOCTYPE html>
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
-  .detail { margin-top: 6px; color: var(--muted); font-size: 13px; }
+  .detail { margin-top: 6px; color: var(--muted); font-size: 13px; white-space: pre-line; }
   .card[data-state="up"] .state { color: var(--up); }
   .card[data-state="down"] .state { color: var(--down); }
   .card[data-state="locked"] .state { color: var(--locked); }

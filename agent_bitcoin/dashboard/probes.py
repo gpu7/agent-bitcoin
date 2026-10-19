@@ -50,9 +50,10 @@ class CommandRejected(RuntimeError):
 
 
 def scrub(text: str, limit: int = 140) -> str:
-    """Drop secrets and collapse a probe error to one short line."""
+    """Drop secrets. Spaces on each line collapse. Line breaks stay."""
     cleaned = _SECRET_RE.sub("[redacted]", text or "")
-    cleaned = " ".join(cleaned.split())
+    lines = [" ".join(line.split()) for line in cleaned.splitlines()]
+    cleaned = "\n".join(line for line in lines if line)
     return cleaned[:limit]
 
 
@@ -183,7 +184,7 @@ def _with_height(info: _Info) -> tuple[str, str]:
 
 
 def chain_progress_line(data: dict[str, object]) -> str | None:
-    """blocks / headers and percent. Missing fields do not become a guess."""
+    """Three labeled lines. Missing fields do not become a guess."""
     blocks = _whole_number(data.get("blocks"))
     headers = _whole_number(data.get("headers"))
     progress = data.get("verificationprogress")
@@ -195,7 +196,7 @@ def chain_progress_line(data: dict[str, object]) -> str | None:
     if not 0 <= float(progress) <= 1:
         return None
     percent = int(round(float(progress) * 100))
-    return f"{blocks} / {headers}, {percent}%"
+    return f"blocks: {blocks}\nheaders: {headers}\nprogress: {percent}%"
 
 
 def _sat_amount(value: object) -> int | None:

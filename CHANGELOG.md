@@ -1,3 +1,9 @@
+## Changed — dashboard chain lines (2026-10-19)
+
+Show Bitcoin blocks, headers, and progress on separate dashboard lines.
+
+---
+
 ## Changed — dashboard channel balance (2026-10-19)
 
 Show Lightning channel capacity and local and remote balance on the dashboard.
