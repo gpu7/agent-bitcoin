@@ -180,7 +180,7 @@ def _classify_getinfo(code: int, raw: str) -> _Info:
 def _with_height(info: _Info) -> tuple[str, str]:
     if info.block_height is None:
         return info.state, info.detail
-    return info.state, f"{info.detail} · height {info.block_height}"
+    return info.state, f"{info.detail}\nheight: {info.block_height}"
 
 
 def chain_progress_line(data: dict[str, object]) -> str | None:
@@ -409,7 +409,7 @@ def _challenge(code: int | None, err: str) -> tuple[str, str]:
     if code is None:
         return "down", scrub(err) or "hello probe failed"
     if code == 402:
-        return "up", "unpaid hello 402"
+        return "up", "unpaid hello: 402"
     return "down", f"hello HTTP {code}, expected 402"
 
 
@@ -481,7 +481,7 @@ def _nostr(io: ProbeIO) -> tuple[str, str]:
     for host in hosts:
         ok, detail = io.tcp_open(host, 443)
         if ok:
-            return "up", f"{host}:443 accepted a connection"
+            return "up", f"{host}: 443\naccepted a connection"
         errors.append(scrub(detail) or f"{host} failed")
     return "down", errors[0]
 

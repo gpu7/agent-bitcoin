@@ -52,6 +52,7 @@ class FakeIO:
             "http://127.0.0.1:8081/health": (200, ""),
             "http://127.0.0.1:8081/paid/hello": (402, ""),
         }
+        self.relays = ["relay.example"]
 
     def containers(self) -> set[str]:
         return set(self.names)
@@ -94,7 +95,7 @@ class FakeIO:
         return "v.test"
 
     def relay_hosts(self) -> list[str]:
-        return ["relay.example"]
+        return list(self.relays)
 
 
 _NO_NPUB_DIR = Path("/nonexistent/agent-bitcoin-dashboard-npubs")
@@ -137,6 +138,14 @@ def test_status_is_read_only_and_has_no_secrets(
     }
     bitcoin = next(node for node in body["nodes"] if node["id"] == "bitcoin")
     assert bitcoin["detail"] == "blocks: 100\nheaders: 100\nprogress: 100%"
+    by_id = {node["id"]: node for node in body["nodes"]}
+    assert by_id["payer"]["detail"] == "synced to chain"
+    assert "height:" not in by_id["payer"]["detail"]
+    assert by_id["invoice"]["detail"] == "synced to chain"
+    assert by_id["aperture"]["detail"] == "health 200"
+    assert by_id["aperture"]["challenge_detail"] == "unpaid hello: 402"
+    assert by_id["nostr"]["detail"] == "relay.example: 443\naccepted a connection"
+    assert by_id["origin"]["detail"] == "answered through Aperture"
     assert "syncing" not in bitcoin["detail"]
     aperture = next(node for node in body["nodes"] if node["id"] == "aperture")
     assert aperture["challenge_state"] == "up"
@@ -258,6 +267,7 @@ def test_page_lists_the_map_and_has_no_pay_button() -> None:
     assert ">Chain<" in chain
     assert 'id="bitcoin"' in chain and 'id="channel"' in chain
     assert "white-space: pre-line" in html
+    assert 'node.challenge_state === "up" ? "\\n" : " · "' in html
     assert ">Agents<" in agents
     assert (
         'id="payer"' in agents and 'id="invoice"' in agents and 'id="nostr"' in agents
@@ -694,11 +704,37 @@ def test_sync_line_heights_and_peers_do_not_invent_or_leak() -> None:
         == "blocks: 868334\nheaders: 970657\nprogress: 73%, syncing"
     )
     assert by_id["payer"]["state"] == "up"
-    assert by_id["payer"]["detail"] == "synced to chain · height 900000"
+    assert by_id["payer"]["detail"] == "synced to chain\nheight: 900000"
     assert by_id["invoice"]["state"] == "up"
-    assert by_id["invoice"]["detail"] == "unlocked, not synced to chain · height 868334"
+    assert by_id["invoice"]["detail"] == "unlocked, not synced to chain\nheight: 868334"
+    io.relays = ["relay.damus.io"]
+    named = collect_status(io, network="mainnet")
+    named_by_id = {node["id"]: node for node in named["nodes"]}
+    assert (
+        named_by_id["nostr"]["detail"] == "relay.damus.io: 443\naccepted a connection"
+    )
+    assert named_by_id["aperture"]["challenge_detail"] == "unpaid hello: 402"
+    assert named_by_id["bitcoin"]["detail"] == by_id["bitcoin"]["detail"]
+    assert named_by_id["channel"]["detail"] == by_id["channel"]["detail"]
+    assert named_by_id["origin"]["detail"] == by_id["origin"]["detail"]
     assert by_id["channel"]["state"] == "down"
     assert by_id["channel"]["detail"] == "no active channel · 0 peers"
+
+    class ClosedRelay(FakeIO):
+        def tcp_open(self, host: str, port: int) -> tuple[bool, str]:
+            return False, "connection refused"
+
+    closed = ClosedRelay()
+    closed.names = {"agent-bitcoin-lnd-mainnet"}
+    closed.getinfo = json.dumps(
+        {"synced_to_chain": True, "block_height": 900000, "num_peers": 0}
+    )
+    closed.relays = ["relay.damus.io"]
+    failed_nostr = collect_status(closed, network="mainnet")
+    nostr = next(node for node in failed_nostr["nodes"] if node["id"] == "nostr")
+    assert nostr["state"] == "down"
+    assert nostr["detail"] == "connection refused"
+    assert "accepted a connection" not in nostr["detail"]
     assert "listpeers" not in io.calls
     blob = str(payload).lower()
     assert "ab" * 16 not in blob
