@@ -11,6 +11,7 @@ The lab paid route is public at `https://agent-bitcoin.net/paid/hello`.
 | Aperture | Unchanged. Still plain HTTP on **8081** |
 | Security group | **443** is open. **8081** stays restricted to the operator |
 | 402index | https://402index.io/service/b16b5e05-8e6e-476f-b2fa-a996a8fd4f17 (`GET /paid/finance/btc-usd`) |
+| Service list | `https://agent-bitcoin.net/.well-known/l402-services` (JSON, HTTP 200, no payment) |
 | Domain verification | `/.well-known/402index-verify.txt`, served by Caddy |
 
 How an agent finds that listing without a browser: [l402-tools.md — Agent discovery via 402index](./l402-tools.md#agent-discovery-via-402index).
@@ -37,4 +38,4 @@ There is no custom `tls` directive. Caddy obtains and renews the Let's Encrypt c
 
 The 402index verification file is on disk at `/var/www/agent-bitcoin/.well-known/402index-verify.txt`. Caddy serves it at `https://agent-bitcoin.net/.well-known/402index-verify.txt`. The token is not stored in this repo.
 
-Every other path, including `/health` and `/paid/…`, is reverse-proxied to Aperture.
+Every other path, including `/health`, `/.well-known/l402-services`, and `/paid/…`, is reverse-proxied to Aperture. The origin serves the service list as JSON. Add new public endpoints to `l402/well-known/l402-services.json`. Search on 402index still needs a manual registration or a later crawl. This repo does not call 402index.

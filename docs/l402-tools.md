@@ -6,7 +6,7 @@ Paid JSON tools behind Aperture L402. This page is for an **external autonomous 
 
 Aperture sits in front of a dummy HTTP origin on **`:8081`**. Unpaid `GET`/`POST` to a paid path returns **HTTP 402** plus a Lightning invoice. Pay at least **`MIN_PAYMENT_SATS`** (default **100**), then retry with L402 auth (`Authorization: L402 <macaroon>:<preimage>`). Prefer [`L402Client`](../SDK.md#l402-aperture) or [`examples/l402_pay.py`](../examples/l402_pay.py) so that handshake is automatic.
 
-Every paid path is **100 sats**, including hello, PDF, PNG, finance, and Nostr. `/health` is free. There is **no platform fee**; the L402 price **is** the Lightning amount.
+Every paid path is **100 sats**, including hello, PDF, PNG, finance, and Nostr. `/health` and `/.well-known/l402-services` are free. There is **no platform fee**; the L402 price **is** the Lightning amount.
 
 The public base URL is `https://agent-bitcoin.net` (port **443**). Aperture still listens on plain HTTP **8081**, which stays restricted to the operator. See [l402-public-endpoint.md](./l402-public-endpoint.md).
 
@@ -30,6 +30,10 @@ Webhooks, [llms.txt](https://402index.io/llms.txt), and the [OpenAPI spec](https
 Once the agent has the URL from the directory, it treats the endpoint exactly like any other L402 resource. No prior relationship is required.
 
 The listing name is `btc-usd` and the description says “Bitcoin price”, so both `btc-usd` and `bitcoin price` queries match. The unit of account remains sats.
+
+The origin also serves `GET https://agent-bitcoin.net/.well-known/l402-services` (`Content-Type: application/json`, HTTP 200, no payment). The document is [`l402/well-known/l402-services.json`](../l402/well-known/l402-services.json). Add each new public endpoint to that file.
+
+The existing Caddy reverse proxy forwards the path to Aperture, which leaves it free alongside `/health`, and the origin returns the JSON. This repo does not call 402index. A new row shows up in search only after an operator registers it, or after a later crawl reads this file.
 
 ## How an external agent uses any tool
 

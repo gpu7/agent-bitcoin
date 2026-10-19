@@ -12,6 +12,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 _SCRIPT_PDF = Path(__file__).resolve().parent / "generate_script_pdf.py"
+_L402_SERVICES = Path(__file__).resolve().parent / "well-known" / "l402-services.json"
 
 try:
     from l402 import mempool_feerate as _mempool_feerate
@@ -239,6 +240,15 @@ def dispatch(
     network = os.environ.get("L402_NETWORK", "regtest").strip() or "regtest"
     route = path.split("?", 1)[0]
     verb = (method or "GET").upper()
+    if route == "/.well-known/l402-services":
+        if verb != "GET":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            return 200, "application/json", _L402_SERVICES.read_bytes()
+        except OSError:
+            err = {"ok": False, "error": "not found"}
+            return 500, "application/json", json.dumps(err).encode("utf-8")
     if route == "/paid/finance/mempool-feerate":
         try:
             payload = _mempool_feerate.get_quote()

@@ -100,7 +100,7 @@ services:
     price: 100
     timeout: 3600
   - name: "l402-demo"
-    # Hello, PDF, PNG, and any other paid path. /health stays free.
+    # Hello, PDF, PNG, and any other paid path. /health and the discovery document stay free.
     hostregexp: ".*"
     pathregexp: "^/.*$"
     address: "agent-l402-origin:8090"
@@ -109,3 +109,4 @@ services:
     timeout: 3600
     authwhitelistpaths:
       - "^/health$"
+      - "^/\\.well-known/l402-services$"
