@@ -173,16 +173,38 @@ def test_well_known_l402_services_is_public_json() -> None:
     assert status == 200
     assert content_type == "application/json"
     doc = json.loads(body)
-    match = [
-        item
-        for item in doc["services"]
-        if item.get("url") == "https://agent-bitcoin.net/paid/finance/btc-usd"
+    assert doc["services"] == [
+        {
+            "url": "https://agent-bitcoin.net/paid/finance/btc-usd",
+            "name": "agent-bitcoin: btc-usd",
+            "method": "GET",
+            "price_sats": 100,
+            "description": (
+                "Bitcoin price in USD. Current BTC-USD rate and sats per USD "
+                "from a public source. Lightning L402."
+            ),
+        },
+        {
+            "url": "https://agent-bitcoin.net/paid/finance/mempool-feerate",
+            "name": "agent-bitcoin: mempool-feerate",
+            "method": "GET",
+            "price_sats": 100,
+            "description": (
+                "Bitcoin mempool fee rates. Sat/vB bands for fast, medium, "
+                "and slow confirmation. Lightning L402."
+            ),
+        },
+        {
+            "url": "https://agent-bitcoin.net/paid/finance/mempool-backlog",
+            "name": "agent-bitcoin: mempool-backlog",
+            "method": "GET",
+            "price_sats": 100,
+            "description": (
+                "Bitcoin mempool backlog. Transaction count, virtual size, "
+                "and total fee. Lightning L402."
+            ),
+        },
     ]
-    assert len(match) == 1
-    entry = match[0]
-    assert entry["name"] == "agent-bitcoin: btc-usd"
-    assert entry["method"] == "GET"
-    assert entry["price_sats"] == 100
     paid = (
         "/paid/hello",
         "/paid/finance/btc-usd",
