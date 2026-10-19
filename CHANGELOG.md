@@ -1,3 +1,9 @@
+## Changed — dashboard channel balance (2026-10-19)
+
+Show Lightning channel capacity and local and remote balance on the dashboard.
+
+---
+
 ## Changed — L402 paid endpoints (2026-10-18)
 
 Set L402 paid endpoints to 100 sats.

@@ -576,6 +576,92 @@ def test_chain_progress_line_uses_only_real_fields() -> None:
     )
 
 
+def test_channel_panel_shows_capacity_and_local_remote_balance() -> None:
+    io = FakeIO()
+    io.names = {"agent-bitcoin-lnd-mainnet"}
+    io.getinfo = json.dumps({"synced_to_chain": True, "num_peers": 1})
+    io.channels = json.dumps(
+        {
+            "channels": [
+                {
+                    "active": True,
+                    "capacity": "25000",
+                    "local_balance": "2500",
+                    "remote_balance": "21500",
+                },
+                {
+                    "active": False,
+                    "capacity": "99999",
+                    "local_balance": "99999",
+                    "remote_balance": "99999",
+                },
+            ]
+        }
+    )
+    payload = collect_status(io, network="mainnet")
+    channel = next(node for node in payload["nodes"] if node["id"] == "channel")
+    assert channel["state"] == "up"
+    assert (
+        channel["detail"]
+        == "1 active channel · 1 peer · 25000 sats · local 2500 / remote 21500"
+    )
+
+    io.channels = json.dumps(
+        {
+            "channels": [
+                {
+                    "active": True,
+                    "capacity": 10000,
+                    "local_balance": 1000,
+                    "remote_balance": 8000,
+                },
+                {
+                    "active": True,
+                    "capacity": 15000,
+                    "local_balance": 1500,
+                    "remote_balance": 13500,
+                },
+            ]
+        }
+    )
+    summed = collect_status(io, network="mainnet")
+    summed_channel = next(node for node in summed["nodes"] if node["id"] == "channel")
+    assert summed_channel["state"] == "up"
+    assert (
+        summed_channel["detail"]
+        == "2 active channels · 1 peer · 25000 sats · local 2500 / remote 21500"
+    )
+
+
+def test_channel_panel_stays_unknown_when_listchannels_fails() -> None:
+    class FailChannels(FakeIO):
+        def lncli(self, container: str, network: str, command: str) -> tuple[int, str]:
+            self.calls.append(command)
+            self.local_lncli.append((container, command))
+            if command == "listchannels":
+                return 1, "listchannels failed"
+            return self.getinfo_code, self.getinfo
+
+    io = FailChannels()
+    io.names = {"agent-bitcoin-lnd-mainnet"}
+    io.getinfo = json.dumps({"synced_to_chain": True, "num_peers": 1})
+    failed = collect_status(io, network="mainnet")
+    channel = next(node for node in failed["nodes"] if node["id"] == "channel")
+    assert channel["state"] == "unknown"
+    assert channel["detail"] == "listchannels failed · 1 peer"
+    assert "sats" not in channel["detail"]
+
+    io_bad = FakeIO()
+    io_bad.names = {"agent-bitcoin-lnd-mainnet"}
+    io_bad.getinfo = json.dumps({"synced_to_chain": True, "num_peers": 1})
+    io_bad.channels = "not-json"
+    bad = collect_status(io_bad, network="mainnet")
+    bad_channel = next(node for node in bad["nodes"] if node["id"] == "channel")
+    assert bad_channel["state"] == "unknown"
+    assert bad_channel["detail"] == "listchannels was not json · 1 peer"
+    assert "sats" not in bad_channel["detail"]
+
+
 def test_sync_line_heights_and_peers_do_not_invent_or_leak() -> None:
     io = FakeIO()
     io.names = {"agent-bitcoin-lnd-mainnet"}

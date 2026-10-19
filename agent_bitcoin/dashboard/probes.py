@@ -198,17 +198,49 @@ def chain_progress_line(data: dict[str, object]) -> str | None:
     return f"{blocks} / {headers}, {percent}%"
 
 
-def _active_channels(raw: str) -> int | None:
+def _sat_amount(value: object) -> int | None:
+    """Sats from lncli: a non-negative int, or a decimal string of one."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        amount = value
+    elif isinstance(value, str) and value.isascii() and value.isdigit():
+        amount = int(value)
+    else:
+        return None
+    if amount < 0:
+        return None
+    return amount
+
+
+def _active_channel_rows(raw: str) -> list[dict[str, object]] | None:
     try:
         data = json.loads(raw)
     except json.JSONDecodeError:
         return None
+    if not isinstance(data, dict):
+        return None
     channels = data.get("channels")
     if not isinstance(channels, list):
         return None
-    return sum(
-        1 for ch in channels if isinstance(ch, dict) and ch.get("active") is True
-    )
+    return [ch for ch in channels if isinstance(ch, dict) and ch.get("active") is True]
+
+
+def _balance_line(rows: list[dict[str, object]]) -> str | None:
+    """Sum capacity and local/remote across active channels. Omit if any field is unreadable."""
+    capacity = 0
+    local = 0
+    remote = 0
+    for ch in rows:
+        cap = _sat_amount(ch.get("capacity"))
+        loc = _sat_amount(ch.get("local_balance"))
+        rem = _sat_amount(ch.get("remote_balance"))
+        if cap is None or loc is None or rem is None:
+            return None
+        capacity += cap
+        local += loc
+        remote += rem
+    return f"{capacity} sats · local {local} / remote {remote}"
 
 
 def collect_status(io: ProbeIO, *, network: str | None = None) -> dict[str, object]:
@@ -313,13 +345,18 @@ def _channel(
     code, raw = io.lncli(payer, network, "listchannels")
     if code != 0:
         return "unknown", _with_peers(scrub(raw) or "listchannels failed", peers)
-    count = _active_channels(raw)
-    if count is None:
+    rows = _active_channel_rows(raw)
+    if rows is None:
         return "unknown", _with_peers("listchannels was not json", peers)
+    count = len(rows)
     if count == 0:
         return "down", _with_peers("no active channel", peers)
     label = "1 active channel" if count == 1 else f"{count} active channels"
-    return "up", _with_peers(label, peers)
+    detail = _with_peers(label, peers)
+    amounts = _balance_line(rows)
+    if amounts is None:
+        return "up", detail
+    return "up", f"{detail} · {amounts}"
 
 
 def _invoice(io: ProbeIO, network: str) -> tuple[str, str]:

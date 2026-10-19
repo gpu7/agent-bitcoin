@@ -24,7 +24,7 @@ Open [http://127.0.0.1:8765](http://127.0.0.1:8765) in Brave. `DASHBOARD_PORT` c
 |------|--------|
 | Payer agent | Local Docker container `agent-bitcoin-lnd-mainnet` (regtest: `agent-bitcoin-lnd`, signet: `agent-bitcoin-lnd-signet`). `lncli getinfo` only. |
 | Invoice agent | AWS `agent-payment-decision-lnd-mainnet` (regtest: `agent-payment-decision-lnd`, signet: `agent-payment-decision-lnd-signet`). `lncli getinfo` only, over SSH. Block height is shown when `getinfo` returns it. If AWS cannot be reached, **unknown**. The Mac payer does not mark this box up. |
-| Lightning channel | `lncli listchannels` on the payer after `getinfo` succeeds. Peer count from that same `getinfo` is shown beside the active-channel state. Locked wallet stays **locked**. |
+| Lightning channel | `lncli listchannels` on the payer after `getinfo` succeeds. Peer count from that same `getinfo` is shown beside the active-channel state. When a channel is active, the line also shows capacity and local and remote balance in sats. Locked wallet stays **locked**. |
 | Bitcoin network | AWS `getblockchaininfo` on `agent-payment-decision-bitcoind-mainnet`. The line is blocks, headers, and percent. While the download is in progress the box stays **up** and the line says syncing. A failed read stays **unknown**. |
 | Aperture | Health and the unpaid challenge are separate. `GET .../health` HTTP 200 is **up**. A missing `402` from `GET .../paid/hello` stays a failed challenge and does not mark health down. Default URL is `http://127.0.0.1:8081`. |
 | Merchant origin | **up** only when Aperture `/health` returns 200, because the origin answered through the gateway. If Aperture cannot be reached, **unknown**. `agent-l402-origin` is not expected on this Mac. |
