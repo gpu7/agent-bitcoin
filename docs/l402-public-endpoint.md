@@ -10,8 +10,10 @@ The lab paid route is public at `https://agent-bitcoin.net/paid/hello`.
 | TLS | Caddy on the EC2 instance listens on **443** and reverse-proxies to `127.0.0.1:8081` |
 | Aperture | Unchanged. Still plain HTTP on **8081** |
 | Security group | **443** is open. **8081** stays restricted to the operator |
-| 402index | https://402index.io/service/65d85944-d292-4cf5-8196-4eb30a9f51e0 |
+| 402index | https://402index.io/service/b16b5e05-8e6e-476f-b2fa-a996a8fd4f17 (`GET /paid/finance/btc-usd`) |
 | Domain verification | `/.well-known/402index-verify.txt`, served by Caddy |
+
+How an agent finds that listing without a browser: [l402-tools.md — Agent discovery via 402index](./l402-tools.md#agent-discovery-via-402index).
 
 Callers outside the box use the hostname on port 443. Health checks and operator scripts on the instance keep using `http://127.0.0.1:8081`. Lightning peering stays on `3.90.159.146:9735`. That address is not this HTTP endpoint.
 
