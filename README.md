@@ -300,6 +300,8 @@ The Bitcoin panel shows blocks, headers, and progress on separate lines.
 
 The channel panel shows capacity, outbound, and inbound on separate lines.
 
+Payer, Invoice, Aperture, and Nostr details now use separate lines.
+
 Start the mainnet map on the Mac with:
 
 ```bash

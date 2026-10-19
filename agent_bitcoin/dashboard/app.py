@@ -308,7 +308,8 @@ async function load() {
       }
       const parts = [node.detail || ""];
       if (node.challenge_detail) parts.push(node.challenge_detail);
-      card.querySelector(".detail").textContent = parts.filter(Boolean).join(" · ");
+      const sep = node.state === "up" && node.challenge_state === "up" ? "\\n" : " · ";
+      card.querySelector(".detail").textContent = parts.filter(Boolean).join(sep);
     }
     drawLinks(data.links);
   } catch (err) {

@@ -1,3 +1,9 @@
+## Changed — dashboard node detail lines (2026-10-19)
+
+Show Payer, Invoice, Aperture, and Nostr details on separate dashboard lines.
+
+---
+
 ## Changed — dashboard channel lines (2026-10-19)
 
 Show Lightning channel capacity, outbound, and inbound on separate dashboard lines.
