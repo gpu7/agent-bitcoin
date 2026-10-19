@@ -1,3 +1,9 @@
+## Changed — well-known mempool endpoints (2026-10-19)
+
+List btc-usd, mempool-feerate, and mempool-backlog in the free L402 discovery document.
+
+---
+
 ## Changed — free L402 discovery document (2026-10-19)
 
 Keep `/.well-known/l402-services` free of the L402 challenge and leave every `/paid` route protected.
