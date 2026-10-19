@@ -1,3 +1,9 @@
+## Changed — well-known L402 services (2026-10-19)
+
+Serve `/.well-known/l402-services` as free JSON so crawlers can discover public endpoints.
+
+---
+
 ## Docs — agent discovery via 402index (2026-10-19)
 
 Document how agents find the L402 btc-usd listing on 402index.

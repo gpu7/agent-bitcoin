@@ -22,6 +22,7 @@ AWS  agent-l402-aperture :8081   (plain HTTP; 8081 stays operator /32)
         ├─ LND gRPC  <aws-lnd>:10009  (invoice.macaroon)
         └─ origin    agent-l402-origin:8090
               GET /health           free
+              GET /.well-known/l402-services  free (JSON catalog)
               GET /paid/hello       100 sats (JSON)
               GET /paid/report.pdf  100 sats (PDF file)
               GET /paid/script.pdf  100 sats (PDF from generate_script_pdf.py)
@@ -38,7 +39,7 @@ AWS  agent-l402-aperture :8081   (plain HTTP; 8081 stays operator /32)
               POST /paid/nostr/npub-decode             100 sats (JSON NIP-19 bech32 → hex)
 ```
 
-There is **no platform fee**. The L402 price **is** the Lightning amount (must be ≥ `MIN_PAYMENT_SATS`, default 100). Every paid path is **100 sats**, including hello, PDF, PNG, finance, and Nostr (feerate, backlog, fee-for-vsize, confirm-target, btc-usd, ln-path-fee-hint, ln-invoice-decode, ln-invoice-preflight, event-verify, npub-decode). `/health` is free.
+There is **no platform fee**. The L402 price **is** the Lightning amount (must be ≥ `MIN_PAYMENT_SATS`, default 100). Every paid path is **100 sats**, including hello, PDF, PNG, finance, and Nostr (feerate, backlog, fee-for-vsize, confirm-target, btc-usd, ln-path-fee-hint, ln-invoice-decode, ln-invoice-preflight, event-verify, npub-decode). `/health` and `/.well-known/l402-services` are free.
 
 This is **not** a mempool.space replacement, FX oracle, or CoinGecko substitute. **mempool-feerate** is fee bands (sat/vB). **mempool-backlog** is fullness. **fee-for-vsize** multiplies those bands by a **vbyte** size. **confirm-target** maps a wait window (minutes) or named band onto `sat_vb` from the feerate cache. **btc-usd** is a **pass-through mark, not our index** — USD per 1 BTC from one public JSON URL. **ln-path-fee-hint** is what the **AWS agent LND** sees for a dest+amount (or bolt11) via readonly **QueryRoutes** — not Terminal, not RTL, not a route dump. **ln-invoice-decode** parses BOLT11 **in-process** (no LND) so an agent can inspect amount / dest / expiry / network before pay or path-hint. **ln-invoice-preflight** reuses that parse and returns `allow` plus reason codes (expired, zero_amount, below_floor, above_max_sats, network_mismatch, duplicate_payment_hash). Not a route check.
 

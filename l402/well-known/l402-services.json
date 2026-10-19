@@ -1,0 +1,11 @@
+{
+  "services": [
+    {
+      "url": "https://agent-bitcoin.net/paid/finance/btc-usd",
+      "name": "agent-bitcoin: btc-usd",
+      "method": "GET",
+      "price_sats": 100,
+      "description": "Bitcoin price in USD. Current BTC-USD rate and sats per USD from a public source. Lightning L402."
+    }
+  ]
+}

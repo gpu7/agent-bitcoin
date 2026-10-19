@@ -80,6 +80,7 @@ def test_aperture_yaml_prices_are_100_and_health_is_free() -> None:
         assert "price: 1000" not in text
         assert "price: 100" in text
         assert '- "^/health$"' in text
+        assert '- "^/\\\\.well-known/l402-services$"' in text
 
 
 def test_parse_www_authenticate_aperture() -> None:
@@ -123,6 +124,23 @@ def test_authorization_value() -> None:
     assert authorization_value("mac", preimage) == f"L402 mac:{preimage}"
     with pytest.raises(ValueError, match="preimage"):
         authorization_value("mac", "zz")
+
+
+def test_well_known_l402_services_is_public_json() -> None:
+    status, content_type, body = dispatch("/.well-known/l402-services")
+    assert status == 200
+    assert content_type == "application/json"
+    doc = json.loads(body)
+    match = [
+        item
+        for item in doc["services"]
+        if item.get("url") == "https://agent-bitcoin.net/paid/finance/btc-usd"
+    ]
+    assert len(match) == 1
+    entry = match[0]
+    assert entry["name"] == "agent-bitcoin: btc-usd"
+    assert entry["method"] == "GET"
+    assert entry["price_sats"] == 100
 
 
 def test_origin_paths() -> None:
