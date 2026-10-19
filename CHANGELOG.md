@@ -1,3 +1,9 @@
+## Docs — agent discovery via 402index (2026-10-19)
+
+Document how agents find the L402 btc-usd listing on 402index.
+
+---
+
 ## Changed — dashboard node detail lines (2026-10-19)
 
 Show Payer, Invoice, Aperture, and Nostr details on separate dashboard lines.

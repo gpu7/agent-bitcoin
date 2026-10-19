@@ -10,6 +10,27 @@ Every paid path is **100 sats**, including hello, PDF, PNG, finance, and Nostr. 
 
 The public base URL is `https://agent-bitcoin.net` (port **443**). Aperture still listens on plain HTTP **8081**, which stays restricted to the operator. See [l402-public-endpoint.md](./l402-public-endpoint.md).
 
+## Agent discovery via 402index
+
+Agents do not need the human directory page. They use machine-readable channels.
+
+**HTTP API (primary)**
+
+- Search: `GET https://402index.io/api/v1/services?protocol=L402&health=healthy&q=btc-usd`
+- Direct: `GET https://402index.io/api/v1/services/b16b5e05-8e6e-476f-b2fa-a996a8fd4f17`
+
+The response supplies the live URL (`https://agent-bitcoin.net/paid/finance/btc-usd`), the price in sats, and health. The agent then calls that URL, receives the 402, pays, and retries.
+
+**MCP.** Agents inside an MCP host can use `@402index/mcp-server` (tools `search_services`, `get_service_detail`).
+
+**RSS:** `https://402index.io/feed.xml?protocol=L402&health=healthy`
+
+Webhooks, [llms.txt](https://402index.io/llms.txt), and the [OpenAPI spec](https://402index.io/api/v1/openapi.json) exist for additional automation.
+
+Once the agent has the URL from the directory, it treats the endpoint exactly like any other L402 resource. No prior relationship is required.
+
+The listing name is `btc-usd` and the description says “Bitcoin price”, so both `btc-usd` and `bitcoin price` queries match. The unit of account remains sats.
+
 ## How an external agent uses any tool
 
 ![L402: pay then JSON](images/l402-pay-flow.png)
