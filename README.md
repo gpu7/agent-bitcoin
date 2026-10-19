@@ -296,6 +296,8 @@ Mac map: [localhost-dashboard.md](docs/localhost-dashboard.md)
 
 Currently, the Dashboard is for internal system administration only.  The Dashboard is a read-only map of the agent-bitcoin infrastructure. It shows Bitcoin, the Lightning channel, the payer and invoice agents, Nostr, Aperture, and the Merchant origin. It does not pay, unlock a wallet, or open a channel.
 
+The Bitcoin panel shows blocks, headers, and progress on separate lines.
+
 Start the mainnet map on the Mac with:
 
 ```bash

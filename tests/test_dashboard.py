@@ -136,7 +136,7 @@ def test_status_is_read_only_and_has_no_secrets(
         "origin": "up",
     }
     bitcoin = next(node for node in body["nodes"] if node["id"] == "bitcoin")
-    assert bitcoin["detail"] == "100 / 100, 100%"
+    assert bitcoin["detail"] == "blocks: 100\nheaders: 100\nprogress: 100%"
     assert "syncing" not in bitcoin["detail"]
     aperture = next(node for node in body["nodes"] if node["id"] == "aperture")
     assert aperture["challenge_state"] == "up"
@@ -257,6 +257,7 @@ def test_page_lists_the_map_and_has_no_pay_button() -> None:
     agents, merchant = after_agents.split('id="group-merchant"', 1)
     assert ">Chain<" in chain
     assert 'id="bitcoin"' in chain and 'id="channel"' in chain
+    assert "white-space: pre-line" in html
     assert ">Agents<" in agents
     assert (
         'id="payer"' in agents and 'id="invoice"' in agents and 'id="nostr"' in agents
@@ -540,7 +541,7 @@ def test_chain_progress_line_uses_only_real_fields() -> None:
                 "initialblockdownload": True,
             }
         )
-        == "868334 / 970657, 73%"
+        == "blocks: 868334\nheaders: 970657\nprogress: 73%"
     )
     assert (
         chain_progress_line(
@@ -551,7 +552,7 @@ def test_chain_progress_line_uses_only_real_fields() -> None:
                 "initialblockdownload": False,
             }
         )
-        == "100 / 100, 100%"
+        == "blocks: 100\nheaders: 100\nprogress: 100%"
     )
     missing = {
         "blocks": 1,
@@ -682,7 +683,10 @@ def test_sync_line_heights_and_peers_do_not_invent_or_leak() -> None:
     payload = collect_status(io, network="mainnet")
     by_id = {node["id"]: node for node in payload["nodes"]}
     assert by_id["bitcoin"]["state"] == "up"
-    assert by_id["bitcoin"]["detail"] == "868334 / 970657, 73%, syncing"
+    assert (
+        by_id["bitcoin"]["detail"]
+        == "blocks: 868334\nheaders: 970657\nprogress: 73%, syncing"
+    )
     assert by_id["payer"]["state"] == "up"
     assert by_id["payer"]["detail"] == "synced to chain · height 900000"
     assert by_id["invoice"]["state"] == "up"
@@ -766,7 +770,7 @@ def test_chain_info_is_getblockchaininfo_without_the_rpc_secret(
     assert "stop" not in argv
     assert "generatetoaddress" not in joined
     line = chain_progress_line(json.loads(raw))
-    assert line == "868334 / 970657, 73%"
+    assert line == "blocks: 868334\nheaders: 970657\nprogress: 73%"
 
 
 def test_release_label_is_nearest_tag_or_short_hash(tmp_path: Path) -> None:
