@@ -72,6 +72,13 @@ register \
   "bitcoin" \
   "Bitcoin Core estimatesmartfee for 1, 3, and 6 blocks, in sats per vbyte. Read-only. Lightning L402."
 
+register \
+  "https://agent-bitcoin.net/paid/bitcoin/btc-chain-status" \
+  "agent-bitcoin: btc-chain-status" \
+  "GET" \
+  "bitcoin" \
+  "Bitcoin Core chain height, sync progress, and prune state from the operator bitcoind. Read-only. Lightning L402."
+
 # Lightning suite (POST)
 register \
   "https://agent-bitcoin.net/paid/finance/ln-invoice-decode" \

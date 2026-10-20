@@ -1,3 +1,9 @@
+## Changed — btc-chain-status (2026-10-20)
+
+Add GET /paid/bitcoin/btc-chain-status at 100 sats.
+
+---
+
 ## Changed — btc-fee-estimate (2026-10-20)
 
 Add GET /paid/bitcoin/btc-fee-estimate at 100 sats.
