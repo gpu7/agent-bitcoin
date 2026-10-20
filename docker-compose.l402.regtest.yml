@@ -21,6 +21,11 @@ services:
       LND_GRPC_PORT: "10009"
       LND_TLS_CERT_PATH: /lnd/tls.cert
       LND_READONLY_MACAROON_PATH: /lnd/data/chain/bitcoin/regtest/l402-readonly.macaroon
+      # Existing Loop regtest bitcoind. These credentials are already in the regtest compose.
+      BITCOIND_RPC_HOST: bitcoind
+      BITCOIND_RPC_PORT: "18443"
+      BITCOIND_RPC_USER: lightning
+      BITCOIND_RPC_PASSWORD: lightning
     volumes:
       - lnd-data:/lnd:ro
     networks:

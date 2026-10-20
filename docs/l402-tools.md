@@ -47,7 +47,7 @@ The existing Caddy reverse proxy forwards the path to Aperture, which leaves it 
 
 1. Call `https://agent-bitcoin.net` (this lab).
 2. Call with `L402Client(..., expected_price_sats=100)` or `l402_pay.py --price 100`. The SDK default expected price is **100**.
-3. **GET** for Bitcoin-suite query tools and the channel summary. **POST** JSON for the address check, the challenge inspect, Lightning invoices, and Nostr tools (GET → **405**).
+3. **GET** for Bitcoin-suite query tools, the bitcoind fee estimate, and the channel summary. **POST** JSON for the address check, the challenge inspect, Lightning invoices, and Nostr tools (GET → **405**).
 4. Do **not** put BOLT11 in query strings. POST it in JSON (`--json`).
 5. Read `ttl_s` and cache. Do not poll every second. Local inspect tools (`ttl_s` 0) are still not a hot loop.
 6. Wiring, SG, and restart: [l402-aperture.md](./l402-aperture.md). Mainnet pays still need the usual latches on the payer.
@@ -106,6 +106,15 @@ Job: USD per 1 BTC from one public JSON URL, plus `sats_per_usd`. Pass-through m
 ```bash
 uv run python examples/l402_pay.py \
   --url https://agent-bitcoin.net/paid/finance/btc-usd --price 100
+```
+
+### GET `/paid/bitcoin/btc-fee-estimate`
+
+Job: read-only `estimatesmartfee` from the operator bitcoind for 1, 3, and 6 blocks. Each row has `blocks` and `feerate_sats_per_vb`. A missing estimate is still HTTP 200, with `note` set to `estimate_unavailable`. A down node is HTTP 503. Does **not** use the wallet and does **not** send. This is the local node, separate from the public `mempool-feerate` bands. **100 sats**. 402index category: `bitcoin`.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/bitcoin/btc-fee-estimate --price 100
 ```
 
 ## Verification

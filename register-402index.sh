@@ -65,6 +65,13 @@ register \
   "bitcoin" \
   "Map a confirmation wait time or band to sat/vB. Lightning L402."
 
+register \
+  "https://agent-bitcoin.net/paid/bitcoin/btc-fee-estimate" \
+  "agent-bitcoin: btc-fee-estimate" \
+  "GET" \
+  "bitcoin" \
+  "Bitcoin Core estimatesmartfee for 1, 3, and 6 blocks, in sats per vbyte. Read-only. Lightning L402."
+
 # Lightning suite (POST)
 register \
   "https://agent-bitcoin.net/paid/finance/ln-invoice-decode" \
