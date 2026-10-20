@@ -26,6 +26,7 @@ def expected_price_sats_for_url(url: str) -> int:
         or "/paid/nostr/" in path
         or "/paid/security/" in path
         or "/paid/lightning/" in path
+        or "/paid/bitcoin/" in path
     ):
         return FINANCE_L402_PRICE_SATS
     return DEFAULT_L402_PRICE_SATS

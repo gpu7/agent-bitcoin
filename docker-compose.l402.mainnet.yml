@@ -22,6 +22,11 @@ services:
       LND_GRPC_PORT: "10009"
       LND_TLS_CERT_PATH: /lnd/tls.cert
       LND_READONLY_MACAROON_PATH: /lnd/data/chain/bitcoin/mainnet/l402-readonly.macaroon
+      # Existing payment-decision bitcoind on this network. Read-only RPC from the origin.
+      BITCOIND_RPC_HOST: bitcoind-mainnet
+      BITCOIND_RPC_PORT: "8332"
+      BITCOIND_RPC_USER: ${MAINNET_BITCOIND_RPCUSER:?set MAINNET_BITCOIND_RPCUSER}
+      BITCOIND_RPC_PASSWORD: ${MAINNET_BITCOIND_RPCPASS:?set MAINNET_BITCOIND_RPCPASS}
     volumes:
       - lnd-mainnet-data:/lnd:ro
     networks:

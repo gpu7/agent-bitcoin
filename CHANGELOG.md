@@ -1,3 +1,9 @@
+## Changed — btc-fee-estimate (2026-10-20)
+
+Add GET /paid/bitcoin/btc-fee-estimate at 100 sats.
+
+---
+
 ## Changed — ln-channel-stats (2026-10-20)
 
 Add GET /paid/lightning/ln-channel-stats at 100 sats.
