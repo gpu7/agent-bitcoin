@@ -1,3 +1,9 @@
+## Changed — 402index domain verification file (2026-10-20)
+
+Serve the 402index domain-claim token as plain text from the origin.
+
+---
+
 ## Changed — 402index categories (2026-10-20)
 
 Register Nostr listings as nostr and Lightning listings as lightning.
