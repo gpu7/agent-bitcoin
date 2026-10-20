@@ -26,6 +26,7 @@ try:
     from l402 import ln_invoice_preflight as _ln_invoice_preflight
     from l402 import nostr_event_verify as _nostr_event_verify
     from l402 import nostr_npub_decode as _nostr_npub_decode
+    from l402 import btc_address_validate as _btc_address_validate
 except ImportError:  # Docker WORKDIR /app
     import mempool_feerate as _mempool_feerate  # type: ignore[no-redef]
     import mempool_backlog as _mempool_backlog  # type: ignore[no-redef]
@@ -37,6 +38,7 @@ except ImportError:  # Docker WORKDIR /app
     import ln_invoice_preflight as _ln_invoice_preflight  # type: ignore[no-redef]
     import nostr_event_verify as _nostr_event_verify  # type: ignore[no-redef]
     import nostr_npub_decode as _nostr_npub_decode  # type: ignore[no-redef]
+    import btc_address_validate as _btc_address_validate  # type: ignore[no-redef]
 
 
 def _simple_pdf(lines: list[str]) -> bytes:
@@ -350,6 +352,16 @@ def dispatch(
             return 400, "application/json", json.dumps(err).encode("utf-8")
         except _ln_invoice_preflight.BadInput:
             err = {"ok": False, "error": "bad_input"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/finance/btc-address-validate":
+        if verb != "POST":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _btc_address_validate.handle_request(body)
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _btc_address_validate.MissingAddress:
+            err = {"ok": False, "error": "missing_address"}
             return 400, "application/json", json.dumps(err).encode("utf-8")
     if route == "/paid/nostr/event-verify":
         if verb != "POST":

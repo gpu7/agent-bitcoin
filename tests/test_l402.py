@@ -243,6 +243,16 @@ def test_well_known_l402_services_is_public_json() -> None:
             "price_sats": 100,
             "description": "First-path fee hint from the operator LND. Lightning L402.",
         },
+        {
+            "url": "https://agent-bitcoin.net/paid/finance/btc-address-validate",
+            "name": "agent-bitcoin: btc-address-validate",
+            "method": "POST",
+            "price_sats": 100,
+            "description": (
+                "Check a Bitcoin address. Returns network and type, or a short "
+                "reason if invalid. Lightning L402."
+            ),
+        },
     ]
     paid = (
         "/paid/hello",

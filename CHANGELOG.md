@@ -1,3 +1,9 @@
+## Changed — btc-address-validate (2026-10-20)
+
+Add POST /paid/finance/btc-address-validate at 100 sats.
+
+---
+
 ## Changed — 402index domain verification file (2026-10-20)
 
 Serve the 402index domain-claim token as plain text from the origin.

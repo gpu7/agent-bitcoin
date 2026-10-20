@@ -47,7 +47,7 @@ The existing Caddy reverse proxy forwards the path to Aperture, which leaves it 
 
 1. Call `https://agent-bitcoin.net` (this lab).
 2. Call with `L402Client(..., expected_price_sats=100)` or `l402_pay.py --price 100`. The SDK default expected price is **100**.
-3. **GET** for Bitcoin-suite query tools. **POST** JSON for Lightning and Nostr tools (GET → **405**).
+3. **GET** for Bitcoin-suite query tools. **POST** JSON for the address check, Lightning, and Nostr tools (GET → **405**).
 4. Do **not** put BOLT11 in query strings. POST it in JSON (`--json`).
 5. Read `ttl_s` and cache. Do not poll every second. Local inspect tools (`ttl_s` 0) are still not a hot loop.
 6. Wiring, SG, and restart: [l402-aperture.md](./l402-aperture.md). Mainnet pays still need the usual latches on the payer.
@@ -106,6 +106,21 @@ Job: USD per 1 BTC from one public JSON URL, plus `sats_per_usd`. Pass-through m
 ```bash
 uv run python examples/l402_pay.py \
   --url https://agent-bitcoin.net/paid/finance/btc-usd --price 100
+```
+
+## Verification
+
+### POST `/paid/finance/btc-address-validate`
+
+Job: check a Bitcoin address locally (Base58Check or bech32/bech32m). No LND and no bitcoind. **100 sats**. 402index category: `verification`.
+
+Returns `valid`, `network` (`mainnet`, `testnet`, or `regtest`), `address_type` (`p2pkh`, `p2sh`, `p2wpkh`, `p2wsh`, or `p2tr`), and a short `reason` when invalid. An invalid address is still HTTP 200. Missing or non-string `address` is HTTP 400. GET is HTTP 405.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/finance/btc-address-validate \
+  --price 100 --method POST \
+  --json '{"address":"bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"}'
 ```
 
 ## Lightning suite
