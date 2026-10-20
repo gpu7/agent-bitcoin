@@ -102,7 +102,8 @@ def _reject_syntax(url: str) -> str | None:
     dword = _dword_ip(host)
     if dword is not None:
         return "blocked_host" if _bad_ip(dword) else None
-    if re.fullmatch(r"\d+\.\d+\.\d+\.\d+", host):
+    labels = host.split(".")
+    if len(labels) == 4 and all(label.isdigit() for label in labels):
         try:
             ip = ipaddress.IPv4Address(host)
         except ValueError:
