@@ -1,3 +1,9 @@
+## Changed — btc-network-info (2026-10-20)
+
+Add GET /paid/bitcoin/btc-network-info at 100 sats.
+
+---
+
 ## Changed — btc-chain-status (2026-10-20)
 
 Add GET /paid/bitcoin/btc-chain-status at 100 sats.

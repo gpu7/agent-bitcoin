@@ -55,12 +55,14 @@ def test_paid_urls_default_to_100() -> None:
     lightning = "https://agent-bitcoin.net/paid/lightning/ln-channel-stats"
     bitcoin = "https://agent-bitcoin.net/paid/bitcoin/btc-fee-estimate"
     chain = "https://agent-bitcoin.net/paid/bitcoin/btc-chain-status"
+    network = "https://agent-bitcoin.net/paid/bitcoin/btc-network-info"
     assert expected_price_sats_for_url(finance) == 100
     assert expected_price_sats_for_url(nostr) == 100
     assert expected_price_sats_for_url(security) == 100
     assert expected_price_sats_for_url(lightning) == 100
     assert expected_price_sats_for_url(bitcoin) == 100
     assert expected_price_sats_for_url(chain) == 100
+    assert expected_price_sats_for_url(network) == 100
     assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/hello") == 100
     assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/report.pdf") == 100
     assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/script.pdf") == 100
@@ -301,6 +303,16 @@ def test_well_known_l402_services_is_public_json() -> None:
                 "from the operator bitcoind. Read-only. Lightning L402."
             ),
         },
+        {
+            "url": "https://agent-bitcoin.net/paid/bitcoin/btc-network-info",
+            "name": "agent-bitcoin: btc-network-info",
+            "method": "GET",
+            "price_sats": 100,
+            "description": (
+                "Bitcoin Core version, protocol, and connection counts from "
+                "the operator bitcoind. Read-only. Lightning L402."
+            ),
+        },
     ]
     paid = (
         "/paid/hello",
@@ -311,6 +323,7 @@ def test_well_known_l402_services_is_public_json() -> None:
         "/paid/lightning/ln-channel-stats",
         "/paid/bitcoin/btc-fee-estimate",
         "/paid/bitcoin/btc-chain-status",
+        "/paid/bitcoin/btc-network-info",
     )
     for name in (
         "aperture.regtest.yaml",
