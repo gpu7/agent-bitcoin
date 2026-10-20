@@ -1,3 +1,9 @@
+## Changed — l402-challenge-inspect (2026-10-20)
+
+Add POST /paid/security/l402-challenge-inspect at 100 sats.
+
+---
+
 ## Changed — btc-address-validate (2026-10-20)
 
 Add POST /paid/finance/btc-address-validate at 100 sats.

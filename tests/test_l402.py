@@ -51,8 +51,10 @@ def test_paid_urls_default_to_100() -> None:
     assert FINANCE_L402_PRICE_SATS == 100
     finance = "http://127.0.0.1:8081/paid/finance/mempool-feerate"
     nostr = "http://127.0.0.1:8081/paid/nostr/event-verify?x=1"
+    security = "https://agent-bitcoin.net/paid/security/l402-challenge-inspect"
     assert expected_price_sats_for_url(finance) == 100
     assert expected_price_sats_for_url(nostr) == 100
+    assert expected_price_sats_for_url(security) == 100
     assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/hello") == 100
     assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/report.pdf") == 100
     assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/script.pdf") == 100
@@ -253,12 +255,23 @@ def test_well_known_l402_services_is_public_json() -> None:
                 "reason if invalid. Lightning L402."
             ),
         },
+        {
+            "url": "https://agent-bitcoin.net/paid/security/l402-challenge-inspect",
+            "name": "agent-bitcoin: l402-challenge-inspect",
+            "method": "POST",
+            "price_sats": 100,
+            "description": (
+                "Inspect a remote L402 challenge. Returns price, expiry, and "
+                "payee. Does not pay. Lightning L402."
+            ),
+        },
     ]
     paid = (
         "/paid/hello",
         "/paid/finance/btc-usd",
         "/paid/report.pdf",
         "/paid/nostr/npub-decode",
+        "/paid/security/l402-challenge-inspect",
     )
     for name in (
         "aperture.regtest.yaml",

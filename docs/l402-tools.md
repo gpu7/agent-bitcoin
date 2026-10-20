@@ -6,7 +6,7 @@ Paid JSON tools behind Aperture L402. This page is for an **external autonomous 
 
 Aperture sits in front of a dummy HTTP origin on **`:8081`**. Unpaid `GET`/`POST` to a paid path returns **HTTP 402** plus a Lightning invoice. Pay at least **`MIN_PAYMENT_SATS`** (default **100**), then retry with L402 auth (`Authorization: L402 <macaroon>:<preimage>`). Prefer [`L402Client`](../SDK.md#l402-aperture) or [`examples/l402_pay.py`](../examples/l402_pay.py) so that handshake is automatic.
 
-Every paid path is **100 sats**, including hello, PDF, PNG, finance, and Nostr. `/health` and `/.well-known/l402-services` are free. There is **no platform fee**; the L402 price **is** the Lightning amount.
+Every paid path is **100 sats**, including hello, PDF, PNG, finance, Nostr, and security. `/health` and `/.well-known/l402-services` are free. There is **no platform fee**; the L402 price **is** the Lightning amount.
 
 The public base URL is `https://agent-bitcoin.net` (port **443**). Aperture still listens on plain HTTP **8081**, which stays restricted to the operator. See [l402-public-endpoint.md](./l402-public-endpoint.md).
 
@@ -35,7 +35,7 @@ Once the agent has the URL from the directory, it treats the endpoint exactly li
 
 The listing name is `btc-usd` and the description says “Bitcoin price”, so both `btc-usd` and `bitcoin price` queries match. The unit of account remains sats.
 
-The origin also serves `GET https://agent-bitcoin.net/.well-known/l402-services` (`Content-Type: application/json`, HTTP 200, no payment). The document is [`l402/well-known/l402-services.json`](../l402/well-known/l402-services.json). It lists every `/paid/finance` endpoint. Add each new public endpoint to that file.
+The origin also serves `GET https://agent-bitcoin.net/.well-known/l402-services` (`Content-Type: application/json`, HTTP 200, no payment). The document is [`l402/well-known/l402-services.json`](../l402/well-known/l402-services.json). It lists every public paid tool. Add each new public endpoint to that file.
 
 The existing Caddy reverse proxy forwards the path to Aperture, which leaves it free alongside `/health`, and the origin returns the JSON. This repo does not call 402index. A new row shows up in search only after an operator registers it, or after a later crawl reads this file.
 
@@ -47,7 +47,7 @@ The existing Caddy reverse proxy forwards the path to Aperture, which leaves it 
 
 1. Call `https://agent-bitcoin.net` (this lab).
 2. Call with `L402Client(..., expected_price_sats=100)` or `l402_pay.py --price 100`. The SDK default expected price is **100**.
-3. **GET** for Bitcoin-suite query tools. **POST** JSON for the address check, Lightning, and Nostr tools (GET → **405**).
+3. **GET** for Bitcoin-suite query tools. **POST** JSON for the address check, the challenge inspect, Lightning, and Nostr tools (GET → **405**).
 4. Do **not** put BOLT11 in query strings. POST it in JSON (`--json`).
 5. Read `ttl_s` and cache. Do not poll every second. Local inspect tools (`ttl_s` 0) are still not a hot loop.
 6. Wiring, SG, and restart: [l402-aperture.md](./l402-aperture.md). Mainnet pays still need the usual latches on the payer.
@@ -186,6 +186,21 @@ uv run python examples/l402_pay.py \
   --url https://agent-bitcoin.net/paid/nostr/npub-decode \
   --price 100 --method POST \
   --json '{"entity":"npub1..."}'
+```
+
+## Security
+
+### POST `/paid/security/l402-challenge-inspect`
+
+Job: fetch one `https` URL and read its L402 or LSAT challenge. Returns `valid_challenge`, `price_sats`, `expiry` (unix seconds), `payee_pubkey` when the invoice has one, `network` (`mainnet`, `testnet`, `signet`, or `regtest`), and a short `reason` when the challenge is missing or bad. Does **not** pay. Does **not** return the macaroon or the raw invoice. **100 sats**. 402index category: `security`.
+
+Non-HTTPS URLs are rejected. At most one redirect. Private, loopback, and link-local addresses are not contacted.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/security/l402-challenge-inspect \
+  --price 100 --method POST \
+  --json '{"url":"https://agent-bitcoin.net/paid/finance/btc-usd"}'
 ```
 
 ## What this is not

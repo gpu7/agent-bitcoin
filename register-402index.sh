@@ -1,7 +1,7 @@
 #!/bin/bash
 # Register existing paid endpoints on 402index.
 # Bitcoin suite stays bitcoin. Lightning is lightning. Nostr is nostr.
-# Address check is verification.
+# Address check is verification. Challenge inspect is security.
 
 set -euo pipefail
 
@@ -94,6 +94,14 @@ register \
   "POST" \
   "verification" \
   "Check a Bitcoin address. Returns network and type, or a short reason if invalid. Lightning L402."
+
+# Challenge inspect (POST). Fetches one https URL. Does not pay.
+register \
+  "https://agent-bitcoin.net/paid/security/l402-challenge-inspect" \
+  "agent-bitcoin: l402-challenge-inspect" \
+  "POST" \
+  "security" \
+  "Inspect a remote L402 challenge. Returns price, expiry, and payee. Does not pay. Lightning L402."
 
 # Nostr suite (POST). Existing routes. No relay.
 register \

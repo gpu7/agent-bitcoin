@@ -62,6 +62,13 @@
       "method": "POST",
       "price_sats": 100,
       "description": "Check a Bitcoin address. Returns network and type, or a short reason if invalid. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/security/l402-challenge-inspect",
+      "name": "agent-bitcoin: l402-challenge-inspect",
+      "method": "POST",
+      "price_sats": 100,
+      "description": "Inspect a remote L402 challenge. Returns price, expiry, and payee. Does not pay. Lightning L402."
     }
   ]
 }
