@@ -1,3 +1,9 @@
+## Changed — 402index categories (2026-10-20)
+
+Register Nostr listings as nostr and Lightning listings as lightning.
+
+---
+
 ## Docs — 402index payment infographic (2026-10-20)
 
 Show the four-step 402index payment example in the L402 tools doc.
