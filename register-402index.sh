@@ -117,6 +117,13 @@ register \
   "bitcoin" \
   "Bitcoin Core peer count and a short address list from the operator bitcoind. Read-only. Lightning L402."
 
+register \
+  "https://agent-bitcoin.net/paid/bitcoin/btc-difficulty" \
+  "agent-bitcoin: btc-difficulty" \
+  "GET" \
+  "bitcoin" \
+  "Bitcoin Core difficulty, chainwork, and blocks until the next retarget from the operator bitcoind. Read-only. Lightning L402."
+
 # Lightning suite (POST)
 register \
   "https://agent-bitcoin.net/paid/finance/ln-invoice-decode" \
