@@ -30,6 +30,7 @@ try:
     from l402 import l402_challenge_inspect as _l402_challenge_inspect
     from l402 import ln_channel_stats as _ln_channel_stats
     from l402 import btc_fee_estimate as _btc_fee_estimate
+    from l402 import btc_chain_status as _btc_chain_status
 except ImportError:  # Docker WORKDIR /app
     import mempool_feerate as _mempool_feerate  # type: ignore[no-redef]
     import mempool_backlog as _mempool_backlog  # type: ignore[no-redef]
@@ -45,6 +46,7 @@ except ImportError:  # Docker WORKDIR /app
     import l402_challenge_inspect as _l402_challenge_inspect  # type: ignore[no-redef]
     import ln_channel_stats as _ln_channel_stats  # type: ignore[no-redef]
     import btc_fee_estimate as _btc_fee_estimate  # type: ignore[no-redef]
+    import btc_chain_status as _btc_chain_status  # type: ignore[no-redef]
 
 
 def _simple_pdf(lines: list[str]) -> bytes:
@@ -387,6 +389,16 @@ def dispatch(
             payload = _btc_fee_estimate.handle_request()
             return 200, "application/json", json.dumps(payload).encode("utf-8")
         except _btc_fee_estimate.BitcoindUnavailable:
+            err = {"ok": False, "error": "bitcoind_unavailable"}
+            return 503, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/bitcoin/btc-chain-status":
+        if verb != "GET":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _btc_chain_status.handle_request()
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _btc_chain_status.BitcoindUnavailable:
             err = {"ok": False, "error": "bitcoind_unavailable"}
             return 503, "application/json", json.dumps(err).encode("utf-8")
     if route == "/paid/lightning/ln-channel-stats":
