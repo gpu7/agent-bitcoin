@@ -103,6 +103,13 @@ register \
   "bitcoin" \
   "Bitcoin Core version, protocol, and connection counts from the operator bitcoind. Read-only. Lightning L402."
 
+register \
+  "https://agent-bitcoin.net/paid/bitcoin/btc-mempool-info" \
+  "agent-bitcoin: btc-mempool-info" \
+  "GET" \
+  "bitcoin" \
+  "Bitcoin Core mempool size, memory, and minimum fee from the operator bitcoind. Read-only. Lightning L402."
+
 # Lightning suite (POST)
 register \
   "https://agent-bitcoin.net/paid/finance/ln-invoice-decode" \

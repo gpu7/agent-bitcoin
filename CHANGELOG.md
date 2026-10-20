@@ -1,3 +1,9 @@
+## Changed — btc-mempool-info (2026-10-20)
+
+Add GET /paid/bitcoin/btc-mempool-info at 100 sats.
+
+---
+
 ## Changed — register one 402index service (2026-10-20)
 
 `./register-402index.sh [service-name]` registers one service or, with no argument, every service.
