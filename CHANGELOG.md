@@ -1,3 +1,9 @@
+## Changed — btc-difficulty (2026-10-20)
+
+Add GET /paid/bitcoin/btc-difficulty at 100 sats.
+
+---
+
 ## Changed — ln-node-info (2026-10-20)
 
 Add GET /paid/lightning/ln-node-info at 100 sats.
