@@ -1,6 +1,7 @@
 #!/bin/bash
 # Register existing paid endpoints on 402index.
 # Bitcoin suite stays bitcoin. Lightning is lightning. Nostr is nostr.
+# Address check is verification.
 
 set -euo pipefail
 
@@ -85,6 +86,14 @@ register \
   "POST" \
   "lightning" \
   "First-path fee hint from the operator LND. Lightning L402."
+
+# Address check (POST). Local only. No LND.
+register \
+  "https://agent-bitcoin.net/paid/finance/btc-address-validate" \
+  "agent-bitcoin: btc-address-validate" \
+  "POST" \
+  "verification" \
+  "Check a Bitcoin address. Returns network and type, or a short reason if invalid. Lightning L402."
 
 # Nostr suite (POST). Existing routes. No relay.
 register \
