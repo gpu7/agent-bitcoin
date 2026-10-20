@@ -79,6 +79,13 @@ register \
   "bitcoin" \
   "Bitcoin Core chain height, sync progress, and prune state from the operator bitcoind. Read-only. Lightning L402."
 
+register \
+  "https://agent-bitcoin.net/paid/bitcoin/btc-network-info" \
+  "agent-bitcoin: btc-network-info" \
+  "GET" \
+  "bitcoin" \
+  "Bitcoin Core version, protocol, and connection counts from the operator bitcoind. Read-only. Lightning L402."
+
 # Lightning suite (POST)
 register \
   "https://agent-bitcoin.net/paid/finance/ln-invoice-decode" \
