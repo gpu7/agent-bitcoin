@@ -1,9 +1,20 @@
 #!/bin/bash
-# Register existing paid endpoints on 402index.
+# Register paid endpoints on 402index.
+# Usage: ./register-402index.sh [service-name]
+#   No argument registers every service below.
+#   A service-name registers only that one (btc-usd, or "agent-bitcoin: btc-usd").
 # Bitcoin suite stays bitcoin. Lightning is lightning. Nostr is nostr.
 # Address check is verification. Challenge inspect is security.
 
 set -euo pipefail
+
+if [[ $# -gt 1 ]]; then
+  echo "Usage: ./register-402index.sh [service-name]" >&2
+  exit 1
+fi
+
+ONLY="${1:-}"
+matched=0
 
 register() {
   local url="$1"
@@ -11,6 +22,12 @@ register() {
   local method="$3"
   local category="$4"
   local description="$5"
+  local short="${name#agent-bitcoin: }"
+
+  if [[ -n "$ONLY" && "$ONLY" != "$name" && "$ONLY" != "$short" ]]; then
+    return 0
+  fi
+  matched=$((matched + 1))
 
   echo "Registering $name ($category) ..."
   curl -sS -X POST https://402index.io/api/v1/register \
@@ -145,5 +162,10 @@ register \
   "POST" \
   "nostr" \
   "Decode a Nostr npub, note, nprofile, or nevent to hex. Rejects nsec. Lightning L402."
+
+if [[ -n "$ONLY" && "$matched" -eq 0 ]]; then
+  echo "Unknown service: $ONLY" >&2
+  exit 1
+fi
 
 echo "Done."
