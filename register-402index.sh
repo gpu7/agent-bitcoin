@@ -110,6 +110,13 @@ register \
   "bitcoin" \
   "Bitcoin Core mempool size, memory, and minimum fee from the operator bitcoind. Read-only. Lightning L402."
 
+register \
+  "https://agent-bitcoin.net/paid/bitcoin/btc-peer-info" \
+  "agent-bitcoin: btc-peer-info" \
+  "GET" \
+  "bitcoin" \
+  "Bitcoin Core peer count and a short address list from the operator bitcoind. Read-only. Lightning L402."
+
 # Lightning suite (POST)
 register \
   "https://agent-bitcoin.net/paid/finance/ln-invoice-decode" \

@@ -57,6 +57,7 @@ def test_paid_urls_default_to_100() -> None:
     chain = "https://agent-bitcoin.net/paid/bitcoin/btc-chain-status"
     network = "https://agent-bitcoin.net/paid/bitcoin/btc-network-info"
     mempool = "https://agent-bitcoin.net/paid/bitcoin/btc-mempool-info"
+    peer = "https://agent-bitcoin.net/paid/bitcoin/btc-peer-info"
     assert expected_price_sats_for_url(finance) == 100
     assert expected_price_sats_for_url(nostr) == 100
     assert expected_price_sats_for_url(security) == 100
@@ -65,6 +66,7 @@ def test_paid_urls_default_to_100() -> None:
     assert expected_price_sats_for_url(chain) == 100
     assert expected_price_sats_for_url(network) == 100
     assert expected_price_sats_for_url(mempool) == 100
+    assert expected_price_sats_for_url(peer) == 100
     assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/hello") == 100
     assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/report.pdf") == 100
     assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/script.pdf") == 100
@@ -325,6 +327,16 @@ def test_well_known_l402_services_is_public_json() -> None:
                 "operator bitcoind. Read-only. Lightning L402."
             ),
         },
+        {
+            "url": "https://agent-bitcoin.net/paid/bitcoin/btc-peer-info",
+            "name": "agent-bitcoin: btc-peer-info",
+            "method": "GET",
+            "price_sats": 100,
+            "description": (
+                "Bitcoin Core peer count and a short address list from the "
+                "operator bitcoind. Read-only. Lightning L402."
+            ),
+        },
     ]
     paid = (
         "/paid/hello",
@@ -337,6 +349,7 @@ def test_well_known_l402_services_is_public_json() -> None:
         "/paid/bitcoin/btc-chain-status",
         "/paid/bitcoin/btc-network-info",
         "/paid/bitcoin/btc-mempool-info",
+        "/paid/bitcoin/btc-peer-info",
     )
     for name in (
         "aperture.regtest.yaml",
