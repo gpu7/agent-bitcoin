@@ -146,6 +146,13 @@ register \
   "lightning" \
   "Lightning channel counts and balances from the operator LND. Read-only. Lightning L402."
 
+register \
+  "https://agent-bitcoin.net/paid/lightning/ln-node-info" \
+  "agent-bitcoin: ln-node-info" \
+  "GET" \
+  "lightning" \
+  "Read-only LND GetInfo summary: alias, public node id, active channels, peers, height, sync, and version. Lightning L402."
+
 # Address check (POST). Local only. No LND.
 register \
   "https://agent-bitcoin.net/paid/finance/btc-address-validate" \

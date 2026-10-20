@@ -1,3 +1,9 @@
+## Changed — ln-node-info (2026-10-20)
+
+Add GET /paid/lightning/ln-node-info at 100 sats.
+
+---
+
 ## Changed — btc-peer-info (2026-10-20)
 
 Add GET /paid/bitcoin/btc-peer-info at 100 sats.

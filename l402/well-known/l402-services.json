@@ -111,6 +111,13 @@
       "method": "GET",
       "price_sats": 100,
       "description": "Bitcoin Core peer count and a short address list from the operator bitcoind. Read-only. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/lightning/ln-node-info",
+      "name": "agent-bitcoin: ln-node-info",
+      "method": "GET",
+      "price_sats": 100,
+      "description": "Read-only LND GetInfo summary: alias, public node id, active channels, peers, height, sync, and version. Lightning L402."
     }
   ]
 }

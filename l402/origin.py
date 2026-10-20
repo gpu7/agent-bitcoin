@@ -29,6 +29,7 @@ try:
     from l402 import btc_address_validate as _btc_address_validate
     from l402 import l402_challenge_inspect as _l402_challenge_inspect
     from l402 import ln_channel_stats as _ln_channel_stats
+    from l402 import ln_node_info as _ln_node_info
     from l402 import btc_fee_estimate as _btc_fee_estimate
     from l402 import btc_chain_status as _btc_chain_status
     from l402 import btc_network_info as _btc_network_info
@@ -48,6 +49,7 @@ except ImportError:  # Docker WORKDIR /app
     import btc_address_validate as _btc_address_validate  # type: ignore[no-redef]
     import l402_challenge_inspect as _l402_challenge_inspect  # type: ignore[no-redef]
     import ln_channel_stats as _ln_channel_stats  # type: ignore[no-redef]
+    import ln_node_info as _ln_node_info  # type: ignore[no-redef]
     import btc_fee_estimate as _btc_fee_estimate  # type: ignore[no-redef]
     import btc_chain_status as _btc_chain_status  # type: ignore[no-redef]
     import btc_network_info as _btc_network_info  # type: ignore[no-redef]
@@ -445,6 +447,16 @@ def dispatch(
             payload = _ln_channel_stats.handle_request()
             return 200, "application/json", json.dumps(payload).encode("utf-8")
         except _ln_channel_stats.LndUnavailable:
+            err = {"ok": False, "error": "lnd_unavailable"}
+            return 503, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/lightning/ln-node-info":
+        if verb != "GET":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _ln_node_info.handle_request()
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _ln_node_info.LndUnavailable:
             err = {"ok": False, "error": "lnd_unavailable"}
             return 503, "application/json", json.dumps(err).encode("utf-8")
     if route == "/paid/nostr/event-verify":
