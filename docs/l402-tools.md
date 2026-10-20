@@ -47,7 +47,7 @@ The existing Caddy reverse proxy forwards the path to Aperture, which leaves it 
 
 1. Call `https://agent-bitcoin.net` (this lab).
 2. Call with `L402Client(..., expected_price_sats=100)` or `l402_pay.py --price 100`. The SDK default expected price is **100**.
-3. **GET** for Bitcoin-suite query tools. **POST** JSON for the address check, the challenge inspect, Lightning, and Nostr tools (GET → **405**).
+3. **GET** for Bitcoin-suite query tools and the channel summary. **POST** JSON for the address check, the challenge inspect, Lightning invoices, and Nostr tools (GET → **405**).
 4. Do **not** put BOLT11 in query strings. POST it in JSON (`--json`).
 5. Read `ttl_s` and cache. Do not poll every second. Local inspect tools (`ttl_s` 0) are still not a hot loop.
 6. Wiring, SG, and restart: [l402-aperture.md](./l402-aperture.md). Mainnet pays still need the usual latches on the payer.
@@ -158,6 +158,17 @@ uv run python examples/l402_pay.py \
   --url https://agent-bitcoin.net/paid/finance/ln-path-fee-hint \
   --price 100 --method POST \
   --json '{"dest_pubkey":"<66 hex>","amount_sats":1000}'
+```
+
+### GET `/paid/lightning/ln-channel-stats`
+
+Job: read-only counts and balances from the operator LND `ListChannels`. Returns `num_active`, `num_inactive`, `total_capacity_sats`, `total_local_balance_sats`, `total_remote_balance_sats`, and up to eight active rows with `channel_point` and `peer_alias` only. Does **not** unlock, open, close, or pay. **100 sats**. 402index category: `lightning`.
+
+The origin macaroon must include `uri:/lnrpc.Lightning/ListChannels` in addition to QueryRoutes and DecodePayReq. Until that permission is baked, this route returns HTTP 503.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/lightning/ln-channel-stats --price 100
 ```
 
 ## Nostr suite

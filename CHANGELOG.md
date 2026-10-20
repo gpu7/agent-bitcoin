@@ -1,3 +1,9 @@
+## Changed — ln-channel-stats (2026-10-20)
+
+Add GET /paid/lightning/ln-channel-stats at 100 sats.
+
+---
+
 ## Changed — l402-challenge-inspect (2026-10-20)
 
 Add POST /paid/security/l402-challenge-inspect at 100 sats.
