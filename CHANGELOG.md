@@ -1,3 +1,9 @@
+## Changed — btc-peer-info (2026-10-20)
+
+Add GET /paid/bitcoin/btc-peer-info at 100 sats.
+
+---
+
 ## Changed — btc-mempool-info (2026-10-20)
 
 Add GET /paid/bitcoin/btc-mempool-info at 100 sats.
