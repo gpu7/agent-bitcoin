@@ -36,6 +36,6 @@ agent-bitcoin.net {
 
 There is no custom `tls` directive. Caddy obtains and renews the Let's Encrypt certificate automatically.
 
-The 402index verification file is on disk at `/var/www/agent-bitcoin/.well-known/402index-verify.txt`. Caddy serves it at `https://agent-bitcoin.net/.well-known/402index-verify.txt`. The token is not stored in this repo.
+The 402index domain-claim file is `l402/well-known/402index-verify.txt`. The origin serves it at `GET /.well-known/402index-verify.txt` as `text/plain` with no payment.
 
 Every other path, including `/health`, `/.well-known/l402-services`, and `/paid/…`, is reverse-proxied to Aperture. The origin serves the service list from `l402/well-known/l402-services.json` as `application/json`. Aperture exempts only `/health` and `/.well-known/l402-services`, so this document is HTTP 200 with no `WWW-Authenticate` header. Every `/paid/*` route stays on its 100 sat challenge. Add new public endpoints to that file. Search on 402index still needs a manual registration or a later crawl. This repo does not call 402index.

@@ -110,3 +110,4 @@ services:
     authwhitelistpaths:
       - "^/health$"
       - "^/\\.well-known/l402-services$"
+      - "^/\\.well-known/402index-verify\\.txt$"

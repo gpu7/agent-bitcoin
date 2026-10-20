@@ -81,6 +81,7 @@ def test_aperture_yaml_prices_are_100_and_health_is_free() -> None:
         assert "price: 100" in text
         assert '- "^/health$"' in text
         assert '- "^/\\\\.well-known/l402-services$"' in text
+        assert '- "^/\\\\.well-known/402index-verify\\\\.txt$"' in text
 
 
 def test_parse_www_authenticate_aperture() -> None:
@@ -256,9 +257,23 @@ def test_well_known_l402_services_is_public_json() -> None:
     ):
         text = (root / name).read_text(encoding="utf-8")
         assert _aperture_http_status("/.well-known/l402-services", text) == 200
+        assert _aperture_http_status("/.well-known/402index-verify.txt", text) == 200
         assert _aperture_http_status("/health", text) == 200
         for path in paid:
             assert _aperture_http_status(path, text) == 402
+
+
+def test_402index_verify_file_is_plain_text() -> None:
+    token = b"33fc5253f7b8faf9d350dc2e7bb9ddf3aaaffc78954467520e7b2bbd86296016"
+    status, content_type, body = dispatch("/.well-known/402index-verify.txt")
+    assert status == 200
+    assert content_type == "text/plain"
+    assert body.strip() == token
+    status, content_type, _body = dispatch(
+        "/.well-known/402index-verify.txt", method="POST"
+    )
+    assert status == 405
+    assert content_type == "application/json"
 
 
 def test_origin_paths() -> None:
