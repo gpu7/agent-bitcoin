@@ -29,6 +29,10 @@ Webhooks, [llms.txt](https://402index.io/llms.txt), and the [OpenAPI spec](https
 
 Once the agent has the URL from the directory, it treats the endpoint exactly like any other L402 resource. No prior relationship is required.
 
+![Agent payment via 402index](images/agent-402index.jpeg)
+
+*Real example: an agent searched 402index for the btc-usd endpoint, paid 100 sats over L402, and received the current BTC-USD price. The same four steps work for any healthy L402 listing.*
+
 The listing name is `btc-usd` and the description says “Bitcoin price”, so both `btc-usd` and `bitcoin price` queries match. The unit of account remains sats.
 
 The origin also serves `GET https://agent-bitcoin.net/.well-known/l402-services` (`Content-Type: application/json`, HTTP 200, no payment). The document is [`l402/well-known/l402-services.json`](../l402/well-known/l402-services.json). It lists every `/paid/finance` endpoint. Add each new public endpoint to that file.

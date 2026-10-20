@@ -1,3 +1,9 @@
+## Docs — 402index payment infographic (2026-10-20)
+
+Show the four-step 402index payment example in the L402 tools doc.
+
+---
+
 ## Changed — well-known finance endpoints (2026-10-19)
 
 List every /paid/finance endpoint in the free L402 discovery document.
