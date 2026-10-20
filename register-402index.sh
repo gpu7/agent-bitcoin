@@ -1,5 +1,5 @@
 #!/bin/bash
-# Register all /paid/finance endpoints on 402index with category agent-tools/bitcoin
+# Register all /paid/finance endpoints on 402index with category bitcoin
 
 set -euo pipefail
 
@@ -19,7 +19,7 @@ register() {
       \"description\": \"$description\",
       \"provider\": \"agent-bitcoin\",
       \"price_sats\": 100,
-      \"category\": \"agent-tools/bitcoin\",
+      \"category\": \"bitcoin\",
       \"http_method\": \"$method\"
     }"
   echo
