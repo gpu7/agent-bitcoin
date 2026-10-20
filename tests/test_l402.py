@@ -52,9 +52,11 @@ def test_paid_urls_default_to_100() -> None:
     finance = "http://127.0.0.1:8081/paid/finance/mempool-feerate"
     nostr = "http://127.0.0.1:8081/paid/nostr/event-verify?x=1"
     security = "https://agent-bitcoin.net/paid/security/l402-challenge-inspect"
+    lightning = "https://agent-bitcoin.net/paid/lightning/ln-channel-stats"
     assert expected_price_sats_for_url(finance) == 100
     assert expected_price_sats_for_url(nostr) == 100
     assert expected_price_sats_for_url(security) == 100
+    assert expected_price_sats_for_url(lightning) == 100
     assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/hello") == 100
     assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/report.pdf") == 100
     assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/script.pdf") == 100
@@ -265,6 +267,16 @@ def test_well_known_l402_services_is_public_json() -> None:
                 "payee. Does not pay. Lightning L402."
             ),
         },
+        {
+            "url": "https://agent-bitcoin.net/paid/lightning/ln-channel-stats",
+            "name": "agent-bitcoin: ln-channel-stats",
+            "method": "GET",
+            "price_sats": 100,
+            "description": (
+                "Lightning channel counts and balances from the operator LND. "
+                "Read-only. Lightning L402."
+            ),
+        },
     ]
     paid = (
         "/paid/hello",
@@ -272,6 +284,7 @@ def test_well_known_l402_services_is_public_json() -> None:
         "/paid/report.pdf",
         "/paid/nostr/npub-decode",
         "/paid/security/l402-challenge-inspect",
+        "/paid/lightning/ln-channel-stats",
     )
     for name in (
         "aperture.regtest.yaml",

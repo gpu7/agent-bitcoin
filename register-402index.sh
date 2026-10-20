@@ -87,6 +87,13 @@ register \
   "lightning" \
   "First-path fee hint from the operator LND. Lightning L402."
 
+register \
+  "https://agent-bitcoin.net/paid/lightning/ln-channel-stats" \
+  "agent-bitcoin: ln-channel-stats" \
+  "GET" \
+  "lightning" \
+  "Lightning channel counts and balances from the operator LND. Read-only. Lightning L402."
+
 # Address check (POST). Local only. No LND.
 register \
   "https://agent-bitcoin.net/paid/finance/btc-address-validate" \

@@ -21,7 +21,12 @@ FINANCE_L402_PRICE_SATS = 100
 def expected_price_sats_for_url(url: str) -> int:
     """Return 100 sats for every paid lab path."""
     path = (url or "").split("?", 1)[0]
-    if "/paid/finance/" in path or "/paid/nostr/" in path or "/paid/security/" in path:
+    if (
+        "/paid/finance/" in path
+        or "/paid/nostr/" in path
+        or "/paid/security/" in path
+        or "/paid/lightning/" in path
+    ):
         return FINANCE_L402_PRICE_SATS
     return DEFAULT_L402_PRICE_SATS
 
