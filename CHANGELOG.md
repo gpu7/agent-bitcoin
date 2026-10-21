@@ -1,3 +1,9 @@
+## Changed — btc-block-tip (2026-10-21)
+
+Add GET /paid/bitcoin/btc-block-tip at 100 sats.
+
+---
+
 ## Changed — btc-difficulty (2026-10-20)
 
 Add GET /paid/bitcoin/btc-difficulty at 100 sats.

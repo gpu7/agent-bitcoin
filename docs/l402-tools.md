@@ -47,7 +47,7 @@ The existing Caddy reverse proxy forwards the path to Aperture, which leaves it 
 
 1. Call `https://agent-bitcoin.net` (this lab).
 2. Call with `L402Client(..., expected_price_sats=100)` or `l402_pay.py --price 100`. The SDK default expected price is **100**.
-3. **GET** for Bitcoin-suite query tools, the bitcoind fee estimate, chain status, network info, mempool info, peer info, difficulty, the channel summary, and node info. **POST** JSON for the address check, the challenge inspect, Lightning invoices, and Nostr tools (GET → **405**).
+3. **GET** for Bitcoin-suite query tools, the bitcoind fee estimate, chain status, network info, mempool info, peer info, difficulty, the block tip, the channel summary, and node info. **POST** JSON for the address check, the challenge inspect, Lightning invoices, and Nostr tools (GET → **405**).
 4. Do **not** put BOLT11 in query strings. POST it in JSON (`--json`).
 5. Read `ttl_s` and cache. Do not poll every second. Local inspect tools (`ttl_s` 0) are still not a hot loop.
 6. Wiring, SG, and restart: [l402-aperture.md](./l402-aperture.md). Mainnet pays still need the usual latches on the payer.
@@ -160,6 +160,15 @@ Job: read-only `getblockchaininfo` from the operator bitcoind. Returns `difficul
 ```bash
 uv run python examples/l402_pay.py \
   --url https://agent-bitcoin.net/paid/bitcoin/btc-difficulty --price 100
+```
+
+### GET `/paid/bitcoin/btc-block-tip`
+
+Job: read-only `getblockchaininfo` from the operator bitcoind. Returns `height`, `best_block_hash` (the full public tip hash), and `median_time` (Core's `mediantime`) when Core sends it. Does **not** use the wallet and does **not** send. A down node is HTTP 503. **100 sats**. 402index category: `bitcoin`.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/bitcoin/btc-block-tip --price 100
 ```
 
 ## Verification
