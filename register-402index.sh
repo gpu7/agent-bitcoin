@@ -152,6 +152,13 @@ register \
   "bitcoin" \
   "Bitcoin Core confirmed UTXO balance for one address from the operator bitcoind. Read-only. Lightning L402."
 
+register \
+  "https://agent-bitcoin.net/paid/bitcoin/btc-uptime" \
+  "agent-bitcoin: btc-uptime" \
+  "GET" \
+  "bitcoin" \
+  "Bitcoin Core uptime and version from the operator bitcoind. Read-only. Lightning L402."
+
 # Lightning suite (POST)
 register \
   "https://agent-bitcoin.net/paid/finance/ln-invoice-decode" \

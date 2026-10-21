@@ -1,3 +1,9 @@
+## Changed — btc-uptime (2026-10-21)
+
+Add GET /paid/bitcoin/btc-uptime at 100 sats.
+
+---
+
 ## Changed — btc-address-balance (2026-10-21)
 
 Add POST /paid/bitcoin/btc-address-balance at 100 sats.
