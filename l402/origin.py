@@ -41,6 +41,7 @@ try:
     from l402 import btc_tx_summary as _btc_tx_summary
     from l402 import btc_address_balance as _btc_address_balance
     from l402 import btc_uptime as _btc_uptime
+    from l402 import btc_deployment_info as _btc_deployment_info
 except ImportError:  # Docker WORKDIR /app
     import mempool_feerate as _mempool_feerate  # type: ignore[no-redef]
     import mempool_backlog as _mempool_backlog  # type: ignore[no-redef]
@@ -67,6 +68,7 @@ except ImportError:  # Docker WORKDIR /app
     import btc_tx_summary as _btc_tx_summary  # type: ignore[no-redef]
     import btc_address_balance as _btc_address_balance  # type: ignore[no-redef]
     import btc_uptime as _btc_uptime  # type: ignore[no-redef]
+    import btc_deployment_info as _btc_deployment_info  # type: ignore[no-redef]
 
 
 def _simple_pdf(lines: list[str]) -> bytes:
@@ -547,6 +549,16 @@ def dispatch(
             payload = _btc_uptime.handle_request()
             return 200, "application/json", json.dumps(payload).encode("utf-8")
         except _btc_uptime.BitcoindUnavailable:
+            err = {"ok": False, "error": "bitcoind_unavailable"}
+            return 503, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/bitcoin/btc-deployment-info":
+        if verb != "GET":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _btc_deployment_info.handle_request()
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _btc_deployment_info.BitcoindUnavailable:
             err = {"ok": False, "error": "bitcoind_unavailable"}
             return 503, "application/json", json.dumps(err).encode("utf-8")
     if route == "/paid/lightning/ln-channel-stats":

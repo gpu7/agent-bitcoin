@@ -159,6 +159,13 @@ register \
   "bitcoin" \
   "Bitcoin Core uptime and version from the operator bitcoind. Read-only. Lightning L402."
 
+register \
+  "https://agent-bitcoin.net/paid/bitcoin/btc-deployment-info" \
+  "agent-bitcoin: btc-deployment-info" \
+  "GET" \
+  "bitcoin" \
+  "Bitcoin Core active soft-fork status from the operator bitcoind. Read-only. Lightning L402."
+
 # Lightning suite (POST)
 register \
   "https://agent-bitcoin.net/paid/finance/ln-invoice-decode" \

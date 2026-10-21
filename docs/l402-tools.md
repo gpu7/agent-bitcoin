@@ -47,7 +47,7 @@ The existing Caddy reverse proxy forwards the path to Aperture, which leaves it 
 
 1. Call `https://agent-bitcoin.net` (this lab).
 2. Call with `L402Client(..., expected_price_sats=100)` or `l402_pay.py --price 100`. The SDK default expected price is **100**.
-3. **GET** for Bitcoin-suite query tools, the bitcoind fee estimate, chain status, network info, mempool info, peer info, difficulty, the block tip, the block header, the transaction summary, the uptime, the channel summary, and node info. **POST** JSON for the address check, the address balance, the challenge inspect, Lightning invoices, and Nostr tools (GET → **405**).
+3. **GET** for Bitcoin-suite query tools, the bitcoind fee estimate, chain status, network info, mempool info, peer info, difficulty, the block tip, the block header, the transaction summary, the uptime, the deployment info, the channel summary, and node info. **POST** JSON for the address check, the address balance, the challenge inspect, Lightning invoices, and Nostr tools (GET → **405**).
 4. Do **not** put BOLT11 in query strings. POST it in JSON (`--json`).
 5. Read `ttl_s` and cache. Do not poll every second. Local inspect tools (`ttl_s` 0) are still not a hot loop.
 6. Wiring, SG, and restart: [l402-aperture.md](./l402-aperture.md). Mainnet pays still need the usual latches on the payer.
@@ -209,6 +209,15 @@ Job: read-only `uptime`, then `getnetworkinfo`, from the operator bitcoind. Retu
 ```bash
 uv run python examples/l402_pay.py \
   --url https://agent-bitcoin.net/paid/bitcoin/btc-uptime --price 100
+```
+
+### GET `/paid/bitcoin/btc-deployment-info`
+
+Job: read-only `getblockchaininfo` from the operator bitcoind. Returns `softforks`, active forks only, each with `name`, `status`, and `height` when Core sends one. `warnings` is included when Core sends them. Does **not** use the wallet and does **not** send. A down node is HTTP 503. **100 sats**. 402index category: `bitcoin`.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/bitcoin/btc-deployment-info --price 100
 ```
 
 ## Verification
