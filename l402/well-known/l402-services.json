@@ -167,6 +167,27 @@
       "method": "GET",
       "price_sats": 100,
       "description": "Bitcoin Core active soft-fork status from the operator bitcoind. Read-only. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/bitcoin/btc-mining-info",
+      "name": "agent-bitcoin: btc-mining-info",
+      "method": "GET",
+      "price_sats": 100,
+      "description": "Bitcoin Core mining summary from the operator bitcoind. Read-only. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/bitcoin/btc-mempool-fees",
+      "name": "agent-bitcoin: btc-mempool-fees",
+      "method": "GET",
+      "price_sats": 100,
+      "description": "Bitcoin Core mempool minimum fee and fee bands from the operator bitcoind. Read-only. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/bitcoin/btc-chain-tips",
+      "name": "agent-bitcoin: btc-chain-tips",
+      "method": "GET",
+      "price_sats": 100,
+      "description": "Bitcoin Core chain tips from the operator bitcoind. Read-only. Lightning L402."
     }
   ]
 }

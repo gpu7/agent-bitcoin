@@ -66,6 +66,9 @@ def test_paid_urls_default_to_100() -> None:
     address_balance = "https://agent-bitcoin.net/paid/bitcoin/btc-address-balance"
     uptime = "https://agent-bitcoin.net/paid/bitcoin/btc-uptime"
     deployment = "https://agent-bitcoin.net/paid/bitcoin/btc-deployment-info"
+    mining = "https://agent-bitcoin.net/paid/bitcoin/btc-mining-info"
+    mempool_fees = "https://agent-bitcoin.net/paid/bitcoin/btc-mempool-fees"
+    chain_tips = "https://agent-bitcoin.net/paid/bitcoin/btc-chain-tips"
     assert expected_price_sats_for_url(finance) == 100
     assert expected_price_sats_for_url(nostr) == 100
     assert expected_price_sats_for_url(security) == 100
@@ -83,6 +86,9 @@ def test_paid_urls_default_to_100() -> None:
     assert expected_price_sats_for_url(address_balance) == 100
     assert expected_price_sats_for_url(uptime) == 100
     assert expected_price_sats_for_url(deployment) == 100
+    assert expected_price_sats_for_url(mining) == 100
+    assert expected_price_sats_for_url(mempool_fees) == 100
+    assert expected_price_sats_for_url(chain_tips) == 100
     assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/hello") == 100
     assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/report.pdf") == 100
     assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/script.pdf") == 100
@@ -433,6 +439,36 @@ def test_well_known_l402_services_is_public_json() -> None:
                 "bitcoind. Read-only. Lightning L402."
             ),
         },
+        {
+            "url": "https://agent-bitcoin.net/paid/bitcoin/btc-mining-info",
+            "name": "agent-bitcoin: btc-mining-info",
+            "method": "GET",
+            "price_sats": 100,
+            "description": (
+                "Bitcoin Core mining summary from the operator bitcoind. "
+                "Read-only. Lightning L402."
+            ),
+        },
+        {
+            "url": "https://agent-bitcoin.net/paid/bitcoin/btc-mempool-fees",
+            "name": "agent-bitcoin: btc-mempool-fees",
+            "method": "GET",
+            "price_sats": 100,
+            "description": (
+                "Bitcoin Core mempool minimum fee and fee bands from the "
+                "operator bitcoind. Read-only. Lightning L402."
+            ),
+        },
+        {
+            "url": "https://agent-bitcoin.net/paid/bitcoin/btc-chain-tips",
+            "name": "agent-bitcoin: btc-chain-tips",
+            "method": "GET",
+            "price_sats": 100,
+            "description": (
+                "Bitcoin Core chain tips from the operator bitcoind. "
+                "Read-only. Lightning L402."
+            ),
+        },
     ]
     paid = (
         "/paid/hello",
@@ -454,6 +490,9 @@ def test_well_known_l402_services_is_public_json() -> None:
         "/paid/bitcoin/btc-address-balance",
         "/paid/bitcoin/btc-uptime",
         "/paid/bitcoin/btc-deployment-info",
+        "/paid/bitcoin/btc-mining-info",
+        "/paid/bitcoin/btc-mempool-fees",
+        "/paid/bitcoin/btc-chain-tips",
     )
     for name in (
         "aperture.regtest.yaml",

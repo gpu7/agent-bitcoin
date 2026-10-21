@@ -210,6 +210,27 @@ services:
     protocol: "http"
     price: 100
     timeout: 3600
+  - name: "btc-mining-info"
+    hostregexp: ".*"
+    pathregexp: "^/paid/bitcoin/btc-mining-info$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
+  - name: "btc-mempool-fees"
+    hostregexp: ".*"
+    pathregexp: "^/paid/bitcoin/btc-mempool-fees$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
+  - name: "btc-chain-tips"
+    hostregexp: ".*"
+    pathregexp: "^/paid/bitcoin/btc-chain-tips$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
   - name: "l402-demo"
     # Hello, PDF, PNG, and any other paid path. /health and the discovery document stay free.
     hostregexp: ".*"

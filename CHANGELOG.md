@@ -1,3 +1,9 @@
+## Changed — btc-mining-info, btc-mempool-fees, btc-chain-tips (2026-10-21)
+
+Add GET /paid/bitcoin/btc-mining-info, /paid/bitcoin/btc-mempool-fees, and /paid/bitcoin/btc-chain-tips at 100 sats.
+
+---
+
 ## Changed — btc-deployment-info (2026-10-21)
 
 Add GET /paid/bitcoin/btc-deployment-info at 100 sats.
