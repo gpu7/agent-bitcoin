@@ -39,6 +39,7 @@ try:
     from l402 import btc_block_tip as _btc_block_tip
     from l402 import btc_block_header as _btc_block_header
     from l402 import btc_tx_summary as _btc_tx_summary
+    from l402 import btc_address_balance as _btc_address_balance
 except ImportError:  # Docker WORKDIR /app
     import mempool_feerate as _mempool_feerate  # type: ignore[no-redef]
     import mempool_backlog as _mempool_backlog  # type: ignore[no-redef]
@@ -63,6 +64,7 @@ except ImportError:  # Docker WORKDIR /app
     import btc_block_tip as _btc_block_tip  # type: ignore[no-redef]
     import btc_block_header as _btc_block_header  # type: ignore[no-redef]
     import btc_tx_summary as _btc_tx_summary  # type: ignore[no-redef]
+    import btc_address_balance as _btc_address_balance  # type: ignore[no-redef]
 
 
 def _simple_pdf(lines: list[str]) -> bytes:
@@ -509,6 +511,30 @@ def dispatch(
             err = {"ok": False, "error": "tx_not_found"}
             return 404, "application/json", json.dumps(err).encode("utf-8")
         except _btc_tx_summary.BitcoindUnavailable:
+            err = {"ok": False, "error": "bitcoind_unavailable"}
+            return 503, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/bitcoin/btc-address-balance":
+        if verb != "POST":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            address = _btc_address_balance.parse_request(body)
+        except _btc_address_balance.MissingAddress:
+            err = {"ok": False, "error": "missing_address"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _btc_address_balance.BadAddress:
+            err = {"ok": False, "error": "bad_address"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _btc_address_balance.BitcoindUnavailable:
+            err = {"ok": False, "error": "bitcoind_unavailable"}
+            return 503, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _btc_address_balance.handle_request(address)
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _btc_address_balance.BadAddress:
+            err = {"ok": False, "error": "bad_address"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _btc_address_balance.BitcoindUnavailable:
             err = {"ok": False, "error": "bitcoind_unavailable"}
             return 503, "application/json", json.dumps(err).encode("utf-8")
     if route == "/paid/lightning/ln-channel-stats":
