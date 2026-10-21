@@ -47,7 +47,7 @@ The existing Caddy reverse proxy forwards the path to Aperture, which leaves it 
 
 1. Call `https://agent-bitcoin.net` (this lab).
 2. Call with `L402Client(..., expected_price_sats=100)` or `l402_pay.py --price 100`. The SDK default expected price is **100**.
-3. **GET** for Bitcoin-suite query tools, the bitcoind fee estimate, chain status, network info, mempool info, peer info, difficulty, the block tip, the block header, the transaction summary, the uptime, the deployment info, the mining summary, the mempool fees, the chain tips, the channel summary, and node info. **POST** JSON for the address check, the address balance, the challenge inspect, Lightning invoices, and Nostr tools (GET → **405**).
+3. **GET** for Bitcoin-suite query tools, the bitcoind fee estimate, chain status, network info, mempool info, peer info, difficulty, the block tip, the block header, the transaction summary, the uptime, the deployment info, the mining summary, the mempool fees, the chain tips, the channel summary, and node info. **POST** JSON for the address check, the address balance, the challenge inspect, Lightning invoices, invoice inspect, channel liquidity, peer status, the path estimate, payment status, channel policy, invoice create, the Nostr node link, and Nostr tools (GET → **405**).
 4. Do **not** put BOLT11 in query strings. POST it in JSON (`--json`).
 5. Read `ttl_s` and cache. Do not poll every second. Local inspect tools (`ttl_s` 0) are still not a hot loop.
 6. Wiring, SG, and restart: [l402-aperture.md](./l402-aperture.md). Mainnet pays still need the usual latches on the payer.
@@ -321,9 +321,86 @@ uv run python examples/l402_pay.py \
   --url https://agent-bitcoin.net/paid/lightning/ln-node-info --price 100
 ```
 
+### POST `/paid/lightning/ln-invoice-inspect`
+
+Job: one LND `DecodePayReq`. Body `{"bolt11":"lnbc..."}`. Returns `amount_msat`, `expiry`, `payment_hash`, `cltv_expiry`, and when LND sends them a short `description`, a shortened `destination`, and up to eight `features`. Read-only. Does **not** return the invoice, route hints, or a preimage. **100 sats**. 402index category: `lightning`. A down node returns HTTP 503.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/lightning/ln-invoice-inspect \
+  --price 100 --method POST \
+  --json '{"bolt11":"lnbc..."}'
+```
+
+### POST `/paid/lightning/ln-channel-liquidity`
+
+Job: one LND `ListChannels`. Body `{}` or `{"peer_pubkey":"<66 hex>"}`. Returns up to eight rows with a shortened `remote_pubkey`, `capacity`, `local_balance`, `remote_balance`, and `active`. No match is an empty list. Read-only. **100 sats**. 402index category: `lightning`. A down node returns HTTP 503.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/lightning/ln-channel-liquidity \
+  --price 100 --method POST \
+  --json '{}'
+```
+
+### POST `/paid/lightning/ln-peer-status`
+
+Job: LND `ListPeers`, then `ListChannels`. Body `{}` or `{"peer_pubkey":"<66 hex>"}`. Returns `connected`, `num_channels`, `active_channels`, and `last_ping_ms` when LND sends a ping. A filtered offline peer is one row with `connected` false. Read-only. **100 sats**. 402index category: `lightning`. A down node returns HTTP 503.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/lightning/ln-peer-status \
+  --price 100 --method POST \
+  --json '{}'
+```
+
+### POST `/paid/lightning/ln-path-estimate`
+
+Job: LND `QueryRoutes` for one destination. Body `{"dest_pubkey":"<66 hex>","amount_sats":1000}` or `{"bolt11":"lnbc..."}`. Returns `total_fees_msat`, `total_amt_msat`, `hop_count`, shortened `hops`, and `success_prob` when LND sends it. Does **not** pay. No route is HTTP 404. **100 sats**. 402index category: `lightning`. A down node returns HTTP 503.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/lightning/ln-path-estimate \
+  --price 100 --method POST \
+  --json '{"dest_pubkey":"<66 hex>","amount_sats":1000}'
+```
+
+### POST `/paid/lightning/ln-payment-status`
+
+Job: one LND `LookupInvoice` for an invoice this node created. Body `{"payment_hash":"<64 hex>"}`. Returns `status` (`pending`, `succeeded`, or `failed`), `value_msat`, and `creation_date`. Does **not** return the preimage or the invoice. An unknown hash is HTTP 404. Read-only. **100 sats**. 402index category: `lightning`. A down node returns HTTP 503.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/lightning/ln-payment-status \
+  --price 100 --method POST \
+  --json '{"payment_hash":"<64 hex>"}'
+```
+
+### POST `/paid/lightning/ln-channel-policy`
+
+Job: one LND `ListChannels`. Body `{}` or `{"peer_pubkey":"<66 hex>"}`. Returns up to eight rows with a shortened `remote_pubkey`, `active`, `min_htlc_msat`, `max_htlc_msat`, and `time_lock_delta` from `local_constraints`. `ListChannels` does not include `fee_base_msat` or `fee_rate_milli_msat`, so those fields are omitted. Read-only. **100 sats**. 402index category: `lightning`. A down node returns HTTP 503.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/lightning/ln-channel-policy \
+  --price 100 --method POST \
+  --json '{}'
+```
+
+### POST `/paid/lightning/ln-invoice-create`
+
+Job: one LND `AddInvoice`. Body `{"amount_sats":1000,"description":"agent invoice"}`. `amount_sats` is an integer from 100 through 50000. Returns `payment_request`, `payment_hash`, and `expiry`. This call **only creates an invoice**. It does **not** pay, settle, or unlock the wallet. The caller cannot set expiry. **100 sats**. 402index category: `lightning`. Until the macaroon includes `AddInvoice`, this route returns HTTP 503.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/lightning/ln-invoice-create \
+  --price 100 --method POST \
+  --json '{"amount_sats":1000,"description":"agent invoice"}'
+```
+
 ## Nostr suite
 
-**Function:** **local** identity checks. These two do **not** talk to a relay (no 503 from relays). They are not Damus and not **NWC (Nostr Wallet Connect)**. NWC is a way for an agent to talk to a Lightning wallet over Nostr using a URI, instead of holding an LND admin macaroon.
+**Function:** **local** identity checks. These do **not** talk to a relay (no 503 from relays). They are not Damus and not **NWC (Nostr Wallet Connect)**. NWC is a way for an agent to talk to a Lightning wallet over Nostr using a URI, instead of holding an LND admin macaroon.
 
 Agent identity, NWC, and NIP-46 live elsewhere: [README — Nostr](../README.md#nostr-agent-identity), [nostr-agent-identity.md](./nostr-agent-identity.md), [nwc-automatic-wallets.md](./nwc-automatic-wallets.md).
 
@@ -347,6 +424,17 @@ uv run python examples/l402_pay.py \
   --url https://agent-bitcoin.net/paid/nostr/npub-decode \
   --price 100 --method POST \
   --json '{"entity":"npub1..."}'
+```
+
+### POST `/paid/nostr/nostr-node-link`
+
+Job: read `alice.pub.json` and `bob.pub.json` only (under `NOSTR_POC_DIR`, or `.nostr-poc-mainnet` when that env is unset). Body `{}` or `{"npub":"npub1..."}`. Returns a shortened `npub` and `link` (`linked` or `not linked`). `linked` also returns a shortened Lightning `identity_pubkey` from LND `GetInfo`. A missing directory or a down node is `not linked`, not HTTP 503. Never reads an nsec, `*.enc.json`, or a passphrase file. **100 sats**. 402index category: `nostr`.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/nostr/nostr-node-link \
+  --price 100 --method POST \
+  --json '{"npub":"npub1..."}'
 ```
 
 ## Security
