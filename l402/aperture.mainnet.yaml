@@ -106,6 +106,13 @@ services:
     protocol: "http"
     price: 100
     timeout: 3600
+  - name: "nip05-verify"
+    hostregexp: ".*"
+    pathregexp: "^/paid/nostr/nip05-verify$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
   - name: "btc-address-validate"
     hostregexp: ".*"
     pathregexp: "^/paid/finance/btc-address-validate$"
@@ -179,6 +186,41 @@ services:
   - name: "ln-invoice-create"
     hostregexp: ".*"
     pathregexp: "^/paid/lightning/ln-invoice-create$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
+  - name: "ln-preimage-verify"
+    hostregexp: ".*"
+    pathregexp: "^/paid/lightning/ln-preimage-verify$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
+  - name: "ln-pay-check"
+    hostregexp: ".*"
+    pathregexp: "^/paid/lightning/ln-pay-check$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
+  - name: "ln-node-card"
+    hostregexp: ".*"
+    pathregexp: "^/paid/lightning/ln-node-card$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
+  - name: "ln-address-resolve"
+    hostregexp: ".*"
+    pathregexp: "^/paid/lightning/ln-address-resolve$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
+  - name: "ln-payee-liquidity-hint"
+    hostregexp: ".*"
+    pathregexp: "^/paid/lightning/ln-payee-liquidity-hint$"
     address: "agent-l402-origin:8090"
     protocol: "http"
     price: 100

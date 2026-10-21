@@ -53,6 +53,12 @@ try:
     from l402 import ln_channel_policy as _ln_channel_policy
     from l402 import ln_invoice_create as _ln_invoice_create
     from l402 import nostr_node_link as _nostr_node_link
+    from l402 import ln_preimage_verify as _ln_preimage_verify
+    from l402 import ln_pay_check as _ln_pay_check
+    from l402 import ln_node_card as _ln_node_card
+    from l402 import nip05_verify as _nip05_verify
+    from l402 import ln_address_resolve as _ln_address_resolve
+    from l402 import ln_payee_liquidity_hint as _ln_payee_liquidity_hint
 except ImportError:  # Docker WORKDIR /app
     import mempool_feerate as _mempool_feerate  # type: ignore[no-redef]
     import mempool_backlog as _mempool_backlog  # type: ignore[no-redef]
@@ -91,6 +97,12 @@ except ImportError:  # Docker WORKDIR /app
     import ln_channel_policy as _ln_channel_policy  # type: ignore[no-redef]
     import ln_invoice_create as _ln_invoice_create  # type: ignore[no-redef]
     import nostr_node_link as _nostr_node_link  # type: ignore[no-redef]
+    import ln_preimage_verify as _ln_preimage_verify  # type: ignore[no-redef]
+    import ln_pay_check as _ln_pay_check  # type: ignore[no-redef]
+    import ln_node_card as _ln_node_card  # type: ignore[no-redef]
+    import nip05_verify as _nip05_verify  # type: ignore[no-redef]
+    import ln_address_resolve as _ln_address_resolve  # type: ignore[no-redef]
+    import ln_payee_liquidity_hint as _ln_payee_liquidity_hint  # type: ignore[no-redef]
 
 
 def _simple_pdf(lines: list[str]) -> bytes:
@@ -751,6 +763,80 @@ def dispatch(
         except _ln_invoice_create.LndUnavailable:
             err = {"ok": False, "error": "lnd_unavailable"}
             return 503, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/lightning/ln-preimage-verify":
+        if verb != "POST":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _ln_preimage_verify.handle_request(body)
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _ln_preimage_verify.BadInput:
+            err = {"ok": False, "error": "bad_input"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/lightning/ln-pay-check":
+        if verb != "POST":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _ln_pay_check.handle_request(body)
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _ln_pay_check.BadInput:
+            err = {"ok": False, "error": "bad_input"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _ln_pay_check.LndUnavailable:
+            err = {"ok": False, "error": "lnd_unavailable"}
+            return 503, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/lightning/ln-node-card":
+        if verb != "POST":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _ln_node_card.handle_request(body)
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _ln_node_card.BadPubkey:
+            err = {"ok": False, "error": "bad_pubkey"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _ln_node_card.BadInput:
+            err = {"ok": False, "error": "bad_input"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _ln_node_card.NodeNotFound:
+            err = {"ok": False, "error": "node_not_found"}
+            return 404, "application/json", json.dumps(err).encode("utf-8")
+        except _ln_node_card.LndUnavailable:
+            err = {"ok": False, "error": "lnd_unavailable"}
+            return 503, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/lightning/ln-address-resolve":
+        if verb != "POST":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _ln_address_resolve.handle_request(body)
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _ln_address_resolve.BadInput:
+            err = {"ok": False, "error": "bad_input"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/lightning/ln-payee-liquidity-hint":
+        if verb != "POST":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _ln_payee_liquidity_hint.handle_request(body)
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _ln_payee_liquidity_hint.BadPubkey:
+            err = {"ok": False, "error": "bad_pubkey"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _ln_payee_liquidity_hint.BadAmount:
+            err = {"ok": False, "error": "bad_amount"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _ln_payee_liquidity_hint.BadInput:
+            err = {"ok": False, "error": "bad_input"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _ln_payee_liquidity_hint.NodeNotFound:
+            err = {"ok": False, "error": "node_not_found"}
+            return 404, "application/json", json.dumps(err).encode("utf-8")
+        except _ln_payee_liquidity_hint.LndUnavailable:
+            err = {"ok": False, "error": "lnd_unavailable"}
+            return 503, "application/json", json.dumps(err).encode("utf-8")
     if route == "/paid/nostr/event-verify":
         if verb != "POST":
             err = {"ok": False, "error": "method_not_allowed"}
@@ -787,6 +873,19 @@ def dispatch(
         except _nostr_node_link.LndUnavailable:
             err = {"ok": False, "error": "lnd_unavailable"}
             return 503, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/nostr/nip05-verify":
+        if verb != "POST":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _nip05_verify.handle_request(body)
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _nip05_verify.BadNpub:
+            err = {"ok": False, "error": "bad_npub"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _nip05_verify.BadInput:
+            err = {"ok": False, "error": "bad_input"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
     if route == "/paid/report.pdf":
         return 200, "application/pdf", demo_pdf_bytes(network)
     if route == "/paid/script.pdf":

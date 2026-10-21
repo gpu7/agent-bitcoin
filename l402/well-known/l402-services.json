@@ -232,6 +232,13 @@
       "description": "Public Nostr npub and whether it matches this node's Lightning id. No nsec. Lightning L402."
     },
     {
+      "url": "https://agent-bitcoin.net/paid/nostr/nip05-verify",
+      "name": "agent-bitcoin: nip05-verify",
+      "method": "POST",
+      "price_sats": 100,
+      "description": "Check a NIP-05 name against an npub. No nsec. Lightning L402."
+    },
+    {
       "url": "https://agent-bitcoin.net/paid/lightning/ln-channel-policy",
       "name": "agent-bitcoin: ln-channel-policy",
       "method": "POST",
@@ -244,6 +251,41 @@
       "method": "POST",
       "price_sats": 100,
       "description": "Create one Lightning invoice on the operator LND. Does not pay. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/lightning/ln-preimage-verify",
+      "name": "agent-bitcoin: ln-preimage-verify",
+      "method": "POST",
+      "price_sats": 100,
+      "description": "SHA-256 check that a preimage matches a payment hash. No LND. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/lightning/ln-pay-check",
+      "name": "agent-bitcoin: ln-pay-check",
+      "method": "POST",
+      "price_sats": 100,
+      "description": "Decide whether one invoice or destination is payable. Does not pay. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/lightning/ln-node-card",
+      "name": "agent-bitcoin: ln-node-card",
+      "method": "POST",
+      "price_sats": 100,
+      "description": "Public graph card for one Lightning node. Read-only. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/lightning/ln-address-resolve",
+      "name": "agent-bitcoin: ln-address-resolve",
+      "method": "POST",
+      "price_sats": 100,
+      "description": "Read a Lightning address pay range. Does not request an invoice. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/lightning/ln-payee-liquidity-hint",
+      "name": "agent-bitcoin: ln-payee-liquidity-hint",
+      "method": "POST",
+      "price_sats": 100,
+      "description": "Public graph capacity hint for one payee. Not channel balances. Lightning L402."
     }
   ]
 }
