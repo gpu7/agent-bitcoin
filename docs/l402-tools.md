@@ -47,7 +47,7 @@ The existing Caddy reverse proxy forwards the path to Aperture, which leaves it 
 
 1. Call `https://agent-bitcoin.net` (this lab).
 2. Call with `L402Client(..., expected_price_sats=100)` or `l402_pay.py --price 100`. The SDK default expected price is **100**.
-3. **GET** for Bitcoin-suite query tools, the bitcoind fee estimate, chain status, network info, mempool info, peer info, difficulty, the block tip, the block header, the transaction summary, the uptime, the deployment info, the mining summary, the mempool fees, the chain tips, the channel summary, and node info. **POST** JSON for the address check, the address balance, the challenge inspect, Lightning invoices, invoice inspect, channel liquidity, peer status, the path estimate, payment status, channel policy, invoice create, the Nostr node link, and Nostr tools (GET → **405**).
+3. **GET** for Bitcoin-suite query tools, the bitcoind fee estimate, chain status, network info, mempool info, peer info, difficulty, the block tip, the block header, the transaction summary, the uptime, the deployment info, the mining summary, the mempool fees, the chain tips, the channel summary, and node info. **POST** JSON for the address check, the address balance, the challenge inspect, Lightning invoices, invoice inspect, channel liquidity, peer status, the path estimate, payment status, channel policy, invoice create, preimage verify, the pay check, the node card, Lightning address resolve, the payee liquidity hint, the Nostr node link, NIP-05 verify, and Nostr tools (GET → **405**).
 4. Do **not** put BOLT11 in query strings. POST it in JSON (`--json`).
 5. Read `ttl_s` and cache. Do not poll every second. Local inspect tools (`ttl_s` 0) are still not a hot loop.
 6. Wiring, SG, and restart: [l402-aperture.md](./l402-aperture.md). Mainnet pays still need the usual latches on the payer.
@@ -398,6 +398,61 @@ uv run python examples/l402_pay.py \
   --json '{"amount_sats":1000,"description":"agent invoice"}'
 ```
 
+### POST `/paid/lightning/ln-preimage-verify`
+
+Job: SHA-256 the preimage and compare it to `payment_hash`. Body `{"payment_hash":"<64 hex>","preimage":"<64 hex>"}`. Returns `valid`. No LND. The preimage is not echoed. **100 sats**. 402index category: `lightning`.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/lightning/ln-preimage-verify \
+  --price 100 --method POST \
+  --json '{"payment_hash":"<64 hex>","preimage":"<64 hex>"}'
+```
+
+### POST `/paid/lightning/ln-pay-check`
+
+Job: decide whether one invoice or destination is payable. Body `{"bolt11":"lnbc..."}` or `{"dest_pubkey":"<66 hex>","amount_sats":1000}`, with optional `max_fee_sats`. Uses DecodePayReq and QueryRoutes only. Returns `allow`, `reasons`, `fee_sats`, and `hop_count`. Does **not** pay. No route is `allow` false. **100 sats**. 402index category: `lightning`. A down node returns HTTP 503.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/lightning/ln-pay-check \
+  --price 100 --method POST \
+  --json '{"bolt11":"lnbc...","max_fee_sats":10}'
+```
+
+### POST `/paid/lightning/ln-node-card`
+
+Job: one LND `GetNodeInfo` for a public node. Body `{"pubkey":"<66 hex>"}`. Returns `alias`, `num_channels`, `total_capacity_sats`, `last_update`, and up to four shortened addresses. Read-only. The full pubkey is not returned. **100 sats**. 402index category: `lightning`. This route needs `GetNodeInfo` on the origin macaroon. That permission is a separate operator step. Until an operator approves it and rebakes, this route returns HTTP 503.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/lightning/ln-node-card \
+  --price 100 --method POST \
+  --json '{"pubkey":"<66 hex>"}'
+```
+
+### POST `/paid/lightning/ln-address-resolve`
+
+Job: one guarded HTTPS GET of a Lightning address pay document (`user@domain`). Returns `min_sats`, `max_sats`, `description`, and `callback_domain`. Does **not** request an invoice and does **not** call the callback. **100 sats**. 402index category: `lightning`.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/lightning/ln-address-resolve \
+  --price 100 --method POST \
+  --json '{"address":"user@domain"}'
+```
+
+### POST `/paid/lightning/ln-payee-liquidity-hint`
+
+Job: one LND `GetNodeInfo` with public channels. Body `{"pubkey":"<66 hex>","amount_sats":1000}`. Returns `hint`, `total_capacity_sats`, `capacity_covers_amount`, and a fee range from the payee's public policies when those policies exist. The note is `Public graph capacity. Not channel balances.` This is **not** a channel balance. **100 sats**. 402index category: `lightning`. This route needs `GetNodeInfo` on the origin macaroon. That permission is a separate operator step. Until an operator approves it and rebakes, this route returns HTTP 503.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/lightning/ln-payee-liquidity-hint \
+  --price 100 --method POST \
+  --json '{"pubkey":"<66 hex>","amount_sats":1000}'
+```
+
 ## Nostr suite
 
 **Function:** **local** identity checks. These do **not** talk to a relay (no 503 from relays). They are not Damus and not **NWC (Nostr Wallet Connect)**. NWC is a way for an agent to talk to a Lightning wallet over Nostr using a URI, instead of holding an LND admin macaroon.
@@ -435,6 +490,17 @@ uv run python examples/l402_pay.py \
   --url https://agent-bitcoin.net/paid/nostr/nostr-node-link \
   --price 100 --method POST \
   --json '{"npub":"npub1..."}'
+```
+
+### POST `/paid/nostr/nip05-verify`
+
+Job: one guarded HTTPS GET of `https://domain/.well-known/nostr.json?name=<name>`. Body `{"nip05":"name@domain","npub":"npub1..."}`. Returns `valid` and `reason`. An `nsec` is rejected. The fetched pubkey and the raw body are not returned. **100 sats**. 402index category: `nostr`.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/nostr/nip05-verify \
+  --price 100 --method POST \
+  --json '{"nip05":"name@domain","npub":"npub1..."}'
 ```
 
 ## Security

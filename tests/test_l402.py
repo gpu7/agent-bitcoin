@@ -77,6 +77,12 @@ def test_paid_urls_default_to_100() -> None:
     node_link = "https://agent-bitcoin.net/paid/nostr/nostr-node-link"
     channel_policy = "https://agent-bitcoin.net/paid/lightning/ln-channel-policy"
     invoice_create = "https://agent-bitcoin.net/paid/lightning/ln-invoice-create"
+    preimage_verify = "https://agent-bitcoin.net/paid/lightning/ln-preimage-verify"
+    pay_check = "https://agent-bitcoin.net/paid/lightning/ln-pay-check"
+    node_card = "https://agent-bitcoin.net/paid/lightning/ln-node-card"
+    address_resolve = "https://agent-bitcoin.net/paid/lightning/ln-address-resolve"
+    liquidity_hint = "https://agent-bitcoin.net/paid/lightning/ln-payee-liquidity-hint"
+    nip05_verify = "https://agent-bitcoin.net/paid/nostr/nip05-verify"
     assert expected_price_sats_for_url(finance) == 100
     assert expected_price_sats_for_url(nostr) == 100
     assert expected_price_sats_for_url(security) == 100
@@ -105,6 +111,12 @@ def test_paid_urls_default_to_100() -> None:
     assert expected_price_sats_for_url(node_link) == 100
     assert expected_price_sats_for_url(channel_policy) == 100
     assert expected_price_sats_for_url(invoice_create) == 100
+    assert expected_price_sats_for_url(preimage_verify) == 100
+    assert expected_price_sats_for_url(pay_check) == 100
+    assert expected_price_sats_for_url(node_card) == 100
+    assert expected_price_sats_for_url(address_resolve) == 100
+    assert expected_price_sats_for_url(liquidity_hint) == 100
+    assert expected_price_sats_for_url(nip05_verify) == 100
     assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/hello") == 100
     assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/report.pdf") == 100
     assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/script.pdf") == 100
@@ -543,6 +555,15 @@ def test_well_known_l402_services_is_public_json() -> None:
             ),
         },
         {
+            "url": "https://agent-bitcoin.net/paid/nostr/nip05-verify",
+            "name": "agent-bitcoin: nip05-verify",
+            "method": "POST",
+            "price_sats": 100,
+            "description": (
+                "Check a NIP-05 name against an npub. No nsec. Lightning L402."
+            ),
+        },
+        {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-channel-policy",
             "name": "agent-bitcoin: ln-channel-policy",
             "method": "POST",
@@ -559,6 +580,55 @@ def test_well_known_l402_services_is_public_json() -> None:
             "description": (
                 "Create one Lightning invoice on the operator LND. Does not pay. "
                 "Lightning L402."
+            ),
+        },
+        {
+            "url": "https://agent-bitcoin.net/paid/lightning/ln-preimage-verify",
+            "name": "agent-bitcoin: ln-preimage-verify",
+            "method": "POST",
+            "price_sats": 100,
+            "description": (
+                "SHA-256 check that a preimage matches a payment hash. "
+                "No LND. Lightning L402."
+            ),
+        },
+        {
+            "url": "https://agent-bitcoin.net/paid/lightning/ln-pay-check",
+            "name": "agent-bitcoin: ln-pay-check",
+            "method": "POST",
+            "price_sats": 100,
+            "description": (
+                "Decide whether one invoice or destination is payable. "
+                "Does not pay. Lightning L402."
+            ),
+        },
+        {
+            "url": "https://agent-bitcoin.net/paid/lightning/ln-node-card",
+            "name": "agent-bitcoin: ln-node-card",
+            "method": "POST",
+            "price_sats": 100,
+            "description": (
+                "Public graph card for one Lightning node. Read-only. Lightning L402."
+            ),
+        },
+        {
+            "url": "https://agent-bitcoin.net/paid/lightning/ln-address-resolve",
+            "name": "agent-bitcoin: ln-address-resolve",
+            "method": "POST",
+            "price_sats": 100,
+            "description": (
+                "Read a Lightning address pay range. Does not request an invoice. "
+                "Lightning L402."
+            ),
+        },
+        {
+            "url": "https://agent-bitcoin.net/paid/lightning/ln-payee-liquidity-hint",
+            "name": "agent-bitcoin: ln-payee-liquidity-hint",
+            "method": "POST",
+            "price_sats": 100,
+            "description": (
+                "Public graph capacity hint for one payee. "
+                "Not channel balances. Lightning L402."
             ),
         },
     ]
@@ -592,7 +662,13 @@ def test_well_known_l402_services_is_public_json() -> None:
         "/paid/lightning/ln-payment-status",
         "/paid/lightning/ln-channel-policy",
         "/paid/lightning/ln-invoice-create",
+        "/paid/lightning/ln-preimage-verify",
+        "/paid/lightning/ln-pay-check",
+        "/paid/lightning/ln-node-card",
+        "/paid/lightning/ln-address-resolve",
+        "/paid/lightning/ln-payee-liquidity-hint",
         "/paid/nostr/nostr-node-link",
+        "/paid/nostr/nip05-verify",
     )
     for name in (
         "aperture.regtest.yaml",

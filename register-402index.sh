@@ -272,6 +272,41 @@ register \
   "lightning" \
   "Create one Lightning invoice on the operator LND. Does not pay. Lightning L402."
 
+register \
+  "https://agent-bitcoin.net/paid/lightning/ln-preimage-verify" \
+  "agent-bitcoin: ln-preimage-verify" \
+  "POST" \
+  "lightning" \
+  "SHA-256 check that a preimage matches a payment hash. No LND. Lightning L402."
+
+register \
+  "https://agent-bitcoin.net/paid/lightning/ln-pay-check" \
+  "agent-bitcoin: ln-pay-check" \
+  "POST" \
+  "lightning" \
+  "Decide whether one invoice or destination is payable. Does not pay. Lightning L402."
+
+register \
+  "https://agent-bitcoin.net/paid/lightning/ln-node-card" \
+  "agent-bitcoin: ln-node-card" \
+  "POST" \
+  "lightning" \
+  "Public graph card for one Lightning node. Read-only. Lightning L402."
+
+register \
+  "https://agent-bitcoin.net/paid/lightning/ln-address-resolve" \
+  "agent-bitcoin: ln-address-resolve" \
+  "POST" \
+  "lightning" \
+  "Read a Lightning address pay range. Does not request an invoice. Lightning L402."
+
+register \
+  "https://agent-bitcoin.net/paid/lightning/ln-payee-liquidity-hint" \
+  "agent-bitcoin: ln-payee-liquidity-hint" \
+  "POST" \
+  "lightning" \
+  "Public graph capacity hint for one payee. Not channel balances. Lightning L402."
+
 # Address check (POST). Local only. No LND.
 register \
   "https://agent-bitcoin.net/paid/finance/btc-address-validate" \
@@ -309,6 +344,13 @@ register \
   "POST" \
   "nostr" \
   "Public Nostr npub and whether it matches this node's Lightning id. No nsec. Lightning L402."
+
+register \
+  "https://agent-bitcoin.net/paid/nostr/nip05-verify" \
+  "agent-bitcoin: nip05-verify" \
+  "POST" \
+  "nostr" \
+  "Check a NIP-05 name against an npub. No nsec. Lightning L402."
 
 if [[ -n "$ONLY" && "$matched" -eq 0 ]]; then
   echo "Unknown service: $ONLY" >&2
