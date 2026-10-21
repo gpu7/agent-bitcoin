@@ -132,6 +132,13 @@
       "method": "GET",
       "price_sats": 100,
       "description": "Bitcoin Core tip height, block hash, and median time from the operator bitcoind. Read-only. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/bitcoin/btc-block-header",
+      "name": "agent-bitcoin: btc-block-header",
+      "method": "GET",
+      "price_sats": 100,
+      "description": "Bitcoin Core block header for one height from the operator bitcoind. Read-only. Lightning L402."
     }
   ]
 }
