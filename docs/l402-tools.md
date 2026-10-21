@@ -47,7 +47,7 @@ The existing Caddy reverse proxy forwards the path to Aperture, which leaves it 
 
 1. Call `https://agent-bitcoin.net` (this lab).
 2. Call with `L402Client(..., expected_price_sats=100)` or `l402_pay.py --price 100`. The SDK default expected price is **100**.
-3. **GET** for Bitcoin-suite query tools, the bitcoind fee estimate, chain status, network info, mempool info, peer info, difficulty, the block tip, the block header, the channel summary, and node info. **POST** JSON for the address check, the challenge inspect, Lightning invoices, and Nostr tools (GET → **405**).
+3. **GET** for Bitcoin-suite query tools, the bitcoind fee estimate, chain status, network info, mempool info, peer info, difficulty, the block tip, the block header, the transaction summary, the channel summary, and node info. **POST** JSON for the address check, the challenge inspect, Lightning invoices, and Nostr tools (GET → **405**).
 4. Do **not** put BOLT11 in query strings. POST it in JSON (`--json`).
 5. Read `ttl_s` and cache. Do not poll every second. Local inspect tools (`ttl_s` 0) are still not a hot loop.
 6. Wiring, SG, and restart: [l402-aperture.md](./l402-aperture.md). Mainnet pays still need the usual latches on the payer.
@@ -178,6 +178,16 @@ Job: read-only `getblockhash` then `getblockheader` from the operator bitcoind. 
 ```bash
 uv run python examples/l402_pay.py \
   --url "https://agent-bitcoin.net/paid/bitcoin/btc-block-header?height=920000" \
+  --price 100
+```
+
+### GET `/paid/bitcoin/btc-tx-summary?txid=<64 hex>`
+
+Job: read-only `getrawtransaction` (verbose) from the operator bitcoind, then `getmempoolentry` only when the transaction is unconfirmed. Returns `txid`, `confirmations` (0 when unconfirmed), `vsize`, `input_count`, `output_count`, and `fee_btc` (Core's BTC fee) when the mempool entry has one. Scripts and addresses are not returned. An invalid txid is HTTP 400. An unknown txid is HTTP 404. The pruned mainnet node has no txindex, so an old confirmed transaction is HTTP 404. Does **not** use the wallet and does **not** send. A down node is HTTP 503. **100 sats**. 402index category: `bitcoin`.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url "https://agent-bitcoin.net/paid/bitcoin/btc-tx-summary?txid=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
   --price 100
 ```
 
