@@ -1,3 +1,9 @@
+## Changed — btc-deployment-info (2026-10-21)
+
+Add GET /paid/bitcoin/btc-deployment-info at 100 sats.
+
+---
+
 ## Changed — btc-uptime (2026-10-21)
 
 Add GET /paid/bitcoin/btc-uptime at 100 sats.
