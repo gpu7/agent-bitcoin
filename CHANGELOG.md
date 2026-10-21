@@ -1,3 +1,9 @@
+## Changed — agent payment helpers (2026-10-21)
+
+Add eight L402 payment-helper routes at 100 sats.
+
+---
+
 ## Changed — btc-mining-info, btc-mempool-fees, btc-chain-tips (2026-10-21)
 
 Add GET /paid/bitcoin/btc-mining-info, /paid/bitcoin/btc-mempool-fees, and /paid/bitcoin/btc-chain-tips at 100 sats.

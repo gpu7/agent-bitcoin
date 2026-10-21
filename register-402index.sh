@@ -223,6 +223,55 @@ register \
   "lightning" \
   "Read-only LND GetInfo summary: alias, public node id, active channels, peers, height, sync, and version. Lightning L402."
 
+register \
+  "https://agent-bitcoin.net/paid/lightning/ln-invoice-inspect" \
+  "agent-bitcoin: ln-invoice-inspect" \
+  "POST" \
+  "lightning" \
+  "LND decode of one BOLT11 invoice. Read-only. Lightning L402."
+
+register \
+  "https://agent-bitcoin.net/paid/lightning/ln-channel-liquidity" \
+  "agent-bitcoin: ln-channel-liquidity" \
+  "POST" \
+  "lightning" \
+  "LND channel balances for the operator node. Read-only. Lightning L402."
+
+register \
+  "https://agent-bitcoin.net/paid/lightning/ln-peer-status" \
+  "agent-bitcoin: ln-peer-status" \
+  "POST" \
+  "lightning" \
+  "LND peer connection status for the operator node. Read-only. Lightning L402."
+
+register \
+  "https://agent-bitcoin.net/paid/lightning/ln-path-estimate" \
+  "agent-bitcoin: ln-path-estimate" \
+  "POST" \
+  "lightning" \
+  "LND route estimate for one destination. Does not pay. Lightning L402."
+
+register \
+  "https://agent-bitcoin.net/paid/lightning/ln-payment-status" \
+  "agent-bitcoin: ln-payment-status" \
+  "POST" \
+  "lightning" \
+  "Status of one invoice created by the operator LND. Read-only. Lightning L402."
+
+register \
+  "https://agent-bitcoin.net/paid/lightning/ln-channel-policy" \
+  "agent-bitcoin: ln-channel-policy" \
+  "POST" \
+  "lightning" \
+  "LND local channel policy from listchannels. Read-only. Lightning L402."
+
+register \
+  "https://agent-bitcoin.net/paid/lightning/ln-invoice-create" \
+  "agent-bitcoin: ln-invoice-create" \
+  "POST" \
+  "lightning" \
+  "Create one Lightning invoice on the operator LND. Does not pay. Lightning L402."
+
 # Address check (POST). Local only. No LND.
 register \
   "https://agent-bitcoin.net/paid/finance/btc-address-validate" \
@@ -253,6 +302,13 @@ register \
   "POST" \
   "nostr" \
   "Decode a Nostr npub, note, nprofile, or nevent to hex. Rejects nsec. Lightning L402."
+
+register \
+  "https://agent-bitcoin.net/paid/nostr/nostr-node-link" \
+  "agent-bitcoin: nostr-node-link" \
+  "POST" \
+  "nostr" \
+  "Public Nostr npub and whether it matches this node's Lightning id. No nsec. Lightning L402."
 
 if [[ -n "$ONLY" && "$matched" -eq 0 ]]; then
   echo "Unknown service: $ONLY" >&2

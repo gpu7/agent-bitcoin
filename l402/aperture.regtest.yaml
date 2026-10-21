@@ -98,6 +98,13 @@ services:
     protocol: "http"
     price: 100
     timeout: 3600
+  - name: "nostr-node-link"
+    hostregexp: ".*"
+    pathregexp: "^/paid/nostr/nostr-node-link$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
   - name: "btc-address-validate"
     hostregexp: ".*"
     pathregexp: "^/paid/finance/btc-address-validate$"
@@ -122,6 +129,55 @@ services:
   - name: "ln-node-info"
     hostregexp: ".*"
     pathregexp: "^/paid/lightning/ln-node-info$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
+  - name: "ln-invoice-inspect"
+    hostregexp: ".*"
+    pathregexp: "^/paid/lightning/ln-invoice-inspect$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
+  - name: "ln-channel-liquidity"
+    hostregexp: ".*"
+    pathregexp: "^/paid/lightning/ln-channel-liquidity$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
+  - name: "ln-peer-status"
+    hostregexp: ".*"
+    pathregexp: "^/paid/lightning/ln-peer-status$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
+  - name: "ln-path-estimate"
+    hostregexp: ".*"
+    pathregexp: "^/paid/lightning/ln-path-estimate$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
+  - name: "ln-payment-status"
+    hostregexp: ".*"
+    pathregexp: "^/paid/lightning/ln-payment-status$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
+  - name: "ln-channel-policy"
+    hostregexp: ".*"
+    pathregexp: "^/paid/lightning/ln-channel-policy$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
+  - name: "ln-invoice-create"
+    hostregexp: ".*"
+    pathregexp: "^/paid/lightning/ln-invoice-create$"
     address: "agent-l402-origin:8090"
     protocol: "http"
     price: 100
