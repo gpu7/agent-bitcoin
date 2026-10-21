@@ -124,6 +124,13 @@ register \
   "bitcoin" \
   "Bitcoin Core difficulty, chainwork, and blocks until the next retarget from the operator bitcoind. Read-only. Lightning L402."
 
+register \
+  "https://agent-bitcoin.net/paid/bitcoin/btc-block-tip" \
+  "agent-bitcoin: btc-block-tip" \
+  "GET" \
+  "bitcoin" \
+  "Bitcoin Core tip height, block hash, and median time from the operator bitcoind. Read-only. Lightning L402."
+
 # Lightning suite (POST)
 register \
   "https://agent-bitcoin.net/paid/finance/ln-invoice-decode" \
