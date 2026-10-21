@@ -138,6 +138,13 @@ register \
   "bitcoin" \
   "Bitcoin Core block header for one height from the operator bitcoind. Read-only. Lightning L402."
 
+register \
+  "https://agent-bitcoin.net/paid/bitcoin/btc-tx-summary" \
+  "agent-bitcoin: btc-tx-summary" \
+  "GET" \
+  "bitcoin" \
+  "Bitcoin Core transaction size, confirmations, and mempool fee for one txid from the operator bitcoind. Read-only. Lightning L402."
+
 # Lightning suite (POST)
 register \
   "https://agent-bitcoin.net/paid/finance/ln-invoice-decode" \

@@ -1,3 +1,9 @@
+## Changed — btc-tx-summary (2026-10-21)
+
+Add GET /paid/bitcoin/btc-tx-summary at 100 sats.
+
+---
+
 ## Changed — btc-block-header (2026-10-21)
 
 Add GET /paid/bitcoin/btc-block-header at 100 sats.
