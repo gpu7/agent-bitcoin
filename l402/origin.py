@@ -42,6 +42,9 @@ try:
     from l402 import btc_address_balance as _btc_address_balance
     from l402 import btc_uptime as _btc_uptime
     from l402 import btc_deployment_info as _btc_deployment_info
+    from l402 import btc_mining_info as _btc_mining_info
+    from l402 import btc_mempool_fees as _btc_mempool_fees
+    from l402 import btc_chain_tips as _btc_chain_tips
 except ImportError:  # Docker WORKDIR /app
     import mempool_feerate as _mempool_feerate  # type: ignore[no-redef]
     import mempool_backlog as _mempool_backlog  # type: ignore[no-redef]
@@ -69,6 +72,9 @@ except ImportError:  # Docker WORKDIR /app
     import btc_address_balance as _btc_address_balance  # type: ignore[no-redef]
     import btc_uptime as _btc_uptime  # type: ignore[no-redef]
     import btc_deployment_info as _btc_deployment_info  # type: ignore[no-redef]
+    import btc_mining_info as _btc_mining_info  # type: ignore[no-redef]
+    import btc_mempool_fees as _btc_mempool_fees  # type: ignore[no-redef]
+    import btc_chain_tips as _btc_chain_tips  # type: ignore[no-redef]
 
 
 def _simple_pdf(lines: list[str]) -> bytes:
@@ -559,6 +565,36 @@ def dispatch(
             payload = _btc_deployment_info.handle_request()
             return 200, "application/json", json.dumps(payload).encode("utf-8")
         except _btc_deployment_info.BitcoindUnavailable:
+            err = {"ok": False, "error": "bitcoind_unavailable"}
+            return 503, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/bitcoin/btc-mining-info":
+        if verb != "GET":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _btc_mining_info.handle_request()
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _btc_mining_info.BitcoindUnavailable:
+            err = {"ok": False, "error": "bitcoind_unavailable"}
+            return 503, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/bitcoin/btc-mempool-fees":
+        if verb != "GET":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _btc_mempool_fees.handle_request()
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _btc_mempool_fees.BitcoindUnavailable:
+            err = {"ok": False, "error": "bitcoind_unavailable"}
+            return 503, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/bitcoin/btc-chain-tips":
+        if verb != "GET":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _btc_chain_tips.handle_request()
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _btc_chain_tips.BitcoindUnavailable:
             err = {"ok": False, "error": "bitcoind_unavailable"}
             return 503, "application/json", json.dumps(err).encode("utf-8")
     if route == "/paid/lightning/ln-channel-stats":

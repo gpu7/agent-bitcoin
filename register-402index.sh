@@ -166,6 +166,27 @@ register \
   "bitcoin" \
   "Bitcoin Core active soft-fork status from the operator bitcoind. Read-only. Lightning L402."
 
+register \
+  "https://agent-bitcoin.net/paid/bitcoin/btc-mining-info" \
+  "agent-bitcoin: btc-mining-info" \
+  "GET" \
+  "bitcoin" \
+  "Bitcoin Core mining summary from the operator bitcoind. Read-only. Lightning L402."
+
+register \
+  "https://agent-bitcoin.net/paid/bitcoin/btc-mempool-fees" \
+  "agent-bitcoin: btc-mempool-fees" \
+  "GET" \
+  "bitcoin" \
+  "Bitcoin Core mempool minimum fee and fee bands from the operator bitcoind. Read-only. Lightning L402."
+
+register \
+  "https://agent-bitcoin.net/paid/bitcoin/btc-chain-tips" \
+  "agent-bitcoin: btc-chain-tips" \
+  "GET" \
+  "bitcoin" \
+  "Bitcoin Core chain tips from the operator bitcoind. Read-only. Lightning L402."
+
 # Lightning suite (POST)
 register \
   "https://agent-bitcoin.net/paid/finance/ln-invoice-decode" \
