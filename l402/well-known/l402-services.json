@@ -153,6 +153,13 @@
       "method": "POST",
       "price_sats": 100,
       "description": "Bitcoin Core confirmed UTXO balance for one address from the operator bitcoind. Read-only. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/bitcoin/btc-uptime",
+      "name": "agent-bitcoin: btc-uptime",
+      "method": "GET",
+      "price_sats": 100,
+      "description": "Bitcoin Core uptime and version from the operator bitcoind. Read-only. Lightning L402."
     }
   ]
 }
