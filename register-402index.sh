@@ -131,6 +131,13 @@ register \
   "bitcoin" \
   "Bitcoin Core tip height, block hash, and median time from the operator bitcoind. Read-only. Lightning L402."
 
+register \
+  "https://agent-bitcoin.net/paid/bitcoin/btc-block-header" \
+  "agent-bitcoin: btc-block-header" \
+  "GET" \
+  "bitcoin" \
+  "Bitcoin Core block header for one height from the operator bitcoind. Read-only. Lightning L402."
+
 # Lightning suite (POST)
 register \
   "https://agent-bitcoin.net/paid/finance/ln-invoice-decode" \

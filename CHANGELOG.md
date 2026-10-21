@@ -1,3 +1,9 @@
+## Changed — btc-block-header (2026-10-21)
+
+Add GET /paid/bitcoin/btc-block-header at 100 sats.
+
+---
+
 ## Changed — btc-block-tip (2026-10-21)
 
 Add GET /paid/bitcoin/btc-block-tip at 100 sats.

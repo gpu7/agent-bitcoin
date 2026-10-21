@@ -37,6 +37,7 @@ try:
     from l402 import btc_peer_info as _btc_peer_info
     from l402 import btc_difficulty as _btc_difficulty
     from l402 import btc_block_tip as _btc_block_tip
+    from l402 import btc_block_header as _btc_block_header
 except ImportError:  # Docker WORKDIR /app
     import mempool_feerate as _mempool_feerate  # type: ignore[no-redef]
     import mempool_backlog as _mempool_backlog  # type: ignore[no-redef]
@@ -59,6 +60,7 @@ except ImportError:  # Docker WORKDIR /app
     import btc_peer_info as _btc_peer_info  # type: ignore[no-redef]
     import btc_difficulty as _btc_difficulty  # type: ignore[no-redef]
     import btc_block_tip as _btc_block_tip  # type: ignore[no-redef]
+    import btc_block_header as _btc_block_header  # type: ignore[no-redef]
 
 
 def _simple_pdf(lines: list[str]) -> bytes:
@@ -461,6 +463,28 @@ def dispatch(
             payload = _btc_block_tip.handle_request()
             return 200, "application/json", json.dumps(payload).encode("utf-8")
         except _btc_block_tip.BitcoindUnavailable:
+            err = {"ok": False, "error": "bitcoind_unavailable"}
+            return 503, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/bitcoin/btc-block-header":
+        if verb != "GET":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        query = path.partition("?")[2]
+        try:
+            height = _btc_block_header.parse_height(query)
+        except _btc_block_header.MissingHeight:
+            err = {"ok": False, "error": "missing_height"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _btc_block_header.BadHeight:
+            err = {"ok": False, "error": "bad_height"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _btc_block_header.handle_request(height)
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _btc_block_header.BlockNotFound:
+            err = {"ok": False, "error": "block_not_found"}
+            return 404, "application/json", json.dumps(err).encode("utf-8")
+        except _btc_block_header.BitcoindUnavailable:
             err = {"ok": False, "error": "bitcoind_unavailable"}
             return 503, "application/json", json.dumps(err).encode("utf-8")
     if route == "/paid/lightning/ln-channel-stats":
