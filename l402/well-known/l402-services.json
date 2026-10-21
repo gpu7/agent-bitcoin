@@ -239,6 +239,13 @@
       "description": "Check a NIP-05 name against an npub. No nsec. Lightning L402."
     },
     {
+      "url": "https://agent-bitcoin.net/paid/nostr/nostr-profile-summary",
+      "name": "agent-bitcoin: nostr-profile-summary",
+      "method": "POST",
+      "price_sats": 100,
+      "description": "Short public Nostr profile summary. No nsec and no nip05 check. Lightning L402."
+    },
+    {
       "url": "https://agent-bitcoin.net/paid/lightning/ln-channel-policy",
       "name": "agent-bitcoin: ln-channel-policy",
       "method": "POST",
@@ -286,6 +293,27 @@
       "method": "POST",
       "price_sats": 100,
       "description": "Public graph capacity hint for one payee. Not channel balances. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/lightning/ln-route-options",
+      "name": "agent-bitcoin: ln-route-options",
+      "method": "POST",
+      "price_sats": 100,
+      "description": "LND route options for one destination. Does not pay. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/lightning/ln-invoice-amount-check",
+      "name": "agent-bitcoin: ln-invoice-amount-check",
+      "method": "POST",
+      "price_sats": 100,
+      "description": "LND check of whether an invoice amount is open or fixed. Read-only. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/lightning/ln-channel-reserve-check",
+      "name": "agent-bitcoin: ln-channel-reserve-check",
+      "method": "POST",
+      "price_sats": 100,
+      "description": "LND channel reserve check for one peer. Read-only. Lightning L402."
     }
   ]
 }

@@ -47,7 +47,7 @@ The existing Caddy reverse proxy forwards the path to Aperture, which leaves it 
 
 1. Call `https://agent-bitcoin.net` (this lab).
 2. Call with `L402Client(..., expected_price_sats=100)` or `l402_pay.py --price 100`. The SDK default expected price is **100**.
-3. **GET** for Bitcoin-suite query tools, the bitcoind fee estimate, chain status, network info, mempool info, peer info, difficulty, the block tip, the block header, the transaction summary, the uptime, the deployment info, the mining summary, the mempool fees, the chain tips, the channel summary, and node info. **POST** JSON for the address check, the address balance, the challenge inspect, Lightning invoices, invoice inspect, channel liquidity, peer status, the path estimate, payment status, channel policy, invoice create, preimage verify, the pay check, the node card, Lightning address resolve, the payee liquidity hint, the Nostr node link, NIP-05 verify, and Nostr tools (GET → **405**).
+3. **GET** for Bitcoin-suite query tools, the bitcoind fee estimate, chain status, network info, mempool info, peer info, difficulty, the block tip, the block header, the transaction summary, the uptime, the deployment info, the mining summary, the mempool fees, the chain tips, the channel summary, and node info. **POST** JSON for the address check, the address balance, the challenge inspect, Lightning invoices, invoice inspect, channel liquidity, peer status, the path estimate, payment status, channel policy, invoice create, preimage verify, the pay check, the node card, Lightning address resolve, the payee liquidity hint, route options, the invoice amount check, the channel reserve check, the Nostr node link, NIP-05 verify, the Nostr profile summary, and Nostr tools (GET → **405**).
 4. Do **not** put BOLT11 in query strings. POST it in JSON (`--json`).
 5. Read `ttl_s` and cache. Do not poll every second. Local inspect tools (`ttl_s` 0) are still not a hot loop.
 6. Wiring, SG, and restart: [l402-aperture.md](./l402-aperture.md). Mainnet pays still need the usual latches on the payer.
@@ -453,6 +453,39 @@ uv run python examples/l402_pay.py \
   --json '{"pubkey":"<66 hex>","amount_sats":1000}'
 ```
 
+### POST `/paid/lightning/ln-route-options`
+
+Job: one LND `QueryRoutes` for a destination. Body `{"dest_pubkey":"<66 hex>","amount_sats":1000}` or `{"bolt11":"lnbc...","amount_sats":1000}`, with optional `max_routes` from 1 through 3 (default 3). Returns up to `max_routes` paths with `total_fees_msat`, `hop_count`, and `success_prob` when LND sends one. Does **not** pay. An empty path list is HTTP 200. **100 sats**. 402index category: `lightning`.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/lightning/ln-route-options \
+  --price 100 --method POST \
+  --json '{"dest_pubkey":"<66 hex>","amount_sats":1000}'
+```
+
+### POST `/paid/lightning/ln-invoice-amount-check`
+
+Job: one LND `DecodePayReq`. Body `{"bolt11":"lnbc..."}` with optional `amount_sats`. Returns `amount_less`, `amount_msat`, `supplied_amount_sats`, `within_bounds`, and `reason`. Read-only. Does **not** pay and does **not** look up a route. **100 sats**. 402index category: `lightning`.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/lightning/ln-invoice-amount-check \
+  --price 100 --method POST \
+  --json '{"bolt11":"lnbc...","amount_sats":1000}'
+```
+
+### POST `/paid/lightning/ln-channel-reserve-check`
+
+Job: one LND `ListChannels` for a peer. Body `{"peer_pubkey":"<66 hex>","amount_sats":1000}`. Returns `sufficient_local`, `sufficient_remote`, `local_balance`, `remote_balance`, `local_reserve`, `remote_reserve`, and `active`. Read-only. Does **not** pay or open a channel. The full pubkey is not returned. **100 sats**. 402index category: `lightning`. Until the macaroon includes `ListChannels`, this route returns HTTP 503.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/lightning/ln-channel-reserve-check \
+  --price 100 --method POST \
+  --json '{"peer_pubkey":"<66 hex>","amount_sats":1000}'
+```
+
 ## Nostr suite
 
 **Function:** **local** identity checks. These do **not** talk to a relay (no 503 from relays). They are not Damus and not **NWC (Nostr Wallet Connect)**. NWC is a way for an agent to talk to a Lightning wallet over Nostr using a URI, instead of holding an LND admin macaroon.
@@ -501,6 +534,17 @@ uv run python examples/l402_pay.py \
   --url https://agent-bitcoin.net/paid/nostr/nip05-verify \
   --price 100 --method POST \
   --json '{"nip05":"name@domain","npub":"npub1..."}'
+```
+
+### POST `/paid/nostr/nostr-profile-summary`
+
+Job: a local summary of a public npub from `alice.pub.json` or `bob.pub.json` (under `NOSTR_POC_DIR`, or `.nostr-poc-mainnet` when that env is unset). Body `{"npub":"npub1..."}`. Returns `npub_short`, `name`, `about`, `nip05`, and `picture`. Missing fields are empty strings. This is a local summary and does **not** contact a relay. It does **not** check nip05 (that stays on `nip05-verify`) and it does **not** accept an nsec. **100 sats**. 402index category: `nostr`.
+
+```bash
+uv run python examples/l402_pay.py \
+  --url https://agent-bitcoin.net/paid/nostr/nostr-profile-summary \
+  --price 100 --method POST \
+  --json '{"npub":"npub1..."}'
 ```
 
 ## Security
