@@ -145,6 +145,13 @@ register \
   "bitcoin" \
   "Bitcoin Core transaction size, confirmations, and mempool fee for one txid from the operator bitcoind. Read-only. Lightning L402."
 
+register \
+  "https://agent-bitcoin.net/paid/bitcoin/btc-address-balance" \
+  "agent-bitcoin: btc-address-balance" \
+  "POST" \
+  "bitcoin" \
+  "Bitcoin Core confirmed UTXO balance for one address from the operator bitcoind. Read-only. Lightning L402."
+
 # Lightning suite (POST)
 register \
   "https://agent-bitcoin.net/paid/finance/ln-invoice-decode" \

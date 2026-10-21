@@ -189,6 +189,13 @@ services:
     protocol: "http"
     price: 100
     timeout: 3600
+  - name: "btc-address-balance"
+    hostregexp: ".*"
+    pathregexp: "^/paid/bitcoin/btc-address-balance$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
   - name: "l402-demo"
     # Hello, PDF, PNG, and any other paid path. /health and the discovery document stay free.
     hostregexp: ".*"
