@@ -113,6 +113,13 @@ services:
     protocol: "http"
     price: 100
     timeout: 3600
+  - name: "nostr-profile-summary"
+    hostregexp: ".*"
+    pathregexp: "^/paid/nostr/nostr-profile-summary$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
   - name: "btc-address-validate"
     hostregexp: ".*"
     pathregexp: "^/paid/finance/btc-address-validate$"
@@ -221,6 +228,27 @@ services:
   - name: "ln-payee-liquidity-hint"
     hostregexp: ".*"
     pathregexp: "^/paid/lightning/ln-payee-liquidity-hint$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
+  - name: "ln-route-options"
+    hostregexp: ".*"
+    pathregexp: "^/paid/lightning/ln-route-options$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
+  - name: "ln-invoice-amount-check"
+    hostregexp: ".*"
+    pathregexp: "^/paid/lightning/ln-invoice-amount-check$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 100
+    timeout: 3600
+  - name: "ln-channel-reserve-check"
+    hostregexp: ".*"
+    pathregexp: "^/paid/lightning/ln-channel-reserve-check$"
     address: "agent-l402-origin:8090"
     protocol: "http"
     price: 100

@@ -307,6 +307,27 @@ register \
   "lightning" \
   "Public graph capacity hint for one payee. Not channel balances. Lightning L402."
 
+register \
+  "https://agent-bitcoin.net/paid/lightning/ln-route-options" \
+  "agent-bitcoin: ln-route-options" \
+  "POST" \
+  "lightning" \
+  "LND route options for one destination. Does not pay. Lightning L402."
+
+register \
+  "https://agent-bitcoin.net/paid/lightning/ln-invoice-amount-check" \
+  "agent-bitcoin: ln-invoice-amount-check" \
+  "POST" \
+  "lightning" \
+  "LND check of whether an invoice amount is open or fixed. Read-only. Lightning L402."
+
+register \
+  "https://agent-bitcoin.net/paid/lightning/ln-channel-reserve-check" \
+  "agent-bitcoin: ln-channel-reserve-check" \
+  "POST" \
+  "lightning" \
+  "LND channel reserve check for one peer. Read-only. Lightning L402."
+
 # Address check (POST). Local only. No LND.
 register \
   "https://agent-bitcoin.net/paid/finance/btc-address-validate" \
@@ -351,6 +372,13 @@ register \
   "POST" \
   "nostr" \
   "Check a NIP-05 name against an npub. No nsec. Lightning L402."
+
+register \
+  "https://agent-bitcoin.net/paid/nostr/nostr-profile-summary" \
+  "agent-bitcoin: nostr-profile-summary" \
+  "POST" \
+  "nostr" \
+  "Short public Nostr profile summary. No nsec and no nip05 check. Lightning L402."
 
 if [[ -n "$ONLY" && "$matched" -eq 0 ]]; then
   echo "Unknown service: $ONLY" >&2

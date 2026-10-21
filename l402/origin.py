@@ -59,6 +59,10 @@ try:
     from l402 import nip05_verify as _nip05_verify
     from l402 import ln_address_resolve as _ln_address_resolve
     from l402 import ln_payee_liquidity_hint as _ln_payee_liquidity_hint
+    from l402 import ln_route_options as _ln_route_options
+    from l402 import ln_invoice_amount_check as _ln_invoice_amount_check
+    from l402 import nostr_profile_summary as _nostr_profile_summary
+    from l402 import ln_channel_reserve_check as _ln_channel_reserve_check
 except ImportError:  # Docker WORKDIR /app
     import mempool_feerate as _mempool_feerate  # type: ignore[no-redef]
     import mempool_backlog as _mempool_backlog  # type: ignore[no-redef]
@@ -103,6 +107,10 @@ except ImportError:  # Docker WORKDIR /app
     import nip05_verify as _nip05_verify  # type: ignore[no-redef]
     import ln_address_resolve as _ln_address_resolve  # type: ignore[no-redef]
     import ln_payee_liquidity_hint as _ln_payee_liquidity_hint  # type: ignore[no-redef]
+    import ln_route_options as _ln_route_options  # type: ignore[no-redef]
+    import ln_invoice_amount_check as _ln_invoice_amount_check  # type: ignore[no-redef]
+    import nostr_profile_summary as _nostr_profile_summary  # type: ignore[no-redef]
+    import ln_channel_reserve_check as _ln_channel_reserve_check  # type: ignore[no-redef]
 
 
 def _simple_pdf(lines: list[str]) -> bytes:
@@ -837,6 +845,60 @@ def dispatch(
         except _ln_payee_liquidity_hint.LndUnavailable:
             err = {"ok": False, "error": "lnd_unavailable"}
             return 503, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/lightning/ln-route-options":
+        if verb != "POST":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _ln_route_options.handle_request(body)
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _ln_route_options.BadInvoice:
+            err = {"ok": False, "error": "bad_invoice"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _ln_route_options.BadInput:
+            err = {"ok": False, "error": "bad_input"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _ln_route_options.LndUnavailable:
+            err = {"ok": False, "error": "lnd_unavailable"}
+            return 503, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/lightning/ln-invoice-amount-check":
+        if verb != "POST":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _ln_invoice_amount_check.handle_request(body)
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _ln_invoice_amount_check.BadInvoice:
+            err = {"ok": False, "error": "bad_invoice"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _ln_invoice_amount_check.BadInput:
+            err = {"ok": False, "error": "bad_input"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _ln_invoice_amount_check.LndUnavailable:
+            err = {"ok": False, "error": "lnd_unavailable"}
+            return 503, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/lightning/ln-channel-reserve-check":
+        if verb != "POST":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _ln_channel_reserve_check.handle_request(body)
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _ln_channel_reserve_check.BadPubkey:
+            err = {"ok": False, "error": "bad_pubkey"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _ln_channel_reserve_check.BadAmount:
+            err = {"ok": False, "error": "bad_amount"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _ln_channel_reserve_check.BadInput:
+            err = {"ok": False, "error": "bad_input"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _ln_channel_reserve_check.ChannelNotFound:
+            err = {"ok": False, "error": "channel_not_found"}
+            return 404, "application/json", json.dumps(err).encode("utf-8")
+        except _ln_channel_reserve_check.LndUnavailable:
+            err = {"ok": False, "error": "lnd_unavailable"}
+            return 503, "application/json", json.dumps(err).encode("utf-8")
     if route == "/paid/nostr/event-verify":
         if verb != "POST":
             err = {"ok": False, "error": "method_not_allowed"}
@@ -884,6 +946,19 @@ def dispatch(
             err = {"ok": False, "error": "bad_npub"}
             return 400, "application/json", json.dumps(err).encode("utf-8")
         except _nip05_verify.BadInput:
+            err = {"ok": False, "error": "bad_input"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+    if route == "/paid/nostr/nostr-profile-summary":
+        if verb != "POST":
+            err = {"ok": False, "error": "method_not_allowed"}
+            return 405, "application/json", json.dumps(err).encode("utf-8")
+        try:
+            payload = _nostr_profile_summary.handle_request(body)
+            return 200, "application/json", json.dumps(payload).encode("utf-8")
+        except _nostr_profile_summary.BadNpub:
+            err = {"ok": False, "error": "bad_npub"}
+            return 400, "application/json", json.dumps(err).encode("utf-8")
+        except _nostr_profile_summary.BadInput:
             err = {"ok": False, "error": "bad_input"}
             return 400, "application/json", json.dumps(err).encode("utf-8")
     if route == "/paid/report.pdf":

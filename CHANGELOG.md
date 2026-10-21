@@ -1,3 +1,9 @@
+## Changed — more agent payment helpers (2026-10-21)
+
+Add four L402 payment-helper routes at 100 sats.
+
+---
+
 ## Changed — agent payment decisions (2026-10-21)
 
 Add six L402 payment-decision routes at 100 sats.
