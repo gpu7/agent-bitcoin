@@ -1,6 +1,6 @@
 """Read-only soft-fork list for GET /paid/bitcoin/btc-deployment-info.
 
-One getblockchaininfo. Does not open a wallet, send, or spend.
+One getdeploymentinfo. Does not open a wallet, send, or spend.
 """
 
 from __future__ import annotations
@@ -55,8 +55,8 @@ def _port(value: str) -> int:
 
 
 def _allow(method: str, params: list[Any]) -> None:
-    """Only getblockchaininfo([])."""
-    if method == "getblockchaininfo" and params == []:
+    """Only getdeploymentinfo([])."""
+    if method == "getdeploymentinfo" and params == []:
         return
     raise BitcoindUnavailable("bitcoind unavailable")
 
@@ -195,9 +195,9 @@ def _warnings(raw: dict[str, Any]) -> list[str] | None:
 
 
 def _summary(raw: dict[str, Any]) -> dict[str, Any]:
-    if "softforks" not in raw:
+    if "deployments" not in raw:
         raise BitcoindUnavailable("bitcoind unavailable")
-    out: dict[str, Any] = {"softforks": _fork_rows(raw["softforks"])}
+    out: dict[str, Any] = {"softforks": _fork_rows(raw["deployments"])}
     warnings = _warnings(raw)
     if warnings is not None:
         out["warnings"] = warnings
@@ -218,9 +218,9 @@ def _result_from_message(parsed: Any) -> Any:
 def handle_request(
     caller: Callable[[str, list[Any]], Any] | None = None,
 ) -> dict[str, Any]:
-    """Return active soft-forks. caller injects getblockchaininfo."""
+    """Return active soft-forks. caller injects getdeploymentinfo."""
     rpc = caller if caller is not None else _rpc_from_env()
-    raw = _rpc_call(rpc, "getblockchaininfo", [])
+    raw = _rpc_call(rpc, "getdeploymentinfo", [])
     if not isinstance(raw, dict):
         raise BitcoindUnavailable("bitcoind unavailable")
     return _summary(raw)

@@ -176,6 +176,33 @@ def test_mempool_code_minus_5_omits_fee() -> None:
     assert "SECRET" not in json.dumps(out)
 
 
+def test_http_500_code_minus_5_is_not_found() -> None:
+    body = json.dumps(
+        {"error": {"code": -5, "message": _SECRET}, "result": None}
+    ).encode()
+    with pytest.raises(tx.TxNotFound) as raised:
+        tx._response_result(500, body, tx._RAW_BODY, "getrawtransaction")
+    assert str(raised.value) == "tx not found"
+    assert "SECRET" not in str(raised.value)
+
+
+def test_http_500_other_code_is_unavailable() -> None:
+    body = json.dumps(
+        {"error": {"code": -8, "message": "SECRET height"}, "result": None}
+    ).encode()
+    with pytest.raises(tx.BitcoindUnavailable) as raised:
+        tx._response_result(500, body, tx._RAW_BODY, "getrawtransaction")
+    assert "SECRET" not in str(raised.value)
+
+
+def test_truncated_rpc_body_is_unavailable() -> None:
+    body = b"x" * tx._ENTRY_BODY
+    with pytest.raises(tx.BitcoindUnavailable):
+        tx._response_result(200, body, tx._ENTRY_BODY, "getmempoolentry")
+    with pytest.raises(tx.BitcoindUnavailable):
+        tx._response_result(500, b"not-json", tx._RAW_BODY, "getrawtransaction")
+
+
 def test_other_rpc_code_is_unavailable() -> None:
     with pytest.raises(tx.BitcoindUnavailable) as raised:
         tx._result_from_message(

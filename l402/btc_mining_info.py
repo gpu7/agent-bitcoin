@@ -9,7 +9,7 @@ import base64
 import http.client
 import json
 import os
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import ROUND_HALF_UP, Decimal, localcontext
 from typing import Any, Callable
 
 _TIMEOUT_S = 5.0
@@ -102,7 +102,14 @@ def _number(value: Any, *, allow_zero: bool) -> int | float | None:
         return None
     if dec == 0 and not allow_zero:
         return None
-    quant = dec.quantize(_QUANT, rounding=ROUND_HALF_UP)
+    if dec == dec.to_integral_value():
+        return int(dec)
+    try:
+        with localcontext() as ctx:
+            ctx.prec = 50
+            quant = dec.quantize(_QUANT, rounding=ROUND_HALF_UP)
+    except ArithmeticError:
+        return None
     if quant < 0 or quant > _MAX_NUMBER:
         return None
     if quant == 0 and not allow_zero:

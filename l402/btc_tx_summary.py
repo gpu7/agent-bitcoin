@@ -199,6 +199,26 @@ def _require_fee(entry: Any) -> int | float:
     return amount
 
 
+def _response_result(status: int, body: bytes, cap: int, method: str) -> Any:
+    """Parse one RPC body. HTTP 500 code -5 is a missing transaction."""
+    if len(body) >= cap:
+        raise BitcoindUnavailable("bitcoind unavailable")
+    try:
+        parsed = json.loads(body.decode("utf-8"), parse_float=Decimal)
+    except (UnicodeError, json.JSONDecodeError) as exc:
+        raise BitcoindUnavailable("bitcoind unavailable") from exc
+    if status != 200:
+        if not isinstance(parsed, dict):
+            raise BitcoindUnavailable("bitcoind unavailable")
+        err = parsed.get("error")
+        code = err.get("code") if isinstance(err, dict) else None
+        if type(code) is int and code == -5:
+            if method == "getrawtransaction" or method == "getmempoolentry":
+                raise TxNotFound("tx not found")
+        raise BitcoindUnavailable("bitcoind unavailable")
+    return _result_from_message(parsed, method)
+
+
 def _result_from_message(parsed: Any, method: str) -> Any:
     """Unwrap one JSON-RPC object. Reads the error code only."""
     if not isinstance(parsed, dict):
@@ -293,18 +313,13 @@ def _rpc_from_env() -> Callable[[str, list[Any]], Any]:
             )
             resp = conn.getresponse()
             body = resp.read(cap)
-            if resp.status != 200 or len(body) >= cap:
-                raise BitcoindUnavailable("bitcoind unavailable")
+            status = resp.status
         except BitcoindUnavailable:
             raise
         except Exception as exc:
             raise BitcoindUnavailable("bitcoind unavailable") from exc
         finally:
             conn.close()
-        try:
-            parsed = json.loads(body.decode("utf-8"), parse_float=Decimal)
-        except (UnicodeError, json.JSONDecodeError) as exc:
-            raise BitcoindUnavailable("bitcoind unavailable") from exc
-        return _result_from_message(parsed, method)
+        return _response_result(status, body, cap, method)
 
     return call
