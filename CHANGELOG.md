@@ -2,6 +2,8 @@
 
 Advertise the L402 tools whose paid check returned a handler success. Price stays 100 sats.
 
+A second paid pass added `btc-address-balance`, `ln-invoice-inspect`, `ln-path-estimate`, `nostr-node-link`, `nip05-verify`, `ln-pay-check`, `ln-address-resolve`, `ln-route-options`, and `ln-invoice-amount-check`.
+
 ---
 
 ## Changed — more agent payment helpers (2026-10-21)
