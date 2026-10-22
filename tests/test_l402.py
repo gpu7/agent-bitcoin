@@ -254,30 +254,21 @@ def test_well_known_l402_services_is_public_json() -> None:
             "name": "agent-bitcoin: btc-usd",
             "method": "GET",
             "price_sats": 100,
-            "description": (
-                "Bitcoin price in USD. Current BTC-USD rate and sats per USD "
-                "from a public source. Lightning L402."
-            ),
+            "description": "Bitcoin price in USD. Current BTC-USD rate and sats per USD from a public source. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/finance/mempool-feerate",
             "name": "agent-bitcoin: mempool-feerate",
             "method": "GET",
             "price_sats": 100,
-            "description": (
-                "Bitcoin mempool fee rates. Sat/vB bands for fast, medium, "
-                "and slow confirmation. Lightning L402."
-            ),
+            "description": "Bitcoin mempool fee rates. Sat/vB bands for fast, medium, and slow confirmation. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/finance/mempool-backlog",
             "name": "agent-bitcoin: mempool-backlog",
             "method": "GET",
             "price_sats": 100,
-            "description": (
-                "Bitcoin mempool backlog. Transaction count, virtual size, "
-                "and total fee. Lightning L402."
-            ),
+            "description": "Bitcoin mempool backlog. Transaction count, virtual size, and total fee. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/finance/fee-for-vsize",
@@ -298,10 +289,7 @@ def test_well_known_l402_services_is_public_json() -> None:
             "name": "agent-bitcoin: ln-invoice-decode",
             "method": "POST",
             "price_sats": 100,
-            "description": (
-                "Parse a Lightning BOLT11 invoice. Returns amount, expiry, "
-                "and payee. Lightning L402."
-            ),
+            "description": "Parse a Lightning BOLT11 invoice. Returns amount, expiry, and payee. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/finance/ln-invoice-preflight",
@@ -322,362 +310,112 @@ def test_well_known_l402_services_is_public_json() -> None:
             "name": "agent-bitcoin: btc-address-validate",
             "method": "POST",
             "price_sats": 100,
-            "description": (
-                "Check a Bitcoin address. Returns network and type, or a short "
-                "reason if invalid. Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/security/l402-challenge-inspect",
-            "name": "agent-bitcoin: l402-challenge-inspect",
-            "method": "POST",
-            "price_sats": 100,
-            "description": (
-                "Inspect a remote L402 challenge. Returns price, expiry, and "
-                "payee. Does not pay. Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/lightning/ln-channel-stats",
-            "name": "agent-bitcoin: ln-channel-stats",
-            "method": "GET",
-            "price_sats": 100,
-            "description": (
-                "Lightning channel counts and balances from the operator LND. "
-                "Read-only. Lightning L402."
-            ),
+            "description": "Check a Bitcoin address. Returns network and type, or a short reason if invalid. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-fee-estimate",
             "name": "agent-bitcoin: btc-fee-estimate",
             "method": "GET",
             "price_sats": 100,
-            "description": (
-                "Bitcoin Core estimatesmartfee for 1, 3, and 6 blocks, in sats "
-                "per vbyte. Read-only. Lightning L402."
-            ),
+            "description": "Bitcoin Core estimatesmartfee for 1, 3, and 6 blocks, in sats per vbyte. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-chain-status",
             "name": "agent-bitcoin: btc-chain-status",
             "method": "GET",
             "price_sats": 100,
-            "description": (
-                "Bitcoin Core chain height, sync progress, and prune state "
-                "from the operator bitcoind. Read-only. Lightning L402."
-            ),
+            "description": "Bitcoin Core chain height, sync progress, and prune state from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-network-info",
             "name": "agent-bitcoin: btc-network-info",
             "method": "GET",
             "price_sats": 100,
-            "description": (
-                "Bitcoin Core version, protocol, and connection counts from "
-                "the operator bitcoind. Read-only. Lightning L402."
-            ),
+            "description": "Bitcoin Core version, protocol, and connection counts from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-mempool-info",
             "name": "agent-bitcoin: btc-mempool-info",
             "method": "GET",
             "price_sats": 100,
-            "description": (
-                "Bitcoin Core mempool size, memory, and minimum fee from the "
-                "operator bitcoind. Read-only. Lightning L402."
-            ),
+            "description": "Bitcoin Core mempool size, memory, and minimum fee from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-peer-info",
             "name": "agent-bitcoin: btc-peer-info",
             "method": "GET",
             "price_sats": 100,
-            "description": (
-                "Bitcoin Core peer count and a short address list from the "
-                "operator bitcoind. Read-only. Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/lightning/ln-node-info",
-            "name": "agent-bitcoin: ln-node-info",
-            "method": "GET",
-            "price_sats": 100,
-            "description": (
-                "Read-only LND GetInfo summary: alias, public node id, active "
-                "channels, peers, height, sync, and version. Lightning L402."
-            ),
+            "description": "Bitcoin Core peer count and a short address list from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-difficulty",
             "name": "agent-bitcoin: btc-difficulty",
             "method": "GET",
             "price_sats": 100,
-            "description": (
-                "Bitcoin Core difficulty, chainwork, and blocks until the next "
-                "retarget from the operator bitcoind. Read-only. Lightning L402."
-            ),
+            "description": "Bitcoin Core difficulty, chainwork, and blocks until the next retarget from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-block-tip",
             "name": "agent-bitcoin: btc-block-tip",
             "method": "GET",
             "price_sats": 100,
-            "description": (
-                "Bitcoin Core tip height, block hash, and median time from the "
-                "operator bitcoind. Read-only. Lightning L402."
-            ),
+            "description": "Bitcoin Core tip height, block hash, and median time from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-block-header",
             "name": "agent-bitcoin: btc-block-header",
             "method": "GET",
             "price_sats": 100,
-            "description": (
-                "Bitcoin Core block header for one height from the operator "
-                "bitcoind. Read-only. Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/bitcoin/btc-tx-summary",
-            "name": "agent-bitcoin: btc-tx-summary",
-            "method": "GET",
-            "price_sats": 100,
-            "description": (
-                "Bitcoin Core transaction size, confirmations, and mempool fee "
-                "for one txid from the operator bitcoind. Read-only. Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/bitcoin/btc-address-balance",
-            "name": "agent-bitcoin: btc-address-balance",
-            "method": "POST",
-            "price_sats": 100,
-            "description": (
-                "Bitcoin Core confirmed UTXO balance for one address from the "
-                "operator bitcoind. Read-only. Lightning L402."
-            ),
+            "description": "Bitcoin Core block header for one height from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-uptime",
             "name": "agent-bitcoin: btc-uptime",
             "method": "GET",
             "price_sats": 100,
-            "description": (
-                "Bitcoin Core uptime and version from the operator bitcoind. "
-                "Read-only. Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/bitcoin/btc-deployment-info",
-            "name": "agent-bitcoin: btc-deployment-info",
-            "method": "GET",
-            "price_sats": 100,
-            "description": (
-                "Bitcoin Core active soft-fork status from the operator "
-                "bitcoind. Read-only. Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/bitcoin/btc-mining-info",
-            "name": "agent-bitcoin: btc-mining-info",
-            "method": "GET",
-            "price_sats": 100,
-            "description": (
-                "Bitcoin Core mining summary from the operator bitcoind. "
-                "Read-only. Lightning L402."
-            ),
+            "description": "Bitcoin Core uptime and version from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-mempool-fees",
             "name": "agent-bitcoin: btc-mempool-fees",
             "method": "GET",
             "price_sats": 100,
-            "description": (
-                "Bitcoin Core mempool minimum fee and fee bands from the "
-                "operator bitcoind. Read-only. Lightning L402."
-            ),
+            "description": "Bitcoin Core mempool minimum fee and fee bands from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-chain-tips",
             "name": "agent-bitcoin: btc-chain-tips",
             "method": "GET",
             "price_sats": 100,
-            "description": (
-                "Bitcoin Core chain tips from the operator bitcoind. "
-                "Read-only. Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/lightning/ln-invoice-inspect",
-            "name": "agent-bitcoin: ln-invoice-inspect",
-            "method": "POST",
-            "price_sats": 100,
-            "description": (
-                "LND decode of one BOLT11 invoice. Read-only. Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/lightning/ln-channel-liquidity",
-            "name": "agent-bitcoin: ln-channel-liquidity",
-            "method": "POST",
-            "price_sats": 100,
-            "description": (
-                "LND channel balances for the operator node. Read-only. Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/lightning/ln-peer-status",
-            "name": "agent-bitcoin: ln-peer-status",
-            "method": "POST",
-            "price_sats": 100,
-            "description": (
-                "LND peer connection status for the operator node. Read-only. "
-                "Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/lightning/ln-path-estimate",
-            "name": "agent-bitcoin: ln-path-estimate",
-            "method": "POST",
-            "price_sats": 100,
-            "description": (
-                "LND route estimate for one destination. Does not pay. Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/lightning/ln-payment-status",
-            "name": "agent-bitcoin: ln-payment-status",
-            "method": "POST",
-            "price_sats": 100,
-            "description": (
-                "Status of one invoice created by the operator LND. "
-                "Read-only. Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/nostr/nostr-node-link",
-            "name": "agent-bitcoin: nostr-node-link",
-            "method": "POST",
-            "price_sats": 100,
-            "description": (
-                "Public Nostr npub and whether it matches this node's Lightning "
-                "id. No nsec. Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/nostr/nip05-verify",
-            "name": "agent-bitcoin: nip05-verify",
-            "method": "POST",
-            "price_sats": 100,
-            "description": (
-                "Check a NIP-05 name against an npub. No nsec. Lightning L402."
-            ),
+            "description": "Bitcoin Core chain tips from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/nostr/nostr-profile-summary",
             "name": "agent-bitcoin: nostr-profile-summary",
             "method": "POST",
             "price_sats": 100,
-            "description": (
-                "Short public Nostr profile summary. No nsec and no nip05 check. "
-                "Lightning L402."
-            ),
+            "description": "Short public Nostr profile summary. No nsec and no nip05 check. Lightning L402.",
         },
         {
-            "url": "https://agent-bitcoin.net/paid/lightning/ln-channel-policy",
-            "name": "agent-bitcoin: ln-channel-policy",
+            "url": "https://agent-bitcoin.net/paid/nostr/event-verify",
+            "name": "agent-bitcoin: event-verify",
             "method": "POST",
             "price_sats": 100,
-            "description": (
-                "LND local channel policy from listchannels. Read-only. Lightning L402."
-            ),
+            "description": "Check a Nostr event id and signature locally. No relay. Lightning L402.",
         },
         {
-            "url": "https://agent-bitcoin.net/paid/lightning/ln-invoice-create",
-            "name": "agent-bitcoin: ln-invoice-create",
+            "url": "https://agent-bitcoin.net/paid/nostr/npub-decode",
+            "name": "agent-bitcoin: npub-decode",
             "method": "POST",
             "price_sats": 100,
-            "description": (
-                "Create one Lightning invoice on the operator LND. Does not pay. "
-                "Lightning L402."
-            ),
+            "description": "Decode a Nostr npub, note, nprofile, or nevent to hex. Rejects nsec. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-preimage-verify",
             "name": "agent-bitcoin: ln-preimage-verify",
             "method": "POST",
             "price_sats": 100,
-            "description": (
-                "SHA-256 check that a preimage matches a payment hash. "
-                "No LND. Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/lightning/ln-pay-check",
-            "name": "agent-bitcoin: ln-pay-check",
-            "method": "POST",
-            "price_sats": 100,
-            "description": (
-                "Decide whether one invoice or destination is payable. "
-                "Does not pay. Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/lightning/ln-node-card",
-            "name": "agent-bitcoin: ln-node-card",
-            "method": "POST",
-            "price_sats": 100,
-            "description": (
-                "Public graph card for one Lightning node. Read-only. Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/lightning/ln-address-resolve",
-            "name": "agent-bitcoin: ln-address-resolve",
-            "method": "POST",
-            "price_sats": 100,
-            "description": (
-                "Read a Lightning address pay range. Does not request an invoice. "
-                "Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/lightning/ln-payee-liquidity-hint",
-            "name": "agent-bitcoin: ln-payee-liquidity-hint",
-            "method": "POST",
-            "price_sats": 100,
-            "description": (
-                "Public graph capacity hint for one payee. "
-                "Not channel balances. Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/lightning/ln-route-options",
-            "name": "agent-bitcoin: ln-route-options",
-            "method": "POST",
-            "price_sats": 100,
-            "description": (
-                "LND route options for one destination. Does not pay. Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/lightning/ln-invoice-amount-check",
-            "name": "agent-bitcoin: ln-invoice-amount-check",
-            "method": "POST",
-            "price_sats": 100,
-            "description": (
-                "LND check of whether an invoice amount is open or fixed. "
-                "Read-only. Lightning L402."
-            ),
-        },
-        {
-            "url": "https://agent-bitcoin.net/paid/lightning/ln-channel-reserve-check",
-            "name": "agent-bitcoin: ln-channel-reserve-check",
-            "method": "POST",
-            "price_sats": 100,
-            "description": (
-                "LND channel reserve check for one peer. Read-only. Lightning L402."
-            ),
+            "description": "SHA-256 check that a preimage matches a payment hash. No LND. Lightning L402.",
         },
     ]
     paid = (
