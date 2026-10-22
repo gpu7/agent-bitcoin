@@ -35,7 +35,11 @@ Once the agent has the URL from the directory, it treats the endpoint exactly li
 
 The listing name is `btc-usd` and the description says “Bitcoin price”, so both `btc-usd` and `bitcoin price` queries match. The unit of account remains sats.
 
-The origin also serves `GET https://agent-bitcoin.net/.well-known/l402-services` (`Content-Type: application/json`, HTTP 200, no payment). The document is [`l402/well-known/l402-services.json`](../l402/well-known/l402-services.json). It lists every public paid tool. Add each new public endpoint to that file.
+The origin also serves `GET https://agent-bitcoin.net/.well-known/l402-services` (`Content-Type: application/json`, HTTP 200, no payment). The document is [`l402/well-known/l402-services.json`](../l402/well-known/l402-services.json). It lists the public paid tools a buyer can call. Add a public endpoint there after a paid call returns a handler success. Price stays 100 sats.
+
+The 2026-10-22 catalog adds these to the original eight finance tools: `btc-address-validate`, `btc-fee-estimate`, `btc-chain-status`, `btc-network-info`, `btc-mempool-info`, `btc-peer-info`, `btc-difficulty`, `btc-block-tip`, `btc-block-header`, `btc-uptime`, `btc-mempool-fees`, `btc-chain-tips`, `ln-preimage-verify`, `event-verify`, `npub-decode`, and `nostr-profile-summary`.
+
+Left out after the paid call returned an error: `btc-deployment-info` (HTTP 503 `bitcoind_unavailable`), `btc-mining-info` (HTTP 502), `btc-tx-summary` (HTTP 503 `bitcoind_unavailable`), and `nostr-node-link` (HTTP 400 `bad_input`). Still unlisted because Mac outbound could not cover another 100 sats above the channel reserve: `btc-address-balance`, `l402-challenge-inspect`, `ln-channel-stats`, `ln-node-info`, `ln-invoice-inspect`, `ln-channel-liquidity`, `ln-peer-status`, `ln-path-estimate`, `ln-payment-status`, `nip05-verify`, `ln-channel-policy`, `ln-invoice-create`, `ln-pay-check`, `ln-node-card`, `ln-address-resolve`, `ln-payee-liquidity-hint`, `ln-route-options`, `ln-invoice-amount-check`, and `ln-channel-reserve-check`. Those routes stay deployed. They go in this document after a later paid call succeeds.
 
 The existing Caddy reverse proxy forwards the path to Aperture, which leaves it free alongside `/health`, and the origin returns the JSON. This repo does not call 402index. A new row shows up in search only after an operator registers it, or after a later crawl reads this file. `./register-402index.sh` registers every service, and `./register-402index.sh btc-network-info` registers only that short name.
 

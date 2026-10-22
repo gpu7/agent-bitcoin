@@ -1,3 +1,9 @@
+## Changed — L402 discovery catalog (2026-10-22)
+
+Advertise the L402 tools whose paid check returned a handler success. Price stays 100 sats.
+
+---
+
 ## Changed — more agent payment helpers (2026-10-21)
 
 Add four L402 payment-helper routes at 100 sats.
