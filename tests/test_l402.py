@@ -467,6 +467,13 @@ def test_well_known_l402_services_is_public_json() -> None:
             "description": "LND route estimate for one destination. Does not pay. Lightning L402.",
         },
         {
+            "url": "https://agent-bitcoin.net/paid/lightning/ln-payment-status",
+            "name": "agent-bitcoin: ln-payment-status",
+            "method": "POST",
+            "price_sats": 100,
+            "description": "Status of one invoice created by the operator LND. Read-only. Lightning L402.",
+        },
+        {
             "url": "https://agent-bitcoin.net/paid/nostr/nostr-node-link",
             "name": "agent-bitcoin: nostr-node-link",
             "method": "POST",
