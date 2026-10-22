@@ -1,5 +1,6 @@
 # Use official Python image
 FROM python:3.12-slim
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app

@@ -144,6 +144,8 @@ curl -sSI http://127.0.0.1:8081/paid/hello | head -n 1
 
 `./startup-l402-aws.sh <network>` rebuilds the origin image and recreates those containers. Aperture is in the same compose file, so it is recreated with origin. Invoice LND is not in that file and should keep running if you did not pass `--remove-orphans`.
 
+After a host CA-certificate update, rebuild the origin and other custom images with `--no-cache` so they pick up the new certificates. Keep uv and pip at or above the versions in the README.
+
 Re-check 402 as in section 5.
 
 If the channel's `active` field is false, reconnect from the **payer** node. Read the invoice node's pubkey at runtime (`lncli getinfo`). Do not treat a pubkey copied from an old note as the product key.
