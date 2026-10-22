@@ -1,3 +1,9 @@
+## Docs — install tool versions (2026-10-22)
+
+Document uv 0.13.4, pip 26.2.2, and current CA certificates. Custom images install `ca-certificates`.
+
+---
+
 ## Changed — L402 discovery catalog (2026-10-22)
 
 Advertise the L402 tools whose paid check returned a handler success. Price stays 100 sats.

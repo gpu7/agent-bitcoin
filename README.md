@@ -41,22 +41,22 @@ Agent-to-Agent and Agent-to-Merchant Lightning payments with Bitcoin final settl
 
 ## Agentic Finance
 
-Agentic finance is financial transactions and market activity carried out by autonomous goal-directed AI agents.  Human mediation is minimal or non-existent. Agents perceive data, make decisions under policy, and execute transactions (pay, invoice, reconcile, route a trade) with minimal or no human prompting.  
+Agentic finance is financial transactions and market activity carried out by autonomous goal-directed AI agents.  Human mediation is minimal or non-existent. Agents perceive data, make decisions under policy, and execute transactions (pay, invoice, reconcile, route a trade) with minimal or no human prompting.
 
 **The term is used in two overlapping ways:**
 
-- Enterprise finance ops — specialized agents own jobs such as invoicing, matching trades, controls, and close, across existing systems. Humans set limits and handle exceptions. 
-  
-- Markets and payments — autonomous or semi-autonomous agents take part in information management, monitoring, and execution, so their actions can move money or prices. 
+- Enterprise finance ops — specialized agents own jobs such as invoicing, matching trades, controls, and close, across existing systems. Humans set limits and handle exceptions.
 
-Currently, in practice, many agentic systems are semi-autonomous where some policies, spend caps, and an operator intervene in some financial activites.  But agentic swarms are increasingly taking over these functions. 
+- Markets and payments — autonomous or semi-autonomous agents take part in information management, monitoring, and execution, so their actions can move money or prices.
+
+Currently, in practice, many agentic systems are semi-autonomous where some policies, spend caps, and an operator intervene in some financial activites.  But agentic swarms are increasingly taking over these functions.
 
 **Key benefits**
 
-- Throughput — routine payments and ops run continuously, 24/7  
-- Smaller tickets — agents can settle amounts that are too small or too frequent for human approval, i.e. micropayments  
-- Division of labor — one agent retrieves, one checks policy, one pays (a swarm), instead of a single program performing all steps  
-- Audit trail — if each transaction is an invoice, a signed message, or a logged decision, audit review is more transparent  
+- Throughput — routine payments and ops run continuously, 24/7
+- Smaller tickets — agents can settle amounts that are too small or too frequent for human approval, i.e. micropayments
+- Division of labor — one agent retrieves, one checks policy, one pays (a swarm), instead of a single program performing all steps
+- Audit trail — if each transaction is an invoice, a signed message, or a logged decision, audit review is more transparent
 - Working-capital velocity — the same locked balance can support many completed transfers per day (Lightning is one example payment rail)
 
 ---
@@ -69,15 +69,15 @@ An agent swarm is a set of cooperating software agents that jointly execute a wo
 
 Payment is a Lightning invoice issued by one agent and discharged by another. Value moves by updating balances inside a pre-funded channel, typically in seconds. The Bitcoin base chain is not used for each micropayment. Instead, Bitcoin Layer 1 is used when a Lightning channel is opened, closed, or a dispute is enforced.  This represents final settlement of the net position between agents.
 
-**Why pair agent swarms with Lightning**  
+**Why pair agent swarms with Lightning**
 
-- Low-latency payment and settlement between agents  
-- Micropayments between agents  
-- Bilateral, auditable funds transfer — query, invoice, and payment — without a pooled omnibus account  
-- Separation of roles among agents (retrieve, decide, pay)  
+- Low-latency payment and settlement between agents
+- Micropayments between agents
+- Bilateral, auditable funds transfer — query, invoice, and payment — without a pooled omnibus account
+- Separation of roles among agents (retrieve, decide, pay)
 - One payment rail for peer invoices and Merchant endpoints
 
-Currently, to protect funds, some human constraints remain in place (but may be relaxed or transferred to agents in the future). A human operator must capitalize Lightning nodes, maintain inbound and outbound channel liquidity and impose spend limits. Public multipath routing of very small amounts is unreliable unless counterparties have provisioned an appropriate channel.  
+Currently, to protect funds, some human constraints remain in place (but may be relaxed or transferred to agents in the future). A human operator must capitalize Lightning nodes, maintain inbound and outbound channel liquidity and impose spend limits. Public multipath routing of very small amounts is unreliable unless counterparties have provisioned an appropriate channel.
 
 **Velocity of money**
 
@@ -101,7 +101,7 @@ In an autonomous AI agent swarm, agents can make direct Lightning Network paymen
   - **No AI model (`--no-llm`):** Pay as soon as the invoice arrives.
   - **Grok or Ollama AI model:** The **payer** asks the model “Should I pay this invoice?” YES → pay; NO → no payment. Needs `XAI_API_KEY` for Grok, or a running Ollama model.
 
-Example:  
+Example:
 
 - [examples/agent-to-agent-pay.md](examples/agent-to-agent-pay.md) (Nostr invoice + optional Grok/Ollama model)
 
@@ -173,7 +173,7 @@ Documents:
   <img src="./images/bitcoin-final-settlement-layer.jpg" alt="Bitcoin Final Settlement Layer" width="700"/>
 </p>
 
-The Bitcoin blockchain network is used as the final settlement layer for Lightning payments between agents.  Bitcoin is treated as a Layer-1 protocol and Lightning is treated as a Layer-2 protocol.  
+The Bitcoin blockchain network is used as the final settlement layer for Lightning payments between agents.  Bitcoin is treated as a Layer-1 protocol and Lightning is treated as a Layer-2 protocol.
 
 For autonomous AI agent swarms, the payment and settlement protocol is:
 
@@ -183,7 +183,7 @@ For autonomous AI agent swarms, the payment and settlement protocol is:
 
 - **Close the Lightning channel.** Operator (human-in-the-loop) closes the Lightning channel on behalf of agents.  Again, this is for safety reasons to protect funds.
 
-- **Update Bitcoin ledger.** Spend 2-of-2 multisig UTXO.  Payout fund balances to each party's Bitcoin address. Final settlement of Lightning payment balances in the Bitcoin blockchain network. 
+- **Update Bitcoin ledger.** Spend 2-of-2 multisig UTXO.  Payout fund balances to each party's Bitcoin address. Final settlement of Lightning payment balances in the Bitcoin blockchain network.
 
 ---
 
@@ -205,13 +205,13 @@ Agents use [Nostr](https://nostr.org/) for identity, communication, censorship r
 
 ## AI Models for Agents
 
-Currently, you may choose default Grok or Ollama models for Agent-to-Agent payments or Agent-to-Merchant payments.  
+Currently, you may choose default Grok or Ollama models for Agent-to-Agent payments or Agent-to-Merchant payments.
 
-Agent-to-Agent Lightning Network payments: Grok or Ollama model  
-Example: examples/agent-to-agent-pay.md  
+Agent-to-Agent Lightning Network payments: Grok or Ollama model
+Example: examples/agent-to-agent-pay.md
 
-Agent-to-Merchant Lightning Network payments: Grok or Ollama model  
-Example: examples/agent-to-merchant-pay.md  
+Agent-to-Merchant Lightning Network payments: Grok or Ollama model
+Example: examples/agent-to-merchant-pay.md
 
 ---
 
@@ -219,7 +219,7 @@ Example: examples/agent-to-merchant-pay.md
 
 Agent-Bitcoin services are available via a Python SDK.
 
-Install from [PyPI](https://pypi.org/) or from this repo.
+Install from [PyPI](https://pypi.org/) or from this repo. Tool and CA requirements are under [Installation](#installation).
 
 **PyPI (library only):**
 
@@ -263,10 +263,10 @@ The import package is `agent_bitcoin`.
 - `PaymentDecision` — PAY / REJECT / CONFIRM_REQUIRED.
 - Exceptions (`PaymentError`, `InsufficientBalanceError`, `NoRouteError`, …) — typed failures instead of raw lncli text.
 
-**Documentation and source code:**   
+**Documentation and source code:**
 
-Full developer reference for SDK: [SDK.md](SDK.md)  
-Python package source: `agent_bitcoin/`    
+Full developer reference for SDK: [SDK.md](SDK.md)
+Python package source: `agent_bitcoin/`
 
 ---
 
@@ -274,19 +274,19 @@ Python package source: `agent_bitcoin/`
 
 The main roles for AWS are:
 
-- Host — EC2 box that runs the Merchant stack  
-- Invoice node — AWS ([Lightning Labs](https://lightning.engineering/)) LND ([Lightning Labs](https://lightning.engineering/)) creates L402 / agent-to-agent invoices  
-- Bitcoin backend for LND node — bitcoind feeds AWS LND  
-- L402 cash register — [Lightning Labs](https://lightning.engineering/) Aperture on port 8081  
-- Paid origin — JSON services behind [Lightning Labs](https://lightning.engineering/) Aperture (port 8090, private)  
-- Channel peer — accepts a client private Lightning channel on 9735  
-- Allowlist — security groups decide which IP's may hit ports 8081 / 22 / 9735  
+- Host — EC2 box that runs the Merchant stack
+- Invoice node — AWS ([Lightning Labs](https://lightning.engineering/)) LND ([Lightning Labs](https://lightning.engineering/)) creates L402 / agent-to-agent invoices
+- Bitcoin backend for LND node — bitcoind feeds AWS LND
+- L402 cash register — [Lightning Labs](https://lightning.engineering/) Aperture on port 8081
+- Paid origin — JSON services behind [Lightning Labs](https://lightning.engineering/) Aperture (port 8090, private)
+- Channel peer — accepts a client private Lightning channel on 9735
+- Allowlist — security groups decide which IP's may hit ports 8081 / 22 / 9735
 
 **Documentation:**
 
 The AWS Runbook describes how to set up, configure, run and manage AWS.
 
-Runbook: `docs/aws-operator.md` 
+Runbook: `docs/aws-operator.md`
 
 Mac map: [localhost-dashboard.md](docs/localhost-dashboard.md)
 
@@ -314,6 +314,8 @@ Then open http://127.0.0.1:8765. It listens only on 127.0.0.1.
 ---
 
 ## Installation
+
+Use uv 0.13.4 or newer and pip 26.2.2 or newer. Upgrade system CA certificates (`apt` or `dnf` upgrade `ca-certificates`) before installing packages or building images.
 
 ### From github repo source
 
@@ -381,7 +383,7 @@ MIT License — see [LICENSE](LICENSE).
 
 ## Support
 
-Dark Factory  
-Richard Casey  
-richardcaseyhpc@protonmail.com  
+Dark Factory
+Richard Casey
+richardcaseyhpc@protonmail.com
 +1 970-980-5975
