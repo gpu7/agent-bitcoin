@@ -120,6 +120,13 @@
       "description": "Bitcoin Core block header for one height from the operator bitcoind. Read-only. Lightning L402."
     },
     {
+      "url": "https://agent-bitcoin.net/paid/bitcoin/btc-address-balance",
+      "name": "agent-bitcoin: btc-address-balance",
+      "method": "POST",
+      "price_sats": 100,
+      "description": "Bitcoin Core confirmed UTXO balance for one address from the operator bitcoind. Read-only. Lightning L402."
+    },
+    {
       "url": "https://agent-bitcoin.net/paid/bitcoin/btc-uptime",
       "name": "agent-bitcoin: btc-uptime",
       "method": "GET",
@@ -139,6 +146,34 @@
       "method": "GET",
       "price_sats": 100,
       "description": "Bitcoin Core chain tips from the operator bitcoind. Read-only. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/lightning/ln-invoice-inspect",
+      "name": "agent-bitcoin: ln-invoice-inspect",
+      "method": "POST",
+      "price_sats": 100,
+      "description": "LND decode of one BOLT11 invoice. Read-only. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/lightning/ln-path-estimate",
+      "name": "agent-bitcoin: ln-path-estimate",
+      "method": "POST",
+      "price_sats": 100,
+      "description": "LND route estimate for one destination. Does not pay. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/nostr/nostr-node-link",
+      "name": "agent-bitcoin: nostr-node-link",
+      "method": "POST",
+      "price_sats": 100,
+      "description": "Public Nostr npub and whether it matches this node's Lightning id. No nsec. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/nostr/nip05-verify",
+      "name": "agent-bitcoin: nip05-verify",
+      "method": "POST",
+      "price_sats": 100,
+      "description": "Check a NIP-05 name against an npub. No nsec. Lightning L402."
     },
     {
       "url": "https://agent-bitcoin.net/paid/nostr/nostr-profile-summary",
@@ -167,6 +202,34 @@
       "method": "POST",
       "price_sats": 100,
       "description": "SHA-256 check that a preimage matches a payment hash. No LND. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/lightning/ln-pay-check",
+      "name": "agent-bitcoin: ln-pay-check",
+      "method": "POST",
+      "price_sats": 100,
+      "description": "Decide whether one invoice or destination is payable. Does not pay. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/lightning/ln-address-resolve",
+      "name": "agent-bitcoin: ln-address-resolve",
+      "method": "POST",
+      "price_sats": 100,
+      "description": "Read a Lightning address pay range. Does not request an invoice. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/lightning/ln-route-options",
+      "name": "agent-bitcoin: ln-route-options",
+      "method": "POST",
+      "price_sats": 100,
+      "description": "LND route options for one destination. Does not pay. Lightning L402."
+    },
+    {
+      "url": "https://agent-bitcoin.net/paid/lightning/ln-invoice-amount-check",
+      "name": "agent-bitcoin: ln-invoice-amount-check",
+      "method": "POST",
+      "price_sats": 100,
+      "description": "LND check of whether an invoice amount is open or fixed. Read-only. Lightning L402."
     }
   ]
 }
