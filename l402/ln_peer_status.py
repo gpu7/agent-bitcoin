@@ -78,6 +78,15 @@ def _uint(value: Any, cap: int) -> int | None:
     return number
 
 
+def _active(value: Any) -> bool | None:
+    """Protobuf omits false. Any other type is unreadable."""
+    if value is None:
+        return False
+    if isinstance(value, bool):
+        return value
+    return None
+
+
 def _pubkey(value: Any) -> str | None:
     if not isinstance(value, str):
         return None
@@ -130,8 +139,8 @@ def _channel_counts(raw: Any) -> dict[str, tuple[int, int]]:
         if not isinstance(row, dict):
             raise LndUnavailable("listchannels failed")
         pubkey = _pubkey(row.get("remote_pubkey"))
-        active = row.get("active")
-        if pubkey is None or not isinstance(active, bool):
+        active = _active(row.get("active"))
+        if pubkey is None or active is None:
             raise LndUnavailable("listchannels failed")
         num, active_num = counts.get(pubkey, (0, 0))
         num += 1

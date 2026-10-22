@@ -71,6 +71,14 @@ def test_connected_peer_converts_ping() -> None:
     assert reader.calls == ["list_peers", "list_channels"]
 
 
+def test_omitted_active_is_not_counted_active() -> None:
+    peers_raw, channels = _payloads()
+    del channels["channels"][0]["active"]
+    out = peers.handle_request(b"{}", _Reader(peers_raw, channels))
+    assert out["peers"][0]["num_channels"] == 1
+    assert out["peers"][0]["active_channels"] == 0
+
+
 def test_list_channels_not_called_when_list_peers_raises() -> None:
     class Boom:
         def __init__(self) -> None:

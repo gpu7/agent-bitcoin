@@ -37,9 +37,9 @@ The listing name is `btc-usd` and the description says “Bitcoin price”, so b
 
 The origin also serves `GET https://agent-bitcoin.net/.well-known/l402-services` (`Content-Type: application/json`, HTTP 200, no payment). The document is [`l402/well-known/l402-services.json`](../l402/well-known/l402-services.json). It lists the public paid tools a buyer can call. Add a public endpoint there after a paid call returns a handler success. Price stays 100 sats.
 
-The 2026-10-22 catalog adds these to the original eight finance tools: `btc-address-validate`, `l402-challenge-inspect`, `btc-fee-estimate`, `btc-chain-status`, `btc-network-info`, `btc-mempool-info`, `btc-peer-info`, `btc-difficulty`, `btc-block-tip`, `btc-block-header`, `btc-tx-summary`, `btc-address-balance`, `btc-uptime`, `btc-deployment-info`, `btc-mining-info`, `btc-mempool-fees`, `btc-chain-tips`, `ln-invoice-inspect`, `ln-path-estimate`, `nostr-node-link`, `nip05-verify`, `nostr-profile-summary`, `event-verify`, `npub-decode`, `ln-preimage-verify`, `ln-pay-check`, `ln-address-resolve`, `ln-route-options`, and `ln-invoice-amount-check`.
+The 2026-10-22 catalog adds these to the original eight finance tools: `btc-address-validate`, `l402-challenge-inspect`, `ln-channel-stats`, `btc-fee-estimate`, `btc-chain-status`, `btc-network-info`, `btc-mempool-info`, `btc-peer-info`, `ln-node-info`, `btc-difficulty`, `btc-block-tip`, `btc-block-header`, `btc-tx-summary`, `btc-address-balance`, `btc-uptime`, `btc-deployment-info`, `btc-mining-info`, `btc-mempool-fees`, `btc-chain-tips`, `ln-invoice-inspect`, `ln-channel-liquidity`, `ln-peer-status`, `ln-path-estimate`, `nostr-node-link`, `nip05-verify`, `nostr-profile-summary`, `event-verify`, `npub-decode`, `ln-channel-policy`, `ln-invoice-create`, `ln-preimage-verify`, `ln-pay-check`, `ln-node-card`, `ln-address-resolve`, `ln-payee-liquidity-hint`, `ln-route-options`, `ln-invoice-amount-check`, and `ln-channel-reserve-check`.
 
-Left out after a paid call returned an error: `ln-channel-stats` (HTTP 503 `lnd_unavailable`), `ln-node-info` (HTTP 503 `lnd_unavailable`), `ln-channel-liquidity` (HTTP 503 `lnd_unavailable`), `ln-peer-status` (HTTP 503 `lnd_unavailable`), `ln-payment-status` (HTTP 503 `lnd_unavailable`), `ln-channel-policy` (HTTP 503 `lnd_unavailable`), `ln-invoice-create` (HTTP 503 `lnd_unavailable`), `ln-node-card` (HTTP 503 `lnd_unavailable`), `ln-payee-liquidity-hint` (HTTP 503 `lnd_unavailable`), and `ln-channel-reserve-check` (HTTP 503 `lnd_unavailable`). Those routes stay deployed. They go in this document after a later paid call succeeds.
+Left out after a paid call returned an error: `ln-payment-status` (HTTP 503 `lnd_unavailable`). That route stays deployed. It goes in this document after a later paid call succeeds.
 
 The existing Caddy reverse proxy forwards the path to Aperture, which leaves it free alongside `/health`, and the origin returns the JSON. This repo does not call 402index. A new row shows up in search only after an operator registers it, or after a later crawl reads this file. `./register-402index.sh` registers every service, and `./register-402index.sh btc-network-info` registers only that short name.
 
@@ -307,7 +307,7 @@ uv run python examples/l402_pay.py \
 
 Job: read-only counts and balances from the operator LND `ListChannels`. Returns `num_active`, `num_inactive`, `total_capacity_sats`, `total_local_balance_sats`, `total_remote_balance_sats`, and up to eight active rows with `channel_point` and `peer_alias` only. Does **not** unlock, open, close, or pay. **100 sats**. 402index category: `lightning`.
 
-The origin macaroon must include `uri:/lnrpc.Lightning/ListChannels` in addition to QueryRoutes and DecodePayReq. Until that permission is baked, this route returns HTTP 503.
+A down node returns HTTP 503.
 
 ```bash
 uv run python examples/l402_pay.py \
@@ -318,7 +318,7 @@ uv run python examples/l402_pay.py \
 
 Job: read-only node card from the operator LND `GetInfo`. Returns `alias`, `identity_pubkey` (the public node id), `num_active_channels`, `num_peers`, `block_height`, `synced_to_chain`, and `version`. Does **not** unlock, open, close, or pay. **100 sats**. 402index category: `lightning`.
 
-A down node, or a macaroon without `uri:/lnrpc.Lightning/GetInfo`, returns HTTP 503.
+A down node returns HTTP 503.
 
 ```bash
 uv run python examples/l402_pay.py \
@@ -393,7 +393,7 @@ uv run python examples/l402_pay.py \
 
 ### POST `/paid/lightning/ln-invoice-create`
 
-Job: one LND `AddInvoice`. Body `{"amount_sats":1000,"description":"agent invoice"}`. `amount_sats` is an integer from 100 through 50000. Returns `payment_request`, `payment_hash`, and `expiry`. This call **only creates an invoice**. It does **not** pay, settle, or unlock the wallet. The caller cannot set expiry. **100 sats**. 402index category: `lightning`. Until the macaroon includes `AddInvoice`, this route returns HTTP 503.
+Job: one LND `AddInvoice`. Body `{"amount_sats":1000,"description":"agent invoice"}`. `amount_sats` is an integer from 100 through 50000. Returns `payment_request`, `payment_hash`, and `expiry`. This call **only creates an invoice**. It does **not** pay, settle, or unlock the wallet. The caller cannot set expiry. **100 sats**. 402index category: `lightning`. A down node returns HTTP 503.
 
 ```bash
 uv run python examples/l402_pay.py \
@@ -426,7 +426,7 @@ uv run python examples/l402_pay.py \
 
 ### POST `/paid/lightning/ln-node-card`
 
-Job: one LND `GetNodeInfo` for a public node. Body `{"pubkey":"<66 hex>"}`. Returns `alias`, `num_channels`, `total_capacity_sats`, `last_update`, and up to four shortened addresses. Read-only. The full pubkey is not returned. **100 sats**. 402index category: `lightning`. This route needs `GetNodeInfo` on the origin macaroon. That permission is a separate operator step. Until an operator approves it and rebakes, this route returns HTTP 503.
+Job: one LND `GetNodeInfo` for a public node. Body `{"pubkey":"<66 hex>"}`. Returns `alias`, `num_channels`, `total_capacity_sats`, `last_update`, and up to four shortened addresses. Read-only. The full pubkey is not returned. **100 sats**. 402index category: `lightning`. A down node returns HTTP 503.
 
 ```bash
 uv run python examples/l402_pay.py \
@@ -448,7 +448,7 @@ uv run python examples/l402_pay.py \
 
 ### POST `/paid/lightning/ln-payee-liquidity-hint`
 
-Job: one LND `GetNodeInfo` with public channels. Body `{"pubkey":"<66 hex>","amount_sats":1000}`. Returns `hint`, `total_capacity_sats`, `capacity_covers_amount`, and a fee range from the payee's public policies when those policies exist. The note is `Public graph capacity. Not channel balances.` This is **not** a channel balance. **100 sats**. 402index category: `lightning`. This route needs `GetNodeInfo` on the origin macaroon. That permission is a separate operator step. Until an operator approves it and rebakes, this route returns HTTP 503.
+Job: one LND `GetNodeInfo` with public channels. Body `{"pubkey":"<66 hex>","amount_sats":1000}`. Returns `hint`, `total_capacity_sats`, `capacity_covers_amount`, and a fee range from the payee's public policies when those policies exist. The note is `Public graph capacity. Not channel balances.` This is **not** a channel balance. **100 sats**. 402index category: `lightning`. A down node returns HTTP 503.
 
 ```bash
 uv run python examples/l402_pay.py \
@@ -481,7 +481,7 @@ uv run python examples/l402_pay.py \
 
 ### POST `/paid/lightning/ln-channel-reserve-check`
 
-Job: one LND `ListChannels` for a peer. Body `{"peer_pubkey":"<66 hex>","amount_sats":1000}`. Returns `sufficient_local`, `sufficient_remote`, `local_balance`, `remote_balance`, `local_reserve`, `remote_reserve`, and `active`. Read-only. Does **not** pay or open a channel. The full pubkey is not returned. **100 sats**. 402index category: `lightning`. Until the macaroon includes `ListChannels`, this route returns HTTP 503.
+Job: one LND `ListChannels` for a peer. Body `{"peer_pubkey":"<66 hex>","amount_sats":1000}`. Returns `sufficient_local`, `sufficient_remote`, `local_balance`, `remote_balance`, `local_reserve`, `remote_reserve`, and `active`. Read-only. Does **not** pay or open a channel. The full pubkey is not returned. **100 sats**. 402index category: `lightning`. A down node returns HTTP 503.
 
 ```bash
 uv run python examples/l402_pay.py \

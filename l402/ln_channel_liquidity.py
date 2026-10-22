@@ -61,6 +61,15 @@ def _object(raw: bytes) -> dict[str, Any]:
     return data
 
 
+def _active(value: Any) -> bool | None:
+    """Protobuf omits false. Any other type is unreadable."""
+    if value is None:
+        return False
+    if isinstance(value, bool):
+        return value
+    return None
+
+
 def _uint(value: Any, cap: int) -> int | None:
     if isinstance(value, bool):
         return None
@@ -106,13 +115,13 @@ def _row(row: Any) -> tuple[str, dict[str, Any]]:
     capacity = _uint(row.get("capacity"), _CAP)
     local = _uint(row.get("local_balance"), _CAP)
     remote = _uint(row.get("remote_balance"), _CAP)
-    active = row.get("active")
+    active = _active(row.get("active"))
     if (
         pubkey is None
         or capacity is None
         or local is None
         or remote is None
-        or not isinstance(active, bool)
+        or active is None
     ):
         raise LndUnavailable("listchannels failed")
     return pubkey, {

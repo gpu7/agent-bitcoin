@@ -57,6 +57,40 @@ def test_settled_invoice_is_succeeded() -> None:
     assert reader.calls == ["lookup_invoice"]
 
 
+def test_lookup_not_found_code_is_payment_not_found() -> None:
+    class _Status:
+        def __init__(self, name: str) -> None:
+            self.name = name
+
+    class _Missing(Exception):
+        def code(self) -> _Status:
+            return _Status("NOT_FOUND")
+
+    class _Denied(Exception):
+        def code(self) -> _Status:
+            return _Status("PERMISSION_DENIED")
+
+    with pytest.raises(status_mod.PaymentNotFound):
+        status_mod._classify_lookup(_Missing())
+    with pytest.raises(status_mod.LndUnavailable):
+        status_mod._classify_lookup(_Denied())
+
+
+def test_omitted_open_state_is_pending() -> None:
+    reader = _Reader(
+        {
+            "value_msat": "1000000",
+            "creation_date": "1710000000",
+            "payment_request": _INVOICE,
+        }
+    )
+    out = status_mod.handle_request(
+        json.dumps({"payment_hash": _HASH}).encode(), reader
+    )
+    assert out["status"] == "pending"
+    assert _INVOICE not in json.dumps(out)
+
+
 def test_unknown_hash_is_not_found() -> None:
     reader = _Reader(RuntimeError("unable to locate invoice"))
     with pytest.raises(status_mod.PaymentNotFound):

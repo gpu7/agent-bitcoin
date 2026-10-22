@@ -70,6 +70,25 @@ def test_active_and_inactive_totals() -> None:
     assert reader.calls == 1
 
 
+def test_omitted_active_is_inactive() -> None:
+    out = stats.handle_request(
+        _Reader(
+            {
+                "channels": [
+                    {
+                        "capacity": "1000",
+                        "local_balance": "1",
+                        "remote_balance": "2",
+                    }
+                ]
+            }
+        )
+    )
+    assert out["num_active"] == 0
+    assert out["num_inactive"] == 1
+    assert out["channels"] == []
+
+
 def test_empty_channels() -> None:
     out = stats.handle_request(_Reader({"channels": []}))
     assert out == {

@@ -100,6 +100,14 @@ def test_missing_reserve_counts_as_zero() -> None:
     assert out["active"] is False
 
 
+def test_omitted_active_is_false() -> None:
+    raw = _channels()
+    for row in raw["channels"]:
+        row.pop("active", None)
+    out = reserve.handle_request(_body(100), _Reader(raw))
+    assert out["active"] is False
+
+
 def test_amount_below_floor_does_not_call_list_channels() -> None:
     reader = _Reader(_channels())
     with pytest.raises(reserve.BadAmount):
