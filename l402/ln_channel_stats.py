@@ -33,6 +33,15 @@ def _as_dict(msg: Any) -> dict[str, Any]:
     return MessageToDict(msg, preserving_proto_field_name=True)
 
 
+def _active(value: Any) -> bool | None:
+    """Protobuf omits false. Any other type is unreadable."""
+    if value is None:
+        return False
+    if isinstance(value, bool):
+        return value
+    return None
+
+
 def _sats(value: Any) -> int | None:
     if isinstance(value, bool):
         return None
@@ -86,8 +95,8 @@ def summarize(raw: Any) -> dict[str, Any]:
     for row in rows:
         if not isinstance(row, dict):
             raise LndUnavailable("listchannels failed")
-        flag = row.get("active")
-        if not isinstance(flag, bool):
+        flag = _active(row.get("active"))
+        if flag is None:
             raise LndUnavailable("listchannels failed")
         cap = _sats(row.get("capacity"))
         loc = _sats(row.get("local_balance"))

@@ -63,6 +63,15 @@ def _object(raw: bytes) -> dict[str, Any]:
     return data
 
 
+def _active(value: Any) -> bool | None:
+    """Protobuf omits false. Any other type is unreadable."""
+    if value is None:
+        return False
+    if isinstance(value, bool):
+        return value
+    return None
+
+
 def _uint(value: Any, cap: int) -> int | None:
     if isinstance(value, bool):
         return None
@@ -105,13 +114,9 @@ def _row(row: Any) -> tuple[str, dict[str, Any]]:
     if not isinstance(row, dict):
         raise LndUnavailable("listchannels failed")
     pubkey = _pubkey(row.get("remote_pubkey"))
-    active = row.get("active")
+    active = _active(row.get("active"))
     constraints = row.get("local_constraints")
-    if (
-        pubkey is None
-        or not isinstance(active, bool)
-        or not isinstance(constraints, dict)
-    ):
+    if pubkey is None or active is None or not isinstance(constraints, dict):
         raise LndUnavailable("listchannels failed")
     minimum = _uint(constraints.get("min_htlc_msat"), _CAP)
     maximum = _uint(constraints.get("max_pending_amt_msat"), _CAP)

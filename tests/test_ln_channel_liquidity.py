@@ -70,6 +70,23 @@ def test_filter_returns_one_short_row() -> None:
     assert reader.calls == ["list_channels"]
 
 
+def test_omitted_active_is_false() -> None:
+    reader = _Reader(
+        {
+            "channels": [
+                {
+                    "remote_pubkey": _PEER,
+                    "capacity": 10,
+                    "local_balance": 4,
+                    "remote_balance": 6,
+                }
+            ]
+        }
+    )
+    out = liq.handle_request(b"{}", reader)
+    assert out["channels"][0]["active"] is False
+
+
 def test_invalid_pubkey_does_not_call_list_channels() -> None:
     reader = _Reader(_channels())
     with pytest.raises(liq.BadPubkey):

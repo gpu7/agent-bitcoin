@@ -128,6 +128,18 @@ def _status(value: Any) -> str | None:
     return _STATUS.get(value.strip().upper())
 
 
+def _invoice_status(data: dict[str, Any]) -> str | None:
+    """OPEN is the protobuf default, so a new invoice omits state."""
+    if "state" in data and data["state"] not in (None, ""):
+        return _status(data["state"])
+    settled = data.get("settled")
+    if settled is True:
+        return "succeeded"
+    if settled is False or "state" not in data:
+        return "pending"
+    return None
+
+
 def _value_msat(data: dict[str, Any]) -> int | None:
     if "value_msat" in data and data["value_msat"] not in (None, ""):
         return _uint(data["value_msat"], _CAP)
@@ -144,7 +156,23 @@ def _value_msat(data: dict[str, Any]) -> int | None:
 
 def _unknown(exc: BaseException) -> bool:
     text = str(exc).lower()
+    code = ""
+    get_code = getattr(exc, "code", None)
+    if callable(get_code):
+        try:
+            code = str(getattr(get_code(), "name", "") or "")
+        except Exception:
+            code = ""
+    if code == "NOT_FOUND" or "not_found" in text:
+        return True
     return "not found" in text or "unable to locate" in text
+
+
+def _classify_lookup(exc: BaseException) -> None:
+    """NOT_FOUND is a missing invoice. Every other RPC error is unavailable."""
+    if _unknown(exc):
+        raise PaymentNotFound("payment not found") from exc
+    raise LndUnavailable("lookupinvoice failed") from exc
 
 
 def payment_status(raw: Any) -> dict[str, Any]:
@@ -153,7 +181,7 @@ def payment_status(raw: Any) -> dict[str, Any]:
         data = _as_dict(raw)
     except Exception as exc:
         raise LndUnavailable("lookupinvoice failed") from exc
-    status = _status(data.get("state"))
+    status = _invoice_status(data)
     value = _value_msat(data)
     created = _uint(data.get("creation_date"), _MAX_DATE)
     if status is None or value is None or created is None:
@@ -179,7 +207,21 @@ class _Grpc:
         self._raw = raw
 
     def lookup_invoice(self, payment_hash: str) -> dict[str, Any]:
-        return _as_dict(self._call("lookup_invoice", payment_hash))
+        """Call the stub directly. The client decorator drops NOT_FOUND."""
+        try:
+            from lndgrpc.common import ln
+        except ImportError as exc:
+            raise LndUnavailable("lookupinvoice failed") from exc
+        stub = getattr(self._raw, "_ln_stub", None)
+        if stub is None or not hasattr(stub, "LookupInvoice"):
+            raise LndUnavailable("lookupinvoice failed")
+        try:
+            raw = stub.LookupInvoice(ln.PaymentHash(r_hash_str=payment_hash))
+        except Exception as exc:
+            _classify_lookup(exc)
+        if raw is None:
+            raise PaymentNotFound("payment not found")
+        return _as_dict(raw)
 
     def _call(self, name: str, *args: Any, **kwargs: Any) -> Any:
         if name not in _ALLOWED:

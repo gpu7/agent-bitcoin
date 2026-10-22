@@ -6,6 +6,8 @@ A second paid pass added `btc-address-balance`, `ln-invoice-inspect`, `ln-path-e
 
 A follow-up paid pass added `btc-deployment-info`, `btc-mining-info`, `btc-tx-summary`, and `l402-challenge-inspect`.
 
+A Lightning paid pass added `ln-channel-stats`, `ln-node-info`, `ln-channel-liquidity`, `ln-peer-status`, `ln-channel-policy`, `ln-invoice-create`, `ln-node-card`, `ln-payee-liquidity-hint`, and `ln-channel-reserve-check`. `ln-payment-status` stayed out after HTTP 503 `lnd_unavailable`.
+
 ---
 
 ## Changed — more agent payment helpers (2026-10-21)

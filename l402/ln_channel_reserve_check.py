@@ -113,6 +113,15 @@ def _parse(raw: bytes) -> tuple[str, int]:
     return pubkey, _amount(data.get("amount_sats"))
 
 
+def _active(value: Any) -> bool | None:
+    """Protobuf omits false. Any other type is unreadable."""
+    if value is None:
+        return False
+    if isinstance(value, bool):
+        return value
+    return None
+
+
 def _balance(row: dict[str, Any], key: str) -> int:
     if key not in row or row[key] in (None, ""):
         raise LndUnavailable("listchannels failed")
@@ -136,8 +145,8 @@ def _check(row: dict[str, Any], amount: int) -> dict[str, Any]:
     remote = _balance(row, "remote_balance")
     local_reserve = _reserve(row, "local_chan_reserve_sat")
     remote_reserve = _reserve(row, "remote_chan_reserve_sat")
-    active = row.get("active")
-    if not isinstance(active, bool):
+    active = _active(row.get("active"))
+    if active is None:
         raise LndUnavailable("listchannels failed")
     return {
         "sufficient_local": local >= amount + local_reserve,

@@ -64,6 +64,13 @@ def test_constraints_omit_fee_fields() -> None:
     assert reader.calls == ["list_channels"]
 
 
+def test_omitted_active_is_false() -> None:
+    raw = _channels()
+    del raw["channels"][0]["active"]
+    out = policy.handle_request(b"{}", _Reader(raw))
+    assert out["channels"][0]["active"] is False
+
+
 def test_invalid_pubkey_does_not_call_list_channels() -> None:
     reader = _Reader(_channels())
     with pytest.raises(policy.BadPubkey):

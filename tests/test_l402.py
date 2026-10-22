@@ -320,6 +320,13 @@ def test_well_known_l402_services_is_public_json() -> None:
             "description": "Inspect a remote L402 challenge. Returns price, expiry, and payee. Does not pay. Lightning L402.",
         },
         {
+            "url": "https://agent-bitcoin.net/paid/lightning/ln-channel-stats",
+            "name": "agent-bitcoin: ln-channel-stats",
+            "method": "GET",
+            "price_sats": 100,
+            "description": "Lightning channel counts and balances from the operator LND. Read-only. Lightning L402.",
+        },
+        {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-fee-estimate",
             "name": "agent-bitcoin: btc-fee-estimate",
             "method": "GET",
@@ -353,6 +360,13 @@ def test_well_known_l402_services_is_public_json() -> None:
             "method": "GET",
             "price_sats": 100,
             "description": "Bitcoin Core peer count and a short address list from the operator bitcoind. Read-only. Lightning L402.",
+        },
+        {
+            "url": "https://agent-bitcoin.net/paid/lightning/ln-node-info",
+            "name": "agent-bitcoin: ln-node-info",
+            "method": "GET",
+            "price_sats": 100,
+            "description": "Read-only LND GetInfo summary: alias, public node id, active channels, peers, height, sync, and version. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-difficulty",
@@ -432,6 +446,20 @@ def test_well_known_l402_services_is_public_json() -> None:
             "description": "LND decode of one BOLT11 invoice. Read-only. Lightning L402.",
         },
         {
+            "url": "https://agent-bitcoin.net/paid/lightning/ln-channel-liquidity",
+            "name": "agent-bitcoin: ln-channel-liquidity",
+            "method": "POST",
+            "price_sats": 100,
+            "description": "LND channel balances for the operator node. Read-only. Lightning L402.",
+        },
+        {
+            "url": "https://agent-bitcoin.net/paid/lightning/ln-peer-status",
+            "name": "agent-bitcoin: ln-peer-status",
+            "method": "POST",
+            "price_sats": 100,
+            "description": "LND peer connection status for the operator node. Read-only. Lightning L402.",
+        },
+        {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-path-estimate",
             "name": "agent-bitcoin: ln-path-estimate",
             "method": "POST",
@@ -474,6 +502,20 @@ def test_well_known_l402_services_is_public_json() -> None:
             "description": "Decode a Nostr npub, note, nprofile, or nevent to hex. Rejects nsec. Lightning L402.",
         },
         {
+            "url": "https://agent-bitcoin.net/paid/lightning/ln-channel-policy",
+            "name": "agent-bitcoin: ln-channel-policy",
+            "method": "POST",
+            "price_sats": 100,
+            "description": "LND local channel policy from listchannels. Read-only. Lightning L402.",
+        },
+        {
+            "url": "https://agent-bitcoin.net/paid/lightning/ln-invoice-create",
+            "name": "agent-bitcoin: ln-invoice-create",
+            "method": "POST",
+            "price_sats": 100,
+            "description": "Create one Lightning invoice on the operator LND. Does not pay. Lightning L402.",
+        },
+        {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-preimage-verify",
             "name": "agent-bitcoin: ln-preimage-verify",
             "method": "POST",
@@ -488,11 +530,25 @@ def test_well_known_l402_services_is_public_json() -> None:
             "description": "Decide whether one invoice or destination is payable. Does not pay. Lightning L402.",
         },
         {
+            "url": "https://agent-bitcoin.net/paid/lightning/ln-node-card",
+            "name": "agent-bitcoin: ln-node-card",
+            "method": "POST",
+            "price_sats": 100,
+            "description": "Public graph card for one Lightning node. Read-only. Lightning L402.",
+        },
+        {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-address-resolve",
             "name": "agent-bitcoin: ln-address-resolve",
             "method": "POST",
             "price_sats": 100,
             "description": "Read a Lightning address pay range. Does not request an invoice. Lightning L402.",
+        },
+        {
+            "url": "https://agent-bitcoin.net/paid/lightning/ln-payee-liquidity-hint",
+            "name": "agent-bitcoin: ln-payee-liquidity-hint",
+            "method": "POST",
+            "price_sats": 100,
+            "description": "Public graph capacity hint for one payee. Not channel balances. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-route-options",
@@ -507,6 +563,13 @@ def test_well_known_l402_services_is_public_json() -> None:
             "method": "POST",
             "price_sats": 100,
             "description": "LND check of whether an invoice amount is open or fixed. Read-only. Lightning L402.",
+        },
+        {
+            "url": "https://agent-bitcoin.net/paid/lightning/ln-channel-reserve-check",
+            "name": "agent-bitcoin: ln-channel-reserve-check",
+            "method": "POST",
+            "price_sats": 100,
+            "description": "LND channel reserve check for one peer. Read-only. Lightning L402.",
         },
     ]
     paid = (
