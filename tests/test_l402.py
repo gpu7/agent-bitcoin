@@ -313,6 +313,13 @@ def test_well_known_l402_services_is_public_json() -> None:
             "description": "Check a Bitcoin address. Returns network and type, or a short reason if invalid. Lightning L402.",
         },
         {
+            "url": "https://agent-bitcoin.net/paid/security/l402-challenge-inspect",
+            "name": "agent-bitcoin: l402-challenge-inspect",
+            "method": "POST",
+            "price_sats": 100,
+            "description": "Inspect a remote L402 challenge. Returns price, expiry, and payee. Does not pay. Lightning L402.",
+        },
+        {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-fee-estimate",
             "name": "agent-bitcoin: btc-fee-estimate",
             "method": "GET",
@@ -369,6 +376,13 @@ def test_well_known_l402_services_is_public_json() -> None:
             "description": "Bitcoin Core block header for one height from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
+            "url": "https://agent-bitcoin.net/paid/bitcoin/btc-tx-summary",
+            "name": "agent-bitcoin: btc-tx-summary",
+            "method": "GET",
+            "price_sats": 100,
+            "description": "Bitcoin Core transaction size, confirmations, and mempool fee for one txid from the operator bitcoind. Read-only. Lightning L402.",
+        },
+        {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-address-balance",
             "name": "agent-bitcoin: btc-address-balance",
             "method": "POST",
@@ -381,6 +395,20 @@ def test_well_known_l402_services_is_public_json() -> None:
             "method": "GET",
             "price_sats": 100,
             "description": "Bitcoin Core uptime and version from the operator bitcoind. Read-only. Lightning L402.",
+        },
+        {
+            "url": "https://agent-bitcoin.net/paid/bitcoin/btc-deployment-info",
+            "name": "agent-bitcoin: btc-deployment-info",
+            "method": "GET",
+            "price_sats": 100,
+            "description": "Bitcoin Core active soft-fork status from the operator bitcoind. Read-only. Lightning L402.",
+        },
+        {
+            "url": "https://agent-bitcoin.net/paid/bitcoin/btc-mining-info",
+            "name": "agent-bitcoin: btc-mining-info",
+            "method": "GET",
+            "price_sats": 100,
+            "description": "Bitcoin Core mining summary from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-mempool-fees",

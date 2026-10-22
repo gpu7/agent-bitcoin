@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
@@ -67,6 +68,14 @@ def test_bad_difficulty_or_hashrate() -> None:
     hashrate = _Caller(_info(networkhashps=-1))
     with pytest.raises(mine.BitcoindUnavailable):
         mine.handle_request(hashrate)
+
+
+def test_large_integral_hashrate_stays_an_int() -> None:
+    rate = 10**21
+    caller = _Caller(_info(networkhashps=Decimal(rate)))
+    out = mine.handle_request(caller)
+    assert out["networkhashps"] == rate
+    assert type(out["networkhashps"]) is int
 
 
 def test_rpc_error_hides_text() -> None:

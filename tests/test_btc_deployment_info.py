@@ -1,4 +1,4 @@
-"""GET /paid/bitcoin/btc-deployment-info. Mock getblockchaininfo."""
+"""GET /paid/bitcoin/btc-deployment-info. Mock getdeploymentinfo."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from l402.origin import dispatch
 
 _ROUTE = "/paid/bitcoin/btc-deployment-info"
 _CHAIN = "regtest-secret-chain"
+_HASH = "ab" * 32
 
 
 class _Caller:
@@ -22,7 +23,7 @@ class _Caller:
 
     def __call__(self, method: str, params: list[Any]) -> Any:
         self.calls.append((method, list(params)))
-        if method == "getblockchaininfo":
+        if method == "getdeploymentinfo":
             return self.info
         raise AssertionError(method)
 
@@ -31,7 +32,9 @@ def _info(**overrides: object) -> dict[str, Any]:
     raw: dict[str, Any] = {
         "chain": _CHAIN,
         "blocks": 920000,
-        "softforks": {
+        "hash": _HASH,
+        "height": 920000,
+        "deployments": {
             "segwit": {"type": "buried", "active": True, "height": 481824},
             "csv": {"type": "buried", "height": 419328},
             "taproot": {
@@ -66,6 +69,7 @@ def _assert_dropped(dumped: str) -> None:
     assert "start_time" not in dumped
     assert "csv" not in dumped
     assert _CHAIN not in dumped
+    assert _HASH not in dumped
     assert "920000" not in dumped
 
 
@@ -78,25 +82,25 @@ def test_active_forks_keep_name_status_and_height() -> None:
             {"name": "taproot", "status": "active", "height": 709632},
         ]
     }
-    assert caller.calls == [("getblockchaininfo", [])]
+    assert caller.calls == [("getdeploymentinfo", [])]
     _assert_dropped(json.dumps(out))
 
 
 def test_warnings_string_becomes_one_element() -> None:
-    caller = _Caller(_info(softforks={}, warnings="  reindex  "))
+    caller = _Caller(_info(deployments={}, warnings="  reindex  "))
     out = dep.handle_request(caller)
     assert out == {"softforks": [], "warnings": ["reindex"]}
 
 
 def test_empty_warning_string_omits_the_key() -> None:
-    caller = _Caller(_info(softforks={}, warnings="   "))
+    caller = _Caller(_info(deployments={}, warnings="   "))
     out = dep.handle_request(caller)
     assert out == {"softforks": []}
     assert "warnings" not in out
 
 
 def test_warning_array_keeps_two() -> None:
-    caller = _Caller(_info(softforks={}, warnings=[" first ", "second"]))
+    caller = _Caller(_info(deployments={}, warnings=[" first ", "second"]))
     out = dep.handle_request(caller)
     assert out["warnings"] == ["first", "second"]
 
@@ -104,7 +108,7 @@ def test_warning_array_keeps_two() -> None:
 def test_height_prefers_height_then_activation_then_since() -> None:
     activation = _Caller(
         _info(
-            softforks={
+            deployments={
                 "taproot": {
                     "active": True,
                     "bip9": {
@@ -123,7 +127,7 @@ def test_height_prefers_height_then_activation_then_since() -> None:
 
     since = _Caller(
         _info(
-            softforks={
+            deployments={
                 "csv": {"active": True, "bip9": {"status": "active", "since": 419328}}
             }
         )
@@ -131,7 +135,7 @@ def test_height_prefers_height_then_activation_then_since() -> None:
     out = dep.handle_request(since)
     assert out["softforks"] == [{"name": "csv", "status": "active", "height": 419328}]
 
-    buried = _Caller(_info(softforks={"segwit": {"active": True}}))
+    buried = _Caller(_info(deployments={"segwit": {"active": True}}))
     out = dep.handle_request(buried)
     assert out["softforks"] == [{"name": "segwit", "status": "active"}]
     assert "height" not in out["softforks"][0]
@@ -140,7 +144,7 @@ def test_height_prefers_height_then_activation_then_since() -> None:
 def test_softfork_array_uses_the_name_field() -> None:
     caller = _Caller(
         _info(
-            softforks=[
+            deployments=[
                 {"name": "segwit", "active": True, "height": 481824},
                 {"name": "testdummy", "active": False},
             ]
@@ -154,13 +158,13 @@ def test_softfork_array_uses_the_name_field() -> None:
 
 
 def test_bad_active_height_or_warning() -> None:
-    active = _Caller(_info(softforks={"segwit": {"active": 1, "height": 481824}}))
+    active = _Caller(_info(deployments={"segwit": {"active": 1, "height": 481824}}))
     with pytest.raises(dep.BitcoindUnavailable):
         dep.handle_request(active)
 
     height = _Caller(
         _info(
-            softforks={
+            deployments={
                 "segwit": {
                     "active": True,
                     "height": True,
@@ -174,7 +178,7 @@ def test_bad_active_height_or_warning() -> None:
 
     other = _Caller(
         _info(
-            softforks={
+            deployments={
                 "taproot": {
                     "active": True,
                     "height": 709632,
@@ -186,27 +190,27 @@ def test_bad_active_height_or_warning() -> None:
     with pytest.raises(dep.BitcoindUnavailable):
         dep.handle_request(other)
 
-    warning = _Caller(_info(softforks={}, warnings="node \x00 down"))
+    warning = _Caller(_info(deployments={}, warnings="node \x00 down"))
     with pytest.raises(dep.BitcoindUnavailable):
         dep.handle_request(warning)
 
-    entry = _Caller(_info(softforks={}, warnings=["ok", 1]))
+    entry = _Caller(_info(deployments={}, warnings=["ok", 1]))
     with pytest.raises(dep.BitcoindUnavailable):
         dep.handle_request(entry)
 
 
 def test_more_than_16_active_forks_is_unavailable() -> None:
     forks = {f"f{i}": {"active": True, "height": i} for i in range(17)}
-    caller = _Caller(_info(softforks=forks))
+    caller = _Caller(_info(deployments=forks))
     with pytest.raises(dep.BitcoindUnavailable):
         dep.handle_request(caller)
 
 
-def test_missing_softforks_is_unavailable() -> None:
+def test_missing_deployments_is_unavailable() -> None:
     caller = _Caller({"blocks": 1})
     with pytest.raises(dep.BitcoindUnavailable):
         dep.handle_request(caller)
-    assert caller.calls == [("getblockchaininfo", [])]
+    assert caller.calls == [("getdeploymentinfo", [])]
 
 
 def test_rpc_error_hides_text() -> None:
@@ -222,7 +226,7 @@ def test_rpc_error_hides_text() -> None:
     calls: list[tuple[str, list[Any]]] = []
     with pytest.raises(dep.BitcoindUnavailable) as raised:
         dep.handle_request(caller)
-    assert calls == [("getblockchaininfo", [])]
+    assert calls == [("getdeploymentinfo", [])]
     assert str(raised.value) == "bitcoind unavailable"
     assert "SECRET" not in str(raised.value)
 
@@ -238,13 +242,13 @@ def test_transport_error_hides_secret() -> None:
 
 
 def test_allowlist() -> None:
-    dep._allow("getblockchaininfo", [])
+    dep._allow("getdeploymentinfo", [])
     with pytest.raises(dep.BitcoindUnavailable):
-        dep._allow("getdeploymentinfo", [])
+        dep._allow("getblockchaininfo", [])
     with pytest.raises(dep.BitcoindUnavailable):
         dep._allow("listunspent", [])
     with pytest.raises(dep.BitcoindUnavailable):
-        dep._allow("getblockchaininfo", [1])
+        dep._allow("getdeploymentinfo", [1])
 
 
 def test_dispatch_returns_forks(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -255,7 +259,7 @@ def test_dispatch_returns_forks(monkeypatch: pytest.MonkeyPatch) -> None:
     assert content_type == "application/json"
     body = json.loads(raw)
     assert body["softforks"][0]["name"] == "segwit"
-    assert caller.calls == [("getblockchaininfo", [])]
+    assert caller.calls == [("getdeploymentinfo", [])]
 
 
 def test_post_is_405(monkeypatch: pytest.MonkeyPatch) -> None:

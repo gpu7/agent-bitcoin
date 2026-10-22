@@ -4,6 +4,8 @@ Advertise the L402 tools whose paid check returned a handler success. Price stay
 
 A second paid pass added `btc-address-balance`, `ln-invoice-inspect`, `ln-path-estimate`, `nostr-node-link`, `nip05-verify`, `ln-pay-check`, `ln-address-resolve`, `ln-route-options`, and `ln-invoice-amount-check`.
 
+A follow-up paid pass added `btc-deployment-info`, `btc-mining-info`, `btc-tx-summary`, and `l402-challenge-inspect`.
+
 ---
 
 ## Changed — more agent payment helpers (2026-10-21)
