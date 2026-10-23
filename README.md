@@ -294,11 +294,11 @@ Mac map: [localhost-dashboard.md](docs/localhost-dashboard.md)
 
 ## Dashboard
 
-Currently, the Dashboard is for internal system administration only.  The Dashboard is a read-only map of the agent-bitcoin infrastructure. It shows Bitcoin, the Lightning channel, the payer and invoice agents, Nostr, Aperture, and the Merchant origin. It does not pay, unlock a wallet, or open a channel.
+Currently, the Dashboard is for internal system administration only.  The Dashboard is a read-only map of the agent-bitcoin infrastructure. It shows Bitcoin, the Lightning channels, the payer and invoice agents, Nostr, Aperture, and the Merchant origin. It does not pay, unlock a wallet, or open a channel.
 
 The Bitcoin panel shows blocks, headers, and progress on separate lines.
 
-The channel panel lists every channel from the Mac LND and the AWS LND, including inactive channels. Each line shows the peer, active or inactive, capacity, and local and remote balance.
+The Lightning channels panel lists every channel from the Mac LND and the AWS LND, including inactive channels. Each channel is its own block: peer, Active or Inactive, capacity, outbound, and inbound, with a blank line between channels.
 
 Payer, Invoice, Aperture, and Nostr details now use separate lines.
 

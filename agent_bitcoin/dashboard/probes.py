@@ -52,11 +52,13 @@ class CommandRejected(RuntimeError):
     """A probe asked for a command this dashboard does not run."""
 
 
-def scrub(text: str, limit: int = 140) -> str:
+def scrub(text: str, limit: int = 140, *, keep_blank: bool = False) -> str:
     """Drop secrets. Spaces on each line collapse. Line breaks stay."""
     cleaned = _SECRET_RE.sub("[redacted]", text or "")
     lines = [" ".join(line.split()) for line in cleaned.splitlines()]
-    cleaned = "\n".join(line for line in lines if line)
+    if not keep_blank:
+        lines = [line for line in lines if line]
+    cleaned = "\n".join(lines)
     return cleaned[:limit]
 
 
@@ -77,13 +79,16 @@ class Node:
     challenge_state: str = ""
     challenge_detail: str = ""
     detail_limit: int = 140
+    keep_blank: bool = False
 
     def as_dict(self) -> dict[str, str]:
         payload = {
             "id": self.id,
             "label": self.label,
             "state": self.state,
-            "detail": scrub(self.detail, limit=self.detail_limit),
+            "detail": scrub(
+                self.detail, limit=self.detail_limit, keep_blank=self.keep_blank
+            ),
         }
         if self.challenge_state:
             payload["challenge_state"] = self.challenge_state
@@ -255,18 +260,18 @@ def _peer_label(row: dict[str, object]) -> str:
 
 
 def _channel_line(side: str, row: dict[str, object]) -> str:
-    """One channel. local and remote belong to the node named before the colon."""
-    status = "active" if row.get("active") is True else "inactive"
-    parts = [f"{side}: {_peer_label(row)} · {status}"]
+    """One channel block. local is outbound and remote is inbound."""
+    status = "Active" if row.get("active") is True else "Inactive"
+    lines = [f"{side}: {_peer_label(row)}", status]
     amounts = (
-        ("capacity", _sat_amount(row.get("capacity"))),
-        ("local", _sat_amount(row.get("local_balance"))),
-        ("remote", _sat_amount(row.get("remote_balance"))),
+        ("Capacity", _sat_amount(row.get("capacity"))),
+        ("Outbound", _sat_amount(row.get("local_balance"))),
+        ("Inbound", _sat_amount(row.get("remote_balance"))),
     )
     for name, amount in amounts:
         if amount is not None:
-            parts.append(f"{name} {amount} sats")
-    return " · ".join(parts)
+            lines.append(f"{name}: {amount} sats")
+    return "\n".join(lines)
 
 
 def _side_lines(
@@ -301,10 +306,11 @@ def collect_status(io: ProbeIO, *, network: str | None = None) -> dict[str, obje
         Node("bitcoin", "Bitcoin network", *bitcoin),
         Node(
             "channel",
-            "Lightning channel",
+            "Lightning channels",
             channel[0],
             channel[1],
             detail_limit=_CHANNEL_DETAIL_LIMIT,
+            keep_blank=True,
         ),
         Node("payer", "Payer agent", payer_state, payer_detail),
         Node("invoice", "Invoice agent", invoice_state, invoice_detail),
@@ -413,7 +419,7 @@ def _channel(
         state = "down"
     else:
         state = "unknown"
-    return state, "\n".join(lines)
+    return state, "\n\n".join(lines)
 
 
 def _invoice(io: ProbeIO, network: str) -> tuple[str, str]:

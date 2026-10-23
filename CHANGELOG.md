@@ -1,3 +1,9 @@
+## Changed — dashboard channel blocks (2026-10-23)
+
+Each Lightning channel is its own block, with a blank line between channels. The card heading is Lightning channels.
+
+---
+
 ## Changed — dashboard channel list (2026-10-23)
 
 The Lightning card lists every channel from the Mac LND and the AWS LND, including inactive channels.

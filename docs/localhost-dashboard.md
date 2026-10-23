@@ -1,8 +1,8 @@
 # Localhost infrastructure map
 
-Read-only page for the operator Mac. It shows Bitcoin, the Lightning channel, the payer agent, the invoice agent, Nostr, Aperture, and the Merchant origin. Each node is up, down, locked, or unknown from a live probe.
+Read-only page for the operator Mac. It shows Bitcoin, the Lightning channels, the payer agent, the invoice agent, Nostr, Aperture, and the Merchant origin. Each node is up, down, locked, or unknown from a live probe.
 
-The nodes are grouped into three boxes: **Chain** (Bitcoin network and Lightning channel), **Agents** (Payer agent, Invoice agent, and Nostr), and **Merchant** (Aperture and Merchant origin). The Aperture card shows health and the unpaid challenge separately. Lines still connect the nodes. A failed probe stays down or unknown.
+The nodes are grouped into three boxes: **Chain** (Bitcoin network and Lightning channels), **Agents** (Payer agent, Invoice agent, and Nostr), and **Merchant** (Aperture and Merchant origin). The Aperture card shows health and the unpaid challenge separately. Lines still connect the nodes. A failed probe stays down or unknown.
 
 The animation above the map is a picture of an agent-to-agent payment, not a live channel. Agent 1 and Agent 2 are labeled `npub1…` plus the last four characters of the public id, or `agent npub` when that id is missing. Agent 1 reads `.nostr-poc-mainnet/alice.pub.json` on this Mac. Agent 2 reads `.nostr-poc-mainnet/bob.pub.json` on this Mac. `DASHBOARD_AGENT1_NPUB` and `DASHBOARD_AGENT2_NPUB` override those files. Regtest and signet key directories are not used. For this lab the short forms are `npub1…68s8` and `npub1…sp9f`.
 
@@ -24,7 +24,7 @@ Open [http://127.0.0.1:8765](http://127.0.0.1:8765) in Brave. `DASHBOARD_PORT` c
 |------|--------|
 | Payer agent | Local Docker container `agent-bitcoin-lnd-mainnet` (regtest: `agent-bitcoin-lnd`, signet: `agent-bitcoin-lnd-signet`). `lncli getinfo` only. |
 | Invoice agent | AWS `agent-payment-decision-lnd-mainnet` (regtest: `agent-payment-decision-lnd`, signet: `agent-payment-decision-lnd-signet`). `lncli getinfo` only, over SSH. Block height is shown when `getinfo` returns it. If AWS cannot be reached, **unknown**. The Mac payer does not mark this box up. |
-| Lightning channel | `lncli listchannels` on the Mac payer and, over the same SSH path as invoice `getinfo`, on the AWS LND. Every channel is listed, including inactive ones. Each line names the node that was asked, the peer (alias, the last 8 characters of the pubkey, or Mac for the known Mac node), active or inactive, capacity, and local and remote balance. A locked Mac wallet stays **locked** and still shows AWS channels when that probe works. |
+| Lightning channels | `lncli listchannels` on the Mac payer and, over the same SSH path as invoice `getinfo`, on the AWS LND. Every channel is listed, including inactive ones. Each channel is a block: the node that was asked, the peer (alias, the last 8 characters of the pubkey, or Mac for the known Mac node), Active or Inactive, capacity, outbound (`local_balance`), and inbound (`remote_balance`). A blank line separates channels. A locked Mac wallet stays **locked** and still shows AWS channels when that probe works. |
 | Bitcoin network | AWS `getblockchaininfo` on `agent-payment-decision-bitcoind-mainnet`. The line is blocks, headers, and percent. While the download is in progress the box stays **up** and the line says syncing. A failed read stays **unknown**. |
 | Aperture | Health and the unpaid challenge are separate. `GET .../health` HTTP 200 is **up**. A missing `402` from `GET .../paid/hello` stays a failed challenge and does not mark health down. Default URL is `http://127.0.0.1:8081`. |
 | Merchant origin | **up** only when Aperture `/health` returns 200, because the origin answered through the gateway. If Aperture cannot be reached, **unknown**. `agent-l402-origin` is not expected on this Mac. |
