@@ -22,7 +22,7 @@ BIND_HOST = "127.0.0.1"
 DEFAULT_PORT = 8765
 _MAP_NODES = (
     ("bitcoin", "Bitcoin network"),
-    ("channel", "Lightning channel"),
+    ("channel", "Lightning channels"),
     ("payer", "Payer agent"),
     ("invoice", "Invoice agent"),
     ("nostr", "Nostr"),
@@ -168,6 +168,7 @@ _PAGE = """<!DOCTYPE html>
     text-transform: uppercase;
   }
   .detail { margin-top: 6px; color: var(--muted); font-size: 13px; white-space: pre-line; }
+  #channel .detail { white-space: pre-wrap; }
   .card[data-state="up"] .state { color: var(--up); }
   .card[data-state="down"] .state { color: var(--down); }
   .card[data-state="locked"] .state { color: var(--locked); }
@@ -231,7 +232,7 @@ _PAGE = """<!DOCTYPE html>
     <section class="group" id="group-chain">
       <h2>Chain</h2>
       <article class="card" id="bitcoin" data-state="unknown"><div class="label">Bitcoin network</div><div class="state"></div><div class="detail"></div></article>
-      <article class="card orange" id="channel" data-state="unknown"><div class="label">Lightning channel</div><div class="state"></div><div class="detail"></div></article>
+      <article class="card orange" id="channel" data-state="unknown"><div class="label">Lightning channels</div><div class="state"></div><div class="detail"></div></article>
     </section>
     <section class="group" id="group-agents">
       <h2>Agents</h2>

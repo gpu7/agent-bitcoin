@@ -267,7 +267,7 @@ def test_page_lists_the_map_and_has_no_pay_button() -> None:
     html = _client(FakeIO()).get("/").text
     for label in (
         "Bitcoin network",
-        "Lightning channel",
+        "Lightning channels",
         "Payer agent",
         "Invoice agent",
         "Nostr",
@@ -281,6 +281,7 @@ def test_page_lists_the_map_and_has_no_pay_button() -> None:
     assert ">Chain<" in chain
     assert 'id="bitcoin"' in chain and 'id="channel"' in chain
     assert "white-space: pre-line" in html
+    assert "#channel .detail { white-space: pre-wrap; }" in html
     assert 'node.challenge_state === "up" ? "\\n" : " · "' in html
     assert ">Agents<" in agents
     assert (
@@ -673,10 +674,25 @@ def test_channel_panel_lists_every_channel_from_both_nodes() -> None:
     channel = next(node for node in payload["nodes"] if node["id"] == "channel")
     assert channel["state"] == "up"
     assert channel["detail"] == (
-        "Mac: aws-peer · active · capacity 25000 sats · local 2500 sats · remote 21537 sats\n"
-        "Mac: cdcdcdcd · inactive · capacity 99999 sats · local 1 sats · remote 2 sats\n"
-        "AWS: Mac · active · capacity 25000 sats · local 21537 sats · remote 2500 sats"
+        "Mac: aws-peer\n"
+        "Active\n"
+        "Capacity: 25000 sats\n"
+        "Outbound: 2500 sats\n"
+        "Inbound: 21537 sats\n"
+        "\n"
+        "Mac: cdcdcdcd\n"
+        "Inactive\n"
+        "Capacity: 99999 sats\n"
+        "Outbound: 1 sats\n"
+        "Inbound: 2 sats\n"
+        "\n"
+        "AWS: Mac\n"
+        "Active\n"
+        "Capacity: 25000 sats\n"
+        "Outbound: 21537 sats\n"
+        "Inbound: 2500 sats"
     )
+    assert "\n\n" in channel["detail"]
     assert _MAC_PUBKEY not in channel["detail"]
     assert "should-not-win" not in channel["detail"]
     assert "02" + ("ab" * 32) not in channel["detail"]
@@ -709,8 +725,16 @@ def test_channel_panel_lists_every_channel_from_both_nodes() -> None:
     listed_channel = next(node for node in listed["nodes"] if node["id"] == "channel")
     assert listed_channel["state"] == "up"
     assert listed_channel["detail"] == (
-        "Mac: one · active · capacity 10000 sats · local 1000 sats · remote 8000 sats\n"
-        "Mac: two · inactive · local 1500 sats · remote 13500 sats"
+        "Mac: one\n"
+        "Active\n"
+        "Capacity: 10000 sats\n"
+        "Outbound: 1000 sats\n"
+        "Inbound: 8000 sats\n"
+        "\n"
+        "Mac: two\n"
+        "Inactive\n"
+        "Outbound: 1500 sats\n"
+        "Inbound: 13500 sats"
     )
 
 
@@ -731,7 +755,7 @@ def test_channel_panel_stays_unknown_when_listchannels_fails() -> None:
     channel = next(node for node in failed["nodes"] if node["id"] == "channel")
     assert channel["state"] == "unknown"
     assert channel["detail"] == (
-        "Mac listchannels failed\nAWS listchannels was not reached"
+        "Mac listchannels failed\n\nAWS listchannels was not reached"
     )
     assert "sats" not in channel["detail"]
 
@@ -744,7 +768,7 @@ def test_channel_panel_stays_unknown_when_listchannels_fails() -> None:
     bad_channel = next(node for node in bad["nodes"] if node["id"] == "channel")
     assert bad_channel["state"] == "unknown"
     assert bad_channel["detail"] == (
-        "Mac listchannels was not json\nAWS listchannels was not reached"
+        "Mac listchannels was not json\n\nAWS listchannels was not reached"
     )
     assert "sats" not in bad_channel["detail"]
 
