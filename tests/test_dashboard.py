@@ -48,6 +48,10 @@ class FakeIO:
         self.invoice_body: str | None = None
         self.getinfo_code = 0
         self.channels = '{"channels": [{"active": true}]}'
+        self.invoice_channels = '{"channels": []}'
+        self.invoice_channels_code: int | None = 0
+        self.aws_channels_reached = True
+        self.invoice_list_calls: list[str] = []
         self.http = {
             "http://127.0.0.1:8081/health": (200, ""),
             "http://127.0.0.1:8081/paid/hello": (402, ""),
@@ -75,6 +79,14 @@ class FakeIO:
             self.getinfo_code,
             self.getinfo if self.invoice_body is None else self.invoice_body,
         )
+
+    def invoice_listchannels(
+        self, container: str, network: str
+    ) -> tuple[int | None, str]:
+        self.invoice_list_calls.append(container)
+        if not self.aws_reached or not self.aws_channels_reached:
+            return None, "AWS listchannels was not reached"
+        return self.invoice_channels_code, self.invoice_channels
 
     def chain_info(self, container: str, network: str) -> tuple[int | None, str]:
         self.calls.append("getblockchaininfo")
@@ -218,7 +230,9 @@ def test_wallet_locked_is_locked_not_up(monkeypatch: pytest.MonkeyPatch) -> None
     by_id = {node["id"]: node for node in payload["nodes"]}
     assert by_id["payer"]["state"] == "locked"
     assert by_id["channel"]["state"] == "locked"
+    assert by_id["channel"]["detail"] == "payer wallet locked"
     assert "listchannels" not in io.calls
+    assert io.invoice_list_calls == ["agent-payment-decision-lnd"]
     assert "unlock" not in io.calls
 
 
@@ -436,6 +450,8 @@ def test_invoice_stays_unknown_when_aws_is_unreachable() -> None:
     assert io.invoice_containers == ["agent-payment-decision-lnd-mainnet"]
     assert ("agent-payment-decision-lnd-mainnet", "getinfo") not in io.local_lncli
     assert ("agent-bitcoin-lnd-mainnet", "listchannels") in io.local_lncli
+    assert io.invoice_list_calls == ["agent-payment-decision-lnd-mainnet"]
+    assert ("agent-payment-decision-lnd-mainnet", "listchannels") not in io.local_lncli
 
 
 def test_hanging_hello_does_not_mark_aperture_health_down(
@@ -508,6 +524,28 @@ def test_invoice_getinfo_is_ssh_getinfo_only(
     assert "agent-payment-decision-lnd-mainnet" in argv
     assert "listchannels" not in argv
     assert "unlock" not in argv
+
+    def listed(argv: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        seen["argv"] = argv
+        seen["shell"] = kwargs.get("shell")
+        return subprocess.CompletedProcess(
+            argv, 0, stdout='{"channels": []}', stderr=""
+        )
+
+    monkeypatch.setattr("agent_bitcoin.dashboard.probes.subprocess.run", listed)
+    listed_code, listed_raw = RealProbeIO().invoice_listchannels(
+        "agent-payment-decision-lnd-mainnet", "mainnet"
+    )
+    assert listed_code == 0
+    assert "channels" in listed_raw
+    listed_argv = seen["argv"]
+    assert isinstance(listed_argv, list)
+    assert listed_argv[0] == "ssh"
+    assert listed_argv[-1] == "listchannels"
+    assert "agent-payment-decision-lnd-mainnet" in listed_argv
+    assert "getinfo" not in listed_argv
+    assert "unlock" not in listed_argv
+    assert "10009" not in listed_argv
     assert "10009" not in argv
     assert seen["shell"] is None
 
@@ -587,7 +625,11 @@ def test_chain_progress_line_uses_only_real_fields() -> None:
     )
 
 
-def test_channel_panel_shows_capacity_and_local_remote_balance() -> None:
+_MAC_PUBKEY = "0290ec8b1733192e5dcbc5d32f8fec5ae345ff777fc48dafed757c2d14781d4967"
+_OTHER_PUBKEY = "03" + ("cd" * 32)
+
+
+def test_channel_panel_lists_every_channel_from_both_nodes() -> None:
     io = FakeIO()
     io.names = {"agent-bitcoin-lnd-mainnet"}
     io.getinfo = json.dumps({"synced_to_chain": True, "num_peers": 1})
@@ -599,13 +641,31 @@ def test_channel_panel_shows_capacity_and_local_remote_balance() -> None:
                     "capacity": "25000",
                     "local_balance": "2500",
                     "remote_balance": "21537",
+                    "peer_alias": "aws-peer",
+                    "remote_pubkey": "02" + ("ab" * 32),
                 },
                 {
                     "active": False,
                     "capacity": "99999",
-                    "local_balance": "99999",
-                    "remote_balance": "99999",
+                    "local_balance": "1",
+                    "remote_balance": "2",
+                    "peer_alias": _OTHER_PUBKEY[:20],
+                    "remote_pubkey": _OTHER_PUBKEY,
                 },
+            ]
+        }
+    )
+    io.invoice_channels = json.dumps(
+        {
+            "channels": [
+                {
+                    "active": True,
+                    "capacity": "25000",
+                    "local_balance": "21537",
+                    "remote_balance": "2500",
+                    "peer_alias": "should-not-win",
+                    "remote_pubkey": _MAC_PUBKEY.upper(),
+                }
             ]
         }
     )
@@ -613,12 +673,17 @@ def test_channel_panel_shows_capacity_and_local_remote_balance() -> None:
     channel = next(node for node in payload["nodes"] if node["id"] == "channel")
     assert channel["state"] == "up"
     assert channel["detail"] == (
-        "1 active channel\n"
-        "1 peer\n"
-        "capacity: 25000 sats\n"
-        "outbound: 2500 sats\n"
-        "inbound: 21537 sats"
+        "Mac: aws-peer · active · capacity 25000 sats · local 2500 sats · remote 21537 sats\n"
+        "Mac: cdcdcdcd · inactive · capacity 99999 sats · local 1 sats · remote 2 sats\n"
+        "AWS: Mac · active · capacity 25000 sats · local 21537 sats · remote 2500 sats"
     )
+    assert _MAC_PUBKEY not in channel["detail"]
+    assert "should-not-win" not in channel["detail"]
+    assert "02" + ("ab" * 32) not in channel["detail"]
+    assert io.invoice_list_calls == ["agent-payment-decision-lnd-mainnet"]
+    assert ("agent-payment-decision-lnd-mainnet", "listchannels") not in io.local_lncli
+    assert "openchannel" not in io.calls
+    assert "unlock" not in io.calls
 
     io.channels = json.dumps(
         {
@@ -628,25 +693,24 @@ def test_channel_panel_shows_capacity_and_local_remote_balance() -> None:
                     "capacity": 10000,
                     "local_balance": 1000,
                     "remote_balance": 8000,
+                    "peer_alias": "one",
                 },
                 {
-                    "active": True,
-                    "capacity": 15000,
+                    "capacity": "nope",
                     "local_balance": 1500,
                     "remote_balance": 13500,
+                    "peer_alias": "two",
                 },
             ]
         }
     )
-    summed = collect_status(io, network="mainnet")
-    summed_channel = next(node for node in summed["nodes"] if node["id"] == "channel")
-    assert summed_channel["state"] == "up"
-    assert summed_channel["detail"] == (
-        "2 active channels\n"
-        "1 peer\n"
-        "capacity: 25000 sats\n"
-        "outbound: 2500 sats\n"
-        "inbound: 21500 sats"
+    io.invoice_channels = '{"channels": []}'
+    listed = collect_status(io, network="mainnet")
+    listed_channel = next(node for node in listed["nodes"] if node["id"] == "channel")
+    assert listed_channel["state"] == "up"
+    assert listed_channel["detail"] == (
+        "Mac: one · active · capacity 10000 sats · local 1000 sats · remote 8000 sats\n"
+        "Mac: two · inactive · local 1500 sats · remote 13500 sats"
     )
 
 
@@ -662,20 +726,26 @@ def test_channel_panel_stays_unknown_when_listchannels_fails() -> None:
     io = FailChannels()
     io.names = {"agent-bitcoin-lnd-mainnet"}
     io.getinfo = json.dumps({"synced_to_chain": True, "num_peers": 1})
+    io.aws_channels_reached = False
     failed = collect_status(io, network="mainnet")
     channel = next(node for node in failed["nodes"] if node["id"] == "channel")
     assert channel["state"] == "unknown"
-    assert channel["detail"] == "listchannels failed · 1 peer"
+    assert channel["detail"] == (
+        "Mac listchannels failed\nAWS listchannels was not reached"
+    )
     assert "sats" not in channel["detail"]
 
     io_bad = FakeIO()
     io_bad.names = {"agent-bitcoin-lnd-mainnet"}
     io_bad.getinfo = json.dumps({"synced_to_chain": True, "num_peers": 1})
     io_bad.channels = "not-json"
+    io_bad.aws_channels_reached = False
     bad = collect_status(io_bad, network="mainnet")
     bad_channel = next(node for node in bad["nodes"] if node["id"] == "channel")
     assert bad_channel["state"] == "unknown"
-    assert bad_channel["detail"] == "listchannels was not json · 1 peer"
+    assert bad_channel["detail"] == (
+        "Mac listchannels was not json\nAWS listchannels was not reached"
+    )
     assert "sats" not in bad_channel["detail"]
 
 
@@ -718,7 +788,7 @@ def test_sync_line_heights_and_peers_do_not_invent_or_leak() -> None:
     assert named_by_id["channel"]["detail"] == by_id["channel"]["detail"]
     assert named_by_id["origin"]["detail"] == by_id["origin"]["detail"]
     assert by_id["channel"]["state"] == "down"
-    assert by_id["channel"]["detail"] == "no active channel · 0 peers"
+    assert by_id["channel"]["detail"] == "no channels"
 
     class ClosedRelay(FakeIO):
         def tcp_open(self, host: str, port: int) -> tuple[bool, str]:
