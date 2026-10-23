@@ -298,7 +298,7 @@ Currently, the Dashboard is for internal system administration only.  The Dashbo
 
 The Bitcoin panel shows blocks, headers, and progress on separate lines.
 
-The channel panel shows capacity, outbound, and inbound on separate lines.
+The channel panel lists every channel from the Mac LND and the AWS LND, including inactive channels. Each line shows the peer, active or inactive, capacity, and local and remote balance.
 
 Payer, Invoice, Aperture, and Nostr details now use separate lines.
 

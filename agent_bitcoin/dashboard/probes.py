@@ -1,9 +1,10 @@
 """Read-only probes for the Mac infrastructure map.
 
 Allowed LND commands are getinfo and listchannels. The invoice agent is the
-AWS LND, reached with getinfo over the operator SSH path. AWS chain progress
-is getblockchaininfo on the AWS bitcoind container. Nothing here unlocks a
-wallet, pays an invoice, or opens a channel.
+AWS LND, reached over the operator SSH path. listchannels runs on the Mac
+payer and on that AWS LND. AWS chain progress is getblockchaininfo on the
+AWS bitcoind container. Nothing here unlocks a wallet, pays an invoice, or
+opens a channel.
 """
 
 from __future__ import annotations
@@ -43,6 +44,8 @@ _AWS_BITCOIND_NAMES = frozenset(_AWS_BITCOIND.values())
 _DEFAULT_AWS_HOST = "3.90.159.146"
 _LOOPBACK_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
 _HOST_RE = re.compile(r"^[A-Za-z0-9.-]{1,253}$")
+_MAC_NODE_PUBKEY = "0290ec8b1733192e5dcbc5d32f8fec5ae345ff777fc48dafed757c2d14781d4967"
+_CHANNEL_DETAIL_LIMIT = 4000
 
 
 class CommandRejected(RuntimeError):
@@ -73,13 +76,14 @@ class Node:
     detail: str
     challenge_state: str = ""
     challenge_detail: str = ""
+    detail_limit: int = 140
 
     def as_dict(self) -> dict[str, str]:
         payload = {
             "id": self.id,
             "label": self.label,
             "state": self.state,
-            "detail": scrub(self.detail),
+            "detail": scrub(self.detail, limit=self.detail_limit),
         }
         if self.challenge_state:
             payload["challenge_state"] = self.challenge_state
@@ -93,6 +97,10 @@ class ProbeIO(Protocol):
     def lncli(self, container: str, network: str, command: str) -> tuple[int, str]: ...
 
     def invoice_getinfo(
+        self, container: str, network: str
+    ) -> tuple[int | None, str]: ...
+
+    def invoice_listchannels(
         self, container: str, network: str
     ) -> tuple[int | None, str]: ...
 
@@ -214,7 +222,8 @@ def _sat_amount(value: object) -> int | None:
     return amount
 
 
-def _active_channel_rows(raw: str) -> list[dict[str, object]] | None:
+def _channel_rows(raw: str) -> list[dict[str, object]] | None:
+    """Every channel object. A missing active flag is still a row."""
     try:
         data = json.loads(raw)
     except json.JSONDecodeError:
@@ -224,24 +233,54 @@ def _active_channel_rows(raw: str) -> list[dict[str, object]] | None:
     channels = data.get("channels")
     if not isinstance(channels, list):
         return None
-    return [ch for ch in channels if isinstance(ch, dict) and ch.get("active") is True]
+    return [ch for ch in channels if isinstance(ch, dict)]
 
 
-def _balance_line(rows: list[dict[str, object]]) -> str | None:
-    """Sum capacity, outbound (local), and inbound (remote). Omit if any field is unreadable."""
-    capacity = 0
-    local = 0
-    remote = 0
-    for ch in rows:
-        cap = _sat_amount(ch.get("capacity"))
-        loc = _sat_amount(ch.get("local_balance"))
-        rem = _sat_amount(ch.get("remote_balance"))
-        if cap is None or loc is None or rem is None:
-            return None
-        capacity += cap
-        local += loc
-        remote += rem
-    return f"capacity: {capacity} sats\noutbound: {local} sats\ninbound: {remote} sats"
+def _peer_label(row: dict[str, object]) -> str:
+    """Mac for the known payer pubkey, then a short alias, then the last 8 hex."""
+    pubkey = row.get("remote_pubkey")
+    if isinstance(pubkey, str) and pubkey.strip().lower() == _MAC_NODE_PUBKEY:
+        return "Mac"
+    alias = row.get("peer_alias")
+    if isinstance(alias, str):
+        text = alias.strip()
+        named = text and text.isascii() and all(32 <= ord(char) <= 126 for char in text)
+        if named and not all(char in "0123456789abcdefABCDEF" for char in text):
+            return text[:32]
+    if isinstance(pubkey, str):
+        hex_key = pubkey.strip().lower()
+        if len(hex_key) >= 8 and all(char in "0123456789abcdef" for char in hex_key):
+            return hex_key[-8:]
+    return "peer"
+
+
+def _channel_line(side: str, row: dict[str, object]) -> str:
+    """One channel. local and remote belong to the node named before the colon."""
+    status = "active" if row.get("active") is True else "inactive"
+    parts = [f"{side}: {_peer_label(row)} · {status}"]
+    amounts = (
+        ("capacity", _sat_amount(row.get("capacity"))),
+        ("local", _sat_amount(row.get("local_balance"))),
+        ("remote", _sat_amount(row.get("remote_balance"))),
+    )
+    for name, amount in amounts:
+        if amount is not None:
+            parts.append(f"{name} {amount} sats")
+    return " · ".join(parts)
+
+
+def _side_lines(
+    side: str, code: int | None, raw: str
+) -> tuple[list[str], list[dict[str, object]] | None]:
+    """Lines for one LND. None rows means that probe failed."""
+    if code is None:
+        return [f"{side} listchannels was not reached"], None
+    if code != 0:
+        return [f"{side} listchannels failed"], None
+    rows = _channel_rows(raw)
+    if rows is None:
+        return [f"{side} listchannels was not json"], None
+    return [_channel_line(side, row) for row in rows], rows
 
 
 def collect_status(io: ProbeIO, *, network: str | None = None) -> dict[str, object]:
@@ -254,14 +293,19 @@ def collect_status(io: ProbeIO, *, network: str | None = None) -> dict[str, obje
     payer_state, payer_detail = _with_height(payer_info)
     invoice_state, invoice_detail = _invoice(io, net)
     bitcoin = _bitcoin(io, net)
-    peers = payer_info.num_peers if payer_state == "up" else None
-    channel = _channel(io, payer, payer_state, net, peers)
+    channel = _channel(io, payer, payer_state, net)
     aperture, challenge, origin = _merchant(io)
     nostr = _nostr(io)
 
     nodes = [
         Node("bitcoin", "Bitcoin network", *bitcoin),
-        Node("channel", "Lightning channel", *channel),
+        Node(
+            "channel",
+            "Lightning channel",
+            channel[0],
+            channel[1],
+            detail_limit=_CHANNEL_DETAIL_LIMIT,
+        ),
         Node("payer", "Payer agent", payer_state, payer_detail),
         Node("invoice", "Invoice agent", invoice_state, invoice_detail),
         Node("nostr", "Nostr", *nostr),
@@ -323,44 +367,53 @@ def _bitcoin(io: ProbeIO, network: str) -> tuple[str, str]:
     return "up", line
 
 
-def _with_peers(detail: str, peers: int | None) -> str:
-    if peers is None:
-        return detail
-    noun = "peer" if peers == 1 else "peers"
-    return f"{detail} · {peers} {noun}"
-
-
 def _channel(
     io: ProbeIO,
     payer: str | None,
     payer_state: str,
     network: str,
-    peers: int | None,
 ) -> tuple[str, str]:
+    """Every Mac channel, then every AWS channel."""
+    lines: list[str] = []
+    mac_rows: list[dict[str, object]] | None = None
     if payer is None:
-        return "unknown", "payer container is not running"
+        lines.append("payer container is not running")
+    elif payer_state == "locked":
+        lines.append("payer wallet locked")
+    elif payer_state != "up":
+        lines.append("payer getinfo did not succeed")
+    else:
+        code, raw = io.lncli(payer, network, "listchannels")
+        mac_lines, mac_rows = _side_lines("Mac", code, raw)
+        lines.extend(mac_lines)
+
+    container = _INVOICE.get(network, _INVOICE["mainnet"])[0]
+    try:
+        aws_code, aws_raw = io.invoice_listchannels(container, network)
+    except Exception:  # noqa: BLE001 — AWS failure must not hide Mac channels
+        aws_code, aws_raw = None, ""
+    aws_lines, aws_rows = _side_lines("AWS", aws_code, aws_raw)
+    lines.extend(aws_lines)
+
+    shown: list[dict[str, object]] = []
+    if mac_rows is not None:
+        shown.extend(mac_rows)
+    if aws_rows is not None:
+        shown.extend(aws_rows)
+    any_active = any(row.get("active") is True for row in shown)
+    any_list = mac_rows is not None or aws_rows is not None
+    if mac_rows == [] and aws_rows == [] and payer_state == "up":
+        lines = ["no channels"]
+
     if payer_state == "locked":
-        return "locked", "payer wallet locked"
-    if payer_state != "up":
-        return "unknown", "payer getinfo did not succeed"
-    code, raw = io.lncli(payer, network, "listchannels")
-    if code != 0:
-        return "unknown", _with_peers(scrub(raw) or "listchannels failed", peers)
-    rows = _active_channel_rows(raw)
-    if rows is None:
-        return "unknown", _with_peers("listchannels was not json", peers)
-    count = len(rows)
-    if count == 0:
-        return "down", _with_peers("no active channel", peers)
-    label = "1 active channel" if count == 1 else f"{count} active channels"
-    lines = [label]
-    if peers is not None:
-        noun = "peer" if peers == 1 else "peers"
-        lines.append(f"{peers} {noun}")
-    amounts = _balance_line(rows)
-    if amounts is not None:
-        lines.append(amounts)
-    return "up", "\n".join(lines)
+        state = "locked"
+    elif any_active:
+        state = "up"
+    elif any_list:
+        state = "down"
+    else:
+        state = "unknown"
+    return state, "\n".join(lines)
 
 
 def _invoice(io: ProbeIO, network: str) -> tuple[str, str]:
@@ -551,6 +604,29 @@ class RealProbeIO:
         )
         if done is None or done.returncode == 255:
             return None, "AWS invoice LND was not reached"
+        raw = ((done.stdout or "") + (done.stderr or ""))[:8000]
+        return done.returncode, raw
+
+    def invoice_listchannels(
+        self, container: str, network: str
+    ) -> tuple[int | None, str]:
+        """listchannels on the AWS invoice LND. Same SSH path as getinfo."""
+        if container not in _INVOICE_NAMES or network not in _PAYER:
+            return None, "AWS listchannels was not reached"
+        done = _ssh(
+            [
+                "docker",
+                "exec",
+                container,
+                "lncli",
+                "--lnddir=/home/lnd/.lnd",
+                "--network",
+                network,
+                "listchannels",
+            ]
+        )
+        if done is None or done.returncode == 255:
+            return None, "AWS listchannels was not reached"
         raw = ((done.stdout or "") + (done.stderr or ""))[:8000]
         return done.returncode, raw
 

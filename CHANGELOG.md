@@ -1,3 +1,9 @@
+## Changed — dashboard channel list (2026-10-23)
+
+The Lightning card lists every channel from the Mac LND and the AWS LND, including inactive channels.
+
+---
+
 ## Docs — install tool versions (2026-10-22)
 
 Document uv 0.13.4, pip 26.2.2, and current CA certificates. Custom images install `ca-certificates`.
