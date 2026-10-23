@@ -680,7 +680,7 @@ def test_channel_panel_lists_every_channel_from_both_nodes() -> None:
         "Outbound: 2500 sats\n"
         "Inbound: 21537 sats\n"
         "\n"
-        "Mac: cdcdcdcd\n"
+        "Mac: " + _OTHER_PUBKEY[:20] + "\n"
         "Inactive\n"
         "Capacity: 99999 sats\n"
         "Outbound: 1 sats\n"
@@ -717,6 +717,30 @@ def test_channel_panel_lists_every_channel_from_both_nodes() -> None:
                     "remote_balance": 13500,
                     "peer_alias": "two",
                 },
+                {
+                    "active": False,
+                    "capacity": 100,
+                    "local_balance": 10,
+                    "remote_balance": 20,
+                    "peer_alias": "   ",
+                    "remote_pubkey": "02" + ("ab" * 32),
+                },
+                {
+                    "active": False,
+                    "capacity": 100,
+                    "local_balance": 11,
+                    "remote_balance": 21,
+                    "alias": "from-alias-key",
+                    "remote_pubkey": "04" + ("ef" * 32),
+                },
+                {
+                    "active": False,
+                    "capacity": 100,
+                    "local_balance": 12,
+                    "remote_balance": 22,
+                    "peer_alias": "ab" * 16,
+                    "remote_pubkey": "05" + ("12" * 32),
+                },
             ]
         }
     )
@@ -734,8 +758,27 @@ def test_channel_panel_lists_every_channel_from_both_nodes() -> None:
         "Mac: two\n"
         "Inactive\n"
         "Outbound: 1500 sats\n"
-        "Inbound: 13500 sats"
+        "Inbound: 13500 sats\n"
+        "\n"
+        "Mac: abababab\n"
+        "Inactive\n"
+        "Capacity: 100 sats\n"
+        "Outbound: 10 sats\n"
+        "Inbound: 20 sats\n"
+        "\n"
+        "Mac: from-alias-key\n"
+        "Inactive\n"
+        "Capacity: 100 sats\n"
+        "Outbound: 11 sats\n"
+        "Inbound: 21 sats\n"
+        "\n"
+        "Mac: 12121212\n"
+        "Inactive\n"
+        "Capacity: 100 sats\n"
+        "Outbound: 12 sats\n"
+        "Inbound: 22 sats"
     )
+    assert "listpeers" not in io.calls
 
 
 def test_channel_panel_stays_unknown_when_listchannels_fails() -> None:
