@@ -241,17 +241,31 @@ def _channel_rows(raw: str) -> list[dict[str, object]] | None:
     return [ch for ch in channels if isinstance(ch, dict)]
 
 
+def _alias_text(row: dict[str, object]) -> str | None:
+    """Non-empty peer alias. A 32-hex alias would be redacted, so it is skipped."""
+    for key in ("peer_alias", "alias"):
+        value = row.get(key)
+        if not isinstance(value, str):
+            continue
+        text = value.strip()
+        if not text or not text.isascii():
+            continue
+        if any(ord(char) < 32 or ord(char) > 126 for char in text):
+            continue
+        if len(text) >= 32 and all(char in "0123456789abcdefABCDEF" for char in text):
+            continue
+        return text[:32]
+    return None
+
+
 def _peer_label(row: dict[str, object]) -> str:
-    """Mac for the known payer pubkey, then a short alias, then the last 8 hex."""
+    """Mac for the known payer pubkey, then the alias, then the last 8 hex."""
     pubkey = row.get("remote_pubkey")
     if isinstance(pubkey, str) and pubkey.strip().lower() == _MAC_NODE_PUBKEY:
         return "Mac"
-    alias = row.get("peer_alias")
-    if isinstance(alias, str):
-        text = alias.strip()
-        named = text and text.isascii() and all(32 <= ord(char) <= 126 for char in text)
-        if named and not all(char in "0123456789abcdefABCDEF" for char in text):
-            return text[:32]
+    alias = _alias_text(row)
+    if alias is not None:
+        return alias
     if isinstance(pubkey, str):
         hex_key = pubkey.strip().lower()
         if len(hex_key) >= 8 and all(char in "0123456789abcdef" for char in hex_key):

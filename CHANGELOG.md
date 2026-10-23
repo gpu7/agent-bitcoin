@@ -1,3 +1,9 @@
+## Changed — dashboard peer alias (2026-10-23)
+
+A Lightning channel label uses the peer alias when listchannels includes one. The known Mac pubkey stays Mac.
+
+---
+
 ## Changed — dashboard channel blocks (2026-10-23)
 
 Each Lightning channel is its own block, with a blank line between channels. The card heading is Lightning channels.
