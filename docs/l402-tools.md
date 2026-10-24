@@ -424,7 +424,7 @@ uv run python examples/l402_pay.py \
 
 ### POST `/paid/lightning/ln-node-card`
 
-Job: one LND `GetNodeInfo` for a public node. Body `{"pubkey":"<66 hex>"}`. Returns `alias`, `num_channels`, `total_capacity_sats`, `last_update`, and up to four shortened addresses. Read-only. The full pubkey is not returned. **100 sats**. 402index category: `lightning`. A down node returns HTTP 503.
+Job: one LND `GetNodeInfo` for a public node. Body `{"pubkey":"<66 hex>"}`. Returns `alias`, `num_channels`, `total_capacity_sats`, `last_update`, and up to four shortened addresses. Read-only. The full pubkey is not returned. **100 sats**. 402index category: `lightning`. A pubkey that is not in this node's graph is HTTP 404 `node_not_found`. A down node returns HTTP 503.
 
 ```bash
 uv run python examples/l402_pay.py \
@@ -446,7 +446,7 @@ uv run python examples/l402_pay.py \
 
 ### POST `/paid/lightning/ln-payee-liquidity-hint`
 
-Job: one LND `GetNodeInfo` with public channels. Body `{"pubkey":"<66 hex>","amount_sats":1000}`. Returns `hint`, `total_capacity_sats`, `capacity_covers_amount`, and a fee range from the payee's public policies when those policies exist. The note is `Public graph capacity. Not channel balances.` This is **not** a channel balance. **100 sats**. 402index category: `lightning`. A down node returns HTTP 503.
+Job: one LND `GetNodeInfo` with public channels. Body `{"pubkey":"<66 hex>","amount_sats":1000}`. Returns `hint`, `total_capacity_sats`, `capacity_covers_amount`, and a fee range from the payee's public policies when those policies exist. The note is `Public graph capacity. Not channel balances.` This is **not** a channel balance. **100 sats**. 402index category: `lightning`. A pubkey that is not in this node's graph is HTTP 404 `node_not_found`. A down node returns HTTP 503.
 
 ```bash
 uv run python examples/l402_pay.py \

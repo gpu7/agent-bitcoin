@@ -143,7 +143,23 @@ def _addresses(value: Any) -> tuple[list[str], bool]:
 
 def _missing(exc: BaseException) -> bool:
     text = str(exc).lower()
+    code = ""
+    get_code = getattr(exc, "code", None)
+    if callable(get_code):
+        try:
+            code = str(getattr(get_code(), "name", "") or "")
+        except Exception:
+            code = ""
+    if code == "NOT_FOUND" or "not_found" in text:
+        return True
     return "unable to find" in text or "not found" in text
+
+
+def _classify(exc: BaseException) -> None:
+    """NOT_FOUND is an unknown node. Every other RPC error is unavailable."""
+    if _missing(exc):
+        raise NodeNotFound("node_not_found") from exc
+    raise LndUnavailable("getnodeinfo failed") from exc
 
 
 def node_card(raw: Any) -> dict[str, Any]:
@@ -183,9 +199,25 @@ class _Grpc:
     def get_node_info(
         self, pub_key: str, include_channels: bool = False
     ) -> dict[str, Any]:
-        return _as_dict(
-            self._call("get_node_info", pub_key, include_channels=include_channels)
-        )
+        """Call the stub directly. The client decorator drops NOT_FOUND."""
+        try:
+            from lndgrpc.common import ln
+        except ImportError as exc:
+            raise LndUnavailable("getnodeinfo failed") from exc
+        stub = getattr(self._raw, "_ln_stub", None)
+        if stub is None or not hasattr(stub, "GetNodeInfo"):
+            raise LndUnavailable("getnodeinfo failed")
+        try:
+            raw = stub.GetNodeInfo(
+                ln.NodeInfoRequest(pub_key=pub_key, include_channels=include_channels)
+            )
+        except (NodeNotFound, LndUnavailable):
+            raise
+        except Exception as exc:
+            _classify(exc)
+        if raw is None:
+            raise LndUnavailable("getnodeinfo failed")
+        return _as_dict(raw)
 
     def _call(self, name: str, *args: Any, **kwargs: Any) -> Any:
         if name not in _ALLOWED:
