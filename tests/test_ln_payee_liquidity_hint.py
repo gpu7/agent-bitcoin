@@ -163,7 +163,7 @@ def test_wired() -> None:
     ):
         text = (root / "l402" / name).read_text(encoding="utf-8")
         assert 'name: "ln-payee-liquidity-hint"' in text
-        assert text.index('name: "ln-invoice-create"') < text.index(needle)
+        assert text.index('name: "ln-channel-policy"') < text.index(needle)
         assert text.index(needle) < text.index('name: "btc-fee-estimate"')
     script = (root / "register-402index.sh").read_text(encoding="utf-8")
     window = script[script.index(url) : script.index(url) + 500]

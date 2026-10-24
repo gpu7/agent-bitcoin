@@ -190,13 +190,6 @@ services:
     protocol: "http"
     price: 100
     timeout: 3600
-  - name: "ln-invoice-create"
-    hostregexp: ".*"
-    pathregexp: "^/paid/lightning/ln-invoice-create$"
-    address: "agent-l402-origin:8090"
-    protocol: "http"
-    price: 100
-    timeout: 3600
   - name: "ln-preimage-verify"
     hostregexp: ".*"
     pathregexp: "^/paid/lightning/ln-preimage-verify$"
@@ -368,5 +361,6 @@ services:
     timeout: 3600
     authwhitelistpaths:
       - "^/health$"
+      - "^/paid/lightning/ln-invoice-create$"
       - "^/\\.well-known/l402-services$"
       - "^/\\.well-known/402index-verify\\.txt$"

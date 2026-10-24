@@ -51,7 +51,6 @@ try:
     from l402 import ln_path_estimate as _ln_path_estimate
     from l402 import ln_payment_status as _ln_payment_status
     from l402 import ln_channel_policy as _ln_channel_policy
-    from l402 import ln_invoice_create as _ln_invoice_create
     from l402 import nostr_node_link as _nostr_node_link
     from l402 import ln_preimage_verify as _ln_preimage_verify
     from l402 import ln_pay_check as _ln_pay_check
@@ -99,7 +98,6 @@ except ImportError:  # Docker WORKDIR /app
     import ln_path_estimate as _ln_path_estimate  # type: ignore[no-redef]
     import ln_payment_status as _ln_payment_status  # type: ignore[no-redef]
     import ln_channel_policy as _ln_channel_policy  # type: ignore[no-redef]
-    import ln_invoice_create as _ln_invoice_create  # type: ignore[no-redef]
     import nostr_node_link as _nostr_node_link  # type: ignore[no-redef]
     import ln_preimage_verify as _ln_preimage_verify  # type: ignore[no-redef]
     import ln_pay_check as _ln_pay_check  # type: ignore[no-redef]
@@ -750,25 +748,6 @@ def dispatch(
             err = {"ok": False, "error": "bad_input"}
             return 400, "application/json", json.dumps(err).encode("utf-8")
         except _ln_channel_policy.LndUnavailable:
-            err = {"ok": False, "error": "lnd_unavailable"}
-            return 503, "application/json", json.dumps(err).encode("utf-8")
-    if route == "/paid/lightning/ln-invoice-create":
-        if verb != "POST":
-            err = {"ok": False, "error": "method_not_allowed"}
-            return 405, "application/json", json.dumps(err).encode("utf-8")
-        try:
-            payload = _ln_invoice_create.handle_request(body)
-            return 200, "application/json", json.dumps(payload).encode("utf-8")
-        except _ln_invoice_create.BadAmount:
-            err = {"ok": False, "error": "bad_amount"}
-            return 400, "application/json", json.dumps(err).encode("utf-8")
-        except _ln_invoice_create.BadDescription:
-            err = {"ok": False, "error": "bad_description"}
-            return 400, "application/json", json.dumps(err).encode("utf-8")
-        except _ln_invoice_create.BadInput:
-            err = {"ok": False, "error": "bad_input"}
-            return 400, "application/json", json.dumps(err).encode("utf-8")
-        except _ln_invoice_create.LndUnavailable:
             err = {"ok": False, "error": "lnd_unavailable"}
             return 503, "application/json", json.dumps(err).encode("utf-8")
     if route == "/paid/lightning/ln-preimage-verify":

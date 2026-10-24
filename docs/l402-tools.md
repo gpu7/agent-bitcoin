@@ -37,7 +37,7 @@ The listing name is `btc-usd` and the description says “Bitcoin price”, so b
 
 The origin also serves `GET https://agent-bitcoin.net/.well-known/l402-services` (`Content-Type: application/json`, HTTP 200, no payment). The document is [`l402/well-known/l402-services.json`](../l402/well-known/l402-services.json). It lists the public paid tools a buyer can call. Add a public endpoint there after a paid call returns a handler success. Price stays 100 sats.
 
-The 2026-10-22 catalog adds these to the original eight finance tools: `btc-address-validate`, `l402-challenge-inspect`, `ln-channel-stats`, `btc-fee-estimate`, `btc-chain-status`, `btc-network-info`, `btc-mempool-info`, `btc-peer-info`, `ln-node-info`, `btc-difficulty`, `btc-block-tip`, `btc-block-header`, `btc-tx-summary`, `btc-address-balance`, `btc-uptime`, `btc-deployment-info`, `btc-mining-info`, `btc-mempool-fees`, `btc-chain-tips`, `ln-invoice-inspect`, `ln-channel-liquidity`, `ln-peer-status`, `ln-path-estimate`, `ln-payment-status`, `nostr-node-link`, `nip05-verify`, `nostr-profile-summary`, `event-verify`, `npub-decode`, `ln-channel-policy`, `ln-invoice-create`, `ln-preimage-verify`, `ln-pay-check`, `ln-node-card`, `ln-address-resolve`, `ln-payee-liquidity-hint`, `ln-route-options`, `ln-invoice-amount-check`, and `ln-channel-reserve-check`.
+The 2026-10-22 catalog adds these to the original eight finance tools: `btc-address-validate`, `l402-challenge-inspect`, `ln-channel-stats`, `btc-fee-estimate`, `btc-chain-status`, `btc-network-info`, `btc-mempool-info`, `btc-peer-info`, `ln-node-info`, `btc-difficulty`, `btc-block-tip`, `btc-block-header`, `btc-tx-summary`, `btc-address-balance`, `btc-uptime`, `btc-deployment-info`, `btc-mining-info`, `btc-mempool-fees`, `btc-chain-tips`, `ln-invoice-inspect`, `ln-channel-liquidity`, `ln-peer-status`, `ln-path-estimate`, `ln-payment-status`, `nostr-node-link`, `nip05-verify`, `nostr-profile-summary`, `event-verify`, `npub-decode`, `ln-channel-policy`, `ln-preimage-verify`, `ln-pay-check`, `ln-node-card`, `ln-address-resolve`, `ln-payee-liquidity-hint`, `ln-route-options`, `ln-invoice-amount-check`, and `ln-channel-reserve-check`.
 
 The existing Caddy reverse proxy forwards the path to Aperture, which leaves it free alongside `/health`, and the origin returns the JSON. This repo does not call 402index. A new row shows up in search only after an operator registers it, or after a later crawl reads this file. `./register-402index.sh` registers every service, and `./register-402index.sh btc-network-info` registers only that short name.
 
@@ -49,7 +49,7 @@ The existing Caddy reverse proxy forwards the path to Aperture, which leaves it 
 
 1. Call `https://agent-bitcoin.net` (this lab).
 2. Call with `L402Client(..., expected_price_sats=100)` or `l402_pay.py --price 100`. The SDK default expected price is **100**.
-3. **GET** for Bitcoin-suite query tools, the bitcoind fee estimate, chain status, network info, mempool info, peer info, difficulty, the block tip, the block header, the transaction summary, the uptime, the deployment info, the mining summary, the mempool fees, the chain tips, the channel summary, and node info. **POST** JSON for the address check, the address balance, the challenge inspect, Lightning invoices, invoice inspect, channel liquidity, peer status, the path estimate, payment status, channel policy, invoice create, preimage verify, the pay check, the node card, Lightning address resolve, the payee liquidity hint, route options, the invoice amount check, the channel reserve check, the Nostr node link, NIP-05 verify, the Nostr profile summary, and Nostr tools (GET → **405**).
+3. **GET** for Bitcoin-suite query tools, the bitcoind fee estimate, chain status, network info, mempool info, peer info, difficulty, the block tip, the block header, the transaction summary, the uptime, the deployment info, the mining summary, the mempool fees, the chain tips, the channel summary, and node info. **POST** JSON for the address check, the address balance, the challenge inspect, Lightning invoices, invoice inspect, channel liquidity, peer status, the path estimate, payment status, channel policy, preimage verify, the pay check, the node card, Lightning address resolve, the payee liquidity hint, route options, the invoice amount check, the channel reserve check, the Nostr node link, NIP-05 verify, the Nostr profile summary, and Nostr tools (GET → **405**).
 4. Do **not** put BOLT11 in query strings. POST it in JSON (`--json`).
 5. Read `ttl_s` and cache. Do not poll every second. Local inspect tools (`ttl_s` 0) are still not a hot loop.
 6. Wiring, SG, and restart: [l402-aperture.md](./l402-aperture.md). Mainnet pays still need the usual latches on the payer.
@@ -387,17 +387,6 @@ uv run python examples/l402_pay.py \
   --url https://agent-bitcoin.net/paid/lightning/ln-channel-policy \
   --price 100 --method POST \
   --json '{}'
-```
-
-### POST `/paid/lightning/ln-invoice-create`
-
-Job: one LND `AddInvoice`. Body `{"amount_sats":1000,"description":"agent invoice"}`. `amount_sats` is an integer from 100 through 50000. The origin macaroon does not include AddInvoice, so this route cannot create an invoice. It does **not** pay, settle, or unlock the wallet. **100 sats**. 402index category: `lightning`. Permission denied and a down node return HTTP 503.
-
-```bash
-uv run python examples/l402_pay.py \
-  --url https://agent-bitcoin.net/paid/lightning/ln-invoice-create \
-  --price 100 --method POST \
-  --json '{"amount_sats":1000,"description":"agent invoice"}'
 ```
 
 ### POST `/paid/lightning/ln-preimage-verify`

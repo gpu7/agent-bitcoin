@@ -1,3 +1,9 @@
+## Changed — retire ln-invoice-create (2026-10-24)
+
+`/paid/lightning/ln-invoice-create` is no longer a paid route. The path is free and the origin returns HTTP 404. AddInvoice stays off the origin macaroon.
+
+---
+
 ## Changed — origin macaroon (2026-10-24)
 
 The L402 origin macaroon no longer includes AddInvoice. It allows QueryRoutes, DecodePayReq, ListChannels, GetInfo, GetNodeInfo, ListPeers, and LookupInvoice.
