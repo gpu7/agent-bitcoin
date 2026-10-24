@@ -1,3 +1,9 @@
+## Changed — unknown Lightning nodes (2026-10-24)
+
+`ln-node-card` and `ln-payee-liquidity-hint` return HTTP 404 `node_not_found` when GetNodeInfo does not know the pubkey.
+
+---
+
 ## Changed — dashboard peer alias (2026-10-23)
 
 A Lightning channel label uses the peer alias when listchannels includes one. The known Mac pubkey stays Mac.

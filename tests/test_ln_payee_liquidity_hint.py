@@ -100,6 +100,25 @@ def test_hint_reports_capacity_and_fee_range() -> None:
     assert reader.calls == [(_PUB, True)]
 
 
+def test_not_found_code_is_node_not_found() -> None:
+    class _Status:
+        def __init__(self, name: str) -> None:
+            self.name = name
+
+    class _Missing(Exception):
+        def code(self) -> _Status:
+            return _Status("NOT_FOUND")
+
+    class _Denied(Exception):
+        def code(self) -> _Status:
+            return _Status("PERMISSION_DENIED")
+
+    with pytest.raises(hint.NodeNotFound):
+        hint._classify(_Missing())
+    with pytest.raises(hint.LndUnavailable):
+        hint._classify(_Denied())
+
+
 def test_amount_50_is_400_before_rpc() -> None:
     reader = _Reader(_graph())
     body = json.dumps({"pubkey": _PUB, "amount_sats": 50}).encode()

@@ -66,6 +66,25 @@ def test_card_shortens_addresses_and_hides_pubkey() -> None:
     assert reader.calls == [(_PUB, False)]
 
 
+def test_not_found_code_is_node_not_found() -> None:
+    class _Status:
+        def __init__(self, name: str) -> None:
+            self.name = name
+
+    class _Missing(Exception):
+        def code(self) -> _Status:
+            return _Status("NOT_FOUND")
+
+    class _Denied(Exception):
+        def code(self) -> _Status:
+            return _Status("PERMISSION_DENIED")
+
+    with pytest.raises(card.NodeNotFound):
+        card._classify(_Missing())
+    with pytest.raises(card.LndUnavailable):
+        card._classify(_Denied())
+
+
 def test_unknown_node_is_404() -> None:
     reader = _Reader(error=RuntimeError("unable to find node"))
     with pytest.raises(card.NodeNotFound):
