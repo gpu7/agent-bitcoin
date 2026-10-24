@@ -115,6 +115,39 @@ def test_origin_unavailable_is_503(monkeypatch: pytest.MonkeyPatch) -> None:
     assert b"hidden grpc text" not in raw
 
 
+_READ_URIS = (
+    "uri:/lnrpc.Lightning/QueryRoutes",
+    "uri:/lnrpc.Lightning/DecodePayReq",
+    "uri:/lnrpc.Lightning/ListChannels",
+    "uri:/lnrpc.Lightning/GetInfo",
+    "uri:/lnrpc.Lightning/GetNodeInfo",
+    "uri:/lnrpc.Lightning/ListPeers",
+    "uri:/lnrpc.Lightning/LookupInvoice",
+)
+_WRITE_NAMES = (
+    "AddInvoice",
+    "SendPayment",
+    "SettleInvoice",
+    "OpenChannel",
+    "BakeMacaroon",
+)
+
+
+def test_origin_macaroon_rejects_invoice_creation() -> None:
+    root = Path(__file__).resolve().parents[1]
+    text = (root / "docs" / "l402-aperture.md").read_text(encoding="utf-8")
+    start = text.index("bakemacaroon")
+    block = text[start : text.index("```", start)]
+    uris = [
+        line.strip().rstrip("\\").strip()
+        for line in block.splitlines()
+        if "uri:/" in line
+    ]
+    assert uris == list(_READ_URIS)
+    for name in _WRITE_NAMES:
+        assert name not in block
+
+
 def test_wired() -> None:
     root = Path(__file__).resolve().parents[1]
     url = "https://agent-bitcoin.net/paid/lightning/ln-invoice-create"

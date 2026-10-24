@@ -202,7 +202,7 @@ Upstream default: `https://mempool.space/api/v1/prices`. Accepted schema: JSON o
 
 After pay, 200 envelope: `ok`, `service` (`ln-path-fee-hint`), `version`, `as_of`, `ttl_s` (default **15**, clamp **10–30**, `LN_PATH_HINT_TTL_S`), `source` (`aws_agent_lnd`), `stale`, `amount_sats`, `fee_sats` (`ceil(total_fees_msat/1000)` from the first QueryRoutes path), `total_sats`, `hop_count`. `success_hint` only if LND returns `success_prob`. Full bolt11 is not echoed. No route dump, channel list, or policy.
 
-LND errors: no path → **404** `no_route`. Missing cert/macaroon, timeout, or LND down → **503** `lnd_unavailable`. The live origin macaroon allows QueryRoutes, DecodePayReq, ListChannels, GetInfo, GetNodeInfo, ListPeers, LookupInvoice, and AddInvoice. It still excludes SendPayment, SettleInvoice, OpenChannel, and BakeMacaroon. The paid invoice-create route may call AddInvoice to create an invoice and must not pay, settle, or open a channel. **Not Terminal/RTL.**
+LND errors: no path → **404** `no_route`. Missing cert/macaroon, timeout, or LND down → **503** `lnd_unavailable`. The origin macaroon is read-only. It allows QueryRoutes, DecodePayReq, ListChannels, GetInfo, GetNodeInfo, ListPeers, and LookupInvoice. AddInvoice, SendPayment, SettleInvoice, OpenChannel, and BakeMacaroon are absent, so the origin cannot create an invoice. **Not Terminal/RTL.**
 
 Probe node is **AWS agent LND**. Origin compose mounts the same LND volume Aperture uses (`/lnd:ro`) and dials `LND_GRPC_HOST` (container hostname, TLS SAN). Mac as an option is env-only (`LND_GRPC_HOST` / macaroon path); this PR does not wire a Mac origin. Never mount `admin.macaroon` or `invoice.macaroon` on origin. 8081 stays operator `/32`.
 
@@ -218,7 +218,6 @@ docker exec agent-payment-decision-lnd-mainnet lncli \
   uri:/lnrpc.Lightning/GetNodeInfo \
   uri:/lnrpc.Lightning/ListPeers \
   uri:/lnrpc.Lightning/LookupInvoice \
-  uri:/lnrpc.Lightning/AddInvoice \
   --save_to /home/lnd/.lnd/data/chain/bitcoin/mainnet/l402-readonly.macaroon
 ```
 

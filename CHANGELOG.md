@@ -1,3 +1,9 @@
+## Changed — origin macaroon (2026-10-24)
+
+The L402 origin macaroon no longer includes AddInvoice. It allows QueryRoutes, DecodePayReq, ListChannels, GetInfo, GetNodeInfo, ListPeers, and LookupInvoice.
+
+---
+
 ## Changed — unknown Lightning nodes (2026-10-24)
 
 `ln-node-card` and `ln-payee-liquidity-hint` return HTTP 404 `node_not_found` when GetNodeInfo does not know the pubkey.
