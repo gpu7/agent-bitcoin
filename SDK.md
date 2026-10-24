@@ -274,7 +274,7 @@ if inputs.quote_valid:
 
 ### L402 (Aperture)
 
-`L402Client` pays an HTTP 402 challenge and retries. Every paid path is **100 sats**, including hello, PDF, PNG, fee bands, fullness, fee-for-vsize, confirm-target, BTC/USD pass-through, Lightning path-fee hint, and BOLT11 inspect / preflight (`expected_price_sats=100`). `/health` is free. Operator runbook: [docs/l402-aperture.md](docs/l402-aperture.md). Not a mempool.space replacement, FX oracle, or Terminal/RTL. `vsize` is virtual bytes, not weight. Path-fee hint, invoice-decode, and preflight are **POST** JSON (not a query string). Invoice-decode and preflight are in-process (no LND).
+`L402Client` pays an HTTP 402 challenge and retries. Every paid path is **10 sats**, including hello, PDF, PNG, fee bands, fullness, fee-for-vsize, confirm-target, BTC/USD pass-through, Lightning path-fee hint, and BOLT11 inspect / preflight (`expected_price_sats=10`). The general payment minimum stays 100 sats. `/health` is free. Operator runbook: [docs/l402-aperture.md](docs/l402-aperture.md). Not a mempool.space replacement, FX oracle, or Terminal/RTL. `vsize` is virtual bytes, not weight. Path-fee hint, invoice-decode, and preflight are **POST** JSON (not a query string). Invoice-decode and preflight are in-process (no LND).
 
 ```python
 from agent_bitcoin import L402Client, create_client
@@ -283,32 +283,32 @@ resp = L402Client(create_client()).fetch("https://agent-bitcoin.net/paid/hello")
 # resp.status_code, resp.paid, resp.json()
 
 payer = create_client()
-fees = L402Client(payer, expected_price_sats=100).fetch(
+fees = L402Client(payer, expected_price_sats=10).fetch(
     "https://agent-bitcoin.net/paid/finance/mempool-feerate"
 )
-backlog = L402Client(payer, expected_price_sats=100).fetch(
+backlog = L402Client(payer, expected_price_sats=10).fetch(
     "https://agent-bitcoin.net/paid/finance/mempool-backlog"
 )
-fees_tx = L402Client(payer, expected_price_sats=100).fetch(
+fees_tx = L402Client(payer, expected_price_sats=10).fetch(
     "https://agent-bitcoin.net/paid/finance/fee-for-vsize?vsize=250"
 )
-wait = L402Client(payer, expected_price_sats=100).fetch(
+wait = L402Client(payer, expected_price_sats=10).fetch(
     "https://agent-bitcoin.net/paid/finance/confirm-target?minutes=30"
 )
-fx = L402Client(payer, expected_price_sats=100).fetch(
+fx = L402Client(payer, expected_price_sats=10).fetch(
     "https://agent-bitcoin.net/paid/finance/btc-usd"
 )
-path = L402Client(payer, expected_price_sats=100).fetch(
+path = L402Client(payer, expected_price_sats=10).fetch(
     "https://agent-bitcoin.net/paid/finance/ln-path-fee-hint",
     method="POST",
     json_body={"dest_pubkey": "<66 hex>", "amount_sats": 1000},
 )
-inv = L402Client(payer, expected_price_sats=100).fetch(
+inv = L402Client(payer, expected_price_sats=10).fetch(
     "https://agent-bitcoin.net/paid/finance/ln-invoice-decode",
     method="POST",
     json_body={"bolt11": "<test invoice>"},
 )
-gate = L402Client(payer, expected_price_sats=100).fetch(
+gate = L402Client(payer, expected_price_sats=10).fetch(
     "https://agent-bitcoin.net/paid/finance/ln-invoice-preflight",
     method="POST",
     json_body={

@@ -2,7 +2,7 @@
 
 Two-agent swarm: who pays one L402 tool.
 
-Two Nostr identities, signed relay events, one winner pays `GET /paid/finance/mempool-feerate` (100 sats). Coded policy picks the payer. Optional Grok explains in one sentence each and **never** pays.
+Two Nostr identities, signed relay events, one winner pays `GET /paid/finance/mempool-feerate` (10 sats). Coded policy picks the payer. Optional Grok explains in one sentence each and **never** pays.
 
 **Two modes — do not mix them:**
 
@@ -45,14 +45,14 @@ Default is **`--resolve hash`**. `./examples/agent-to-merchant-pay.sh --role ali
 
 # live (Mac)
 ./examples/agent-to-merchant-pay.sh --role alice --resolve puzzle --puzzle-type fee-sats --no-llm \
-  --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 100
+  --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 10
 ./examples/agent-to-merchant-pay.sh --role bob --resolve puzzle --puzzle-type fee-sats --no-llm \
-  --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 100
+  --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 10
 ```
 
 ### LLM gate (opt-in)
 
-`--resolve llm-gate`: each agent votes YES/NO whether to pay **100 sats** for `POST /paid/finance/ln-path-fee-hint`. YES voters then use the **hash** tie-break. 0 YES → no L402. `--model grok` (default) uses `XAI_API_KEY`. `--model ollama` uses local Ollama (`http://127.0.0.1:11434`, `OLLAMA_MODEL` or `llama3.2`) and does not need xAI. `--no-llm` cannot be combined with `--model` or llm-gate. Two-agent only. Vote `reason` is logged locally, not sent to AWS. Hash / puzzle still need no model (`--no-llm`).
+`--resolve llm-gate`: each agent votes YES/NO whether to pay **10 sats** for `POST /paid/finance/ln-path-fee-hint`. YES voters then use the **hash** tie-break. 0 YES → no L402. `--model grok` (default) uses `XAI_API_KEY`. `--model ollama` uses local Ollama (`http://127.0.0.1:11434`, `OLLAMA_MODEL` or `llama3.2`) and does not need xAI. `--no-llm` cannot be combined with `--model` or llm-gate. Two-agent only. Vote `reason` is logged locally, not sent to AWS. Hash / puzzle still need no model (`--no-llm`).
 
 ```bash
 export XAI_API_KEY=       # local only; never commit
@@ -79,7 +79,7 @@ Mock Ollama (local HTTP; `ollama pull llama3.2`; no `XAI_API_KEY`):
 ./examples/agent-to-merchant-pay.sh --role bob --resolve llm-gate --model ollama --offline-bus
 ```
 
-Live (Mac pays AWS, 100 sats):
+Live (Mac pays AWS, 10 sats):
 
 ```bash
 export LND_NETWORK=mainnet
@@ -88,10 +88,10 @@ export LND_TRANSPORT=docker
 export AGENT_BITCOIN_ALLOW_MAINNET=1
 export AGENT_BITCOIN_ALLOW_AUTOPAY=1
 # Terminal A
-./examples/agent-to-merchant-pay.sh --role alice --resolve llm-gate --price 100 \
+./examples/agent-to-merchant-pay.sh --role alice --resolve llm-gate --price 10 \
   --url https://agent-bitcoin.net/paid/finance/ln-path-fee-hint
 # Terminal B
-./examples/agent-to-merchant-pay.sh --role bob --resolve llm-gate --price 100 \
+./examples/agent-to-merchant-pay.sh --role bob --resolve llm-gate --price 10 \
   --url https://agent-bitcoin.net/paid/finance/ln-path-fee-hint
 ```
 
@@ -104,7 +104,7 @@ export SWARM_LLM_FORCE_VOTE=YES
 ## 2. Prerequisites
 
 - L402 stack up on AWS: `./startup-l402-aws.sh <regtest|signet|mainnet>`
-- **Live:** Mac can reach `https://agent-bitcoin.net`; Mac LND unlocked; channel **Mac → AWS** with **local** (outbound) ≫ 100 sats + routing
+- **Live:** Mac can reach `https://agent-bitcoin.net`; Mac LND unlocked; channel **Mac → AWS** with **local** (outbound) ≫ 10 sats + routing
 - `XAI_API_KEY` optional. Without it, `--no-llm`
 - Python **3.12** + `.venv-nostr` + `.[nostr]` — [SDK.md](../SDK.md). Do **not** use `uv run python` on 3.13/3.14
 
@@ -133,7 +133,7 @@ No LND pay. Fine for Nostr ids + negotiate. `--offline-bus` uses a **localhost m
 | Payer LND | **Mac** `agent-bitcoin-lnd*` |
 | Both swarm processes | **Mac** (Nostr relays; no shared message directory) |
 | URL | `https://agent-bitcoin.net/paid/finance/mempool-feerate` |
-| Flags | **No** `--offline-bus`; `--price 100` |
+| Flags | **No** `--offline-bus`; `--price 10` |
 | Do **not** | Use `LND_CONTAINER=agent-payment-decision-lnd*` as the live payer |
 
 Alice and Bob do not share a message directory. Live coordination is signed events on `NOSTR_RELAYS`. Start Alice and wait until she prints `waiting for`, then start Bob within `--timeout` (default 60 seconds). Verify before trust. Same order for the mock relay: the first process starts `127.0.0.1:8765`.
@@ -283,11 +283,11 @@ One process (two threads):
 ```bash
 # Terminal A
 ./examples/agent-to-merchant-pay.sh --role alice --no-llm \
-  --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 100
+  --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 10
 
 # Terminal B
 ./examples/agent-to-merchant-pay.sh --role bob --no-llm \
-  --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 100
+  --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 10
 ```
 
 Expected log lines (npubs will differ). Mock bands are **3/2/1**; live bands come from the origin:
@@ -323,7 +323,7 @@ Printed: `npub=npub1…`. Encrypted nsec stays in `.nostr-poc/alice.enc.json` an
 
 | Symptom | What to do |
 |---------|------------|
-| 402 loop / `paid=False` | Price mismatch: pass `--price 100` for feerate. Client default elsewhere is 1000. |
+| 402 loop / `paid=False` | Price mismatch: pass `--price 10` for feerate. The client default is 10. |
 | HTTPS health is not 200 | Check `https://agent-bitcoin.net/health`. Do not open 8081. L402: `./startup-l402-aws.sh <network>` |
 | LND locked / macaroon errors | Unlock the **Mac payer** wallet; `LND_CONTAINER` is `agent-bitcoin-lnd*` |
 | Amount below floor | Min invoice is **100 sats** (`MIN_PAYMENT_SATS`) |

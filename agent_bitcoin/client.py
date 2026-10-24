@@ -206,7 +206,11 @@ class AgentBitcoinClient:
         return result
 
     def pay_invoice(
-        self, payment_request: str, fee_limit_sats: int = 200
+        self,
+        payment_request: str,
+        fee_limit_sats: int = 200,
+        *,
+        minimum_sats: int | None = None,
     ) -> PaymentResult:
         if not payment_request:
             raise ValueError("Payment request is required")
@@ -220,12 +224,11 @@ class AgentBitcoinClient:
         invoice = payment_request.strip()
         decoded = self._decode_for_pay(invoice)
         amount_sats = _invoice_amount_sats(decoded) if decoded else 0
+        floor = self.min_payment_sats if minimum_sats is None else int(minimum_sats)
 
         if amount_sats > 0:
-            if amount_sats < self.min_payment_sats:
-                raise ValueError(
-                    f"Invoice amount {amount_sats} below minimum {self.min_payment_sats}"
-                )
+            if amount_sats < floor:
+                raise ValueError(f"Invoice amount {amount_sats} below minimum {floor}")
             if amount_sats > self.max_payment_sats:
                 raise ValueError(
                     f"Invoice amount {amount_sats} above maximum {self.max_payment_sats}"

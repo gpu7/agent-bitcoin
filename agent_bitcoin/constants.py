@@ -19,8 +19,8 @@ DEFAULT_MAX_PAYMENT_SATS = 1_000_000
 DEFAULT_MAINNET_MAX_PAYMENT_SATS = 50_000
 DEFAULT_MAX_DAILY_PAYMENT_SATS = 100_000
 DEFAULT_MAX_FEE_SEND_SATS = 100_000
-# Aperture L402 price per paid request (must be >= MIN_PAYMENT_SATS)
-DEFAULT_L402_PRICE_SATS = 100
+# Aperture L402 price per paid request. Below MIN_PAYMENT_SATS on purpose.
+DEFAULT_L402_PRICE_SATS = 10
 
 
 def env_int(name: str, default: int) -> int:

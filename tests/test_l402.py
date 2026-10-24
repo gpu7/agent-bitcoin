@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -34,21 +35,20 @@ def test_payment_result_captures_preimage() -> None:
     assert result.amount == 1000
 
 
-def test_default_l402_price_matches_min_pay() -> None:
+def test_l402_price_is_below_the_payment_minimum() -> None:
     from agent_bitcoin.constants import DEFAULT_MIN_PAYMENT_SATS
 
-    assert DEFAULT_L402_PRICE_SATS == 100
+    assert DEFAULT_L402_PRICE_SATS == 10
     assert DEFAULT_MIN_PAYMENT_SATS == 100
-    assert DEFAULT_L402_PRICE_SATS >= DEFAULT_MIN_PAYMENT_SATS
 
 
-def test_paid_urls_default_to_100() -> None:
+def test_paid_urls_default_to_10() -> None:
     from agent_bitcoin.l402.client import (
         FINANCE_L402_PRICE_SATS,
         expected_price_sats_for_url,
     )
 
-    assert FINANCE_L402_PRICE_SATS == 100
+    assert FINANCE_L402_PRICE_SATS == 10
     finance = "http://127.0.0.1:8081/paid/finance/mempool-feerate"
     nostr = "http://127.0.0.1:8081/paid/nostr/event-verify?x=1"
     security = "https://agent-bitcoin.net/paid/security/l402-challenge-inspect"
@@ -88,60 +88,60 @@ def test_paid_urls_default_to_100() -> None:
     channel_reserve = (
         "https://agent-bitcoin.net/paid/lightning/ln-channel-reserve-check"
     )
-    assert expected_price_sats_for_url(finance) == 100
-    assert expected_price_sats_for_url(nostr) == 100
-    assert expected_price_sats_for_url(security) == 100
-    assert expected_price_sats_for_url(lightning) == 100
-    assert expected_price_sats_for_url(bitcoin) == 100
-    assert expected_price_sats_for_url(chain) == 100
-    assert expected_price_sats_for_url(network) == 100
-    assert expected_price_sats_for_url(mempool) == 100
-    assert expected_price_sats_for_url(peer) == 100
-    assert expected_price_sats_for_url(node) == 100
-    assert expected_price_sats_for_url(difficulty) == 100
-    assert expected_price_sats_for_url(block_tip) == 100
-    assert expected_price_sats_for_url(block_header) == 100
-    assert expected_price_sats_for_url(tx_summary) == 100
-    assert expected_price_sats_for_url(address_balance) == 100
-    assert expected_price_sats_for_url(uptime) == 100
-    assert expected_price_sats_for_url(deployment) == 100
-    assert expected_price_sats_for_url(mining) == 100
-    assert expected_price_sats_for_url(mempool_fees) == 100
-    assert expected_price_sats_for_url(chain_tips) == 100
-    assert expected_price_sats_for_url(invoice_inspect) == 100
-    assert expected_price_sats_for_url(channel_liquidity) == 100
-    assert expected_price_sats_for_url(peer_status) == 100
-    assert expected_price_sats_for_url(path_estimate) == 100
-    assert expected_price_sats_for_url(payment_status) == 100
-    assert expected_price_sats_for_url(node_link) == 100
-    assert expected_price_sats_for_url(channel_policy) == 100
-    assert expected_price_sats_for_url(preimage_verify) == 100
-    assert expected_price_sats_for_url(pay_check) == 100
-    assert expected_price_sats_for_url(node_card) == 100
-    assert expected_price_sats_for_url(address_resolve) == 100
-    assert expected_price_sats_for_url(liquidity_hint) == 100
-    assert expected_price_sats_for_url(nip05_verify) == 100
-    assert expected_price_sats_for_url(route_options) == 100
-    assert expected_price_sats_for_url(invoice_amount) == 100
-    assert expected_price_sats_for_url(profile_summary) == 100
-    assert expected_price_sats_for_url(channel_reserve) == 100
-    assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/hello") == 100
-    assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/report.pdf") == 100
-    assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/script.pdf") == 100
-    assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/badge.png") == 100
+    assert expected_price_sats_for_url(finance) == 10
+    assert expected_price_sats_for_url(nostr) == 10
+    assert expected_price_sats_for_url(security) == 10
+    assert expected_price_sats_for_url(lightning) == 10
+    assert expected_price_sats_for_url(bitcoin) == 10
+    assert expected_price_sats_for_url(chain) == 10
+    assert expected_price_sats_for_url(network) == 10
+    assert expected_price_sats_for_url(mempool) == 10
+    assert expected_price_sats_for_url(peer) == 10
+    assert expected_price_sats_for_url(node) == 10
+    assert expected_price_sats_for_url(difficulty) == 10
+    assert expected_price_sats_for_url(block_tip) == 10
+    assert expected_price_sats_for_url(block_header) == 10
+    assert expected_price_sats_for_url(tx_summary) == 10
+    assert expected_price_sats_for_url(address_balance) == 10
+    assert expected_price_sats_for_url(uptime) == 10
+    assert expected_price_sats_for_url(deployment) == 10
+    assert expected_price_sats_for_url(mining) == 10
+    assert expected_price_sats_for_url(mempool_fees) == 10
+    assert expected_price_sats_for_url(chain_tips) == 10
+    assert expected_price_sats_for_url(invoice_inspect) == 10
+    assert expected_price_sats_for_url(channel_liquidity) == 10
+    assert expected_price_sats_for_url(peer_status) == 10
+    assert expected_price_sats_for_url(path_estimate) == 10
+    assert expected_price_sats_for_url(payment_status) == 10
+    assert expected_price_sats_for_url(node_link) == 10
+    assert expected_price_sats_for_url(channel_policy) == 10
+    assert expected_price_sats_for_url(preimage_verify) == 10
+    assert expected_price_sats_for_url(pay_check) == 10
+    assert expected_price_sats_for_url(node_card) == 10
+    assert expected_price_sats_for_url(address_resolve) == 10
+    assert expected_price_sats_for_url(liquidity_hint) == 10
+    assert expected_price_sats_for_url(nip05_verify) == 10
+    assert expected_price_sats_for_url(route_options) == 10
+    assert expected_price_sats_for_url(invoice_amount) == 10
+    assert expected_price_sats_for_url(profile_summary) == 10
+    assert expected_price_sats_for_url(channel_reserve) == 10
+    assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/hello") == 10
+    assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/report.pdf") == 10
+    assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/script.pdf") == 10
+    assert expected_price_sats_for_url("http://127.0.0.1:8081/paid/badge.png") == 10
     assert (
         expected_price_sats_for_url("http://127.0.0.1:8081/paid/finance/fee-for-vsize")
-        == 100
+        == 10
     )
     assert (
         expected_price_sats_for_url(
             "http://127.0.0.1:8081/paid/finance/ln-invoice-decode"
         )
-        == 100
+        == 10
     )
 
 
-def test_aperture_yaml_prices_are_100_and_health_is_free() -> None:
+def test_aperture_yaml_prices_are_10_and_health_is_free() -> None:
     root = Path(__file__).resolve().parents[1] / "l402"
     for name in (
         "aperture.regtest.yaml",
@@ -149,9 +149,16 @@ def test_aperture_yaml_prices_are_100_and_health_is_free() -> None:
         "aperture.mainnet.yaml",
     ):
         text = (root / name).read_text(encoding="utf-8")
+        prices = [
+            line.strip().split()[-1]
+            for line in text.splitlines()
+            if line.strip().startswith("price:")
+        ]
+        assert prices
+        assert set(prices) == {"10"}
         assert "price: 1000" not in text
-        assert "price: 100" in text
         assert '- "^/health$"' in text
+        assert '- "^/paid/lightning/ln-invoice-create$"' in text
         assert '- "^/\\\\.well-known/l402-services$"' in text
         assert '- "^/\\\\.well-known/402index-verify\\\\.txt$"' in text
 
@@ -251,322 +258,322 @@ def test_well_known_l402_services_is_public_json() -> None:
             "url": "https://agent-bitcoin.net/paid/finance/btc-usd",
             "name": "agent-bitcoin: btc-usd",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Bitcoin price in USD. Current BTC-USD rate and sats per USD from a public source. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/finance/mempool-feerate",
             "name": "agent-bitcoin: mempool-feerate",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Bitcoin mempool fee rates. Sat/vB bands for fast, medium, and slow confirmation. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/finance/mempool-backlog",
             "name": "agent-bitcoin: mempool-backlog",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Bitcoin mempool backlog. Transaction count, virtual size, and total fee. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/finance/fee-for-vsize",
             "name": "agent-bitcoin: fee-for-vsize",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Fee in sats for a given virtual size. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/finance/confirm-target",
             "name": "agent-bitcoin: confirm-target",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Map a confirmation wait time or band to sat/vB. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/finance/ln-invoice-decode",
             "name": "agent-bitcoin: ln-invoice-decode",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Parse a Lightning BOLT11 invoice. Returns amount, expiry, and payee. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/finance/ln-invoice-preflight",
             "name": "agent-bitcoin: ln-invoice-preflight",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Check whether a Lightning invoice is safe to pay. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/finance/ln-path-fee-hint",
             "name": "agent-bitcoin: ln-path-fee-hint",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "First-path fee hint from the operator LND. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/finance/btc-address-validate",
             "name": "agent-bitcoin: btc-address-validate",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Check a Bitcoin address. Returns network and type, or a short reason if invalid. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/security/l402-challenge-inspect",
             "name": "agent-bitcoin: l402-challenge-inspect",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Inspect a remote L402 challenge. Returns price, expiry, and payee. Does not pay. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-channel-stats",
             "name": "agent-bitcoin: ln-channel-stats",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Lightning channel counts and balances from the operator LND. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-fee-estimate",
             "name": "agent-bitcoin: btc-fee-estimate",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Bitcoin Core estimatesmartfee for 1, 3, and 6 blocks, in sats per vbyte. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-chain-status",
             "name": "agent-bitcoin: btc-chain-status",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Bitcoin Core chain height, sync progress, and prune state from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-network-info",
             "name": "agent-bitcoin: btc-network-info",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Bitcoin Core version, protocol, and connection counts from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-mempool-info",
             "name": "agent-bitcoin: btc-mempool-info",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Bitcoin Core mempool size, memory, and minimum fee from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-peer-info",
             "name": "agent-bitcoin: btc-peer-info",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Bitcoin Core peer count and a short address list from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-node-info",
             "name": "agent-bitcoin: ln-node-info",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Read-only LND GetInfo summary: alias, public node id, active channels, peers, height, sync, and version. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-difficulty",
             "name": "agent-bitcoin: btc-difficulty",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Bitcoin Core difficulty, chainwork, and blocks until the next retarget from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-block-tip",
             "name": "agent-bitcoin: btc-block-tip",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Bitcoin Core tip height, block hash, and median time from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-block-header",
             "name": "agent-bitcoin: btc-block-header",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Bitcoin Core block header for one height from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-tx-summary",
             "name": "agent-bitcoin: btc-tx-summary",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Bitcoin Core transaction size, confirmations, and mempool fee for one txid from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-address-balance",
             "name": "agent-bitcoin: btc-address-balance",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Bitcoin Core confirmed UTXO balance for one address from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-uptime",
             "name": "agent-bitcoin: btc-uptime",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Bitcoin Core uptime and version from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-deployment-info",
             "name": "agent-bitcoin: btc-deployment-info",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Bitcoin Core active soft-fork status from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-mining-info",
             "name": "agent-bitcoin: btc-mining-info",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Bitcoin Core mining summary from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-mempool-fees",
             "name": "agent-bitcoin: btc-mempool-fees",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Bitcoin Core mempool minimum fee and fee bands from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/bitcoin/btc-chain-tips",
             "name": "agent-bitcoin: btc-chain-tips",
             "method": "GET",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Bitcoin Core chain tips from the operator bitcoind. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-invoice-inspect",
             "name": "agent-bitcoin: ln-invoice-inspect",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "LND decode of one BOLT11 invoice. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-channel-liquidity",
             "name": "agent-bitcoin: ln-channel-liquidity",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "LND channel balances for the operator node. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-peer-status",
             "name": "agent-bitcoin: ln-peer-status",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "LND peer connection status for the operator node. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-path-estimate",
             "name": "agent-bitcoin: ln-path-estimate",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "LND route estimate for one destination. Does not pay. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-payment-status",
             "name": "agent-bitcoin: ln-payment-status",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Status of one invoice created by the operator LND. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/nostr/nostr-node-link",
             "name": "agent-bitcoin: nostr-node-link",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Public Nostr npub and whether it matches this node's Lightning id. No nsec. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/nostr/nip05-verify",
             "name": "agent-bitcoin: nip05-verify",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Check a NIP-05 name against an npub. No nsec. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/nostr/nostr-profile-summary",
             "name": "agent-bitcoin: nostr-profile-summary",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Short public Nostr profile summary. No nsec and no nip05 check. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/nostr/event-verify",
             "name": "agent-bitcoin: event-verify",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Check a Nostr event id and signature locally. No relay. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/nostr/npub-decode",
             "name": "agent-bitcoin: npub-decode",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Decode a Nostr npub, note, nprofile, or nevent to hex. Rejects nsec. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-channel-policy",
             "name": "agent-bitcoin: ln-channel-policy",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "LND local channel policy from listchannels. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-preimage-verify",
             "name": "agent-bitcoin: ln-preimage-verify",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "SHA-256 check that a preimage matches a payment hash. No LND. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-pay-check",
             "name": "agent-bitcoin: ln-pay-check",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Decide whether one invoice or destination is payable. Does not pay. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-node-card",
             "name": "agent-bitcoin: ln-node-card",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Public graph card for one Lightning node. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-address-resolve",
             "name": "agent-bitcoin: ln-address-resolve",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Read a Lightning address pay range. Does not request an invoice. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-payee-liquidity-hint",
             "name": "agent-bitcoin: ln-payee-liquidity-hint",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "Public graph capacity hint for one payee. Not channel balances. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-route-options",
             "name": "agent-bitcoin: ln-route-options",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "LND route options for one destination. Does not pay. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-invoice-amount-check",
             "name": "agent-bitcoin: ln-invoice-amount-check",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "LND check of whether an invoice amount is open or fixed. Read-only. Lightning L402.",
         },
         {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-channel-reserve-check",
             "name": "agent-bitcoin: ln-channel-reserve-check",
             "method": "POST",
-            "price_sats": 100,
+            "price_sats": 10,
             "description": "LND channel reserve check for one peer. Read-only. Lightning L402.",
         },
     ]
@@ -792,14 +799,86 @@ def test_fetch_rejects_wrong_price(clear_payment_env) -> None:
 
 def test_fetch_rejects_below_minimum(clear_payment_env) -> None:
     payer = _payer()
-    payer.lnd.decode_pay_req.return_value = {"num_satoshis": "21"}
-    client = L402Client(payer, expected_price_sats=1000)
+    payer.lnd.decode_pay_req.return_value = {"num_satoshis": "9"}
+    client = L402Client(payer, expected_price_sats=10)
     header = 'L402 macaroon="MAC", invoice="lnbcrt1inv"'
     with patch("agent_bitcoin.l402.client.L402Client._get") as mock_get:
         mock_get.return_value = (402, {"WWW-Authenticate": header}, b"")
         with pytest.raises(ValueError, match="below minimum"):
             client.fetch("http://example.test/paid/hello")
     payer.pay_invoice.assert_not_called()
+
+
+def test_fetch_pays_10_when_payer_minimum_is_100(clear_payment_env) -> None:
+    payer = _payer()
+    payer.min_payment_sats = 100
+    payer.lnd.decode_pay_req.return_value = {"num_satoshis": "10"}
+    client = L402Client(payer, expected_price_sats=10)
+    header = 'L402 macaroon="MAC", invoice="lnbcrt1inv"'
+    with patch("agent_bitcoin.l402.client.L402Client._get") as mock_get:
+        mock_get.side_effect = [
+            (402, {"WWW-Authenticate": header}, b"pay"),
+            (200, {"Content-Type": "application/json"}, b'{"ok": true}'),
+        ]
+        resp = client.fetch("http://example.test/paid/hello")
+    assert resp.paid is True
+    payer.pay_invoice.assert_called_once()
+    assert payer.pay_invoice.call_args.kwargs["minimum_sats"] == 10
+
+
+def test_fetch_pays_10_when_payer_rejects_minimum_kwarg(
+    clear_payment_env,
+) -> None:
+    class StrictPayer:
+        def __init__(self) -> None:
+            self.min_payment_sats = 100
+            self.lnd = MagicMock()
+            self.lnd.decode_pay_req.return_value = {"num_satoshis": "10"}
+            self.calls: list[tuple[Any, ...]] = []
+
+        def pay_invoice(self, payment_request: str, fee_limit_sats: int = 200) -> Any:
+            self.calls.append((payment_request, fee_limit_sats))
+            return MagicMock(success=True, preimage="cd" * 32, status="SUCCEEDED")
+
+    payer = StrictPayer()
+    client = L402Client(payer, expected_price_sats=10)
+    header = 'L402 macaroon="MAC", invoice="lnbcrt1inv"'
+    with patch("agent_bitcoin.l402.client.L402Client._get") as mock_get:
+        mock_get.side_effect = [
+            (402, {"WWW-Authenticate": header}, b"pay"),
+            (200, {}, b"ok"),
+        ]
+        resp = client.fetch("http://example.test/paid/hello")
+    assert resp.paid is True
+    assert payer.calls == [("lnbcrt1inv", 200)]
+
+
+def test_pay_invoice_keeps_100_floor_unless_l402_override(
+    clear_payment_env, monkeypatch, tmp_path
+) -> None:
+    monkeypatch.setenv(
+        "AGENT_BITCOIN_PAYMENT_ATTEMPTS", str(tmp_path / "attempts.json")
+    )
+    monkeypatch.setenv("AGENT_BITCOIN_SPEND_LEDGER", str(tmp_path / "spend.json"))
+    monkeypatch.setenv("MIN_PAYMENT_SATS", "100")
+    monkeypatch.setenv("LND_NETWORK", "regtest")
+    from agent_bitcoin import create_client
+
+    with patch("agent_bitcoin.client.LNDClient") as mock_lnd:
+        lnd = MagicMock()
+        lnd.decode_pay_req.return_value = {
+            "num_satoshis": "10",
+            "payment_hash": "ab" * 32,
+        }
+        lnd.pay_invoice.return_value = MagicMock(success=False, status="FAILED")
+        mock_lnd.return_value = lnd
+        client = create_client()
+        with pytest.raises(ValueError, match="below minimum 100"):
+            client.pay_invoice("lnbc10n1notarealinvoice")
+        lnd.pay_invoice.assert_not_called()
+        result = client.pay_invoice("lnbc10n1notarealinvoice", minimum_sats=10)
+    assert result.success is False
+    lnd.pay_invoice.assert_called_once()
 
 
 def test_fetch_post_retries_same_body(clear_payment_env) -> None:

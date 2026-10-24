@@ -10,12 +10,12 @@ An external agent pays **our AWS Aperture** for existing JSON tools. Aperture is
 
 - Their process can reach `https://agent-bitcoin.net` on port **443**. They do **not** need an **8081** `/32`.
 - Lightning payer **≠** our AWS invoice LND. They pay with **their** LND (or SDK + their node). Paying our invoice with our AWS node is self-pay and fails.
-- A path that can send **100 sats**. Prefer a **direct private channel** to our AWS node. Public multi-hop is unreliable at 100 sats.
+- A path that can send **10 sats**. Prefer a **direct private channel** to our AWS node. Public multi-hop is unreliable at 10 sats.
 - An L402 client: unpaid GET/POST → **402** + BOLT11 → pay → retry `Authorization: L402 <macaroon>:<preimage>`. Use [`examples/l402_pay.py`](../examples/l402_pay.py) or [`L402Client`](../SDK.md#l402-aperture).
 
 ## Step-by-step
 
-1. **Agree a trial.** One path, e.g. `GET https://agent-bitcoin.net/paid/finance/mempool-feerate` at **100 sats**. Other routes: [l402-tools.md](./l402-tools.md). Paid paths, including hello, PDF, and PNG, are 100 sats.
+1. **Agree a trial.** One path, e.g. `GET https://agent-bitcoin.net/paid/finance/mempool-feerate` at **10 sats**. Other routes: [l402-tools.md](./l402-tools.md). Paid paths, including hello, PDF, and PNG, are 10 sats.
 
 2. **They probe** from their host:
 
@@ -28,7 +28,7 @@ An external agent pays **our AWS Aperture** for existing JSON tools. Aperture is
 
    Timeout / hang = DNS or port 443. `500` challenge failure = our AWS LND is **locked**.
 
-3. **Lightning.** They connect to AWS LND and open a **private** channel with **outbound** (their side can send 100 sats). Peer port **9735** may still be an operator-added `/32`. **10009 stays closed**. Do not pass `MY_IP=<client>` to `./update-aws-sg-my-ip.sh` — that script is additive for the Mac.
+3. **Lightning.** They connect to AWS LND and open a **private** channel with **outbound** (their side can send 10 sats). Peer port **9735** may still be an operator-added `/32`. **10009 stays closed**. Do not pass `MY_IP=<client>` to `./update-aws-sg-my-ip.sh` — that script is additive for the Mac.
 
    ```text
    0290ec8b1733192e5dcbc5d32f8fec5ae345ff777fc48dafed757c2d14781d4967@3.90.159.146:9735
@@ -41,7 +41,7 @@ An external agent pays **our AWS Aperture** for existing JSON tools. Aperture is
    ```bash
    uv run python examples/l402_pay.py \
      --url https://agent-bitcoin.net/paid/finance/mempool-feerate \
-     --price 100
+     --price 10
    ```
 
 5. **Their agent** loops the same L402 client.

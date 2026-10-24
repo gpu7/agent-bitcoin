@@ -194,7 +194,7 @@ docker exec l402-client-lnd \
 docker exec l402-client-lnd \
   lncli --lnddir=/home/lnd/.lnd --network=mainnet listchannels
 ```
-You want "pending_open_channels" is empty, "active": true, "private": true and local_balance enough for 100 sats + reserve.
+You want "pending_open_channels" is empty, "active": true, "private": true and local_balance enough for 10 sats + reserve.
 
 Run smoke test on client machine:
 ```bash

@@ -1,3 +1,9 @@
+## Changed — L402 price is 10 sats (2026-10-24)
+
+Every paid L402 path is 10 sats. The general Lightning minimum stays 100 sats.
+
+---
+
 ## Changed — retire ln-invoice-create (2026-10-24)
 
 `/paid/lightning/ln-invoice-create` is no longer a paid route. The path is free and the origin returns HTTP 404. AddInvoice stays off the origin macaroon.
