@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pay GET /paid/finance/mempool-feerate (100 sats) with THIS machine's LND.
+# Pay GET /paid/finance/mempool-feerate (10 sats) with THIS machine's LND.
 # Not our Mac LND. Not AWS invoice LND (self-pay).
 set -euo pipefail
 
@@ -15,7 +15,7 @@ Usage:
   ./smoke-l402.sh
   ./smoke-l402.sh --help
 
-Requires: Docker LND unlocked, https://agent-bitcoin.net on 443, a path that can send 100 sats
+Requires: Docker LND unlocked, https://agent-bitcoin.net on 443, a path that can send 10 sats
 (prefer a private channel to AWS). Sets AGENT_BITCOIN_ALLOW_MAINNET and ALLOW_AUTOPAY.
 EOF
 }
@@ -33,6 +33,6 @@ export AGENT_BITCOIN_ALLOW_AUTOPAY=1
 
 cd "$ROOT"
 if command -v uv >/dev/null 2>&1; then
-  exec uv run python examples/l402_pay.py --url "$URL" --price 100
+  exec uv run python examples/l402_pay.py --url "$URL" --price 10
 fi
-exec python3 examples/l402_pay.py --url "$URL" --price 100
+exec python3 examples/l402_pay.py --url "$URL" --price 10

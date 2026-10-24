@@ -8,7 +8,7 @@ the payer; optional Grok only explains. L402 HTTP stays unsigned (no npub).
 
 Mock (any one host): --offline-bus (no sats; fixture bands 3/2/1).
 Live: both processes on the Mac; Mac LND agent-bitcoin-lnd* pays AWS Aperture.
-  --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 100
+  --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 10
 Do not live-pay with LND_CONTAINER=agent-payment-decision-lnd* (self-pay).
 
 Engineer path (two terminals):

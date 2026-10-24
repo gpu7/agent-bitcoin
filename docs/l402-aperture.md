@@ -12,7 +12,7 @@ Lab EIP is `3.90.159.146` (stable).
 
 ## What it is
 
-Aperture sits in front of a dummy HTTP origin on AWS. A client that has not paid gets **HTTP 402** plus a macaroon and a 100 sat BOLT11. After the Mac LND node pays, the client retries with `Authorization: L402 <macaroon>:<preimage>` and Aperture proxies to the origin.
+Aperture sits in front of a dummy HTTP origin on AWS. A client that has not paid gets **HTTP 402** plus a macaroon and a 10 sat BOLT11. After the Mac LND node pays, the client retries with `Authorization: L402 <macaroon>:<preimage>` and Aperture proxies to the origin.
 
 ```text
 Mac  examples/l402_pay.py
@@ -23,23 +23,23 @@ AWS  agent-l402-aperture :8081   (plain HTTP; 8081 stays operator /32)
         └─ origin    agent-l402-origin:8090
               GET /health           free
               GET /.well-known/l402-services  free (JSON catalog)
-              GET /paid/hello       100 sats (JSON)
-              GET /paid/report.pdf  100 sats (PDF file)
-              GET /paid/script.pdf  100 sats (PDF from generate_script_pdf.py)
-              GET /paid/badge.png   100 sats (PNG image)
-              GET /paid/finance/mempool-feerate  100 sats (JSON fee bands)
-              GET /paid/finance/mempool-backlog  100 sats (JSON mempool fullness)
-              GET /paid/finance/fee-for-vsize?vsize=  100 sats (JSON total fee sats)
-              GET /paid/finance/confirm-target?       100 sats (JSON wait → sat/vB)
-              GET /paid/finance/btc-usd               100 sats (JSON BTC/USD pass-through)
-              POST /paid/finance/ln-path-fee-hint     100 sats (JSON Lightning route-fee hint)
-              POST /paid/finance/ln-invoice-decode    100 sats (JSON BOLT11 inspect, no LND)
-              POST /paid/finance/ln-invoice-preflight 100 sats (JSON allow/reject reasons)
-              POST /paid/nostr/event-verify            100 sats (JSON NIP-01 id+sig check)
-              POST /paid/nostr/npub-decode             100 sats (JSON NIP-19 bech32 → hex)
+              GET /paid/hello       10 sats (JSON)
+              GET /paid/report.pdf  10 sats (PDF file)
+              GET /paid/script.pdf  10 sats (PDF from generate_script_pdf.py)
+              GET /paid/badge.png   10 sats (PNG image)
+              GET /paid/finance/mempool-feerate  10 sats (JSON fee bands)
+              GET /paid/finance/mempool-backlog  10 sats (JSON mempool fullness)
+              GET /paid/finance/fee-for-vsize?vsize=  10 sats (JSON total fee sats)
+              GET /paid/finance/confirm-target?       10 sats (JSON wait → sat/vB)
+              GET /paid/finance/btc-usd               10 sats (JSON BTC/USD pass-through)
+              POST /paid/finance/ln-path-fee-hint     10 sats (JSON Lightning route-fee hint)
+              POST /paid/finance/ln-invoice-decode    10 sats (JSON BOLT11 inspect, no LND)
+              POST /paid/finance/ln-invoice-preflight 10 sats (JSON allow/reject reasons)
+              POST /paid/nostr/event-verify            10 sats (JSON NIP-01 id+sig check)
+              POST /paid/nostr/npub-decode             10 sats (JSON NIP-19 bech32 → hex)
 ```
 
-There is **no platform fee**. The L402 price **is** the Lightning amount (must be ≥ `MIN_PAYMENT_SATS`, default 100). Every paid path is **100 sats**, including hello, PDF, PNG, finance, and Nostr (feerate, backlog, fee-for-vsize, confirm-target, btc-usd, ln-path-fee-hint, ln-invoice-decode, ln-invoice-preflight, event-verify, npub-decode). `/health` and `/.well-known/l402-services` are free.
+There is **no platform fee**. The L402 price **is** the Lightning amount. `MIN_PAYMENT_SATS` stays 100 for ordinary invoices; the L402 client accepts this 10 sat challenge. Every paid path is **10 sats**, including hello, PDF, PNG, finance, and Nostr (feerate, backlog, fee-for-vsize, confirm-target, btc-usd, ln-path-fee-hint, ln-invoice-decode, ln-invoice-preflight, event-verify, npub-decode). `/health` and `/.well-known/l402-services` are free.
 
 This is **not** a mempool.space replacement, FX oracle, or CoinGecko substitute. **mempool-feerate** is fee bands (sat/vB). **mempool-backlog** is fullness. **fee-for-vsize** multiplies those bands by a **vbyte** size. **confirm-target** maps a wait window (minutes) or named band onto `sat_vb` from the feerate cache. **btc-usd** is a **pass-through mark, not our index** — USD per 1 BTC from one public JSON URL. **ln-path-fee-hint** is what the **AWS agent LND** sees for a dest+amount (or bolt11) via readonly **QueryRoutes** — not Terminal, not RTL, not a route dump. **ln-invoice-decode** parses BOLT11 **in-process** (no LND) so an agent can inspect amount / dest / expiry / network before pay or path-hint. **ln-invoice-preflight** reuses that parse and returns `allow` plus reason codes (expired, zero_amount, below_floor, above_max_sats, network_mismatch, duplicate_payment_hash). Not a route check.
 
@@ -114,56 +114,56 @@ uv run python examples/l402_pay.py --url https://agent-bitcoin.net/paid/badge.pn
 uv run python examples/l402_pay.py --url https://agent-bitcoin.net/paid/script.pdf --out script.pdf
 # open script.pdf — text from l402/generate_script_pdf.py
 
-# On-chain fee bands (100 sats). L402Client default expected price is 1000 — pass --price 100.
+# On-chain fee bands (10 sats). L402Client default expected price is 10.
 uv run python examples/l402_pay.py \
-  --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 100
+  --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 10
 
-# Mempool fullness (100 sats) — tx count / vbytes, not fee bands
+# Mempool fullness (10 sats) — tx count / vbytes, not fee bands
 uv run python examples/l402_pay.py \
-  --url https://agent-bitcoin.net/paid/finance/mempool-backlog --price 100
+  --url https://agent-bitcoin.net/paid/finance/mempool-backlog --price 10
 
 # Total fee for a tx size in **vbytes** (not weight). Range 110–100000.
 uv run python examples/l402_pay.py \
-  --url 'https://agent-bitcoin.net/paid/finance/fee-for-vsize?vsize=250' --price 100
+  --url 'https://agent-bitcoin.net/paid/finance/fee-for-vsize?vsize=250' --price 10
 
 # Wait window → sat/vB (Helix: 1–20 fast, 21–45 medium, 46–60 slow)
 uv run python examples/l402_pay.py \
-  --url 'https://agent-bitcoin.net/paid/finance/confirm-target?minutes=30' --price 100
+  --url 'https://agent-bitcoin.net/paid/finance/confirm-target?minutes=30' --price 10
 uv run python examples/l402_pay.py \
-  --url 'https://agent-bitcoin.net/paid/finance/confirm-target?target=fast&vsize=250' --price 100
+  --url 'https://agent-bitcoin.net/paid/finance/confirm-target?target=fast&vsize=250' --price 10
 
-# BTC/USD pass-through (100 sats). Not an FX index — one public JSON URL.
+# BTC/USD pass-through (10 sats). Not an FX index — one public JSON URL.
 uv run python examples/l402_pay.py \
-  --url https://agent-bitcoin.net/paid/finance/btc-usd --price 100
+  --url https://agent-bitcoin.net/paid/finance/btc-usd --price 10
 
-# Lightning path-fee hint (100 sats). POST JSON; do not put BOLT11 in the URL.
+# Lightning path-fee hint (10 sats). POST JSON; do not put BOLT11 in the URL.
 uv run python examples/l402_pay.py \
   --url https://agent-bitcoin.net/paid/finance/ln-path-fee-hint \
-  --price 100 --method POST \
+  --price 10 --method POST \
   --json '{"dest_pubkey":"<66 hex>","amount_sats":1000}'
 
-# BOLT11 inspect (100 sats). In-process; no LND. Use a test invoice, not a live mainnet pay req.
+# BOLT11 inspect (10 sats). In-process; no LND. Use a test invoice, not a live mainnet pay req.
 uv run python examples/l402_pay.py \
   --url https://agent-bitcoin.net/paid/finance/ln-invoice-decode \
-  --price 100 --method POST \
+  --price 10 --method POST \
   --json '{"bolt11":"<test invoice>"}'
 
-# BOLT11 policy gate (100 sats). Reuses decode; no LND.
+# BOLT11 policy gate (10 sats). Reuses decode; no LND.
 uv run python examples/l402_pay.py \
   --url https://agent-bitcoin.net/paid/finance/ln-invoice-preflight \
-  --price 100 --method POST \
+  --price 10 --method POST \
   --json '{"bolt11":"<test invoice>","max_sats":50000,"network":"bitcoin"}'
 
-# NIP-01 id+sig check (100 sats). Bare event JSON. No relay. Do not log content/sig.
+# NIP-01 id+sig check (10 sats). Bare event JSON. No relay. Do not log content/sig.
 uv run python examples/l402_pay.py \
   --url https://agent-bitcoin.net/paid/nostr/event-verify \
-  --price 100 --method POST \
+  --price 10 --method POST \
   --json '{"id":"<64 hex>","pubkey":"<64 hex>","created_at":1,"kind":1,"tags":[],"content":"","sig":"<128 hex>"}'
 
-# NIP-19 bech32 → hex (100 sats). nsec is rejected (no secret hex).
+# NIP-19 bech32 → hex (10 sats). nsec is rejected (no secret hex).
 uv run python examples/l402_pay.py \
   --url https://agent-bitcoin.net/paid/nostr/npub-decode \
-  --price 100 --method POST \
+  --price 10 --method POST \
   --json '{"entity":"npub1..."}'
 ```
 
@@ -237,14 +237,14 @@ After pay, 200: `allow`, `reasons` (all matches, stable order: `expired`, `zero_
 
 `POST /paid/nostr/npub-decode` JSON: `{ "entity": "npub1..." }`. GET → **405**. Missing/empty `entity` → **400** `missing_entity`. **No relay.** `ttl_s` 0. Supported HRPs: `npub` / `note` (32-byte hex), `nprofile` / `nevent` (TLV special + optional `relays`, cap 8). `nsec` → **200** `valid: false`, `reasons: ["nsec_rejected"]` (hex omitted; secret never returned). Garbage bech32 → `bad_bech32`. Other HRPs (`naddr`, `nrelay`, …) → `unsupported_hrp`. Do not echo `entity`.
 
-Rebuild origin + Aperture after pull: `./startup-l402-aws.sh mainnet` (do **not** `--remove-orphans`). Do **not** world-open 8081. Mainnet payer still needs `AGENT_BITCOIN_ALLOW_MAINNET=1` and `AGENT_BITCOIN_ALLOW_AUTOPAY=1`. Autoloop stays off. Payer needs enough local channel sats for a **100 sat** invoice plus routing.
+Rebuild origin + Aperture after pull: `./startup-l402-aws.sh mainnet` (do **not** `--remove-orphans`). Do **not** world-open 8081. Mainnet payer still needs `AGENT_BITCOIN_ALLOW_MAINNET=1` and `AGENT_BITCOIN_ALLOW_AUTOPAY=1`. Autoloop stays off. Payer needs enough local channel sats for a **10 sat** invoice plus routing.
 
 ## SDK
 
 ```python
 from agent_bitcoin import L402Client, create_client
 
-client = L402Client(create_client(), expected_price_sats=100)
+client = L402Client(create_client(), expected_price_sats=10)
 resp = client.fetch("https://agent-bitcoin.net/paid/hello")
 ```
 
@@ -257,7 +257,7 @@ resp = client.fetch("https://agent-bitcoin.net/paid/hello")
 | `docker-compose.l402.regtest.yml` | Origin + Aperture on `regtest_regtest` |
 | `docker-compose.l402.signet.yml` | Origin + Aperture on `agent-bitcoin-signet` |
 | `docker-compose.l402.mainnet.yml` | Origin + Aperture on `agent-bitcoin-mainnet` |
-| `l402/aperture.*.yaml` | `price: 100`, `insecure: true` |
+| `l402/aperture.*.yaml` | `price: 10`, `insecure: true` |
 | `l402/origin.py` | Dummy origin |
 | `agent_bitcoin/l402/` | Client + header parser |
 | `examples/l402_pay.py` | Mac CLI |

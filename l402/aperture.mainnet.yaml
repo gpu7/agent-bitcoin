@@ -28,328 +28,328 @@ prometheus:
   enabled: false
 
 services:
-  # First match wins. This path is 100 sats (L402 invoice; SDK MIN_PAYMENT_SATS default is 100).
+  # First match wins. This path is 10 sats (L402 invoice). SDK MIN_PAYMENT_SATS stays 100.
   - name: "mempool-feerate"
     hostregexp: ".*"
     pathregexp: "^/paid/finance/mempool-feerate$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "mempool-backlog"
     hostregexp: ".*"
     pathregexp: "^/paid/finance/mempool-backlog$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "fee-for-vsize"
     hostregexp: ".*"
     pathregexp: "^/paid/finance/fee-for-vsize$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "confirm-target"
     hostregexp: ".*"
     pathregexp: "^/paid/finance/confirm-target$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "btc-usd"
     hostregexp: ".*"
     pathregexp: "^/paid/finance/btc-usd$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "ln-path-fee-hint"
     hostregexp: ".*"
     pathregexp: "^/paid/finance/ln-path-fee-hint$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "ln-invoice-decode"
     hostregexp: ".*"
     pathregexp: "^/paid/finance/ln-invoice-decode$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "ln-invoice-preflight"
     hostregexp: ".*"
     pathregexp: "^/paid/finance/ln-invoice-preflight$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "nostr-event-verify"
     hostregexp: ".*"
     pathregexp: "^/paid/nostr/event-verify$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "nostr-npub-decode"
     hostregexp: ".*"
     pathregexp: "^/paid/nostr/npub-decode$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "nostr-node-link"
     hostregexp: ".*"
     pathregexp: "^/paid/nostr/nostr-node-link$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "nip05-verify"
     hostregexp: ".*"
     pathregexp: "^/paid/nostr/nip05-verify$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "nostr-profile-summary"
     hostregexp: ".*"
     pathregexp: "^/paid/nostr/nostr-profile-summary$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "btc-address-validate"
     hostregexp: ".*"
     pathregexp: "^/paid/finance/btc-address-validate$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "l402-challenge-inspect"
     hostregexp: ".*"
     pathregexp: "^/paid/security/l402-challenge-inspect$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "ln-channel-stats"
     hostregexp: ".*"
     pathregexp: "^/paid/lightning/ln-channel-stats$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "ln-node-info"
     hostregexp: ".*"
     pathregexp: "^/paid/lightning/ln-node-info$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "ln-invoice-inspect"
     hostregexp: ".*"
     pathregexp: "^/paid/lightning/ln-invoice-inspect$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "ln-channel-liquidity"
     hostregexp: ".*"
     pathregexp: "^/paid/lightning/ln-channel-liquidity$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "ln-peer-status"
     hostregexp: ".*"
     pathregexp: "^/paid/lightning/ln-peer-status$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "ln-path-estimate"
     hostregexp: ".*"
     pathregexp: "^/paid/lightning/ln-path-estimate$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "ln-payment-status"
     hostregexp: ".*"
     pathregexp: "^/paid/lightning/ln-payment-status$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "ln-channel-policy"
     hostregexp: ".*"
     pathregexp: "^/paid/lightning/ln-channel-policy$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "ln-preimage-verify"
     hostregexp: ".*"
     pathregexp: "^/paid/lightning/ln-preimage-verify$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "ln-pay-check"
     hostregexp: ".*"
     pathregexp: "^/paid/lightning/ln-pay-check$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "ln-node-card"
     hostregexp: ".*"
     pathregexp: "^/paid/lightning/ln-node-card$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "ln-address-resolve"
     hostregexp: ".*"
     pathregexp: "^/paid/lightning/ln-address-resolve$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "ln-payee-liquidity-hint"
     hostregexp: ".*"
     pathregexp: "^/paid/lightning/ln-payee-liquidity-hint$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "ln-route-options"
     hostregexp: ".*"
     pathregexp: "^/paid/lightning/ln-route-options$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "ln-invoice-amount-check"
     hostregexp: ".*"
     pathregexp: "^/paid/lightning/ln-invoice-amount-check$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "ln-channel-reserve-check"
     hostregexp: ".*"
     pathregexp: "^/paid/lightning/ln-channel-reserve-check$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "btc-fee-estimate"
     hostregexp: ".*"
     pathregexp: "^/paid/bitcoin/btc-fee-estimate$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "btc-chain-status"
     hostregexp: ".*"
     pathregexp: "^/paid/bitcoin/btc-chain-status$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "btc-network-info"
     hostregexp: ".*"
     pathregexp: "^/paid/bitcoin/btc-network-info$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "btc-mempool-info"
     hostregexp: ".*"
     pathregexp: "^/paid/bitcoin/btc-mempool-info$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "btc-peer-info"
     hostregexp: ".*"
     pathregexp: "^/paid/bitcoin/btc-peer-info$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "btc-difficulty"
     hostregexp: ".*"
     pathregexp: "^/paid/bitcoin/btc-difficulty$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "btc-block-tip"
     hostregexp: ".*"
     pathregexp: "^/paid/bitcoin/btc-block-tip$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "btc-block-header"
     hostregexp: ".*"
     pathregexp: "^/paid/bitcoin/btc-block-header$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "btc-tx-summary"
     hostregexp: ".*"
     pathregexp: "^/paid/bitcoin/btc-tx-summary$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "btc-address-balance"
     hostregexp: ".*"
     pathregexp: "^/paid/bitcoin/btc-address-balance$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "btc-uptime"
     hostregexp: ".*"
     pathregexp: "^/paid/bitcoin/btc-uptime$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "btc-deployment-info"
     hostregexp: ".*"
     pathregexp: "^/paid/bitcoin/btc-deployment-info$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "btc-mining-info"
     hostregexp: ".*"
     pathregexp: "^/paid/bitcoin/btc-mining-info$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "btc-mempool-fees"
     hostregexp: ".*"
     pathregexp: "^/paid/bitcoin/btc-mempool-fees$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "btc-chain-tips"
     hostregexp: ".*"
     pathregexp: "^/paid/bitcoin/btc-chain-tips$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
   - name: "l402-demo"
     # Hello, PDF, PNG, and any other paid path. /health and the discovery document stay free.
@@ -357,7 +357,7 @@ services:
     pathregexp: "^/.*$"
     address: "agent-l402-origin:8090"
     protocol: "http"
-    price: 100
+    price: 10
     timeout: 3600
     authwhitelistpaths:
       - "^/health$"

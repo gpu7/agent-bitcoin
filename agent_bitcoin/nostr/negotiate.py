@@ -10,7 +10,7 @@ from typing import Any
 
 COORD_TAG = "agent-bitcoin-swarm-l402-v1"
 DEFAULT_L402_URL = "http://127.0.0.1:8081/paid/finance/mempool-feerate"
-DEFAULT_PRICE_SATS = 100
+DEFAULT_PRICE_SATS = 10
 
 
 def invoice_id_for_url(url: str) -> str:

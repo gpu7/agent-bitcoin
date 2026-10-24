@@ -45,16 +45,16 @@ Dual-node **pay** tests require **both** containers on the same Docker host. Typ
 | **ABT-L402-003** | L402 PDF body | Origin `/paid/report.pdf` is `%PDF` | Mac `l402_pay.py --out report.pdf` |
 | **ABT-L402-004** | L402 PNG body | Origin `/paid/badge.png` is a PNG | Mac `l402_pay.py --out badge.png` |
 | **ABT-L402-005** | L402 script PDF | Origin `/paid/script.pdf` runs `generate_script_pdf.py` | Mac `l402_pay.py --out script.pdf` |
-| **ABT-L402-006** | L402 mempool-feerate | Origin JSON `fast`/`medium`/`slow`; cache; 503 | Mac `l402_pay.py --price 100` |
-| **ABT-L402-007** | L402 mempool-backlog | Origin JSON `tx_count`/`vsize`; no fee bands | Mac `l402_pay.py --price 100` |
-| **ABT-L402-008** | L402 fee-for-vsize | `ceil(vsize×sat/vB)`; 400 on bad vsize | Mac `l402_pay.py --price 100` |
-| **ABT-L402-009** | L402 confirm-target | Helix minutes snap; optional fee_sats | Mac `l402_pay.py --price 100` |
-| **ABT-L402-010** | L402 btc-usd | Origin JSON `btc_usd`/`sats_per_usd`; cache; 503 | Mac `l402_pay.py --price 100` |
-| **ABT-L402-011** | L402 ln-path-fee-hint | POST XOR; mocked QueryRoutes; 404/503 | Mac `l402_pay.py --price 100 --method POST` |
-| **ABT-L402-012** | L402 ln-invoice-decode | In-process BOLT11; no LND; 400/405 | Mac `l402_pay.py --price 100 --method POST` |
-| **ABT-L402-013** | L402 ln-invoice-preflight | allow/reasons; reuses decode | Mac `l402_pay.py --price 100 --method POST` |
-| **ABT-L402-014** | L402 nostr event-verify | NIP-01 id+sig; no relay | Mac `l402_pay.py --price 100 --method POST` |
-| **ABT-L402-015** | L402 nostr npub-decode | NIP-19 bech32; nsec rejected | Mac `l402_pay.py --price 100 --method POST` |
+| **ABT-L402-006** | L402 mempool-feerate | Origin JSON `fast`/`medium`/`slow`; cache; 503 | Mac `l402_pay.py --price 10` |
+| **ABT-L402-007** | L402 mempool-backlog | Origin JSON `tx_count`/`vsize`; no fee bands | Mac `l402_pay.py --price 10` |
+| **ABT-L402-008** | L402 fee-for-vsize | `ceil(vsize×sat/vB)`; 400 on bad vsize | Mac `l402_pay.py --price 10` |
+| **ABT-L402-009** | L402 confirm-target | Helix minutes snap; optional fee_sats | Mac `l402_pay.py --price 10` |
+| **ABT-L402-010** | L402 btc-usd | Origin JSON `btc_usd`/`sats_per_usd`; cache; 503 | Mac `l402_pay.py --price 10` |
+| **ABT-L402-011** | L402 ln-path-fee-hint | POST XOR; mocked QueryRoutes; 404/503 | Mac `l402_pay.py --price 10 --method POST` |
+| **ABT-L402-012** | L402 ln-invoice-decode | In-process BOLT11; no LND; 400/405 | Mac `l402_pay.py --price 10 --method POST` |
+| **ABT-L402-013** | L402 ln-invoice-preflight | allow/reasons; reuses decode | Mac `l402_pay.py --price 10 --method POST` |
+| **ABT-L402-014** | L402 nostr event-verify | NIP-01 id+sig; no relay | Mac `l402_pay.py --price 10 --method POST` |
+| **ABT-L402-015** | L402 nostr npub-decode | NIP-19 bech32; nsec rejected | Mac `l402_pay.py --price 10 --method POST` |
 
 ## Shared limits
 

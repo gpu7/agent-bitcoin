@@ -20,31 +20,31 @@ Mainnet (real sats; latches required):
       uv run python examples/l402_pay.py \\
       --url https://agent-bitcoin.net/paid/hello
 
-Paid PDF / PNG (same 100 sat price):
+Paid PDF / PNG (same 10 sat price):
 
     ... l402_pay.py --url https://agent-bitcoin.net/paid/report.pdf --out report.pdf
     ... l402_pay.py --url https://agent-bitcoin.net/paid/script.pdf --out script.pdf
     ... l402_pay.py --url https://agent-bitcoin.net/paid/badge.png --out badge.png
 
-On-chain fee bands and Nostr paths (100 sats; this CLI defaults to 100 there):
+On-chain fee bands and Nostr paths (10 sats; this CLI defaults to 10 there):
 
-    ... l402_pay.py --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 100
-    ... l402_pay.py --url https://agent-bitcoin.net/paid/finance/mempool-backlog --price 100
-    ... l402_pay.py --url 'https://agent-bitcoin.net/paid/finance/fee-for-vsize?vsize=250' --price 100
-    ... l402_pay.py --url 'https://agent-bitcoin.net/paid/finance/confirm-target?minutes=30' --price 100
-    ... l402_pay.py --url https://agent-bitcoin.net/paid/finance/btc-usd --price 100
+    ... l402_pay.py --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 10
+    ... l402_pay.py --url https://agent-bitcoin.net/paid/finance/mempool-backlog --price 10
+    ... l402_pay.py --url 'https://agent-bitcoin.net/paid/finance/fee-for-vsize?vsize=250' --price 10
+    ... l402_pay.py --url 'https://agent-bitcoin.net/paid/finance/confirm-target?minutes=30' --price 10
+    ... l402_pay.py --url https://agent-bitcoin.net/paid/finance/btc-usd --price 10
     ... l402_pay.py --url https://agent-bitcoin.net/paid/finance/ln-path-fee-hint \\
-          --price 100 --method POST --json '{"dest_pubkey":"<66 hex>","amount_sats":1000}'
+          --price 10 --method POST --json '{"dest_pubkey":"<66 hex>","amount_sats":1000}'
     ... l402_pay.py --url https://agent-bitcoin.net/paid/finance/ln-invoice-decode \\
-          --price 100 --method POST --json '{"bolt11":"<test invoice>"}'
+          --price 10 --method POST --json '{"bolt11":"<test invoice>"}'
     ... l402_pay.py --url https://agent-bitcoin.net/paid/finance/ln-invoice-preflight \\
-          --price 100 --method POST \\
+          --price 10 --method POST \\
           --json '{"bolt11":"<test invoice>","max_sats":50000,"network":"bitcoin"}'
     ... l402_pay.py --url https://agent-bitcoin.net/paid/nostr/event-verify \\
-          --price 100 --method POST \\
+          --price 10 --method POST \\
           --json '{"id":"...","pubkey":"...","created_at":1,"kind":1,"tags":[],"content":"","sig":"..."}'
     ... l402_pay.py --url https://agent-bitcoin.net/paid/nostr/npub-decode \\
-          --price 100 --method POST --json '{"entity":"npub1..."}'
+          --price 10 --method POST --json '{"entity":"npub1..."}'
 
 Does not need the bolt11 extra (that is origin + invoice tests only).
 """
@@ -73,8 +73,7 @@ def main() -> int:
         default=None,
         help=(
             "Expected invoice amount in sats "
-            "(default: 100 for finance/Nostr, 1000 for hello/PDF/PNG, "
-            "or L402_PRICE_SATS)"
+            "(default: 10 on every paid path, or L402_PRICE_SATS)"
         ),
     )
     parser.add_argument(

@@ -38,7 +38,7 @@ register() {
       \"protocol\": \"L402\",
       \"description\": \"$description\",
       \"provider\": \"agent-bitcoin\",
-      \"price_sats\": 100,
+      \"price_sats\": 10,
       \"category\": \"$category\",
       \"http_method\": \"$method\"
     }"

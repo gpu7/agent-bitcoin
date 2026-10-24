@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 import re
 from dataclasses import dataclass
@@ -10,16 +11,16 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from agent_bitcoin.client import AgentBitcoinClient, _invoice_amount_sats
-from agent_bitcoin.constants import DEFAULT_L402_PRICE_SATS, min_payment_sats
+from agent_bitcoin.constants import DEFAULT_L402_PRICE_SATS
 from agent_bitcoin.exceptions import PaymentError
 
-# Every paid lab path is 100 sats, including hello, PDF, and PNG.
-# This is not a separate payment minimum. /health is free in Aperture.
-FINANCE_L402_PRICE_SATS = 100
+# Every paid lab path is 10 sats, including hello, PDF, and PNG.
+# Ordinary Lightning payments still use MIN_PAYMENT_SATS. /health is free.
+FINANCE_L402_PRICE_SATS = 10
 
 
 def expected_price_sats_for_url(url: str) -> int:
-    """Return 100 sats for every paid lab path."""
+    """Return the L402 price for every paid lab path."""
     path = (url or "").split("?", 1)[0]
     if (
         "/paid/finance/" in path
@@ -120,6 +121,32 @@ def _read_http_error(exc: HTTPError) -> tuple[int, dict[str, str], bytes]:
     return int(exc.code), _header_map(exc.headers), body
 
 
+def _payer_accepts_minimum_sats(pay: Any) -> bool:
+    """True when pay_invoice can take the L402 floor without a TypeError."""
+    try:
+        signature = inspect.signature(pay)
+    except (TypeError, ValueError):
+        return False
+    if "minimum_sats" in signature.parameters:
+        return True
+    return any(
+        param.kind is inspect.Parameter.VAR_KEYWORD
+        for param in signature.parameters.values()
+    )
+
+
+def _pay_l402_invoice(payer: Any, invoice: str, *, fee_limit_sats: int) -> Any:
+    """Pay one L402 invoice. Pass the 10-sat floor when the payer accepts it."""
+    pay = payer.pay_invoice
+    if _payer_accepts_minimum_sats(pay):
+        return pay(
+            invoice,
+            fee_limit_sats=fee_limit_sats,
+            minimum_sats=DEFAULT_L402_PRICE_SATS,
+        )
+    return pay(invoice, fee_limit_sats=fee_limit_sats)
+
+
 class L402Client:
     """HTTP client that pays one L402 invoice via AgentBitcoinClient."""
 
@@ -164,8 +191,8 @@ class L402Client:
 
         challenge = parse_www_authenticate(_www_authenticate(headers))
         self._assert_invoice_price(challenge.invoice)
-        result = self.payer.pay_invoice(
-            challenge.invoice, fee_limit_sats=self.fee_limit_sats
+        result = _pay_l402_invoice(
+            self.payer, challenge.invoice, fee_limit_sats=self.fee_limit_sats
         )
         if not getattr(result, "success", False):
             raise PaymentError(
@@ -197,8 +224,8 @@ class L402Client:
             amount = _invoice_amount_sats(decoded)
         if amount <= 0:
             raise ValueError("L402 invoice has no readable sat amount")
-        floor = getattr(self.payer, "min_payment_sats", None) or min_payment_sats()
-        if amount < int(floor):
+        floor = DEFAULT_L402_PRICE_SATS
+        if amount < floor:
             raise ValueError(f"L402 invoice {amount} sats is below minimum {floor}")
         if amount != self.expected_price_sats:
             raise ValueError(

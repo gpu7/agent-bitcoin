@@ -48,7 +48,7 @@ python3.12 examples/client-pack/client_pack.py open --sats 50000
 python3.12 examples/client-pack/client_pack.py smoke
 ```
 
-`open` is a **private** channel to `0290ec8b…@3.90.159.146:9735`. `smoke` is `GET /paid/finance/mempool-feerate` at 100 sats via `examples/l402_pay.py` with `LND_CONTAINER=l402-client-lnd` and the mainnet latches.
+`open` is a **private** channel to `0290ec8b…@3.90.159.146:9735`. `smoke` is `GET /paid/finance/mempool-feerate` at 10 sats via `examples/l402_pay.py` with `LND_CONTAINER=l402-client-lnd` and the mainnet latches.
 
 ## What this script will not do
 

@@ -1,6 +1,6 @@
 # 8-agent merchant swarm
 
-Eight Nostr identities (`a1`…`a8`), signed relay events, **one** winner pays `GET /paid/finance/mempool-feerate` (100 sats). Same jobs as the [two-agent demo](./agent-swarm-merchant-2.md). Coded policy picks the payer. Optional Grok explains in one sentence each and **never** pays. **`--no-llm` is the required path.**
+Eight Nostr identities (`a1`…`a8`), signed relay events, **one** winner pays `GET /paid/finance/mempool-feerate` (10 sats). Same jobs as the [two-agent demo](./agent-swarm-merchant-2.md). Coded policy picks the payer. Optional Grok explains in one sentence each and **never** pays. **`--no-llm` is the required path.**
 
 Agents are **processes**, not Lightning nodes. One Mac LND wallet, one existing private channel, **one** pay per successful live run. Swarm picks who pays the **merchant**; A2A LN (two LND nodes) is [a2a_ln_pay.md](./a2a_ln_pay.md). Coordination is the same module as the 2-agent demo: signed kind **8139** on `NOSTR_RELAYS`, or a localhost mock with `--offline-bus`. Not a shared message directory. Do not start eight LNDs. Do not open channels. The wrapper passes `--expect-peers 8`.
 
@@ -33,7 +33,7 @@ The eight-agent demo stays **`--resolve hash`**. Puzzle (`fee-sats`) and **llm-g
 ## 2. Prerequisites
 
 - L402 stack up on AWS: `./startup-l402-aws.sh <regtest|signet|mainnet>`
-- **Live:** Mac can reach `https://agent-bitcoin.net`; Mac LND unlocked; channel **Mac → AWS** with **local** (outbound) ≫ 100 sats + routing (~3200+ so one 100-sat pay plus routing still fits)
+- **Live:** Mac can reach `https://agent-bitcoin.net`; Mac LND unlocked; channel **Mac → AWS** with **local** (outbound) ≫ 10 sats + routing (~3200+ so one 10-sat pay plus routing still fits)
 - `XAI_API_KEY` optional. Without it, `--no-llm`
 - Python **3.12** + `.venv-nostr` + `.[nostr]` — [SDK.md](../SDK.md). Do **not** use `uv run python` on 3.13/3.14
 
@@ -70,7 +70,7 @@ No LND pay. Fine for Nostr ids + negotiate. All eight processes must be on **one
 | Payer LND | **Mac** `agent-bitcoin-lnd*` |
 | Eight swarm processes | **Mac** (`NOSTR_RELAYS`; no shared message directory) |
 | URL | `https://agent-bitcoin.net/paid/finance/mempool-feerate` |
-| Flags | **No** `--offline-bus`; `--price 100` |
+| Flags | **No** `--offline-bus`; `--price 10` |
 | Do **not** | Use `LND_CONTAINER=agent-payment-decision-lnd*` as the live payer |
 
 The script refuses live pay from the AWS invoice node (self-pay).
@@ -196,10 +196,10 @@ One process (eight threads):
 
 ```bash
 ./examples/swarm_l402_8_all.sh --no-llm \
-  --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 100
+  --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 10
 ```
 
-Or eight terminals with `./examples/swarm_l402_8.sh --role aN --no-llm --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 100`.
+Or eight terminals with `./examples/swarm_l402_8.sh --role aN --no-llm --url https://agent-bitcoin.net/paid/finance/mempool-feerate --price 10`.
 
 Expected log (npubs will differ). Mock bands are **3/2/1**; live bands come from the origin:
 
@@ -237,7 +237,7 @@ Printed: `npub=npub1…`. Encrypted nsec stays in `.nostr-poc/a1.enc.json` … `
 
 | Symptom | What to do |
 |---------|------------|
-| 402 loop / `paid=False` | Price mismatch: pass `--price 100` for feerate. Client default elsewhere is 1000. |
+| 402 loop / `paid=False` | Price mismatch: pass `--price 10` for feerate. The client default is 10. |
 | HTTPS health is not 200 | Check `https://agent-bitcoin.net/health`. Do not open 8081. L402: `./startup-l402-aws.sh <network>` |
 | LND locked / macaroon errors | Unlock the **Mac payer** wallet; `LND_CONTAINER` is `agent-bitcoin-lnd*` |
 | Amount below floor | Min invoice is **100 sats** (`MIN_PAYMENT_SATS`) |
