@@ -266,13 +266,6 @@ register \
   "LND local channel policy from listchannels. Read-only. Lightning L402."
 
 register \
-  "https://agent-bitcoin.net/paid/lightning/ln-invoice-create" \
-  "agent-bitcoin: ln-invoice-create" \
-  "POST" \
-  "lightning" \
-  "Create one Lightning invoice on the operator LND. Does not pay. Lightning L402."
-
-register \
   "https://agent-bitcoin.net/paid/lightning/ln-preimage-verify" \
   "agent-bitcoin: ln-preimage-verify" \
   "POST" \

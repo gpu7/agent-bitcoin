@@ -267,13 +267,6 @@
       "description": "LND local channel policy from listchannels. Read-only. Lightning L402."
     },
     {
-      "url": "https://agent-bitcoin.net/paid/lightning/ln-invoice-create",
-      "name": "agent-bitcoin: ln-invoice-create",
-      "method": "POST",
-      "price_sats": 100,
-      "description": "Create one Lightning invoice on the operator LND. Does not pay. Lightning L402."
-    },
-    {
       "url": "https://agent-bitcoin.net/paid/lightning/ln-preimage-verify",
       "name": "agent-bitcoin: ln-preimage-verify",
       "method": "POST",

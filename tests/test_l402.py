@@ -76,7 +76,6 @@ def test_paid_urls_default_to_100() -> None:
     payment_status = "https://agent-bitcoin.net/paid/lightning/ln-payment-status"
     node_link = "https://agent-bitcoin.net/paid/nostr/nostr-node-link"
     channel_policy = "https://agent-bitcoin.net/paid/lightning/ln-channel-policy"
-    invoice_create = "https://agent-bitcoin.net/paid/lightning/ln-invoice-create"
     preimage_verify = "https://agent-bitcoin.net/paid/lightning/ln-preimage-verify"
     pay_check = "https://agent-bitcoin.net/paid/lightning/ln-pay-check"
     node_card = "https://agent-bitcoin.net/paid/lightning/ln-node-card"
@@ -116,7 +115,6 @@ def test_paid_urls_default_to_100() -> None:
     assert expected_price_sats_for_url(payment_status) == 100
     assert expected_price_sats_for_url(node_link) == 100
     assert expected_price_sats_for_url(channel_policy) == 100
-    assert expected_price_sats_for_url(invoice_create) == 100
     assert expected_price_sats_for_url(preimage_verify) == 100
     assert expected_price_sats_for_url(pay_check) == 100
     assert expected_price_sats_for_url(node_card) == 100
@@ -516,13 +514,6 @@ def test_well_known_l402_services_is_public_json() -> None:
             "description": "LND local channel policy from listchannels. Read-only. Lightning L402.",
         },
         {
-            "url": "https://agent-bitcoin.net/paid/lightning/ln-invoice-create",
-            "name": "agent-bitcoin: ln-invoice-create",
-            "method": "POST",
-            "price_sats": 100,
-            "description": "Create one Lightning invoice on the operator LND. Does not pay. Lightning L402.",
-        },
-        {
             "url": "https://agent-bitcoin.net/paid/lightning/ln-preimage-verify",
             "name": "agent-bitcoin: ln-preimage-verify",
             "method": "POST",
@@ -608,7 +599,6 @@ def test_well_known_l402_services_is_public_json() -> None:
         "/paid/lightning/ln-path-estimate",
         "/paid/lightning/ln-payment-status",
         "/paid/lightning/ln-channel-policy",
-        "/paid/lightning/ln-invoice-create",
         "/paid/lightning/ln-preimage-verify",
         "/paid/lightning/ln-pay-check",
         "/paid/lightning/ln-node-card",
@@ -632,6 +622,49 @@ def test_well_known_l402_services_is_public_json() -> None:
         assert _aperture_http_status("/health", text) == 200
         for path in paid:
             assert _aperture_http_status(path, text) == 402
+        assert _aperture_http_status("/paid/lightning/ln-invoice-create", text) == 200
+
+
+def test_invoice_create_is_not_a_paid_route() -> None:
+    status, content_type, raw = dispatch(
+        "/paid/lightning/ln-invoice-create", method="POST", body=b"{}"
+    )
+    assert status == 404
+    assert content_type == "application/json"
+    assert json.loads(raw) == {"ok": False, "error": "not found"}
+
+
+_READ_URIS = (
+    "uri:/lnrpc.Lightning/QueryRoutes",
+    "uri:/lnrpc.Lightning/DecodePayReq",
+    "uri:/lnrpc.Lightning/ListChannels",
+    "uri:/lnrpc.Lightning/GetInfo",
+    "uri:/lnrpc.Lightning/GetNodeInfo",
+    "uri:/lnrpc.Lightning/ListPeers",
+    "uri:/lnrpc.Lightning/LookupInvoice",
+)
+_WRITE_NAMES = (
+    "AddInvoice",
+    "SendPayment",
+    "SettleInvoice",
+    "OpenChannel",
+    "BakeMacaroon",
+)
+
+
+def test_origin_macaroon_rejects_invoice_creation() -> None:
+    root = Path(__file__).resolve().parents[1]
+    text = (root / "docs" / "l402-aperture.md").read_text(encoding="utf-8")
+    start = text.index("bakemacaroon")
+    block = text[start : text.index("```", start)]
+    uris = [
+        line.strip().rstrip("\\").strip()
+        for line in block.splitlines()
+        if "uri:/" in line
+    ]
+    assert uris == list(_READ_URIS)
+    for name in _WRITE_NAMES:
+        assert name not in block
 
 
 def test_402index_verify_file_is_plain_text() -> None:
