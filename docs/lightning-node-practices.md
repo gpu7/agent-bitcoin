@@ -38,7 +38,7 @@ For each practice: what the lab already does, then what you still do by hand. 2F
 
 ## 6. Limited macaroons
 
-**Lab:** The dashboard is read-only and does not hold an admin macaroon. It binds to `127.0.0.1` and reads AWS with SSH `lncli getinfo`. The L402 origin uses a readonly macaroon limited to QueryRoutes and DecodePayReq. Aperture uses `invoice.macaroon`.
+**Lab:** The dashboard is read-only and does not hold an admin macaroon. It binds to `127.0.0.1` and reads AWS with SSH `lncli getinfo`. The L402 origin uses a read-only macaroon limited to QueryRoutes, DecodePayReq, ListChannels, GetInfo, GetNodeInfo, ListPeers, and LookupInvoice. AddInvoice is excluded. Aperture uses `invoice.macaroon`.
 
 **Operator:** Do not copy `admin.macaroon` onto the dashboard host or into git. This page does not bake a macaroon.
 

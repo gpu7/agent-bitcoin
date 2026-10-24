@@ -391,7 +391,7 @@ uv run python examples/l402_pay.py \
 
 ### POST `/paid/lightning/ln-invoice-create`
 
-Job: one LND `AddInvoice`. Body `{"amount_sats":1000,"description":"agent invoice"}`. `amount_sats` is an integer from 100 through 50000. Returns `payment_request`, `payment_hash`, and `expiry`. This call **only creates an invoice**. It does **not** pay, settle, or unlock the wallet. The caller cannot set expiry. **100 sats**. 402index category: `lightning`. A down node returns HTTP 503.
+Job: one LND `AddInvoice`. Body `{"amount_sats":1000,"description":"agent invoice"}`. `amount_sats` is an integer from 100 through 50000. The origin macaroon does not include AddInvoice, so this route cannot create an invoice. It does **not** pay, settle, or unlock the wallet. **100 sats**. 402index category: `lightning`. Permission denied and a down node return HTTP 503.
 
 ```bash
 uv run python examples/l402_pay.py \
