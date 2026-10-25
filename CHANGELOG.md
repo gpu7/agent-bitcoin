@@ -1,3 +1,9 @@
+## Changed — L402 invoice prefix (2026-10-25)
+
+A 10 sat challenge starts with `lnbc100n`. `/paid/hello` uses the catch-all service `l402-demo`.
+
+---
+
 ## Changed — L402 price is 10 sats (2026-10-24)
 
 Every paid L402 path is 10 sats. The general Lightning minimum stays 100 sats.

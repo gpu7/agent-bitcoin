@@ -23,7 +23,7 @@ An external agent pays **our AWS Aperture** for existing JSON tools. Aperture is
    curl -sS -o /dev/null -w '%{http_code}\n' https://agent-bitcoin.net/health
    # 200
    curl -sS -D - -o /dev/null https://agent-bitcoin.net/paid/finance/mempool-feerate
-   # 402 and a BOLT11 starting lnbc1u
+   # 402 and a BOLT11 starting lnbc100n (10 sats)
    ```
 
    Timeout / hang = DNS or port 443. `500` challenge failure = our AWS LND is **locked**.

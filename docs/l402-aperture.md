@@ -12,7 +12,7 @@ Lab EIP is `3.90.159.146` (stable).
 
 ## What it is
 
-Aperture sits in front of a dummy HTTP origin on AWS. A client that has not paid gets **HTTP 402** plus a macaroon and a 10 sat BOLT11. After the Mac LND node pays, the client retries with `Authorization: L402 <macaroon>:<preimage>` and Aperture proxies to the origin.
+Aperture sits in front of a dummy HTTP origin on AWS. A client that has not paid gets **HTTP 402** plus a macaroon and a 10 sat BOLT11. That invoice starts with `lnbc100n` (100 nano-bitcoin). A 100-sat invoice starts with `lnbc1u` or `lnbc1000n`. After the Mac LND node pays, the client retries with `Authorization: L402 <macaroon>:<preimage>` and Aperture proxies to the origin.
 
 ```text
 Mac  examples/l402_pay.py
@@ -40,6 +40,8 @@ AWS  agent-l402-aperture :8081   (plain HTTP; 8081 stays operator /32)
 ```
 
 There is **no platform fee**. The L402 price **is** the Lightning amount. `MIN_PAYMENT_SATS` stays 100 for ordinary invoices; the L402 client accepts this 10 sat challenge. Every paid path is **10 sats**, including hello, PDF, PNG, finance, and Nostr (feerate, backlog, fee-for-vsize, confirm-target, btc-usd, ln-path-fee-hint, ln-invoice-decode, ln-invoice-preflight, event-verify, npub-decode). `/health` and `/.well-known/l402-services` are free.
+
+`GET /paid/hello` is priced by the catch-all service `l402-demo` (`pathregexp: ^/.*$`, `price: 10`). A PUT to `/api/admin/services/hello` updates a different row. Change `l402-demo` to change that invoice.
 
 This is **not** a mempool.space replacement, FX oracle, or CoinGecko substitute. **mempool-feerate** is fee bands (sat/vB). **mempool-backlog** is fullness. **fee-for-vsize** multiplies those bands by a **vbyte** size. **confirm-target** maps a wait window (minutes) or named band onto `sat_vb` from the feerate cache. **btc-usd** is a **pass-through mark, not our index** — USD per 1 BTC from one public JSON URL. **ln-path-fee-hint** is what the **AWS agent LND** sees for a dest+amount (or bolt11) via readonly **QueryRoutes** — not Terminal, not RTL, not a route dump. **ln-invoice-decode** parses BOLT11 **in-process** (no LND) so an agent can inspect amount / dest / expiry / network before pay or path-hint. **ln-invoice-preflight** reuses that parse and returns `allow` plus reason codes (expired, zero_amount, below_floor, above_max_sats, network_mismatch, duplicate_payment_hash). Not a route check.
 
@@ -221,7 +223,7 @@ docker exec agent-payment-decision-lnd-mainnet lncli \
   --save_to /home/lnd/.lnd/data/chain/bitcoin/mainnet/l402-readonly.macaroon
 ```
 
-Compose default: `LND_READONLY_MACAROON_PATH=/lnd/data/chain/bitcoin/mainnet/l402-readonly.macaroon`. Smoke shortcut: point that env at LND’s existing `readonly.macaroon` (still not invoice/admin). Then `./startup-l402-aws.sh mainnet` and `docker restart agent-l402-aperture`. Unpaid POST → 402 + `lnbc1u`. Paid POST → 200 scalars or 404 `no_route`.
+Compose default: `LND_READONLY_MACAROON_PATH=/lnd/data/chain/bitcoin/mainnet/l402-readonly.macaroon`. Smoke shortcut: point that env at LND’s existing `readonly.macaroon` (still not invoice/admin). Then `./startup-l402-aws.sh mainnet` and `docker restart agent-l402-aperture`. Unpaid POST → 402 + `lnbc100n`. Paid POST → 200 scalars or 404 `no_route`.
 
 `POST /paid/finance/ln-invoice-decode` JSON body: `{ "bolt11": "lnbc..." }`. GET → **405**. Missing/empty/garbage → origin **400** `{ "ok": false, "error": "bad_invoice" }`. More than one `p` field → **400** `{ "ok": false, "error": "duplicate_payment_hash" }` (the first hash is not returned). **No LND** (no QueryRoutes, SendPayment, or DecodePayReq). `ttl_s` is **0**; no cache.
 
