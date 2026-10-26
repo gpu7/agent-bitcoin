@@ -1,3 +1,9 @@
+## Docs — mainnet bring-up script (2026-10-26)
+
+Add `./bring-up-mainnet.sh` for a dashboard that shows Bitcoin network unknown or AWS listchannels was not reached.
+
+---
+
 ## Changed — L402 invoice prefix (2026-10-25)
 
 A 10 sat challenge starts with `lnbc100n`. `/paid/hello` uses the catch-all service `l402-demo`.

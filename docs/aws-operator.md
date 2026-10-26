@@ -140,6 +140,22 @@ curl -sSI http://127.0.0.1:8081/paid/hello | head -n 1
 
 `./check-aws-health.sh` is the **regtest backend** check (`http://127.0.0.1:8000` and container `agent-payment-decision-lnd`). It does not unlock LND and it does not call Aperture. Use the curls above for 8081.
 
+### Mainnet dashboard bring-up
+
+When the dashboard shows Bitcoin network unknown or AWS listchannels was not reached, SSH to the AWS box and run `./bring-up-mainnet.sh`.
+
+Run it from `~/agent-bitcoin` on the AWS host, in a session that has a terminal. The unlock step prompts for `<LND_UNLOCK_PASSWORD>`. The script calls `./startup-mainnet-aws.sh 3.90.159.146` and `./startup-l402-aws.sh mainnet`, continues if those stacks are already up, unlocks `agent-payment-decision-lnd-mainnet`, prints `synced_to_chain`, `block_height`, `num_peers`, and `num_active_channels`, prints a `listchannels` summary, restarts `agent-l402-aperture`, and checks `http://127.0.0.1:8081/health`. It does not delete volumes.
+
+If a channel is inactive after that, reconnect from the Mac payer. Use the `identity_pubkey` from the `getinfo` the script just printed.
+
+```bash
+docker exec agent-bitcoin-lnd-mainnet \
+  lncli --lnddir=/home/lnd/.lnd --network=mainnet \
+  connect <pubkey-from-getinfo>@3.90.159.146:9735
+```
+
+The Mac wallet must already be unlocked. Signet still uses port **19735**. The same reconnect is in section 6.
+
 ## 6. After git pull
 
 `./startup-l402-aws.sh <network>` rebuilds the origin image and recreates those containers. Aperture is in the same compose file, so it is recreated with origin. Invoice LND is not in that file and should keep running if you did not pass `--remove-orphans`.
@@ -160,6 +176,7 @@ lncli connect <pubkey-from-getinfo>@3.90.159.146:9735
 | Symptom | Likely cause |
 |---|---|
 | `getinfo` says wallet locked after reboot or spot stop | Unlock with `<LND_UNLOCK_PASSWORD>` |
+| Bitcoin network unknown, or AWS listchannels was not reached | Invoice stack down or LND locked. On the AWS box, `./bring-up-mainnet.sh` |
 | Channel `active: false` | Peer down, wrong port, or SG missing 9735/19735. Reconnect as in section 6 |
 | Paid path returns 500 | Invoice LND is down or locked. Aperture cannot get a challenge invoice |
 | `curl` to 8081 times out from your laptop | Security group or wrong `3.90.159.146`. On the box, 127.0.0.1:8081 should still answer |
