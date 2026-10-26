@@ -241,10 +241,45 @@ def _aperture_http_status(path: str, text: str) -> int:
             for raw in re.findall(r'- "(.*)"', whitelist.group(1)):
                 if re.compile(_yaml_double_quoted(raw)).search(path):
                     return 200
-        if int(price_match.group(1)) == 0:
-            return 200
+        # Aperture v0.5.0 rewrites a static price of 0 to 1 sat, then charges.
         return 402
     return 404
+
+
+def test_price_zero_service_is_still_charged() -> None:
+    """A first-match service with price 0 and no whitelist is a 402."""
+    text = """
+services:
+  - name: "health"
+    hostregexp: ".*"
+    pathregexp: "^/health$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 0
+  - name: "l402-demo"
+    hostregexp: ".*"
+    pathregexp: "^/.*$"
+    address: "agent-l402-origin:8090"
+    protocol: "http"
+    price: 10
+    authwhitelistpaths:
+      - "^/health$"
+"""
+    assert _aperture_http_status("/health", text) == 402
+
+
+def test_reset_aperture_services_script_drops_rows_only() -> None:
+    script = Path(__file__).resolve().parents[1] / "reset-aperture-services.sh"
+    text = script.read_text(encoding="utf-8")
+    assert script.stat().st_mode & 0o111
+    assert "DELETE FROM services" in text
+    assert "agent-bitcoin_l402-aperture-mainnet" in text
+    assert "agent-l402-aperture" in text
+    assert "/data/aperture.db" in text
+    assert 'docker stop "$CONTAINER"' in text
+    assert 'docker start "$CONTAINER"' in text
+    assert "os.remove" not in text
+    assert "DROP TABLE" not in text
 
 
 def test_well_known_l402_services_is_public_json() -> None:

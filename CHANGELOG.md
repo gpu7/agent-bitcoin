@@ -1,3 +1,9 @@
+## Docs — Aperture free /health (2026-10-26)
+
+Aperture rewrites `price: 0` to 1 sat. `./reset-aperture-services.sh` deletes saved `services` rows so the YAML whitelist applies again.
+
+---
+
 ## Docs — mainnet bring-up script (2026-10-26)
 
 Add `./bring-up-mainnet.sh` for a dashboard that shows Bitcoin network unknown or AWS listchannels was not reached.
