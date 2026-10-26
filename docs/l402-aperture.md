@@ -43,6 +43,8 @@ There is **no platform fee**. The L402 price **is** the Lightning amount. `MIN_P
 
 `GET /paid/hello` is priced by the catch-all service `l402-demo` (`pathregexp: ^/.*$`, `price: 10`). A PUT to `/api/admin/services/hello` updates a different row. Change `l402-demo` to change that invoice.
 
+Aperture v0.5.0 rewrites a service `price` of 0 to 1 sat before it builds the pricer. `PUT /api/admin/services/<name>` with `{"price": 0}` is stored and returned as `"price": "1"`. A path is free when `authwhitelistpaths` on the service that matches includes it. `l402-demo` whitelists `^/health$`. Paid prices stay 10 sats.
+
 This is **not** a mempool.space replacement, FX oracle, or CoinGecko substitute. **mempool-feerate** is fee bands (sat/vB). **mempool-backlog** is fullness. **fee-for-vsize** multiplies those bands by a **vbyte** size. **confirm-target** maps a wait window (minutes) or named band onto `sat_vb` from the feerate cache. **btc-usd** is a **pass-through mark, not our index** — USD per 1 BTC from one public JSON URL. **ln-path-fee-hint** is what the **AWS agent LND** sees for a dest+amount (or bolt11) via readonly **QueryRoutes** — not Terminal, not RTL, not a route dump. **ln-invoice-decode** parses BOLT11 **in-process** (no LND) so an agent can inspect amount / dest / expiry / network before pay or path-hint. **ln-invoice-preflight** reuses that parse and returns `allow` plus reason codes (expired, zero_amount, below_floor, above_max_sats, network_mismatch, duplicate_payment_hash). Not a route check.
 
 Do **not** put Aperture in front of `/pay`, `/invoices`, or `/balance`.
@@ -70,6 +72,18 @@ git pull
 
 curl -sS http://127.0.0.1:8081/health          # 200, no payment
 curl -sSi http://127.0.0.1:8081/paid/hello     # 402 + WWW-Authenticate
+```
+
+If `/health` is 402, a row in the Aperture sqlite table `services` is matching ahead of the YAML. That table lives in `/root/.aperture/aperture.db` on volume `agent-bitcoin_l402-aperture-mainnet`. A saved row replaces the YAML service of the same name, is tried first, and has no `authwhitelistpaths` column, so a saved `l402-demo` (`^/.*$`) charges `/health`.
+
+```bash
+./reset-aperture-services.sh
+```
+
+The script stops `agent-l402-aperture`, runs `DELETE FROM services`, starts that container again, and checks `http://127.0.0.1:8081/health`. The database file stays. LND and bitcoind stay up. Expect HTTP 200 and no `WWW-Authenticate`:
+
+```bash
+curl -sS -D - -o /dev/null http://127.0.0.1:8081/health
 ```
 
 Stop (preserves Aperture sqlite + LND volumes):
