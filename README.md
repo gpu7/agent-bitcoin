@@ -23,6 +23,10 @@ Agent-to-Agent and Agent-to-Merchant Lightning payments with Bitcoin final settl
 
 ---
 
+> Why artificial intelligence will buy all of the bitcoin
+>
+> — [@DocumentingBTC](https://x.com/DocumentingBTC/status/2117621259710410933)
+
 ## Features
 
 - [Agentic Finance](#agentic-finance)
