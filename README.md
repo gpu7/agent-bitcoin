@@ -31,7 +31,7 @@ Agent-to-Agent and Agent-to-Merchant Lightning payments with Bitcoin final settl
 
 ## Features
 
-- [Agentic Finance](#agentic-finance)
+- [Agentic Commerce](#agentic-commerce)
 - [Autonomous AI Agent Swarms](#autonomous-ai-agent-swarms)
 - [Agent-to-Agent Lightning Network Payments](#agent-to-agent-lightning-network-payments)
 - [Agent-to-Merchant Lightning Network Payments](#agent-to-merchant-lightning-network-payments)
@@ -45,13 +45,13 @@ Agent-to-Agent and Agent-to-Merchant Lightning payments with Bitcoin final settl
 
 ---
 
-## Agentic Finance
+## Agentic Commerce
 
-Agentic finance is financial transactions and market activity carried out by autonomous goal-directed AI agents.  Human mediation is minimal or non-existent. Agents perceive data, make decisions under policy, and execute transactions (pay, invoice, reconcile, route a trade) with minimal or no human prompting.
+Agentic commerce is financial transactions and market activity carried out by autonomous goal-directed AI agents.  Human mediation is minimal or non-existent. Agents perceive data, make decisions under policy, and execute transactions (pay, invoice, reconcile, route a trade) with minimal or no human prompting.
 
 **The term is used in two overlapping ways:**
 
-- Enterprise finance ops — specialized agents own jobs such as invoicing, matching trades, controls, and close, across existing systems. Humans set limits and handle exceptions.
+- Enterprise commerce ops — specialized agents own jobs such as invoicing, matching trades, controls, and close, across existing systems. Humans set limits and handle exceptions.
 
 - Markets and payments — autonomous or semi-autonomous agents take part in information management, monitoring, and execution, so their actions can move money or prices.
 
