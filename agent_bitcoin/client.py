@@ -302,3 +302,17 @@ class AgentBitcoinClient:
 def create_client() -> AgentBitcoinClient:
     """Factory function"""
     return AgentBitcoinClient()
+
+
+def pay_invoice(
+    payment_request: str,
+    fee_limit_sats: int = 200,
+    *,
+    minimum_sats: int | None = None,
+) -> PaymentResult:
+    """Pay a BOLT11 invoice. Same checks as AgentBitcoinClient.pay_invoice."""
+    return create_client().pay_invoice(
+        payment_request,
+        fee_limit_sats=fee_limit_sats,
+        minimum_sats=minimum_sats,
+    )

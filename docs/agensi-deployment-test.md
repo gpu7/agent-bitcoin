@@ -12,10 +12,20 @@ The check follows that page. It does not include the paid skill file, and it doe
 | Python 3.10+ and `pip install agent-bitcoin` | `--phase install` uses a new virtualenv and installs this package with pip. |
 | Unlocked LND node | `--phase pay` uses a node the operator already unlocked. The script does not create one. |
 | `AGENT_BITCOIN_ALLOW_MAINNET` for mainnet | The script does not set this. A mainnet pay without it fails with the SDK's own error. |
-| SDK method `agent_bitcoin.pay_invoice` | `--phase install` calls that name with no invoice and prints the traceback. |
+| SDK method `agent_bitcoin.pay_invoice` | `--phase install` calls `agent_bitcoin.pay_invoice("")`. A missing invoice raises `ValueError`. `AttributeError` fails the phase. |
 | Create or fetch an invoice, pay, return a hash | `--phase pay` creates a 500 sat invoice, pays it, and requires status `SUCCEEDED` plus a payment hash. |
 
 The worked example on the listing is 500 sats. The pay phase uses that amount.
+
+A buyer pays with the function the listing names:
+
+```python
+from agent_bitcoin import pay_invoice
+
+result = pay_invoice(payment_request)
+```
+
+`payment_request` is the BOLT11 invoice. The same amount checks and mainnet kill switches as `AgentBitcoinClient.pay_invoice` apply. An empty payment request raises `ValueError`.
 
 ## Install phase
 
@@ -28,7 +38,7 @@ python3 -m venv /tmp/agensi-buyer
 /tmp/agensi-buyer/bin/python tests/deployment/agensi_public_buyer.py --phase install
 ```
 
-`pip install .` is the same package the listing names (`agent-bitcoin`), built from this commit. The virtualenv has no dev extras. Success means the import worked. The traceback from `agent_bitcoin.pay_invoice()` is the text a buyer would see; the install phase still exits 0 after printing it.
+`pip install .` is the same package the listing names (`agent-bitcoin`), built from this commit. The virtualenv has no dev extras. Success means `agent_bitcoin.pay_invoice("")` raises `ValueError` for a missing payment request and does not raise `AttributeError`. Nothing is paid.
 
 Pull requests run this phase in `.github/workflows/agensi-public-buyer.yml`. The default `pytest` run does not collect the script.
 

@@ -8,7 +8,7 @@ A Python library for Lightning Network payments between autonomous AI agents.
 __version__ = "27.1.2"
 
 # Core
-from .client import AgentBitcoinClient, create_client
+from .client import AgentBitcoinClient, create_client, pay_invoice
 from .constants import (
     DEFAULT_L402_PRICE_SATS,
     DEFAULT_MAX_PAYMENT_SATS,
@@ -44,6 +44,7 @@ __all__ = [
     "InvoiceQuote",
     "PayerDecisionInputs",
     "create_client",
+    "pay_invoice",
     "DEFAULT_MIN_PAYMENT_SATS",
     "DEFAULT_MAX_PAYMENT_SATS",
     "DEFAULT_L402_PRICE_SATS",

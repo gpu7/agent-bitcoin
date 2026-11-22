@@ -7,9 +7,10 @@ Run this with the Python from a fresh virtualenv whose only install was
 Phases
 ------
 install
-    Import the package. Then call ``agent_bitcoin.pay_invoice()``, the method
-    name printed on the listing, and print whatever the buyer would see.
-    The phase succeeds when the import succeeds.
+    Import the package. Then call ``agent_bitcoin.pay_invoice("")``, the
+    function named on the listing, with no invoice. The phase succeeds when
+    that call raises ``ValueError`` for a missing payment request. An
+    ``AttributeError`` fails the phase.
 pay
     Create an invoice, pay it, and require a settled receipt. The operator
     must already have the unlocked LND node the listing requires. This phase
@@ -38,12 +39,23 @@ def phase_install() -> int:
 
     version = getattr(agent_bitcoin, "__version__", "unknown")
     print(f"imported agent-bitcoin {version}", flush=True)
-    print("--- listing call: agent_bitcoin.pay_invoice() ---", flush=True)
+    print("--- listing call: agent_bitcoin.pay_invoice('') ---", flush=True)
     try:
-        agent_bitcoin.pay_invoice()
+        agent_bitcoin.pay_invoice("")
+    except AttributeError:
+        traceback.print_exc()
+        return 1
+    except ValueError as exc:
+        print(f"{type(exc).__name__}: {exc}", flush=True)
+        if "Payment request" in str(exc):
+            return 0
+        print("unexpected ValueError", file=sys.stderr)
+        return 1
     except Exception:
         traceback.print_exc()
-    return 0
+        return 1
+    print("pay_invoice('') returned without an error", file=sys.stderr)
+    return 1
 
 
 def phase_pay() -> int:
@@ -60,7 +72,7 @@ def phase_pay() -> int:
             memo="agensi public buyer",
             amount_sats=EXAMPLE_AMOUNT_SATS,
         )
-        result = client.pay_invoice(invoice.payment_request)
+        result = agent_bitcoin.pay_invoice(invoice.payment_request)
     except Exception:
         traceback.print_exc()
         return 1

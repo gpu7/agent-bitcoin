@@ -1,3 +1,9 @@
+## Changed — module pay_invoice (2026-11-22)
+
+`agent_bitcoin.pay_invoice` pays a BOLT11 invoice with the same checks as `AgentBitcoinClient.pay_invoice`.
+
+---
+
 ## Docs — Agensi public buyer check (2026-11-22)
 
 A fresh virtualenv installs `agent-bitcoin` the way the Agensi listing says. Live settlement stays a manual job.
