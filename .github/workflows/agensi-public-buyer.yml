@@ -1,0 +1,60 @@
+name: Agensi public buyer
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      phase:
+        description: install checks the public pip install. pay settles 500 sats on an unlocked node.
+        type: choice
+        options:
+          - install
+          - pay
+        default: install
+
+permissions:
+  contents: read
+
+jobs:
+  public-install:
+    if: github.event_name == 'pull_request' || inputs.phase == 'install'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install the published package in a fresh virtualenv
+        run: |
+          python -m venv /tmp/agensi-buyer
+          /tmp/agensi-buyer/bin/pip install --upgrade pip
+          /tmp/agensi-buyer/bin/pip install .
+
+      - name: Run the public install phase
+        run: /tmp/agensi-buyer/bin/python tests/deployment/agensi_public_buyer.py --phase install
+
+  public-pay:
+    if: github.event_name == 'workflow_dispatch' && inputs.phase == 'pay'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install the published package in a fresh virtualenv
+        run: |
+          python -m venv /tmp/agensi-buyer
+          /tmp/agensi-buyer/bin/pip install --upgrade pip
+          /tmp/agensi-buyer/bin/pip install .
+
+      - name: Run the public pay phase
+        run: /tmp/agensi-buyer/bin/python tests/deployment/agensi_public_buyer.py --phase pay

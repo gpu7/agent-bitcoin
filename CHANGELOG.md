@@ -1,3 +1,9 @@
+## Docs — Agensi public buyer check (2026-11-22)
+
+A fresh virtualenv installs `agent-bitcoin` the way the Agensi listing says. Live settlement stays a manual job.
+
+---
+
 ## Docs — Aperture free /health (2026-10-26)
 
 Aperture rewrites `price: 0` to 1 sat. `./reset-aperture-services.sh` deletes saved `services` rows so the YAML whitelist applies again.
