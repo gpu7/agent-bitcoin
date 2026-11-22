@@ -5,7 +5,7 @@ Agent-Bitcoin SDK
 A Python library for Lightning Network payments between autonomous AI agents.
 """
 
-__version__ = "27.1.2"
+__version__ = "27.1.3"
 
 # Core
 from .client import AgentBitcoinClient, create_client, pay_invoice

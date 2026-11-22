@@ -1,3 +1,9 @@
+## Changed — 27.1.3 (2026-11-22)
+
+Publish `agent_bitcoin.pay_invoice` to PyPI.
+
+---
+
 ## Changed — module pay_invoice (2026-11-22)
 
 `agent_bitcoin.pay_invoice` pays a BOLT11 invoice with the same checks as `AgentBitcoinClient.pay_invoice`.
