@@ -1,3 +1,9 @@
+## Docs — Agensi payment status skill (2026-11-23)
+
+`skills/payment-status-tracking/SKILL.md` reads Lightning payment status and recent payments. It does not move funds.
+
+---
+
 ## Docs — Agensi channel status skill (2026-11-23)
 
 `skills/channel-status-balance/SKILL.md` reads Lightning channel status and balances. It does not move funds.
