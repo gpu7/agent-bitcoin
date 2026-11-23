@@ -86,3 +86,11 @@ Manual. The operator supplies the unlocked LND node the listing requires.
 Success prints `status=SUCCEEDED`, `success=True`, and `payment_hash=present`. The hash, the invoice, and the preimage are not printed. Any exception is printed in full and the process exits 1.
 
 GitHub can start the same phase with `workflow_dispatch` and phase `pay`. A hosted runner has no LND node, so that run fails with the connection error a buyer would see. It is not a pull-request check.
+
+## Skills
+
+`skills/channel-status-balance/SKILL.md` reads Lightning channel status and balances from an unlocked node. It does not move funds.
+
+```bash
+uv run pytest tests/test_skill_channel_status_balance.py
+```
