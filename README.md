@@ -311,8 +311,7 @@ Payer, Invoice, Aperture, and Nostr details now use separate lines.
 Start the mainnet map on the Mac with:
 
 ```bash
-DASHBOARD_APERTURE_URL=http://3.90.159.146:8081
-uv run python -m agent_bitcoin.dashboard
+./startup-dashboard.sh
 ```
 
 Then open http://127.0.0.1:8765. It listens only on 127.0.0.1.
