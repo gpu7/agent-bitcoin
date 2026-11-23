@@ -1,3 +1,9 @@
+## Docs — dashboard startup script (2026-11-23)
+
+`./startup-dashboard.sh` starts the Mac dashboard.
+
+---
+
 ## Changed — 27.1.3 (2026-11-22)
 
 Publish `agent_bitcoin.pay_invoice` to PyPI.
