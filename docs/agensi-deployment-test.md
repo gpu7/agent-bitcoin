@@ -100,3 +100,9 @@ uv run pytest tests/test_skill_channel_status_balance.py
 ```bash
 uv run pytest tests/test_skill_payment_status_tracking.py
 ```
+
+`skills/peer-status-connectivity/SKILL.md` reads Lightning peer connectivity from an unlocked node. It does not change peer connections or channel state.
+
+```bash
+uv run pytest tests/test_skill_peer_status_connectivity.py
+```

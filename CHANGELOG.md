@@ -1,3 +1,9 @@
+## Docs — Agensi peer status skill (2026-11-23)
+
+`skills/peer-status-connectivity/SKILL.md` reads Lightning peer connectivity. It does not change peer connections or channel state.
+
+---
+
 ## Docs — Agensi payment status skill (2026-11-23)
 
 `skills/payment-status-tracking/SKILL.md` reads Lightning payment status and recent payments. It does not move funds.
