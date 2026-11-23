@@ -1,3 +1,9 @@
+## Docs — Agensi invoice decode checklist (2026-11-23)
+
+`examples/agensi-invoice-buyer-check.sh` installs `agent-bitcoin` from PyPI and checks `inspect_payment_hashes` on an invalid invoice. It does not pay.
+
+---
+
 ## Docs — Agensi L402 buyer checklist (2026-11-23)
 
 `examples/agensi-l402-buyer-check.sh` installs `agent-bitcoin` from PyPI and checks `L402Client.fetch` without paying.
