@@ -1,3 +1,9 @@
+## Docs — Agensi wallet balance skill (2026-11-23)
+
+`skills/wallet-balance-status/SKILL.md` reads on-chain and channel balances and node status. It does not move funds.
+
+---
+
 ## Docs — Agensi peer status skill (2026-11-23)
 
 `skills/peer-status-connectivity/SKILL.md` reads Lightning peer connectivity. It does not change peer connections or channel state.
