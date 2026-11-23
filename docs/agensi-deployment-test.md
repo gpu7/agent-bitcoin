@@ -94,3 +94,9 @@ GitHub can start the same phase with `workflow_dispatch` and phase `pay`. A host
 ```bash
 uv run pytest tests/test_skill_channel_status_balance.py
 ```
+
+`skills/payment-status-tracking/SKILL.md` reads Lightning payment status and recent payments from an unlocked node. It does not move funds.
+
+```bash
+uv run pytest tests/test_skill_payment_status_tracking.py
+```
