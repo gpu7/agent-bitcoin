@@ -9,10 +9,11 @@ The check follows that page. It does not include the paid skill file, and it doe
 | Listing step | What this check does |
 |---|---|
 | Connect an agent to `https://mcp.agensi.io/mcp/auth`, sign in, and click Allow | Not automated. The page requires an interactive sign-in. |
-| Python 3.10+ and `pip install agent-bitcoin` | `--phase install` uses a new virtualenv and installs this package with pip. |
-| Unlocked LND node | `--phase pay` uses a node the operator already unlocked. The script does not create one. |
-| `AGENT_BITCOIN_ALLOW_MAINNET` for mainnet | The script does not set this. A mainnet pay without it fails with the SDK's own error. |
+| Python 3.10+ and `pip install agent-bitcoin` | `examples/agensi-buyer-check.sh` creates a virtualenv and runs that install with no version pin. |
+| Unlocked LND node | `--phase probe` calls `getinfo` on a node the operator already unlocked. The script does not create one. |
+| `AGENT_BITCOIN_ALLOW_MAINNET` for mainnet | The checklist does not set this. Regtest is the default. A mainnet client without the variable raises the SDK configuration error. A mainnet pay also needs `AGENT_BITCOIN_ALLOW_AUTOPAY=1`. |
 | SDK method `agent_bitcoin.pay_invoice` | `--phase install` calls `agent_bitcoin.pay_invoice("")`. A missing invoice raises `ValueError`. `AttributeError` fails the phase. |
+| Nostr identities | The listing describes an identity check. This repo does not ship the paid skill. The probe refuses a value that starts with `nsec` and does not print it. |
 | Create or fetch an invoice, pay, return a hash | `--phase pay` creates a 500 sat invoice, pays it, and requires status `SUCCEEDED` plus a payment hash. |
 
 The worked example on the listing is 500 sats. The pay phase uses that amount.
@@ -27,20 +28,52 @@ result = pay_invoice(payment_request)
 
 `payment_request` is the BOLT11 invoice. The same amount checks and mainnet kill switches as `AgentBitcoinClient.pay_invoice` apply. An empty payment request raises `ValueError`.
 
-## Install phase
+## Checklist
 
-From a clean checkout:
+From a checkout, on a machine with Python 3.10+:
+
+```bash
+./examples/agensi-buyer-check.sh
+```
+
+The script changes to `/tmp` before `pip install` so pip does not treat this checkout as the package. The listing install, copied on its own, is:
 
 ```bash
 python3 -m venv /tmp/agensi-buyer
 /tmp/agensi-buyer/bin/pip install --upgrade pip
-/tmp/agensi-buyer/bin/pip install .
-/tmp/agensi-buyer/bin/python tests/deployment/agensi_public_buyer.py --phase install
+/tmp/agensi-buyer/bin/pip install agent-bitcoin
 ```
 
-`pip install .` is the same package the listing names (`agent-bitcoin`), built from this commit. The virtualenv has no dev extras. Success means `agent_bitcoin.pay_invoice("")` raises `ValueError` for a missing payment request and does not raise `AttributeError`. Nothing is paid.
+The same install with uv:
 
-Pull requests run this phase in `.github/workflows/agensi-public-buyer.yml`. The default `pytest` run does not collect the script.
+```bash
+uv venv /tmp/agensi-buyer
+uv pip install --python /tmp/agensi-buyer/bin/python agent-bitcoin
+```
+
+Success prints the package version, then:
+
+```text
+imported agent-bitcoin <version>
+--- listing call: agent_bitcoin.pay_invoice('') ---
+ValueError: Payment request is required
+```
+
+The script exits 0. Nothing is paid. `AGENT_BITCOIN_ALLOW_MAINNET` is not set.
+
+Pull requests also install this commit with `pip install .` and run `--phase install` in `.github/workflows/agensi-public-buyer.yml`. `tests/test_agensi_buyer.py` is part of the normal pytest run. The deployment script itself is not collected.
+
+## LND probe
+
+Manual. The operator already has the unlocked node. Regtest is the default. Do not set `AGENT_BITCOIN_ALLOW_MAINNET` for this command.
+
+From the repo root:
+
+```bash
+/tmp/agensi-buyer/bin/python tests/deployment/agensi_public_buyer.py --phase probe
+```
+
+Success prints `lnd_reachable=yes`, `synced_to_chain`, the alias, and `identity=present` or `identity=absent`. The pubkey is not printed. A connection error is printed in full and the process exits 1. This command is not a pull-request check.
 
 ## Pay phase
 

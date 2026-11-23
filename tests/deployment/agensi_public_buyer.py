@@ -11,6 +11,10 @@ install
     function named on the listing, with no invoice. The phase succeeds when
     that call raises ``ValueError`` for a missing payment request. An
     ``AttributeError`` fails the phase.
+probe
+    Read ``getinfo`` from the unlocked LND node. Prints sync, alias, and
+    whether an identity pubkey is present. Does not print the pubkey, an
+    invoice, a preimage, or an nsec. Does not pay.
 pay
     Create an invoice, pay it, and require a settled receipt. The operator
     must already have the unlocked LND node the listing requires. This phase
@@ -58,6 +62,42 @@ def phase_install() -> int:
     return 1
 
 
+def format_lnd_probe(info: dict) -> str:
+    """Buyer-visible getinfo line. Omits the pubkey and refuses an nsec."""
+    for value in info.values():
+        items = value if isinstance(value, list) else [value]
+        for item in items:
+            if isinstance(item, str) and item.strip().lower().startswith("nsec"):
+                raise ValueError("refusing nsec")
+    alias = str(info.get("alias") or "")
+    synced = info.get("synced_to_chain")
+    identity = "present" if info.get("identity_pubkey") else "absent"
+    return (
+        f"lnd_reachable=yes synced_to_chain={synced} alias={alias} identity={identity}"
+    )
+
+
+def phase_probe() -> int:
+    try:
+        import agent_bitcoin
+    except Exception:
+        print("import agent_bitcoin failed", file=sys.stderr)
+        traceback.print_exc()
+        return 1
+
+    try:
+        client = agent_bitcoin.create_client()
+        info = client.lnd.get_info()
+        if not isinstance(info, dict):
+            print("getinfo did not return a dict", file=sys.stderr)
+            return 1
+        print(format_lnd_probe(info), flush=True)
+    except Exception:
+        traceback.print_exc()
+        return 1
+    return 0
+
+
 def phase_pay() -> int:
     try:
         import agent_bitcoin
@@ -93,10 +133,12 @@ def phase_pay() -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=f"Public buyer check for {LISTING}")
-    parser.add_argument("--phase", choices=("install", "pay"), required=True)
+    parser.add_argument("--phase", choices=("install", "probe", "pay"), required=True)
     args = parser.parse_args(argv)
     if args.phase == "install":
         return phase_install()
+    if args.phase == "probe":
+        return phase_probe()
     return phase_pay()
 
 

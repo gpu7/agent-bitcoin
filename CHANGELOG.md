@@ -1,3 +1,9 @@
+## Docs — Agensi buyer checklist (2026-11-23)
+
+`examples/agensi-buyer-check.sh` installs `agent-bitcoin` from PyPI and checks `pay_invoice`. The LND probe and the payment stay manual.
+
+---
+
 ## Docs — dashboard startup script (2026-11-23)
 
 `./startup-dashboard.sh` starts the Mac dashboard.
