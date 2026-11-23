@@ -1,3 +1,9 @@
+## Docs — Agensi channel status skill (2026-11-23)
+
+`skills/channel-status-balance/SKILL.md` reads Lightning channel status and balances. It does not move funds.
+
+---
+
 ## Docs — Agensi invoice decode checklist (2026-11-23)
 
 `examples/agensi-invoice-buyer-check.sh` installs `agent-bitcoin` from PyPI and checks `inspect_payment_hashes` on an invalid invoice. It does not pay.
