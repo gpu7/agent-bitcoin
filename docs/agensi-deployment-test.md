@@ -106,3 +106,9 @@ uv run pytest tests/test_skill_payment_status_tracking.py
 ```bash
 uv run pytest tests/test_skill_peer_status_connectivity.py
 ```
+
+`skills/wallet-balance-status/SKILL.md` reads on-chain and channel balances and node status from an unlocked node. It does not move funds.
+
+```bash
+uv run pytest tests/test_skill_wallet_balance_status.py
+```
