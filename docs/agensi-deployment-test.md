@@ -124,3 +124,9 @@ uv run pytest tests/test_skill_fee_estimation_routing.py
 ```bash
 uv run pytest tests/test_skill_pending_channel_status.py
 ```
+
+`skills/invoice-list-status/SKILL.md` reads recent Lightning invoices from an unlocked node. It does not change invoice state.
+
+```bash
+uv run pytest tests/test_skill_invoice_list_status.py
+```
