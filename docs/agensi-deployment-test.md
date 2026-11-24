@@ -112,3 +112,9 @@ uv run pytest tests/test_skill_peer_status_connectivity.py
 ```bash
 uv run pytest tests/test_skill_wallet_balance_status.py
 ```
+
+`skills/fee-estimation-routing/SKILL.md` reads on-chain and Lightning fee estimates from an unlocked node. It does not move funds.
+
+```bash
+uv run pytest tests/test_skill_fee_estimation_routing.py
+```

@@ -1,3 +1,9 @@
+## Docs — Agensi fee estimation skill (2026-11-24)
+
+`skills/fee-estimation-routing/SKILL.md` reads on-chain and Lightning fee estimates. It does not move funds.
+
+---
+
 ## Docs — Agensi wallet balance skill (2026-11-23)
 
 `skills/wallet-balance-status/SKILL.md` reads on-chain and channel balances and node status. It does not move funds.
