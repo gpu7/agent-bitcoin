@@ -1,3 +1,9 @@
+## Docs — Agensi invoice list skill (2026-11-24)
+
+`skills/invoice-list-status/SKILL.md` reads recent Lightning invoices. It does not change invoice state.
+
+---
+
 ## Docs — Agensi pending channel skill (2026-11-24)
 
 `skills/pending-channel-status/SKILL.md` reads pending Lightning channels. It does not change channel state.
