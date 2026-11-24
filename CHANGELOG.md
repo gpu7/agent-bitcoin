@@ -1,3 +1,9 @@
+## Docs — Agensi pending channel skill (2026-11-24)
+
+`skills/pending-channel-status/SKILL.md` reads pending Lightning channels. It does not change channel state.
+
+---
+
 ## Docs — Agensi fee estimation skill (2026-11-24)
 
 `skills/fee-estimation-routing/SKILL.md` reads on-chain and Lightning fee estimates. It does not move funds.

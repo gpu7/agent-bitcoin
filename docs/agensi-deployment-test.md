@@ -118,3 +118,9 @@ uv run pytest tests/test_skill_wallet_balance_status.py
 ```bash
 uv run pytest tests/test_skill_fee_estimation_routing.py
 ```
+
+`skills/pending-channel-status/SKILL.md` reads pending Lightning channels from an unlocked node. It does not change channel state.
+
+```bash
+uv run pytest tests/test_skill_pending_channel_status.py
+```
