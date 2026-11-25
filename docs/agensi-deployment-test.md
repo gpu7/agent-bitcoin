@@ -142,3 +142,9 @@ uv run pytest tests/test_skill_nostr_identity_status.py
 ```bash
 uv run pytest tests/test_skill_l402_endpoint_health.py
 ```
+
+`skills/graph-network-status/SKILL.md` reads Lightning graph size and a short node sample from an unlocked node. It does not change peer connections or channel state.
+
+```bash
+uv run pytest tests/test_skill_graph_network_status.py
+```
