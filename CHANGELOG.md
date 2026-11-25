@@ -1,3 +1,9 @@
+## Docs — Agensi node connectivity skill (2026-11-25)
+
+`skills/node-connectivity-summary/SKILL.md` reads peer counts, channel counts, and a short peer sample. It does not change peer connections or channel state.
+
+---
+
 ## Docs — Agensi fee rate skill (2026-11-25)
 
 `skills/fee-rate-recommendation/SKILL.md` reads on-chain fee rates for three confirmation targets. It does not move funds.
