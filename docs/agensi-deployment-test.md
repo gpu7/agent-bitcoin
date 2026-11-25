@@ -160,3 +160,9 @@ uv run pytest tests/test_skill_backup_status.py
 ```bash
 uv run pytest tests/test_skill_fee_rate_recommendation.py
 ```
+
+`skills/node-connectivity-summary/SKILL.md` reads peer counts, channel counts, and a short peer sample from an unlocked node. It does not change peer connections or channel state.
+
+```bash
+uv run pytest tests/test_skill_node_connectivity_summary.py
+```
