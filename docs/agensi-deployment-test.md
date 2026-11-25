@@ -130,3 +130,9 @@ uv run pytest tests/test_skill_pending_channel_status.py
 ```bash
 uv run pytest tests/test_skill_invoice_list_status.py
 ```
+
+`skills/nostr-identity-status/SKILL.md` reads a local Nostr public identity from public files. It does not generate keys.
+
+```bash
+uv run pytest tests/test_skill_nostr_identity_status.py
+```
