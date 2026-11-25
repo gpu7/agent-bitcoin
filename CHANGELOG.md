@@ -1,3 +1,9 @@
+## Docs — Agensi fee rate skill (2026-11-25)
+
+`skills/fee-rate-recommendation/SKILL.md` reads on-chain fee rates for three confirmation targets. It does not move funds.
+
+---
+
 ## Docs — Agensi backup status skill (2026-11-25)
 
 `skills/backup-status/SKILL.md` reads channel backup file metadata. It does not write a backup file.
