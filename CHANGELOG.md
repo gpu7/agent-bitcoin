@@ -1,3 +1,9 @@
+## Docs — Agensi Nostr identity skill (2026-11-25)
+
+`skills/nostr-identity-status/SKILL.md` reads a local Nostr public identity from public files. It does not generate keys.
+
+---
+
 ## Docs — Agensi invoice list skill (2026-11-24)
 
 `skills/invoice-list-status/SKILL.md` reads recent Lightning invoices. It does not change invoice state.
