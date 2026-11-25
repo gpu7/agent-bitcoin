@@ -136,3 +136,9 @@ uv run pytest tests/test_skill_invoice_list_status.py
 ```bash
 uv run pytest tests/test_skill_nostr_identity_status.py
 ```
+
+`skills/l402-endpoint-health/SKILL.md` reads an L402 `/health` path and a 402 challenge. It does not complete the challenge.
+
+```bash
+uv run pytest tests/test_skill_l402_endpoint_health.py
+```
