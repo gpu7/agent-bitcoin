@@ -1,3 +1,9 @@
+## Docs — Agensi payment history skill (2026-11-25)
+
+`skills/payment-history-summary/SKILL.md` reads recent sent and received Lightning payments. It does not change payment state.
+
+---
+
 ## Docs — Agensi node connectivity skill (2026-11-25)
 
 `skills/node-connectivity-summary/SKILL.md` reads peer counts, channel counts, and a short peer sample. It does not change peer connections or channel state.
