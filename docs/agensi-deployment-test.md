@@ -148,3 +148,9 @@ uv run pytest tests/test_skill_l402_endpoint_health.py
 ```bash
 uv run pytest tests/test_skill_graph_network_status.py
 ```
+
+`skills/backup-status/SKILL.md` reads channel backup file metadata from an existing file. It does not write a backup file.
+
+```bash
+uv run pytest tests/test_skill_backup_status.py
+```
