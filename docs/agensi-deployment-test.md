@@ -166,3 +166,9 @@ uv run pytest tests/test_skill_fee_rate_recommendation.py
 ```bash
 uv run pytest tests/test_skill_node_connectivity_summary.py
 ```
+
+`skills/payment-history-summary/SKILL.md` reads recent sent and received Lightning payments from an unlocked node. It does not change payment state.
+
+```bash
+uv run pytest tests/test_skill_payment_history_summary.py
+```
