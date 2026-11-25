@@ -1,3 +1,9 @@
+## Docs — Agensi L402 health skill (2026-11-25)
+
+`skills/l402-endpoint-health/SKILL.md` reads an L402 `/health` path and a 402 challenge. It does not complete the challenge.
+
+---
+
 ## Docs — Agensi Nostr identity skill (2026-11-25)
 
 `skills/nostr-identity-status/SKILL.md` reads a local Nostr public identity from public files. It does not generate keys.
