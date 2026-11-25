@@ -154,3 +154,9 @@ uv run pytest tests/test_skill_graph_network_status.py
 ```bash
 uv run pytest tests/test_skill_backup_status.py
 ```
+
+`skills/fee-rate-recommendation/SKILL.md` reads on-chain fee rates for three confirmation targets. It does not move funds.
+
+```bash
+uv run pytest tests/test_skill_fee_rate_recommendation.py
+```
