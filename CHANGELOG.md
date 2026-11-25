@@ -1,3 +1,9 @@
+## Docs — Agensi backup status skill (2026-11-25)
+
+`skills/backup-status/SKILL.md` reads channel backup file metadata. It does not write a backup file.
+
+---
+
 ## Docs — Agensi graph status skill (2026-11-25)
 
 `skills/graph-network-status/SKILL.md` reads Lightning graph size and a short node sample. It does not change peer connections or channel state.
